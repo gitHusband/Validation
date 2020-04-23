@@ -845,7 +845,8 @@ class Validation {
     public function get_error($standard=true, $simple=true)
     {
         if(!$this->_validation_global) {
-            return current($this->_classic_errors['simple']);
+            if($simple) return current($this->_classic_errors['simple']);
+            else return current($this->_classic_errors['complex']);
         }
 
         if($standard) {

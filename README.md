@@ -451,6 +451,55 @@ $validation = new Validation($validation_conf);
 ```
 "phone" => "*|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
 ```
+自定义函数也可自定义错误信息, 优先级低于 " >> "
+
+当函数返回值 === true 时，表示验证成功，否则表示验证失败
+
+所以函数允许三种错误返回：
+1. 直接返回 false
+2. 返回错误信息字符串
+3. 返回错误信息数组，默认有两个字段，error_type 和 message，支持自定义字段
+
+```
+function check_age($data, $gender, $param) {
+    if($gender == "male") {
+        // if($data > $param) return false;
+        if($data > $param) return "@me should be greater than @p1 when gender is male";
+    }else {
+        if($data < $param) return array(
+            'error_type' => 'server_error',
+            'message' => '@me should be less than @p1 when gender is female',
+            "extra" => "extra message"
+        );
+    }
+
+    return true;
+}
+```
+### 4.11 支持多种错误信息格式
+如果是验证一旦错误则立即返回的情况下，有两种错误信息格式可以返回：
+
+返回错误信息字符串
+> $validation->get_error(false, true);
+
+```
+"id 必须是整型"
+```
+
+返回错误信息数组，默认有两个字段，error_type 和 message，支持自定义字段
+
+> $validation->get_error(false, false);
+
+```
+{
+    "error_type": "validation",
+    "message": "id 必须是整型"
+}
+```
+
+如果是验证所有字段的情况下，有两种错误信息格式可以返回：
+
+详见附录 2
 
 
 ---
@@ -502,6 +551,173 @@ dob | @me 必须是正确的日期
 file_base64 | @me 必须是正确的文件的base64码
 
 ---
+
+
+---
+## 附录 2
+### 第一种
+> $validation->get_error(false, true);
+
+```
+{
+    "id": "id 必须是整型",
+    "height": "height should be in [100,200] when height_unit is cm or height should be in [1,2] when height_unit is m",
+    "company.postcode": "*** check_postcode method error message(company.postcode)",
+    "company.colleagues.0.name": "company.colleagues.0.name 必须是字符串",
+    "company.colleagues.1.name": "company.colleagues.1.name 必须是字符串",
+    "company.colleagues.1.position": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA",
+    "company.colleagues.2.name": "company.colleagues.2.name 必须是字符串",
+    "company.colleagues.3.position": "company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA",
+    "company.boss.0": "company.boss.0 必须等于 Mike",
+    "company.boss.2": "company.boss.2 必须是字符串且在此之内 Johnny,David"
+}
+```
+### 第二种
+> $validation->get_error(false, false);
+
+```
+{
+    "id": {
+        "error_type": "validation",
+        "message": "id 必须是整型"
+    },
+    "height": {
+        "error_type": "validation",
+        "message": "height should be in [100,200] when height_unit is cm or height should be in [1,2] when height_unit is m"
+    },
+    "company.postcode": {
+        "error_type": "server_error",
+        "message": "*** check_postcode method error message(company.postcode)",
+        "extra": "extra message"
+    },
+    "company.colleagues.0.name": {
+        "error_type": "validation",
+        "message": "company.colleagues.0.name 必须是字符串"
+    },
+    "company.colleagues.1.name": {
+        "error_type": "validation",
+        "message": "company.colleagues.1.name 必须是字符串"
+    },
+    "company.colleagues.1.position": {
+        "error_type": "validation",
+        "message": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
+    },
+    "company.colleagues.2.name": {
+        "error_type": "validation",
+        "message": "company.colleagues.2.name 必须是字符串"
+    },
+    "company.colleagues.3.position": {
+        "error_type": "validation",
+        "message": "company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
+    },
+    "company.boss.0": {
+        "error_type": "validation",
+        "message": "company.boss.0 必须等于 Mike"
+    },
+    "company.boss.2": {
+        "error_type": "validation",
+        "message": "company.boss.2 必须是字符串且在此之内 Johnny,David"
+    }
+}
+```
+
+### 第三种
+> $validation->get_error(true, true);
+
+```
+{
+    "id": "id 必须是整型",
+    "height": "height should be in [100,200] when height_unit is cm or height should be in [1,2] when height_unit is m",
+    "company": {
+        "postcode": "*** check_postcode method error message(company.postcode)",
+        "colleagues": [
+            {
+                "name": "company.colleagues.0.name 必须是字符串"
+            },
+            {
+                "name": "company.colleagues.1.name 必须是字符串",
+                "position": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
+            },
+            {
+                "name": "company.colleagues.2.name 必须是字符串"
+            },
+            {
+                "position": "company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
+            }
+        ],
+        "boss": {
+            "0": "company.boss.0 必须等于 Mike",
+            "2": "company.boss.2 必须是字符串且在此之内 Johnny,David"
+        }
+    }
+}
+```
+### 第四种
+> $validation->get_error(true, false);
+
+
+```
+{
+    "id": {
+        "error_type": "validation",
+        "message": "id 必须是整型"
+    },
+    "height": {
+        "error_type": "validation",
+        "message": "height should be in [100,200] when height_unit is cm or height should be in [1,2] when height_unit is m"
+    },
+    "company": {
+        "postcode": {
+            "error_type": "server_error",
+            "message": "*** check_postcode method error message(company.postcode)",
+            "extra": "extra message"
+        },
+        "colleagues": [
+            {
+                "name": {
+                    "error_type": "validation",
+                    "message": "company.colleagues.0.name 必须是字符串"
+                }
+            },
+            {
+                "name": {
+                    "error_type": "validation",
+                    "message": "company.colleagues.1.name 必须是字符串"
+                },
+                "position": {
+                    "error_type": "validation",
+                    "message": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
+                }
+            },
+            {
+                "name": {
+                    "error_type": "validation",
+                    "message": "company.colleagues.2.name 必须是字符串"
+                }
+            },
+            {
+                "position": {
+                    "error_type": "validation",
+                    "message": "company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
+                }
+            }
+        ],
+        "boss": {
+            "0": {
+                "error_type": "validation",
+                "message": "company.boss.0 必须等于 Mike"
+            },
+            "2": {
+                "error_type": "validation",
+                "message": "company.boss.2 必须是字符串且在此之内 Johnny,David"
+            }
+        }
+    }
+}
+```
+
+---
+
 
 
 
