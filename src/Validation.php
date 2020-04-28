@@ -1,6 +1,6 @@
 <?php
 
-namespace gitHusband;
+namespace githusband;
 
 class Validation {
     /**
