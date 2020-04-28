@@ -40,7 +40,7 @@ if($validation->set_rules($rule)->validate($data)) {
 - ~~暂时想不到，想到了再给你们编。~~
 
 ## 2. 安装
-暂不支持compser安装，可手动下载放至项目里面引用即可。
+> composer require githusband/validation
 ## 3. 完整示例
 ```php
 // 这是一个全局函数，规则里面的 age 字段会用到该函数，需要提前定义
