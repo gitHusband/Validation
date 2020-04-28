@@ -11,6 +11,8 @@ function check_age($data, $gender, $param) {
 }
 
 require_once(__DIR__."/../Validation.php");
+// require_once(__DIR__."/vendor/autoload.php");
+use githusband\Validation;
 
 class Tests {
 

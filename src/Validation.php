@@ -1137,7 +1137,7 @@ class Validation {
     // date of birth
     protected function dob($date){
         if(preg_match('/^(\d{4})-(\d{2})-(\d{2})$/',$date,$arr)){
-            $obj = new DateTime($date);
+            $obj = new \DateTime($date);
             $dob_time = $obj->format("U");
             $now = time();
             if(checkdate($arr[2],$arr[3],$arr[1]) && $dob_time < $now){
