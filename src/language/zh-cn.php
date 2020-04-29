@@ -35,6 +35,7 @@ return array(
     'int' => '@me 必须是整型',
     'float' => '@me 必须是小数',
     'string' => '@me 必须是字符串',
+    'arr' => '@me 必须是数组',
     'bool' => '@me 必须是布尔型',
     'bool=' => '@me 必须是布尔型且等于 @p1',
     'bool_str' => '@me 必须是布尔型字符串',
@@ -45,4 +46,5 @@ return array(
     'mac' => '@me 必须是MAC地址',
     'dob' => '@me 必须是正确的日期',
     'file_base64' => '@me 必须是正确的文件的base64码',
+    'uuid' => '@me 必须是 UUID',
 );
