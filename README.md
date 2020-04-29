@@ -40,7 +40,8 @@ if($validation->set_rules($rule)->validate($data)) {
 - ~~暂时想不到，想到了再给你们编。~~
 
 ## 2. 安装
-> composer require githusband/validation
+> composer require githusband/validation dev-master
+
 ## 3. 完整示例
 ```php
 // 这是一个全局函数，规则里面的 age 字段会用到该函数，需要提前定义
@@ -356,6 +357,7 @@ $_config = array(
     'symbol_required' => '*',               // Symbol of required field
     'symbol_optional' => 'O',               // Symbol of optional field
     'symbol_numeric_array' => '[n]',        // Symbol of association array
+    'symbol_array_optional' => '[O]',       // Symbol of array optional
 );
 ```
 
@@ -404,6 +406,7 @@ return array(
     'int' => '@me 必须是整型',
     'float' => '@me 必须是小数',
     'string' => '@me 必须是字符串',
+    'arr' => '@me 必须是数组',
     'bool' => '@me 必须是布尔型',
     'bool=' => '@me 必须是布尔型且等于 @p1',
     'bool_str' => '@me 必须是布尔型字符串',
@@ -414,6 +417,7 @@ return array(
     'mac' => '@me 必须是MAC地址',
     'dob' => '@me 必须是正确的日期',
     'file_base64' => '@me 必须是正确的文件的base64码',
+    'uuid' => '@me 必须是 UUID',
 );
 ```
 最后需要修改语言配置
@@ -539,6 +543,7 @@ len<=>= | @me 长度必须大于等于 @p1 且小于等于 @p2
 int | @me 必须是整型
 float | @me 必须是小数
 string | @me 必须是字符串
+arr | @me 必须是数组,
 bool | @me 必须是布尔型
 bool= | @me 必须是布尔型且等于 @p1
 bool_str | @me 必须是布尔型字符串
@@ -549,6 +554,7 @@ ip | @me 必须是IP地址
 mac | @me 必须是MAC地址
 dob | @me 必须是正确的日期
 file_base64 | @me 必须是正确的文件的base64码
+uuid => @me 必须是 UUID
 
 ---
 
