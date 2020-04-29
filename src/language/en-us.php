@@ -35,6 +35,7 @@ return array(
     'int' => '@me must be integer',
     'float' => '@me must be float',
     'string' => '@me must be string',
+    'arr' => '@me must be array',
     'bool' => '@me must be boolean',
     'bool=' => '@me must be boolean @p1',
     'bool_str' => '@me must be boolean string',
@@ -45,4 +46,5 @@ return array(
     'mac' => '@me must be MAC address',
     'dob' => '@me must be a valid date',
     'file_base64' => '@me must be a valid file base64',
+    'uuid' => '@me must be a UUID',
 );

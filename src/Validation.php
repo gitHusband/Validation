@@ -78,6 +78,7 @@ class Validation {
         'symbol_required' => '*',               // Symbol of required field
         'symbol_optional' => 'O',               // Symbol of optional field
         'symbol_numeric_array' => '[n]',        // Symbol of association array
+        'symbol_array_optional' => '[O]',       // Symbol of array optional
     );
 
     /**
@@ -178,6 +179,7 @@ class Validation {
         'int' => '@me must be integer',
         'float' => '@me must be float',
         'string' => '@me must be string',
+        'arr' => '@me must be array',
         'bool' => '@me must be boolean',
         'bool=' => '@me must be boolean @p1',
         'bool_str' => '@me must be boolean string',
@@ -188,6 +190,7 @@ class Validation {
         'mac' => '@me must be MAC address',
         'dob' => '@me must be a valid date',
         'file_base64' => '@me must be a valid file base64',
+        'uuid' => '@me must be a UUID',
     );
 
     public function __construct($config=array())
@@ -295,6 +298,21 @@ class Validation {
             else $field_path_tmp = $field_path. $this->_config['symbol_field_name_separator'] .$field;
 
             if(is_array($rule)) {
+                // Allow array or object to be optional
+                if(strpos($field, $this->_config['symbol_array_optional']) !== false) {
+                    $field = str_replace($this->_config['symbol_array_optional'], '', $field);
+                    $field_path_tmp = str_replace($this->_config['symbol_array_optional'], '', $field_path_tmp);
+
+                    // Delete all other array symbols
+                    $field_tmp = str_replace($this->_config['symbol_or'], '', $field);
+                    $field_tmp = str_replace($this->_config['symbol_numeric_array'], '', $field_tmp);
+
+                    if(!isset($data[$field_tmp]) || !$this->required($data[$field_tmp])) {
+                        return true;
+                    }
+                }
+
+
                 // Validate "or" rules. 
                 // If one of "or" rules is valid, then the field is valid.
                 if(strpos($field, $this->_config['symbol_or']) !== false) {
@@ -345,7 +363,21 @@ class Validation {
                         }
                     }else {
                         foreach($data[$field] as $key => $value) {
-                            $result = $this->_execute($data[$field][$key], $rule, $field_path_tmp.  $this->_config['symbol_field_name_separator'] .$key);
+                            // Validate association array
+                            if(is_array($data[$field][$key])) {
+                                $result = $this->_execute($data[$field][$key], $rule, $field_path_tmp.  $this->_config['symbol_field_name_separator'] .$key);
+                            // Validate numberic array, all the rule are the same, only use $rule[0]
+                            }else {
+                                $cur_field_path_tmp = $field_path_tmp.  $this->_config['symbol_field_name_separator'] .$key;
+                                // echo "--- {$field} --- {$cur_field_path_tmp}\n";
+                                $rule_0 = $this->_parse_one_rule($rule[0]);
+                                $result = $this->_execute_one_rule($data[$field], $key, $rule_0['rules'], $rule_0['msg'], $cur_field_path_tmp);
+                                $this->_set_result($cur_field_path_tmp, $result);
+                                // If _validation_global is set to false, stop validating when one rule was invalid.
+                                if(!$result && !$this->_validation_global) {
+                                    return false;
+                                }
+                            }
                             if(!$result && !$this->_validation_global) {
                                 return false;
                             }
@@ -1072,6 +1104,11 @@ class Validation {
         return is_string($data);
     }
 
+    protected function arr($data)
+    {
+        return is_array($data);
+    }
+
     protected function bool($data, $bool=''){
         $bool = strtolower($bool);
         if($data === true || $data === false){
@@ -1180,5 +1217,13 @@ class Validation {
         }
 
         return true;
+    }
+
+    protected function uuid($data) {
+        if(!empty($data) && !preg_match('/^\w{8}(-\w{4}){3}-\w{12}$/', $data)){
+            return FALSE;
+        }else{
+            return TRUE;
+        }
     }
 }
