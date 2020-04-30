@@ -118,6 +118,10 @@ class Tests {
                     "*|(s):Johnny,David",
                     "O|(s):Johnny,David"
                 ]
+            ],
+            "favourite_food[O][n]" => [
+                "name" => "*|string",
+                "place_name" => "O|string" 
             ]
         ];
 
@@ -181,6 +185,16 @@ class Tests {
                         "Johnny2",
                         "Extra",
                     ]
+                ],
+                "favourite_food" => [
+                    [
+                        "name" => "HuoGuo",
+                        "place_name" => "SiChuan" 
+                    ],
+                    [
+                        "name" => "Beijing Kaoya",
+                        "place_name" => "Beijing"
+                    ],
                 ]
             ];
         }
@@ -226,6 +240,10 @@ class Tests {
                     "*|(s):Johnny,David",
                     "O|(s):Johnny,David"
                 ]
+            ],
+            "favourite_food[O][n]" => [
+                "name" => "*|string",
+                "place_name" => "O|string" 
             ]
         ];
 
@@ -264,3 +282,16 @@ class Tests {
         }
     }
 }
+
+$method = isset($argv[1])? $argv[1] : "error";
+
+$test = new Tests();
+
+if(method_exists($test, $method)) {
+    $result = call_user_func_array([$test, $method], []);
+}else {
+    echo "Error test method {$method}.\n";
+    die;
+}
+
+print_r($result);
