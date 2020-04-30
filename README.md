@@ -98,6 +98,11 @@ function validate() {
                 "*|(s):Johnny,David",
                 "O|(s):Johnny,David"
             ]
+        ],
+        // [O] 表示数组或对象是可选的
+        "favourite_food[O][n]" => [
+            "name" => "*|string",
+            "place_name" => "O|string" 
         ]
     ];
     
@@ -338,6 +343,19 @@ $rule = [
 
 关联数组和普通索引数组正常写就可以了，而索引数组里的元素是关联数组，则需要在字段后面加上 "**[n]**" 这个标志即可。
 
+有时候，数组也是可选的，但是一旦设置，其中的子元素必须按规则验证，这是后需要在数组字段名后面加上"**[O]**" 标志，表示该数组可选，如：
+
+**可选数组规则**
+
+```
+"favourite_fruits[O][n]" => [
+    "name" => "*|len>:4",
+    "color" => "*|len>:4",
+    "shape" => "*|len>:4"
+]
+```
+
+
 ### 4.7 支持自定义配置
 支持自定义的配置有：
 
@@ -554,7 +572,7 @@ ip | @me 必须是IP地址
 mac | @me 必须是MAC地址
 dob | @me 必须是正确的日期
 file_base64 | @me 必须是正确的文件的base64码
-uuid => @me 必须是 UUID
+uuid | @me 必须是 UUID
 
 ---
 
@@ -723,10 +741,3 @@ uuid => @me 必须是 UUID
 ```
 
 ---
-
-
-
-
-
-
-
