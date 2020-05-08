@@ -40,7 +40,7 @@ if($validation->set_rules($rule)->validate($data)) {
 - ~~暂时想不到，想到了再给你们编。~~
 
 ## 2. 安装
-> composer require githusband/validation dev-master
+> composer require githusband/validation
 
 ## 3. 完整示例
 ```php
