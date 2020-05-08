@@ -81,7 +81,7 @@ function validate() {
             "primary_school" => "*|=:Qiankeng Xiaoxue",
             "junior_middle_school" => "*|!=:Foshan Zhongxue",
             "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|*|len>:18",
-            "university" => "O|bool_str",
+            "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|*|len>:8",
         ],
         "company" => [
             "name" => "*|len<=>:8,64",
@@ -125,7 +125,7 @@ function validate() {
             "primary_school" => "???Qiankeng Xiaoxue",
             "junior_middle_school" => "Foshan Zhongxue",
             "high_school" => "Mianhu Gaozhong",
-            "university" => "false？？？",
+            "university" => "Foshan",
         ],
         "company" => [
             "name" => "Qianken",
@@ -204,6 +204,31 @@ function validate() {
 // 例子中的 $data 基本都不满足 $rule ，可以改变 $data 的值，验证规则是否正确
 print_r(validate());
 ```
+**注意**：在 src/test 目录下已经内置了完整测试类Tests.php 和单元测试类 Unit.php。
+
+**完整测试类**：
+```
+// 验证成功测试, 返回测试结果：
+php Tests.php run
+// 验证成功测试，返回错误信息：
+php Tests.php error
+```
+
+**单元测试类**：
+
+包含了所有功能的测试，只包含部分内置函数
+
+原则上修改代码后跑一遍单元测试，确保功能正常。如果测试报错，定位问题再解决。
+
+```
+// 测试所有例子：
+php Unit.php run
+// 测试单一例子，如测试正则表达式：
+php Unit.php run test_regular_expression
+```
+
+
+
 ## 4. 功能介绍
 
 ### 4.1 语意明确
@@ -233,7 +258,10 @@ ip | 必须是ip地址
 ```
 
 ### 4.3 条件验证
-条件验证标志是 "**if?**" 
+条件验证标志是 "**if[01]?\\?**" 
+
+正条件：**if?** 和 **if1?**
+
 - 如果条件成立，则继续验证后续规则
 - 如果条件不成立，说明该字段是可选的：1. 若该字段为空，立刻返回验证成功；2. 若该字段不为空，则继续验证后续规则
 
@@ -242,6 +270,18 @@ $rule = [
     "gender" => "*|(s):male,female",
     // 若性别是女性，则要求年龄大于22岁，若为男性，则对年龄无要求
     "age" => "if?=::female@gender,*|>:22",
+],
+```
+否条件：**if0?**
+
+- 如果条件不成立，则继续验证后续规则
+- 如果条件成立，说明该字段是可选的：1. 若该字段为空，立刻返回验证成功；2. 若该字段不为空，则继续验证后续规则
+
+```php
+$rule = [
+    "gender" => "*|(s):male,female",
+    // 若性别不是女性，则要求年龄大于22岁，若为女性，则对年龄无要求
+    "age" => "if0?=::female@gender,*|>:22",
 ],
 ```
 
@@ -343,9 +383,9 @@ $rule = [
 
 关联数组和普通索引数组正常写就可以了，而索引数组里的元素是关联数组，则需要在字段后面加上 "**[n]**" 这个标志即可。
 
-有时候，数组也是可选的，但是一旦设置，其中的子元素必须按规则验证，这是后需要在数组字段名后面加上"**[O]**" 标志，表示该数组可选，如：
-
 **可选数组规则**
+
+有时候，数组也是可选的，但是一旦设置，其中的子元素必须按规则验证，这时候只需要在数组字段名后面加上"**[O]**" 标志，表示该数组可选，如：
 
 ```
 "favourite_fruits[O][n]" => [
@@ -364,8 +404,10 @@ $_config = array(
     'language' => 'en-us',                  // Language, default is en-us
     'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
     'reg_msg' => '/ >> (.*)$/',             // Set special error msg by user 
-    'reg_preg' => '/^\/.+\/$/',             // If match this, using regular expression instead of method
-    'reg_if' => '/^if\?/',                  // If match this, validate this condition first, if true, then validate the field.
+    'reg_preg' => '/^(\/.+\/.*)$/',         // If match this, using regular expression instead of method
+    'reg_if' => '/^if[01]?\?/',             // If match this, validate this condition first
+    'reg_if_true' => '/^if1?\?/',           // If match this, validate this condition first, if true, then validate the field
+    'reg_if_true' => '/^if0\?/',            // If match this, validate this condition first, if false, then validate the field
     'symbol_or' => '[||]',                  // Symbol of or rule
     'symbol_rule_separator' => '|',         // Rule reqarator for one field
     'symbol_param_classic' => ':',          // If set function by this symbol, will add a @me parameter at first 
@@ -378,6 +420,71 @@ $_config = array(
     'symbol_array_optional' => '[O]',       // Symbol of array optional
 );
 ```
+例如:
+
+```
+$validation_conf = array(
+    'language' => 'en-us',                  // Language, default is en-us
+    'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
+    'reg_msg' => '/ >>>(.*)$/',             // Set special error msg by user 
+    'reg_preg' => '/^Reg:(\/.+\/.*)$/',     // If match this, using regular expression instead of method
+    'reg_if' => '/^IF[yn]?\?/',             // If match this, validate this condition first
+    'reg_if_true' => '/^IFy?\?/',           // If match this, validate this condition first, if true, then validate the field
+    'reg_if_true' => '/^IFn\?/',            // If match this, validate this condition first, if false, then validate the field
+    'symbol_or' => '[or]',                  // Symbol of or rule
+    'symbol_rule_separator' => '&&',        // Rule reqarator for one field
+    'symbol_param_classic' => '~',          // If set function by this symbol, will add a @me parameter at first 
+    'symbol_param_force' => '~~',           // If set function by this symbol, will not add a @me parameter at first 
+    'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
+    'symbol_field_name_separator' => '->',  // Field name separator, suce as "fruit.apple"
+    'symbol_required' => '!*',              // Symbol of required field
+    'symbol_optional' => 'o',               // Symbol of optional field
+    'symbol_numeric_array' => '[!n]',       // Symbol of association array
+    'symbol_array_optional' => '[o]',       // Symbol of array optional
+);
+```
+相关规则可以这么写：
+
+```
+$rule = [
+    "id" => "!*&&int&&Reg:/^\d+$/i",
+    "name" => "!*&&string&&len<=>~8,32",
+    "gender" => "!*&&(s)~male,female",
+    "dob" => "!*&&dob",
+    "age" => "!*&&check_age~@gender,30 >>>@me is wrong",
+    "height_unit" => "!*&&(s)~cm,m",
+    "height[or]" => [
+        "!*&&=~~@height_unit,cm&&<=>=~100,200 >>>@me should be in [100,200] when height_unit is cm",
+        "!*&&=~~@height_unit,m&&<=>=~1,2 >>>@me should be in [1,2] when height_unit is m",
+    ],
+    "education" => [
+        "primary_school" => "!*&&=~Qiankeng Xiaoxue",
+        "junior_middle_school" => "!*&&!=~Foshan Zhongxue",
+        "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&len>~10",
+        "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&len>~10",
+    ],
+    "company" => [
+        "name" => "!*&&len<=>~8,64",
+        "country" => "o&&len>=~3",
+        "addr" => "!*&&len>~16",
+        "colleagues[!n]" => [
+            "name" => "!*&&string&&len<=>~3,32",
+            "position" => "!*&&(s)~Reception,Financial,PHP,JAVA"
+        ],
+        "boss" => [
+            "!*&&=~Mike",
+            "!*&&(s)~Johnny,David",
+            "o&&(s)~Johnny,David"
+        ]
+    ],
+    "favourite_food[o][!n]" => [
+        "name" => "!*&&string",
+        "place_name" => "o&&string" 
+    ]
+];
+```
+
+
 
 ### 4.8 支持国际化配置
 默认语言是英语。

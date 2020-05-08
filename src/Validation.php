@@ -63,12 +63,15 @@ class Validation {
     private $_symbol_parent = '@parent';
     private $_symbol_preg = '@preg';
 
+    private $_default_config_backup;
     private $_config = array(
         'language' => 'en-us',                  // Language, default is en-us
-        'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
+        'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid
         'reg_msg' => '/ >> (.*)$/',             // Set special error msg by user 
-        'reg_preg' => '/^\/.+\/$/',             // If match this, using regular expression instead of method
-        'reg_if' => '/^if\?/',                  // If match this, validate this condition first, if true, then validate the field.
+        'reg_preg' => '/^(\/.+\/.*)$/',         // If match this, using regular expression instead of method
+        'reg_if' => '/^if[01]?\?/',             // If match this, validate this condition first
+        'reg_if_true' => '/^if1?\?/',           // If match this, validate this condition first, if true, then validate the field
+        'reg_if_true' => '/^if0\?/',            // If match this, validate this condition first, if false, then validate the field
         'symbol_or' => '[||]',                  // Symbol of or rule
         'symbol_rule_separator' => '|',         // Rule reqarator for one field
         'symbol_param_classic' => ':',          // If set function by this symbol, will add a @me parameter at first 
@@ -195,6 +198,7 @@ class Validation {
 
     public function __construct($config=array())
     {
+        $this->_default_config_backup = $this->_config;
         $this->_initialzation($config);
     }
 
@@ -205,6 +209,25 @@ class Validation {
         $this->set_language($this->_config['language']);
 
         $this->set_validation_global($this->_config['validation_global']);
+    }
+
+    /**
+     * Set Config
+     * @var array
+     */
+    public function set_config($config=array()) {
+        $this->_config = array_merge($this->_config, $config);
+
+        if(isset($config['language'])) $this->set_language($this->_config['language']);
+
+        $this->set_validation_global($this->_config['validation_global']);
+    }
+
+    /**
+     * Reset Config
+     */
+    public function reset_config() {
+        $this->set_config($this->_default_config_backup);
     }
 
     /**
@@ -270,7 +293,8 @@ class Validation {
     {   
         $this->_data = $data;
         $this->_result = $data;
-        $this->_errors = array();
+        $this->_classic_errors = array();
+        $this->_standard_errors = array();
 
         if(count($this->_rules) == 0) {
             return true;
@@ -350,7 +374,7 @@ class Validation {
                     $field_path_tmp = str_replace($this->_config['symbol_numeric_array'], '', $field_path_tmp);
 
                     if(!isset($data[$field]) || isset($data[$field]) && !$this->_is_numeric_array($data[$field])) {
-                        $msg = $this->_get_error_template('numeric_array');
+                        $msg = $this->get_error_template('numeric_array');
                         $msg = str_replace($this->_symbol_me, $field_path_tmp, $msg);
                         $message = array(
                             "error_type" => 'validation',
@@ -490,6 +514,12 @@ class Validation {
             if(preg_match($this->_config['reg_if'], $rule, $matches)) {
                 $if_flag = true;
 
+                if(preg_match($this->_config['reg_if_true'], $rule, $matches)) {
+                    $if_type = true;
+                }else {
+                    $if_type = false;
+                }
+
                 $rule = preg_replace($this->_config['reg_if'], '', $rule);
                 
                 $method_rule = $this->_parse_method($rule, $data, $field);
@@ -497,7 +527,7 @@ class Validation {
                 $result = $this->_execute_method($method_rule, $field_path);
 
                 if($result === "Undefined") return false;
-                if(!$result) {
+                if(($result === true && $result === $if_type) || ($result !== true && !$if_type)) {
                     // if it's a 'if' rule -> means this field is optional;
                     // If result is not true and this field is not set and not empty, no need to validate the other rule
                     // If result is not true and this field is set and not empty, need to validate the other rule
@@ -510,7 +540,7 @@ class Validation {
                     $result = false;
                     $error_type = 'required_field';
                     if(empty($msg)) {
-                        $msg = $this->_get_error_template('required');
+                        $msg = $this->get_error_template('required');
                     }
                 }
 
@@ -522,12 +552,13 @@ class Validation {
 
             // Regular expression
             }else if(preg_match($this->_config['reg_preg'], $rule, $matches)) {
-                if(!preg_match($rule, $data[$field], $matches)) {
+                $preg = isset($matches[1])? $matches[1] : $matches[0];
+                if(!preg_match($preg, $data[$field], $matches)) {
                     $result = false;
                     if(empty($msg)) {
-                        $msg = $this->_get_error_template('preg');
+                        $msg = $this->get_error_template('preg');
                     }
-                    $msg = str_replace($this->_symbol_preg, $rule, $msg);
+                    $msg = str_replace($this->_symbol_preg, $preg, $msg);
                 }
 
             // Method
@@ -552,7 +583,7 @@ class Validation {
                     // $result = false;
                     
                     if(empty($msg)) {
-                        $msg = $this->_get_error_template($method_rule['symbol'])? $this->_get_error_template($method_rule['symbol']) : $this->_get_error_template('default');
+                        $msg = $this->get_error_template($method_rule['symbol'])? $this->get_error_template($method_rule['symbol']) : $this->get_error_template('default');
                     }
                 }
             }
@@ -563,7 +594,7 @@ class Validation {
                 // Replace symbol to field name and parameter value
                 $msg = str_replace($this->_symbol_me, $field_path, $msg);
                 foreach($params as $key => $value) {
-                    if($key == 0) continue;
+                    // if($key == 0) continue;
                     if(is_array($value)) {
                         if($this->_is_in_method($method_rule['symbol'])) {
                             $value = implode(',', $value);
@@ -789,7 +820,7 @@ class Validation {
      * @param    string                   $tag 
      * @return   [type]                        
      */
-    private function _get_error_template($tag = '')
+    public function get_error_template($tag = '')
     {
         return ($tag == '' || !isset($this->_error_template[$tag])) ? false : $this->_error_template[$tag];
     }
@@ -1140,7 +1171,7 @@ class Validation {
     }
 
     protected function email($data) {
-        if(!empty($data) && !preg_match('/^\w+([-+.]\w*)*@\w+([-.]\w+)*\.\w+([-.]\w+)*$/', $data)){
+        if(!empty($data) && !preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/', $data)){
             return FALSE;
         }else{
             return TRUE;
@@ -1193,7 +1224,7 @@ class Validation {
         $file_len = strlen($file_base64);
         $file_size = $file_len - ($file_len/8)*2;
 
-        $file_size = number_format(($file_size/1024),2);
+        $file_size = round(($file_size/1024),2);
 
         return $file_size;
     }
