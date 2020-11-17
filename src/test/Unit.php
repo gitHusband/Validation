@@ -281,51 +281,6 @@ class Unit {
         ];
     }
 
-    protected function test_or_rule() {
-        $rule = [
-            "name[||]" => [
-                "*|bool",
-                "*|bool_str",
-            ]
-        ];
-
-        $cases = [
-            "Valid_bool" => [
-                "data" => [
-                    "name" => false
-                ]
-            ],
-            "Valid_bool_str" => [
-                "data" => [
-                    "name" => "false"
-                ]
-            ],
-            "Invalid_empty" => [
-                "data" => [
-                    "name" => ""
-                ],
-                "expected_msg" => "name can not be empty"
-            ],
-            "Invalid_0" => [
-                "data" => [
-                    "name" => 0
-                ],
-                "expected_msg" => "name must be boolean or name must be boolean string"
-            ]
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "field_path" => "name",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
     protected function test_if_rule() {
         $rule = [
             "id" => "*|<>:0,10",
@@ -400,6 +355,164 @@ class Unit {
         ];
     }
 
+    protected function test_optional() {
+        $rule = [
+            "name" => "O|string",
+            "gender" => [ "[O]" => "string"],
+            "favourite_fruit[O]" => [
+                "name" => "*|string",
+                "color" => "*|string"
+            ],
+            "favourite_meat" => [
+                "[O]" => [
+                    "name" => "*|string",
+                    "from" => "*|string"
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Valid_set" => [
+                "data" => [
+                    "name" => "",
+                    "gender" => "",
+                    "favourite_fruit" => [],
+                    "favourite_meat" => [],
+                ]
+            ],
+            "Valid_unset" => [
+                "data" => [
+                ]
+            ],
+            "Valid_data" => [
+                "data" => [
+                    "name" => "Devin",
+                    "gender" => "male",
+                    "favourite_fruit" => [
+                        "name" => "Apple",
+                        "color" => "red"
+                    ],
+                    "favourite_meat" => [
+                        "name" => "Beef",
+                        "from" => "Cattle"
+                    ],
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "name" => 1,
+                    "gender" => "male",
+                ],
+                "expected_msg" => "name must be string"
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "name" => "Devin",
+                    "gender" => 1,
+                ],
+                "expected_msg" => "gender must be string"
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "name" => "Devin",
+                    "gender" => "male",
+                    "favourite_fruit" => [
+                        "name" => "Apple",
+                        "color" => 1
+                    ],
+                ],
+                "expected_msg" => "favourite_fruit.color must be string"
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "name" => "Devin",
+                    "gender" => "male",
+                    "favourite_fruit" => [
+                        "name" => "Apple",
+                        "color" => "red"
+                    ],
+                    "favourite_meat" => [
+                        "name" => 1,
+                        "from" => "Cattle"
+                    ],
+                ],
+                "expected_msg" => "favourite_meat.name must be string"
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "O",
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_or_rule() {
+        $rule = [
+            "name[||]" => [
+                "*|bool",
+                "*|bool_str",
+            ],
+            "height" => [
+                "[||]" => [
+                    "*|int|>:100",
+                    "*|string",
+                ]
+            ]
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    "name" => false,
+                    "height" => 170
+                ]
+            ],
+            "Valid_data2" => [
+                "data" => [
+                    "name" => "false",
+                    "height" => "1.70m"
+                ]
+            ],
+            "Invalid_empty" => [
+                "data" => [
+                    "name" => ""
+                ],
+                "expected_msg" => "name can not be empty"
+            ],
+            "Invalid_0" => [
+                "data" => [
+                    "name" => 0
+                ],
+                "expected_msg" => "name must be boolean or name must be boolean string"
+            ],
+            "Invalid_1" => [
+                "data" => [
+                    "name" => "false",
+                    "height" => 50,
+                ],
+                "expected_msg" => "height must be greater than 100 or height must be string"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_assoc_array() {
         $rule = [
             "person" => [
@@ -457,13 +570,27 @@ class Unit {
         $rule = [
             "person[n]" => [
                 "name" => "*|string|/^\d+.*/",
-            ],
-            "flower[n]" => [
-                "*|string",
+                "relation" => [
+                    "father" => "*|string",
+                    "mother" => "O|string",
+                ]
             ],
             "pet" => [
                 "*|string",
-                "*|string"
+                "*|string",
+                [
+                    "*|string",
+                    "*|string",
+                ]
+            ],
+            "flower[n]" => "*|string",
+            "clothes[O]" => [
+                [
+                    "*|string",
+                ]
+            ],
+            "shoes" => [
+                "[O],[n]" => "*|string"
             ],
         ];
 
@@ -471,30 +598,57 @@ class Unit {
             "Valid_data" => [
                 "data" => [
                     "person" => [
-                        ["name" => "123"],
-                        ["name" => "123ABC"],
-                    ],
-                    "flower" => [
-                        "Rose",
-                        "Narcissu",
-                        "Peony",
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
                     ],
                     "pet" => [
                         "cat",
                         "dog",
-                    ],
-                ]
-            ],
-            "Invalid_item_0(static,string)" => [
-                "data" => [
-                    "person" => [
-                        ["name" => "123"],
-                        ["name" => "123ABC"],
+                        ["cat", "dog"],
                     ],
                     "flower" => [
                         "Rose",
                         "Narcissu",
                         "Peony",
+                    ],
+                    "clothes" => [
+                        ["cat", "dog"],
+                        ["", "dog"],
+                    ],
+                ]
+            ],
+            "Invalid_item_0-0(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        [],
+                        ["name" => ""],
+                    ]
+                ],
+                "expected_msg" => "person.0.name can not be empty"
+            ],
+            "Invalid_item_0-1(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "abcABC"],
+                    ]
+                ],
+                "expected_msg" => "person.1.name format is invalid, should be /^\d+.*/"
+            ],
+            "Invalid_item_0-2(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "", "mother" => "m123ABC"]],
+                    ]
+                ],
+                "expected_msg" => "person.1.relation.father can not be empty"
+            ],
+            "Invalid_item_1-0(static,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
                     ],
                     "pet" => [
                         "",
@@ -503,16 +657,11 @@ class Unit {
                 ],
                 "expected_msg" => "pet.0 can not be empty"
             ],
-            "Invalid_item_1(static,string)" => [
+            "Invalid_item_1-1(static,string)" => [
                 "data" => [
                     "person" => [
-                        ["name" => "123"],
-                        ["name" => "123ABC"],
-                    ],
-                    "flower" => [
-                        "Rose",
-                        "Narcissu",
-                        "Peony",
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
                     ],
                     "pet" => [
                         "123",
@@ -521,11 +670,30 @@ class Unit {
                 ],
                 "expected_msg" => "pet.1 must be string"
             ],
-            "Invalid_item_0(dynamic,string)" => [
+            "Invalid_item_1-2(static,string)" => [
                 "data" => [
                     "person" => [
-                        ["name" => "123"],
-                        ["name" => "123ABC"],
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", ""],
+                    ]
+                ],
+                "expected_msg" => "pet.2.1 can not be empty"
+            ],
+            "Invalid_item_2-0(dynamic,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
                     ],
                     "flower" => [
                         "",
@@ -535,11 +703,16 @@ class Unit {
                 ],
                 "expected_msg" => "flower.0 can not be empty"
             ],
-            "Invalid_item_1(dynamic,string)" => [
+            "Invalid_item_2-1(dynamic,string)" => [
                 "data" => [
                     "person" => [
-                        ["name" => "123"],
-                        ["name" => "123ABC"],
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
                     ],
                     "flower" => [
                         "Rose",
@@ -549,28 +722,478 @@ class Unit {
                 ],
                 "expected_msg" => "flower.2 must be string"
             ],
-            "Invalid_item_0(assoc_arr)" => [
+            "Invalid_item_3-0" => [
                 "data" => [
                     "person" => [
-                        [],
-                        ["name" => ""],
-                    ]
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        "",
+                        ["cat", "dog"],
+                        ["", "dog"],
+                    ],
                 ],
-                "expected_msg" => "person.0.name can not be empty"
+                "expected_msg" => "clothes.0.0 can not be empty"
             ],
-            "Invalid_item_1(assoc_arr)" => [
+            "Invalid_item_4-0" => [
                 "data" => [
                     "person" => [
-                        ["name" => "123"],
-                        ["name" => "abcABC"],
-                    ]
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        ["cat", "dog"],
+                        ["", "dog"],
+                    ],
+                    "shoes" => [
+                        "Nike",
+                        "",
+                        // ["cat", "dog"],
+                        // ["", "dog"],
+                    ],
                 ],
-                "expected_msg" => "person.1.name format is invalid, should be /^\d+.*/"
+                "expected_msg" => "shoes.1 can not be empty"
+            ],
+            "Invalid_item_4-1" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        ["cat", "dog"],
+                        ["", "dog"],
+                    ],
+                    "shoes" => [
+                        ["cat", "dog"],
+                    ],
+                ],
+                "expected_msg" => "shoes.0 must be string"
             ],
         ];
 
         $extra = [
             "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_numberic_assoc_array() {
+        $rule = [
+            // "person[n]" => [
+            //     "name" => "*|string",
+            //     "relation" => [
+            //         "father" => "*|string",
+            //         "mother" => "O|string",
+            //         "brother" => [
+            //             "[O],[n]" => [
+            //                 "[n]" => [
+            //                     "name" => "*|string",
+            //                     "level" => [
+            //                         "[||]" => [
+            //                             "*|int",
+            //                             "*|string",
+            //                         ]
+            //                     ]
+            //                 ]
+            //             ]
+            //         ]
+            //     ],
+            //     "fruit" => [
+            //         "[n]" => [
+            //             "[n]" => [
+            //                 "name" => "*|string",
+            //                 "color" => "O|string",
+            //             ]
+                        
+            //         ]
+            //     ],
+            // ],
+            "person" => [
+                "[n]" => [
+                    "name" => "*|string",
+                    "relation" => [
+                        "father" => "*|string",
+                        "mother" => "O|string",
+                        "brother" => [
+                            "[O],[n]" => [
+                                "[n]" => [
+                                    "name" => "*|string",
+                                    "level" => [
+                                        "[||]" => [
+                                            "*|int",
+                                            "*|string",
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    "fruit" => [
+                        "[n]" => [
+                            "[n]" => [
+                                "name" => "*|string",
+                                "color" => "O|string",
+                            ]
+
+                        ]
+                    ],
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    "person" => [
+                        [
+                            "name" => "Devin", 
+                            "relation" => [
+                                "father" => "fDevin", 
+                                "mother" => "mDevin",
+                                "brother" => [
+                                    [
+                                        ["name" => "Tom", "level" => 1],
+                                        ["name" => "Mike", "level" => "Second"],
+                                    ]
+                                ]
+                            ],
+                            "fruit" => [
+                                [
+                                    ["name" => "Apple", "color" => "Red"],
+                                    ["name" => "Banana", "color" => "Yellow"],
+                                ],
+                                [
+                                    ["name" => "Cherry", "color" => "Red"],
+                                    ["name" => "Orange", "color" => "Yellow"],
+                                ]
+                            ]
+                        ],
+                        [
+                            "name" => "Johnny", 
+                            "relation" => ["father" => "fJohnny", "mother" => "mJohnny"],
+                            "fruit" => [
+                                [
+                                    ["name" => "Apple", "color" => "Red"],
+                                    ["name" => "Banana", "color" => "Yellow"],
+                                ],
+                                [
+                                    ["name" => "Cherry", "color" => "Red"],
+                                    ["name" => "Orange", "color" => "Yellow"],
+                                ]
+                            ]
+                        ],
+                    ],
+                ]
+            ],
+            "Invalid_item_0-0" => [
+                "data" => [
+                    "person" => [
+                        [
+                            "name" => "Devin", 
+                            "relation" => ["father" => "fDevin", "mother" => "mDevin"],
+                            "fruit" => [
+                                [
+                                    ["name" => "", "color" => "Red"],
+                                    ["name" => "Banana", "color" => "Yellow"],
+                                ],
+                                [
+                                    ["name" => "Cherry", "color" => "Red"],
+                                    ["name" => "Orange", "color" => "Yellow"],
+                                ]
+                            ]
+                        ],
+                    ],
+                ],
+                "expected_msg" => "person.0.fruit.0.0.name can not be empty"
+            ],
+            "Invalid_item_0-1" => [
+                "data" => [
+                    "person" => [
+                        [
+                            "name" => "Devin", 
+                            "relation" => ["father" => "fDevin", "mother" => "mDevin"],
+                            "fruit" => [
+                                [
+                                    ["name" => "Apple", "color" => "Red"],
+                                    ["name" => "Orange", "color" => "Yellow"],
+                                ],
+                                [
+                                    ["name" => "Cherry", "color" => "Red"],
+                                    ["name" => "", "color" => "Yellow"],
+                                ]
+                            ]
+                        ],
+                    ],
+                ],
+                "expected_msg" => "person.0.fruit.1.1.name can not be empty"
+            ],
+            "Invalid_item_0-2" => [
+                "data" => [
+                    "person" => [
+                        [
+                            "name" => "Devin", 
+                            "relation" => ["father" => "fDevin", "mother" => "mDevin"],
+                            "fruit" => [
+                                [
+                                    ["name" => "Apple", "color" => "Red"],
+                                    ["name" => "Orange", "color" => "Yellow"],
+                                ]
+                            ]
+                        ],
+                        [
+                            "name" => "Devin", 
+                            "relation" => ["father" => "fDevin", "mother" => "mDevin"],
+                            "fruit" => [
+                                [
+                                    ["name" => "Apple", "color" => "Red"],
+                                    ["name" => "", "color" => "Yellow"],
+                                ]
+                            ]
+                        ],
+                    ],
+                ],
+                "expected_msg" => "person.1.fruit.0.1.name can not be empty"
+            ],
+            "Invalid_item_1-0" => [
+                "data" => [
+                    "person" => [
+                        [
+                            "name" => "Devin", 
+                            "relation" => [
+                                "father" => "fDevin", 
+                                "mother" => "mDevin",
+                                "brother" => [
+                                    [
+                                        ["name" => "Tom", "level" => false],
+                                        ["name" => "Mike", "level" => "Second"],
+                                    ]
+                                ]
+                            ],
+                            "fruit" => [
+                                [
+                                    ["name" => "Apple", "color" => "Red"],
+                                    ["name" => "Orange", "color" => "Yellow"],
+                                ]
+                            ]
+                        ],
+                    ],
+                ],
+                "expected_msg" => "person.0.relation.brother.0.0.level must be integer or person.0.relation.brother.0.0.level must be string"
+            ],
+            "Invalid_item_1-1" => [
+                "data" => [
+                    "person" => [
+                        [
+                            "name" => "Devin", 
+                            "relation" => [
+                                "father" => "fDevin", 
+                                "mother" => "mDevin",
+                                "brother" => [
+                                    [
+                                        ["name" => "Tom", "level" => 1],
+                                        ["name" => "Mike", "level" => "Second"],
+                                    ],
+                                    [
+                                        ["name" => "Tom", "level" => 1],
+                                        ["name" => "Mike", "level" => false],
+                                    ]
+                                ]
+                            ],
+                            "fruit" => [
+                                [
+                                    ["name" => "Apple", "color" => "Red"],
+                                    ["name" => "Orange", "color" => "Yellow"],
+                                ]
+                            ]
+                        ],
+                    ],
+                ],
+                "expected_msg" => "person.0.relation.brother.1.1.level must be integer or person.0.relation.brother.1.1.level must be string"
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_root_data_rule_1() {
+        $rule = "*|string";
+
+        $cases = [
+            "Valid_data" => [
+                "data" => "Hello World!",
+            ],
+            "Invalid_empty" => [
+                "data" => "",
+                "expected_msg" => "data can not be empty"
+            ],
+            "Invalid_0" => [
+                "data" => 0,
+                "expected_msg" => "data must be string"
+            ],
+            "Invalid_1" => [
+                "data" => ["name" => "false"],
+                "expected_msg" => "data must be string"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "data",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_root_data_rule_2() {
+        $rule = [
+            "[||]" => [
+                "*|string",
+                "*|int"
+            ]
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => "Hello World!",
+            ],
+            "Invalid_empty" => [
+                "data" => "",
+                "expected_msg" => "data can not be empty"
+            ],
+            "Invalid_0" => [
+                "data" => false,
+                "expected_msg" => "data must be string or data must be integer"
+            ],
+            "Invalid_1" => [
+                "data" => ["name" => "false"],
+                "expected_msg" => "data must be string or data must be integer"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "data",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_root_data_rule_3() {
+        $rule = [
+            "[O]" => [
+                "*|string",
+                "*|int"
+            ]
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => ["Hello World!", 1],
+            ],
+            "Valid_data_empty" => [
+                "data" => "",
+            ],
+            "Invalid_0" => [
+                "data" => ["", 1],
+                "expected_msg" => "data.0 can not be empty"
+            ],
+            "Invalid_1" => [
+                "data" => ["Hello World!", false],
+                "expected_msg" => "data.1 must be integer"
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "data",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_root_data_rule_4() {
+        $rule = [
+            "[n]" => "*|string"
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => ["Hello World!", "1"],
+            ],
+            "Invalid_data_empty" => [
+                "data" => "",
+                "expected_msg" => "data must be a numeric array"
+            ],
+            "Invalid_0" => [
+                "data" => ["", 1],
+                "expected_msg" => "data.0 can not be empty"
+            ],
+            "Invalid_1" => [
+                "data" => ["Hello World!", false],
+                "expected_msg" => "data.1 must be string"
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "data",
         ];
 
         return $method_info = [
@@ -1572,42 +2195,6 @@ class Unit {
         $extra = [
             "method_name" => __METHOD__,
             "error_tag" => "required",
-            "field_path" => "name",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
-    protected function test_optional() {
-        $rule = [
-            "name" => "O"
-        ];
-
-        $cases = [
-            "Valid_set" => [
-                "data" => [
-                    "name" => ""
-                ]
-            ],
-            "Valid_unset" => [
-                "data" => [
-                    "name" => ""
-                ]
-            ],
-            "Valid_data" => [
-                "data" => [
-                    "name" => "a"
-                ]
-            ]
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "error_tag" => "O",
             "field_path" => "name",
         ];
 
