@@ -315,14 +315,10 @@ class Validation {
     private function _execute($data, $rules, $field_path=false, $is_array_loop=false)
     {
         $rules_system_symbol = $this->_get_rule_system_symbol($rules);
-        if(!empty($rules_system_symbol)) {
-            $auto_field = $this->_config['auto_field'];
-            $data = [$auto_field => $data];
-            $rules = [$auto_field => $rules];
-            $this->_data = $data;
-            $this->_result = $this->_data;
-        }
-        else if(is_string($rules)) {
+        // If The root rules has rule_system_symbol
+        // Or The root rules is String, means root data is not an array
+        // Set root data as an array to help validate the data
+        if(!empty($rules_system_symbol) || is_string($rules)) {
             $auto_field = $this->_config['auto_field'];
             $data = [$auto_field => $data];
             $rules = [$auto_field => $rules];
@@ -346,13 +342,10 @@ class Validation {
                 // If one of "or" rules is valid, then the field is valid.
                 if(strpos($rule_system_symbol, $this->_config['symbol_or']) !== false) {
                     $result = $this->_execute_or_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol]);
-                    // if(!$result && !$this->_validation_global) return false;
                 }
                 // Validate numeric array
                 else if(strpos($rule_system_symbol, $this->_config['symbol_numeric_array']) !== false) {
-                    // echo "@@@ is_array_loop is {$is_array_loop} @@@\n\n";
                     $result = $this->_execute_numeric_array_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol], $is_array_loop);
-                    // if(!$result && !$this->_validation_global) return false;
                 }
                 // Validate association array
                 else {
@@ -364,7 +357,6 @@ class Validation {
                         $result = $this->_execute_one_rule($data, $field, $rule['rules'], $rule['msg'], $field_path_tmp);
                         $this->_set_result($field_path_tmp, $result);
                     }
-                    // if(!$result && !$this->_validation_global) return false;
                 }
 
                 // If _validation_global is set to false, stop validating when one rule was invalid.
@@ -389,7 +381,6 @@ class Validation {
                     $field_path_tmp = str_replace($this->_config['symbol_or'], '', $field_path_tmp);
 
                     $result = $this->_execute_or_rules($data, $field, $field_path_tmp, $rule);
-                    // if(!$result && !$this->_validation_global) return false;
                 }
                 // Validate numeric array
                 else if(strpos($field, $this->_config['symbol_numeric_array']) !== false) {
@@ -397,16 +388,10 @@ class Validation {
                     $field_path_tmp = str_replace($this->_config['symbol_numeric_array'], '', $field_path_tmp);
 
                     $result = $this->_execute_numeric_array_rules($data, $field, $field_path_tmp, $rule);
-                    // if(!$result && !$this->_validation_global) return false;
                 }
                 // Validate association array
                 else if(is_array($rule)) {
-                    // echo "--- {$field} +++\n";
-                    // print_r($data[$field]);
-                    // print_r($rule);
-                    // echo "+++ {$field} ---\n";
                     $result = $this->_execute(isset($data[$field])? $data[$field]:null, $rule, $field_path_tmp, $is_array_loop);
-                    // if(!$result && !$this->_validation_global) return false;
                 }else {
                     $rule = $this->_parse_one_rule($rule);
                     $result = $this->_execute_one_rule($data, $field, $rule['rules'], $rule['msg'], $field_path_tmp);
@@ -446,7 +431,6 @@ class Validation {
                 $symbol === $this->_config['symbol_or'] ||
                 $symbol === $this->_config['symbol_numeric_array']
             ) {
-                // echo "+++ $rule_system_symbol_string +++\n";
                 return $rule_system_symbol_string;
             }
         }
@@ -499,17 +483,6 @@ class Validation {
      */
     private function _execute_numeric_array_rules($data, $field, $field_path, $rules, $is_array_loop=false)
     {
-        // echo "*************************************\n";
-        // echo "--- field is {$field}\n";
-        // echo "--- field_path is {$field_path}\n";
-        // echo "--- is_array_loop is {$is_array_loop}\n";
-        // echo "\n--- data is ";
-        // print_r($data);
-        // echo "\n--- data.field is ";
-        // print_r($data[$field]);
-        // echo "\n~~~ rules is ";
-        // print_r($rules);
-        // echo "*************************************\n";
         if(!isset($data[$field]) || !$this->_is_numeric_array($data[$field])) {
             $msg = $this->get_error_template('numeric_array');
             $msg = str_replace($this->_symbol_me, $field_path, $msg);
@@ -528,11 +501,9 @@ class Validation {
                 if(!empty($rule_system_symbol)) {
                     // $is_array_loop is true, means parent data is numberic arrya, too
                     $cur_field_path = $is_array_loop? $field_path : $field_path_tmp;
-                    // echo "### cur_field_path is {$cur_field_path} ###\n\n\n";
                     $result = $this->_execute($data[$field], [$key => $rules], $cur_field_path, true);
                 }
                 else if(is_array($rules)) {
-                    // echo "*** field_path_tmp is {$field_path_tmp} ***\n\n\n";
                     $result = $this->_execute($data[$field][$key], $rules, $field_path_tmp, true);
                 }
                 // Validate numberic array, all the rule are the same, only use $rules[0]
@@ -545,9 +516,7 @@ class Validation {
                 $is_all_valid = $is_all_valid && $result;
 
                 // If _validation_global is set to false, stop validating when one rule was invalid.
-                if(!$result && !$this->_validation_global) {
-                    return false;
-                }
+                if(!$result && !$this->_validation_global) return false;
             }
 
             return $is_all_valid;
