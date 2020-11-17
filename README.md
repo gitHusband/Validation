@@ -24,6 +24,9 @@ if($validation->set_rules($rule)->validate($data)) {
     return $validation->get_error(true, false);
 }
 ```
+
+[TOC]
+
 ## 1. 简介
 ### 1.1 特点
 - 语意明确，易于理解。采用*, >, <, >=, len>, int, (n), (s) 等函数标志，比如(n)表示in_array, 且必须是数字
@@ -33,6 +36,7 @@ if($validation->set_rules($rule)->validate($data)) {
 - 支持自定义函数验证
 - 支持函数验证时自由传参，@root(原数据), @parent(验证字段的父数据), @me(当前字段)，@anything(任意字段)
 - 支持无限嵌套的数据结构的验证，包括关联数组，索引数组
+- 支持特殊的验证规则
 - 支持自定义配置，比如规则分隔符号"|"，参数分隔符号","等等
 - 支持国际化配置，默认英语
 - 支持一次性验证所有参数(默认)，也可设置参数验证失败后立即结束验证
@@ -204,6 +208,14 @@ function validate() {
 // 例子中的 $data 基本都不满足 $rule ，可以改变 $data 的值，验证规则是否正确
 print_r(validate());
 ```
+
+理论上，该工具是用于验证复杂的数据结构的，但如果你想验证单一字符串，也可以，例如
+
+```
+$validation->set_rules("*|string")->validate("Hello World!");
+```
+
+
 **注意**：在 src/test 目录下已经内置了完整测试类Tests.php 和单元测试类 Unit.php。
 
 **完整测试类**：
@@ -394,15 +406,142 @@ $rule = [
     "shape" => "*|len>:4"
 ]
 ```
+### 4.7 支持特殊的验证规则
+支持的特殊规则有：
+
+"**[O]**" - 表明单个字段或数组是可选的。
+注意，表明单个字段可远，可在字段规则上加上 **O** 即可。
+
+```
+$rule = [
+    "name" => "O|string",
+    "gender" => [ "[O]" => "string" ],
+    // favourite_fruit 是可选的，如果存在，则必须是数组
+    "favourite_fruit[O]" => [
+        "name" => "*|string",
+        "color" => "*|string"
+    ],
+    // 等同于上的写法
+    "favourite_meat" => [
+        "[O]" => [
+            "name" => "*|string",
+            "from" => "*|string"
+        ]
+    ],
+];
+```
+"**[||]**" - 表明单个字段是或规则，多个规则满足其一即可。
+
+```
+$rule = [
+    // name 可以是布尔值或者布尔字符串
+    "name[||]" => [
+        "*|bool",
+        "*|bool_str",
+    ],
+    // 等同于上的写法
+    "height" => [
+        "[||]" => [
+            "*|int|>:100",
+            "*|string",
+        ]
+    ]
+];
+```
+"**[n]**" - 表明该字段是索引数组。
+
+```
+$rule = [
+    "person" => [
+        // 表明 person 是索引数组, person.* 是关联数组
+        "[n]" => [
+            "name" => "*|string",
+            // 表明 person.*.relation 是关联数组
+            "relation" => [
+                "father" => "*|string",
+                "mother" => "O|string",
+                "brother" => [
+                    // 表明 person.*.relation.*.brother 是可选的索引数组
+                    "[O],[n]" => [
+                        // 表明 person.*.relation.*.brother.* 是索引数组
+                        "[n]" => [
+                            "name" => "*|string",
+                            "level" => [
+                                "[||]" => [
+                                    "*|int",
+                                    "*|string",
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            ],
+            "fruit" => [
+                "[n]" => [
+                    "[n]" => [
+                        "name" => "*|string",
+                        "color" => "O|string",
+                    ]
+
+                ]
+            ],
+        ]
+    ],
+];
+
+// 验证数据格式如下
+$data = [
+    "person" => [
+        [
+            "name" => "Devin", 
+            "relation" => [
+                "father" => "fDevin", 
+                "mother" => "mDevin",
+                "brother" => [
+                    [
+                        ["name" => "Tom", "level" => 1],
+                        ["name" => "Mike", "level" => "Second"],
+                    ]
+                ]
+            ],
+            "fruit" => [
+                [
+                    ["name" => "Apple", "color" => "Red"],
+                    ["name" => "Banana", "color" => "Yellow"],
+                ],
+                [
+                    ["name" => "Cherry", "color" => "Red"],
+                    ["name" => "Orange", "color" => "Yellow"],
+                ]
+            ]
+        ],
+        [
+            "name" => "Johnny", 
+            "relation" => ["father" => "fJohnny", "mother" => "mJohnny"],
+            "fruit" => [
+                [
+                    ["name" => "Apple", "color" => "Red"],
+                    ["name" => "Banana", "color" => "Yellow"],
+                ],
+                [
+                    ["name" => "Cherry", "color" => "Red"],
+                    ["name" => "Orange", "color" => "Yellow"],
+                ]
+            ]
+        ],
+    ],
+]
+```
 
 
-### 4.7 支持自定义配置
+### 4.8 支持自定义配置
 支持自定义的配置有：
 
 ```
 $_config = array(
     'language' => 'en-us',                  // Language, default is en-us
     'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
+    'auto_field' => "data",                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
     'reg_msg' => '/ >> (.*)$/',             // Set special error msg by user 
     'reg_preg' => '/^(\/.+\/.*)$/',         // If match this, using regular expression instead of method
     'reg_if' => '/^if[01]?\?/',             // If match this, validate this condition first
@@ -426,6 +565,7 @@ $_config = array(
 $validation_conf = array(
     'language' => 'en-us',                  // Language, default is en-us
     'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
+    'auto_field' => "param",                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
     'reg_msg' => '/ >>>(.*)$/',             // Set special error msg by user 
     'reg_preg' => '/^Reg:(\/.+\/.*)$/',     // If match this, using regular expression instead of method
     'reg_if' => '/^IF[yn]?\?/',             // If match this, validate this condition first
@@ -486,7 +626,7 @@ $rule = [
 
 
 
-### 4.8 支持国际化配置
+### 4.9 支持国际化配置
 默认语言是英语。
 建议使用标准的语言代码，如"zh-cn", "en-us"等。
 
@@ -558,7 +698,7 @@ $validation_conf = [
 
 $validation = new Validation($validation_conf);
 ```
-### 4.9 支持一次性验证所有参数
+### 4.10 支持一次性验证所有参数
 支持一次性验证所有参数(默认)，也可设置参数验证失败后立即结束验证
 ```
 // 调用接口
@@ -572,7 +712,7 @@ $validation_conf = [
 $validation = new Validation($validation_conf);
 ```
 
-### 4.10 支持自定义错误信息
+### 4.11 支持自定义错误信息
 自定义错误信息的标志是 " >> ", 注意前后空格。
 
 例如：
@@ -605,7 +745,7 @@ function check_age($data, $gender, $param) {
     return true;
 }
 ```
-### 4.11 支持多种错误信息格式
+### 4.12 支持多种错误信息格式
 如果是验证一旦错误则立即返回的情况下，有两种错误信息格式可以返回：
 
 返回错误信息字符串
