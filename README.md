@@ -7,7 +7,8 @@ Validation 用于对后台参数的合法性检查。使用方便，直观。
 
 - 2. 如果参数过多，验证的代码量势必太大，凌乱不直观。使用该工具，只需要定制一套验证规则数组即可，美观直观。
 - 3. 对于某些需要版本控制的API接口，每个版本的参数可能不尽相同，使用该工具，可以更加直观的记录参数的整体格式，每个版本的参数也可简化成一套验证规则。
-- 4. ~~暂时想不到，想到了再给你们编。~~
+- 4. 可以方便地定制每个验证方法返回不同的错误信息
+- 5. ~~暂时想不到，想到了再给你们编。~~
 
 **下面简单介绍下该工具的用法：**
 ```php
@@ -61,7 +62,7 @@ if($validation->set_rules($rule)->validate($data)) {
 - 支持无限嵌套的数据结构的验证，包括关联数组，索引数组
 - 支持特殊的验证规则
 - 支持自定义配置，比如规则分隔符号"|"，参数分隔符号","等等
-- 支持国际化配置，默认英语
+- 支持国际化配置，默认英语，支持自定义方法返回错误信息
 - 支持一次性验证所有参数(默认)，也可设置参数验证失败后立即结束验证
 - 支持自定义错误信息，支持多种格式的错误信息，无限嵌套或者一维数组的错误信息格式
 - ~~暂时想不到，想到了再给你们编。~~
@@ -239,7 +240,7 @@ $validation->set_rules("*|string")->validate("Hello World!");
 ```
 
 
-**注意**：在 src/test 目录下已经内置了完整测试类Tests.php 和单元测试类 Unit.php。
+**注意**：在 src/Test 目录下已经内置了完整测试类Tests.php 和单元测试类 Unit.php。
 
 **完整测试类**：
 ```
@@ -563,6 +564,7 @@ $data = [
 ```
 $_config = array(
     'language' => 'en-us',                  // Language, default is en-us
+    'lang_path' => '',                      // Customer Language file path
     'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
     'auto_field' => "data",                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
     'reg_msg' => '/ >> (.*)$/',             // Set special error msg by user 
@@ -587,8 +589,9 @@ $_config = array(
 ```
 $validation_conf = array(
     'language' => 'en-us',                  // Language, default is en-us
+    'lang_path' => '/my_path/',             // Customer Language file path
     'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
-    'auto_field' => "param",                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
+    'auto_field' => "param",                // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
     'reg_msg' => '/ >>>(.*)$/',             // Set special error msg by user 
     'reg_preg' => '/^Reg:(\/.+\/.*)$/',     // If match this, using regular expression instead of method
     'reg_if' => '/^IF[yn]?\?/',             // If match this, validate this condition first
@@ -650,69 +653,16 @@ $rule = [
 
 
 ### 4.9 支持国际化配置
-默认语言是英语。
-建议使用标准的语言代码，如"zh-cn", "en-us"等。
 
-在 language 文件夹下新建 国际化文件，如 zh-cn.php。
+配置文件名和类名都采用大驼峰命名方式。
 
-内容如下：
-```
-<?php
+调用时，支持使用标准的语言代码，如"zh-cn", "en-us"等。
 
-return array(
-    'default' => '@me 验证错误',
-    'numeric_array' => '@me 必须是索引数组',
-    'required' => '@me 不能为空',
-    'preg' => '@me 格式错误，必须是 @preg',
-    'call_method' => '@method 未定义',
-    '=' => '@me 必须等于 @p1',
-    '!=' => '@me 必须不等于 @p1',
-    '==' => '@me 必须全等于 @p1',
-    '!==' => '@me 必须不全等于 @p1',
-    '>' => '@me 必须大于 @p1',
-    '<' => '@me 必须小于 @p1',
-    '>=' => '@me 必须大于等于 @p1',
-    '<=' => '@me 必须小于等于 @p1',
-    '<>' => '@me 必须大于 @p1 且小于 @p2',
-    '<=>' => '@me 必须大于 @p1 且小于等于 @p2',
-    '<>=' => '@me 必须大于等于 @p1 且小于 @p2',
-    '<=>=' => '@me 必须大于等于 @p1 且小于等于 @p2',
-    '(n)' => '@me 必须是数字且在此之内 @p1',
-    '!(n)' => '@me 必须是数字且不在此之内 @p1',
-    '(s)' => '@me 必须是字符串且在此之内 @p1',
-    '!(s)' => '@me 必须是字符串且不在此之内 @p1',
-    'len=' => '@me 长度必须等于 @p1',
-    'len!=' => '@me 长度必须不等于 @p1',
-    'len>' => '@me 长度必须大于 @p1',
-    'len<' => '@me 长度必须小于 @p1',
-    'len>=' => '@me 长度必须大于等于 @p1',
-    'len<=' => '@me 长度必须小于等于 @p1',
-    'len<>' => '@me 长度必须大于 @p1 且小于 @p2',
-    'len<=>' => '@me 长度必须大于 @p1 且小于等于 @p2',
-    'len<>=' => '@me 长度必须大于等于 @p1 且小于 @p2',
-    'len<=>=' => '@me 长度必须大于等于 @p1 且小于等于 @p2',
-    'int' => '@me 必须是整型',
-    'float' => '@me 必须是小数',
-    'string' => '@me 必须是字符串',
-    'arr' => '@me 必须是数组',
-    'bool' => '@me 必须是布尔型',
-    'bool=' => '@me 必须是布尔型且等于 @p1',
-    'bool_str' => '@me 必须是布尔型字符串',
-    'bool_str=' => '@me 必须是布尔型字符串且等于 @p1',
-    'email' => '@me 必须是邮箱',
-    'url' => '@me 必须是网址',
-    'ip' => '@me 必须是IP地址',
-    'mac' => '@me 必须是MAC地址',
-    'dob' => '@me 必须是正确的日期',
-    'file_base64' => '@me 必须是正确的文件的base64码',
-    'uuid' => '@me 必须是 UUID',
-);
-```
-最后需要修改语言配置
+目前支持的语言有，"zh-cn", "en-us"，默认语言是"en-us"英语。
 
 ```
 // 调用接口
-$validation->set_language('zh-cn');
+$validation->set_language('zh-cn'); //将加载 ZhCn.php 配置文件
 
 // 或者在实例化类的时候加入配置
 $validation_conf = [
@@ -721,6 +671,46 @@ $validation_conf = [
 
 $validation = new Validation($validation_conf);
 ```
+
+**自定义国际化文件**
+
+如 /MyPath/MyLang.php。
+
+内容如下：
+```
+<?php
+
+class MyLang
+{
+    public $error_template = array(
+        'check_custom' => '@me error!(CustomLang File)'
+    );
+}
+```
+修改语言文件路径
+
+```
+// You should add CustomLang.php in '/MyPath/'
+$validation->set_config(array('lang_path' => /MyPath/'))->set_language('MyLang');
+```
+
+实际上，国际化配置，配置的是每个验证函数返回的错误信息，也可以自由地覆盖增加你的验证函数返回的错误信息。
+
+```
+// 必须是对象
+$lang_config = (object)array();
+$lang_config->error_template = array(
+    'check_id' => '@me error!(customed)'
+);
+
+$validation->custom_language($lang_config);
+```
+以上为错误模版增加了一个check_id, 如果check_id 函数验证错误，则返回信息
+
+```
+'@me error!(customed)'
+```
+
 ### 4.10 支持一次性验证所有参数
 支持一次性验证所有参数(默认)，也可设置参数验证失败后立即结束验证
 ```

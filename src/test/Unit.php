@@ -5,26 +5,27 @@
  * method_name - optional. If empty, run all test case. if is not empty, only run this test case.
  */
 
+require_once(__DIR__."/../Validation.php");
+use githusband\Validation;
 
-function check_id($data, $min, $max) {
+function check_id($data, $min, $max)
+{
     return $data >= $min && $data <= $max;
 }
 
-function check_age($data, $gender, $param) {
-    if($gender == "male") {
-        if($data > $param) return false;
+function check_age($data, $gender, $param)
+{
+    if ($gender == "male") {
+        if ($data > $param) return false;
     }else {
-        if($data < $param) return false;
+        if ($data < $param) return false;
     }
 
     return true;
 }
 
-require_once(__DIR__."/../Validation.php");
-// require_once(__DIR__."/vendor/autoload.php");
-use githusband\Validation;
-
-class Unit {
+class Unit
+{
     // Validation Instance
     protected $validation;
 
@@ -53,21 +54,22 @@ class Unit {
      * @Author   Devin
      * @return   [type]                   [description]
      */
-    public function run($method_name='') {
+    public function run($method_name='')
+    {
         echo "Start run {$method_name}\n";
 
-        if(!empty($method_name)) {
+        if (!empty($method_name)) {
             $this->execute_tests($method_name);
         }else {
             $class_methods = get_class_methods($this);
 
             foreach ($class_methods as $method_name) {
-                if(preg_match('/^test_.*/', $method_name)) {
+                if (preg_match('/^test_.*/', $method_name)) {
 
 
                     $result = $this->execute_tests($method_name);
 
-                    if(!$result) break;
+                    if (!$result) break;
                 }
             }
         }
@@ -84,16 +86,17 @@ class Unit {
      * @param    mixed                      $error_data  If is array, will get config data of method
      * @return   [type]                                [description]
      */
-    protected function execute_tests($method_name, $error_data=false) {
+    protected function execute_tests($method_name, $error_data=false)
+    {
         echo "Testing method - {$method_name}\n";
 
-        if(preg_match('/^.*_execute$/', $method_name)) {
+        if (preg_match('/^.*_execute$/', $method_name)) {
             return $this->{$method_name}($error_data);
         }
 
         $method_info = $this->{$method_name}();
 
-        if($error_data !== false) return $this->get_method_info($method_info['rule'], $method_info['cases'], $method_info['extra'], $error_data);
+        if ($error_data !== false) return $this->get_method_info($method_info['rule'], $method_info['cases'], $method_info['extra'], $error_data);
 
         return $this->valid_cases($method_info['rule'], $method_info['cases'], $method_info['extra']);
     }
@@ -121,7 +124,8 @@ class Unit {
      * @param    [type]                   $extra  extra message, such as method name
      * @return   [type]                           [description]
      */
-    protected function valid_cases($rule, $cases, $extra) {
+    protected function valid_cases($rule, $cases, $extra)
+    {
         $this->validation->set_rules($rule);
 
         $result = true;
@@ -131,10 +135,10 @@ class Unit {
             $simple = isset($case['err_format']['simple'])? $case['err_format']['simple'] : true;
 
             // Check valid cases
-            if(strpos($c_field, "Valid") !== false) {
+            if (strpos($c_field, "Valid") !== false) {
                 $valid_alert = isset($case['valid_alert'])? $case['valid_alert'] : "Validation error. It should be valid.";
 
-                if(!$this->validation->validate($case['data'])) {
+                if (!$this->validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, [
                         "valid_alert" => $valid_alert,
                         "error_msg" => $this->validation->get_error($standard, $simple)
@@ -143,17 +147,17 @@ class Unit {
                 }
 
             // Check invalid cases
-            }else if(strpos($c_field, "Invalid") !== false) {
+            }else if (strpos($c_field, "Invalid") !== false) {
                 $valid_alert = isset($case['valid_alert'])? $case['valid_alert'] : "Validation error. It should be invalid.";
 
-                if($this->validation->validate($case['data'])) {
+                if ($this->validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, $valid_alert, $rule, $cases);
                     $result = false;
                 }else {
-                    if(isset($case["check_error_msg"]) && $case["check_error_msg"] == false) continue;
+                    if (isset($case["check_error_msg"]) && $case["check_error_msg"] == false) continue;
 
                     // If invalid, check error massage if it's expected.
-                    if(isset($case["expected_msg"])) {
+                    if (isset($case["expected_msg"])) {
                         $expected_msg = $case["expected_msg"];
                     }else {
                         $error_tag = isset($extra['error_tag'])? $extra['error_tag'] : 'default';
@@ -166,7 +170,7 @@ class Unit {
                     }
 
                     $error_msg = $this->validation->get_error($standard, $simple);
-                    if($expected_msg !== $error_msg) {
+                    if ($expected_msg !== $error_msg) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
                             "Error msg is unexpected.", 
                             [
@@ -183,7 +187,8 @@ class Unit {
         return $result;
     }
 
-    protected function set_unit_error($method, $cases_field, $error_message, $rule, $cases) {
+    protected function set_unit_error($method, $cases_field, $error_message, $rule, $cases)
+    {
         $this->is_error = true;
         $this->error_message[$method]["rule"] = $rule;
         $this->error_message[$method]["cases"][$cases_field] = $cases[$cases_field]["data"];
@@ -191,7 +196,8 @@ class Unit {
         $this->error_message[$method]["error"][$cases_field] = $error_message;
     }
 
-    protected function parse_error_message($tag, $field_path, $params=array()) {
+    protected function parse_error_message($tag, $field_path, $params=array())
+    {
         $error_template = $this->validation->get_error_template($tag);
         $error_template = str_replace($this->_symbol_me, $field_path, $error_template);
 
@@ -203,7 +209,7 @@ class Unit {
     }
 
     protected function get_unit_result() {
-        if($this->is_error) {
+        if ($this->is_error) {
             return $this->error_message;
         }else {
             return "*******************************\nUnit test success!\n*******************************\n";
@@ -220,14 +226,15 @@ class Unit {
         }
     }
 
-    protected function get_method_info($rule, $cases, $extra, $error_data=array()) {
+    protected function get_method_info($rule, $cases, $extra, $error_data=array())
+    {
         $method_info = [
             "rule" => $rule,
             "cases" => [],
             "extra" => $extra
         ];
 
-        if(empty($error_data)) {
+        if (empty($error_data)) {
             $method_info["cases"] = $cases;
         }else {
             foreach($error_data as $field => $value) {
@@ -238,7 +245,8 @@ class Unit {
         return $method_info;
     }
 
-    protected function test_series_rule() {
+    protected function test_series_rule()
+    {
         $rule = [
             "name" => "*|string|/^\d+.*/"
         ];
@@ -281,7 +289,8 @@ class Unit {
         ];
     }
 
-    protected function test_if_rule() {
+    protected function test_if_rule()
+    {
         $rule = [
             "id" => "*|<>:0,10",
             "name" => "if?<::@id,5|*|string|/^\d+.*/",
@@ -355,7 +364,8 @@ class Unit {
         ];
     }
 
-    protected function test_optional() {
+    protected function test_optional()
+    {
         $rule = [
             "name" => "O|string",
             "gender" => [ "[O]" => "string"],
@@ -453,7 +463,8 @@ class Unit {
         ];
     }
 
-    protected function test_or_rule() {
+    protected function test_or_rule()
+    {
         $rule = [
             "name[||]" => [
                 "*|bool",
@@ -513,7 +524,8 @@ class Unit {
         ];
     }
 
-    protected function test_assoc_array() {
+    protected function test_assoc_array()
+    {
         $rule = [
             "person" => [
                 "name" => "*|string|/^\d+.*/"
@@ -566,7 +578,8 @@ class Unit {
         ];
     }
 
-    protected function test_numberic_array() {
+    protected function test_numberic_array()
+    {
         $rule = [
             "person[n]" => [
                 "name" => "*|string|/^\d+.*/",
@@ -814,7 +827,8 @@ class Unit {
         ];
     }
 
-    protected function test_numberic_assoc_array() {
+    protected function test_numberic_assoc_array()
+    {
         $rule = [
             // "person[n]" => [
             //     "name" => "*|string",
@@ -1060,7 +1074,8 @@ class Unit {
         ];
     }
 
-    protected function test_root_data_rule_1() {
+    protected function test_root_data_rule_1()
+    {
         $rule = "*|string";
 
         $cases = [
@@ -1093,7 +1108,8 @@ class Unit {
         ];
     }
 
-    protected function test_root_data_rule_2() {
+    protected function test_root_data_rule_2()
+    {
         $rule = [
             "[||]" => [
                 "*|string",
@@ -1131,7 +1147,8 @@ class Unit {
         ];
     }
 
-    protected function test_root_data_rule_3() {
+    protected function test_root_data_rule_3()
+    {
         $rule = [
             "[O]" => [
                 "*|string",
@@ -1168,7 +1185,8 @@ class Unit {
         ];
     }
 
-    protected function test_root_data_rule_4() {
+    protected function test_root_data_rule_4()
+    {
         $rule = [
             "[n]" => "*|string"
         ];
@@ -1203,7 +1221,8 @@ class Unit {
         ];
     }
 
-    protected function test_dynamic_err_msg_simple() {
+    protected function test_dynamic_err_msg_simple()
+    {
         $rule = [
             "id" => "*|<=>=:1,100 >> Users define - @me should not be >= @p1 and <= @p2",
             "name" => "*|string >> Users define - @me should not be empty and must be string",
@@ -1236,7 +1255,8 @@ class Unit {
         ];
     }
 
-    protected function test_method_and_parameter() {
+    protected function test_method_and_parameter()
+    {
         $rule = [
             "id" => "*|string|check_id:1,100",
             "name" => "*|string|check_name:@id",
@@ -1324,8 +1344,8 @@ class Unit {
         ];
 
         $this->validation->add_method("check_name", function($name, $id) {
-            if($id == 1) {
-                if($name != "Admin") {
+            if ($id == 1) {
+                if ($name != "Admin") {
                     return false;
                 }
             }
@@ -1334,12 +1354,12 @@ class Unit {
         });
 
         $this->validation->add_method("check_fruit_id", function($data) {
-            if($data["id"] < 50) {
-                if($data["favourite_fruit"]["fruit_id"] >= 50) {
+            if ($data["id"] < 50) {
+                if ($data["favourite_fruit"]["fruit_id"] >= 50) {
                     return false;
                 }
             }else {
-                if($data["favourite_fruit"]["fruit_id"] < 50) {
+                if ($data["favourite_fruit"]["fruit_id"] < 50) {
                     return false;
                 }
             }
@@ -1348,8 +1368,8 @@ class Unit {
         });
 
         $this->validation->add_method("check_fruit_name", function($favourite_fruit) {
-            if($favourite_fruit['fruit_id'] == 1) {
-                if($favourite_fruit['fruit_name'] != "Admin Fruit") {
+            if ($favourite_fruit['fruit_id'] == 1) {
+                if ($favourite_fruit['fruit_name'] != "Admin Fruit") {
                     return false;
                 }
             }
@@ -1365,7 +1385,7 @@ class Unit {
                 "watermelon" => "green",
             ];
 
-            if(isset($fruit_color_arr[$fruit_name]) && $fruit_color_arr[$fruit_name] == $fruit_color) {
+            if (isset($fruit_color_arr[$fruit_name]) && $fruit_color_arr[$fruit_name] == $fruit_color) {
                 return true;
             }
 
@@ -1379,7 +1399,8 @@ class Unit {
         ];
     }
 
-    protected function test_validation_global_execute($error_data=false) {
+    protected function test_validation_global_execute($error_data=false)
+    {
         $rule = [
             "id" => "*|int",
             "name" => "*|string",
@@ -1426,7 +1447,7 @@ class Unit {
             "method_name" => __METHOD__,
         ];
 
-        if($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
+        if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
 
         $this->validation->set_validation_global(true);
         $result = $this->valid_cases($rule, $cases, $extra);
@@ -1435,7 +1456,8 @@ class Unit {
         return $result;
     }
 
-    protected function test_err_format_execute($error_data=false) {
+    protected function test_err_format_execute($error_data=false)
+    {
         $rule = [
             "id" => "*|int",
             "name" => "*|string",
@@ -1570,7 +1592,7 @@ class Unit {
             "method_name" => __METHOD__,
         ];
 
-        if($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
+        if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
 
         $this->validation->set_validation_global(true);
         $result = $this->valid_cases($rule, $cases, $extra);
@@ -1579,7 +1601,8 @@ class Unit {
         return $result;
     }
 
-    protected function test_dynamic_err_msg_complex() {
+    protected function test_dynamic_err_msg_complex()
+    {
         $rule = [
             "id" => "*|check_err_field",
             "number" => "*|check_err_field >> @me error!",
@@ -1682,16 +1705,16 @@ class Unit {
         ];
 
         $this->validation->add_method("check_err_field", function($data) {
-            if($data < 10) {
+            if ($data < 10) {
                 return false;
-            }else if($data < 20) {
+            }else if ($data < 20) {
                 return "id: check_err_field error. [10, 20]";
-            }else if($data < 30) {
+            }else if ($data < 30) {
                 return [
                     "error_type" => "3",
                     "message" => "@me: check_err_field error. [20, 30]",
                 ];
-            }else if($data <= 40) {
+            }else if ($data <= 40) {
                 return [
                     "error_type" => "4",
                     "message" => "@me: check_err_field error. [30, 40]",
@@ -1709,7 +1732,8 @@ class Unit {
         ];
     }
 
-    protected function test_language_execute($error_data=false) {
+    protected function test_set_language_execute($error_data=false)
+    {
         $rule = [
             "name" => "*|string"
         ];
@@ -1738,7 +1762,7 @@ class Unit {
             "method_name" => __METHOD__,
         ];
 
-        if($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
+        if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
 
         $this->validation->set_language("zh-cn");
         $result = $this->valid_cases($rule, $cases, $extra);
@@ -1747,7 +1771,82 @@ class Unit {
         return $result;
     }
 
-    protected function test_default_config_execute($error_data=false) {
+    protected function test_custom_language_file_execute($error_data=false)
+    {
+        $rule = [
+            "id" => "check_custom:100"
+        ];
+
+        $cases = [
+            "Invalid_empty" => [
+                "data" => [
+                    "id" => ""
+                ],
+                "expected_msg" => "id error!(CustomLang File)"
+            ],
+            "Invalid_extra" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => "id error!(CustomLang File)"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
+
+        $this->validation->add_method("check_custom", function($custom, $num) {
+            return $custom > $num;
+        });
+        // You should add CustomLang.php in __DIR__.'/Language/'
+        $this->validation->set_config(array('lang_path' => __DIR__.'/Language/'))->set_language('CustomLang');
+        $result = $this->valid_cases($rule, $cases, $extra);
+
+        return $result;
+    }
+
+    protected function test_custom_language_object_execute($error_data=false)
+    {
+        $rule = [
+            "id" => "check_id:1,100"
+        ];
+
+        $cases = [
+            "Invalid_empty" => [
+                "data" => [
+                    "id" => ""
+                ],
+                "expected_msg" => "id error!(customed)"
+            ],
+            "Invalid_extra" => [
+                "data" => [
+                    "id" => 1000,
+                ],
+                "expected_msg" => "id error!(customed)"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
+
+        $lang_config = (object)array();
+        $lang_config->error_template = array(
+            'check_id' => '@me error!(customed)'
+        );
+        $this->validation->custom_language($lang_config);
+        $result = $this->valid_cases($rule, $cases, $extra);
+
+        return $result;
+    }
+
+    protected function test_default_config_execute($error_data=false)
+    {
         $rule = [
             "id" => "*|int|/^\d+$/",
             "name" => "*|string|len<=>:8,32",
@@ -1940,7 +2039,7 @@ class Unit {
             "method_name" => __METHOD__,
         ];
 
-        if($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
+        if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
 
         $this->validation->set_validation_global(true);
         $result = $this->valid_cases($rule, $cases, $extra);
@@ -2161,7 +2260,7 @@ class Unit {
             "method_name" => __METHOD__,
         ];
 
-        if($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
+        if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
 
         $this->validation->set_config($validation_conf);
         $result = $this->valid_cases($rule, $cases, $extra);
@@ -2171,7 +2270,8 @@ class Unit {
         return $result;
     }
 
-    protected function test_require() {
+    protected function test_require()
+    {
         $rule = [
             "name" => "*"
         ];
@@ -2205,7 +2305,8 @@ class Unit {
         ];
     }
 
-    protected function test_regular_expression() {
+    protected function test_regular_expression()
+    {
         $rule = [
             "id" => "*|/^\d+$/",
             "name" => "*|/Tom/i|string"
@@ -2256,7 +2357,8 @@ class Unit {
         ];
     }
 
-    protected function test_in_method() {
+    protected function test_in_method()
+    {
         $rule = [
             "id" => "*|(n):1,2,3",
         ];
@@ -2313,7 +2415,7 @@ unset($arguments[0], $arguments[1]);
 
 $test = new Unit();
 
-if(method_exists($test, $method)) {
+if (method_exists($test, $method)) {
     $result = call_user_func_array([$test, $method], $arguments);
 }else {
     echo "Error test method {$method}.\n";
