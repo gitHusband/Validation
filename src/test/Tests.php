@@ -1,28 +1,30 @@
 <?php
 
-function check_age($data, $gender, $param) {
-    if($gender == "male") {
-        if($data > $param) return false;
+require_once(__DIR__."/../Validation.php");
+use githusband\Validation;
+
+function check_age($data, $gender, $param)
+{
+    if ($gender == "male") {
+        if ($data > $param) return false;
     }else {
-        if($data < $param) return false;
+        if ($data < $param) return false;
     }
 
     return true;
 }
 
-require_once(__DIR__."/../Validation.php");
-// require_once(__DIR__."/vendor/autoload.php");
-use githusband\Validation;
-
-class Tests {
+class Tests
+{
 
     public function __construct($config=array())
     {
 
     }
 
-    public function run($data = array()) {
-        if(empty($data)) {
+    public function run($data = array())
+    {
+        if (empty($data)) {
             $data = [
                 "id" => 12,
                 "name" => "LinJunjie",
@@ -130,11 +132,12 @@ class Tests {
             'validation_global' => true, 
         ];
 
-        return $this->_validate($data, $rule, $validation_conf);
+        return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function error($data = array()) {
-        if(empty($data)) {
+    public function error($data = array())
+    {
+        if (empty($data)) {
             $data = [
                 "id" => "ABBC",
                 "name" => "12",
@@ -252,15 +255,16 @@ class Tests {
             'validation_global' => true,
         ];
 
-        return $this->_validate($data, $rule, $validation_conf);
+        return $this->validate($data, $rule, $validation_conf);
     }
 
-    private function _validate($data, $rule, $validation_conf=array()) {
+    protected function validate($data, $rule, $validation_conf=array())
+    {
         $validation = new Validation($validation_conf);
 
         $validation->add_method('check_postcode', function($company) {
-            if(isset($company['country']) && $company['country'] == "US"){
-                if(!isset($company['postcode']) || $company['postcode'] != "123"){
+            if (isset($company['country']) && $company['country'] == "US"){
+                if (!isset($company['postcode']) || $company['postcode'] != "123"){
                     // return false;
                     // return "#### check_postcode method error message(@me)";
                     return array(
@@ -274,7 +278,7 @@ class Tests {
             return true;
         });
 
-        if($validation->set_rules($rule)->validate($data)) {
+        if ($validation->set_rules($rule)->validate($data)) {
             return $validation->get_result();
         }else {
             // return $validation->get_result();
@@ -287,7 +291,7 @@ $method = isset($argv[1])? $argv[1] : "error";
 
 $test = new Tests();
 
-if(method_exists($test, $method)) {
+if (method_exists($test, $method)) {
     $result = call_user_func_array([$test, $method], []);
 }else {
     echo "Error test method {$method}.\n";
