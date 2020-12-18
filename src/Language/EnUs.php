@@ -51,6 +51,7 @@ class EnUs
         'mac' => '@me must be MAC address',
         'dob' => '@me must be a valid date',
         'file_base64' => '@me must be a valid file base64',
-        'uuid' => '@me must be a UUID'
+        'uuid' => '@me must be a UUID',
+        'oauth2_grant_type' => '@me is not a valid OAuth2 grant type'
     );
 }

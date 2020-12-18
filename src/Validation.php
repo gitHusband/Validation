@@ -208,6 +208,7 @@ class Validation
         'dob' => '@me must be a valid date',
         'file_base64' => '@me must be a valid file base64',
         'uuid' => '@me must be a UUID',
+        'oauth2_grant_type' => '@me is not a valid OAuth2 grant type'
     );
 
     public function __construct($config=array())
@@ -875,8 +876,8 @@ class Validation
         $params = $method_rule['params'];
         if (isset($this->methods[$method_rule['method']])) {
             $result = call_user_func_array($this->methods[$method_rule['method']], $params);
-        } else if (method_exists(__CLASS__, $method_rule['method'])) {
-            $result = call_user_func_array([__CLASS__, $method_rule['method']], $params);
+        } else if (method_exists($this, $method_rule['method'])) {
+            $result = call_user_func_array([$this, $method_rule['method']], $params);
         } else if (function_exists($method_rule['method'])) {
             $result = call_user_func_array($method_rule['method'], $params);
         } else {
@@ -1319,7 +1320,7 @@ class Validation
         return is_array($data);
     }
 
-    protected function bool($data, $bool='')
+    public function bool($data, $bool='')
     {
         $bool = strtolower($bool);
         if ($data === true || $data === false) {
@@ -1336,7 +1337,7 @@ class Validation
         }
     }
 
-    protected function bool_str($data, $bool='')
+    public function bool_str($data, $bool='')
     {
         $data = strtolower($data);
         if ($data === "true" || $data === "false") {
@@ -1351,7 +1352,7 @@ class Validation
         }
     }
 
-    protected function email($data)
+    public function email($data)
     {
         if (!empty($data) && !preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/', $data)){
             return FALSE;
@@ -1360,7 +1361,7 @@ class Validation
         }
     }
 
-    protected function url($data)
+    public function url($data)
     {
         if (!empty($data) && !preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,4}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)){
             return FALSE;
@@ -1369,7 +1370,7 @@ class Validation
         }
     }
 
-    protected function ip($data)
+    public function ip($data)
     {
         if (!empty($data) && !preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $data)) {
             return FALSE;
@@ -1378,7 +1379,7 @@ class Validation
         }
     }
 
-    protected function mac($data)
+    public function mac($data)
     {
         if (!empty($data) && !preg_match('/^((([a-f0-9]{2}:){5})|(([a-f0-9]{2}-){5})|(([a-f0-9]{2} ){5}))[a-f0-9]{2}$/i', $data)) {
             return FALSE;
@@ -1388,7 +1389,7 @@ class Validation
     }
 
     // date of birth
-    protected function dob($date)
+    public function dob($date)
     {
         if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/',$date,$arr)) {
             $obj = new \DateTime($date);
@@ -1404,7 +1405,7 @@ class Validation
         }
     }
 
-    protected function file_base64_size($file_base64)
+    public function file_base64_size($file_base64)
     {
         $file_base64 = preg_replace('/^(data:\s*(\w+\/\w+);base64,)/', '', $file_base64);
         $file_base64 = str_replace('=', '',$file_base64);
@@ -1416,7 +1417,7 @@ class Validation
         return $file_size;
     }
 
-    protected function file_base64($file_base64, $mime=false, $max_size=false)
+    public function file_base64($file_base64, $mime=false, $max_size=false)
     {
         if (preg_match('/^(data:\s*(\w+\/\w+);base64,)/', $file_base64, $matches)) {
             $file_mime = $matches[2];
@@ -1438,12 +1439,23 @@ class Validation
         return true;
     }
 
-    protected function uuid($data)
+    public function uuid($data)
     {
         if (!empty($data) && !preg_match('/^\w{8}(-\w{4}){3}-\w{12}$/', $data)) {
-            return FALSE;
+            return false;
         } else {
-            return TRUE;
+            return true;
+        }
+    }
+
+    public function oauth2_grant_type($data)
+    {
+        $oauth2_grant_types = array('authorization_code', 'password', 'client_credentials');
+
+        if (in_array($data, $oauth2_grant_types)) {
+            return true;
+        } else {
+            return false;
         }
     }
 }

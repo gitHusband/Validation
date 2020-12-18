@@ -51,6 +51,7 @@ class ZhCn
         'mac' => '@me 必须是MAC地址',
         'dob' => '@me 必须是正确的日期',
         'file_base64' => '@me 必须是正确的文件的base64码',
-        'uuid' => '@me 必须是 UUID'
+        'uuid' => '@me 必须是 UUID',
+        'oauth2_grant_type' => '@me 必须是合法的 OAuth2 授权类型'
     );
 }
