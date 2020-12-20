@@ -359,7 +359,7 @@ $validation->add_method('check_postcode', function($company) {
 - 全局函数
 
 三种函数的优先级是
-> 内置函数 > add_method > 全局函数
+> add_method > 内置函数 > 全局函数
 
 如若函数不存在，则报错。
 
