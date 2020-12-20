@@ -581,7 +581,7 @@ class Unit
     protected function test_numberic_array()
     {
         $rule = [
-            "person[N]" => [
+            "person.*" => [
                 "name" => "*|string|/^\d+.*/",
                 "relation" => [
                     "father" => "*|string",
@@ -596,14 +596,14 @@ class Unit
                     "*|string",
                 ]
             ],
-            "flower[N]" => "*|string",
+            "flower.*" => "*|string",
             "clothes[O]" => [
                 [
                     "*|string",
                 ]
             ],
             "shoes" => [
-                "[O],[N]" => "*|string"
+                "[O].*" => "*|string"
             ],
         ];
 
@@ -830,14 +830,14 @@ class Unit
     protected function test_numberic_assoc_array()
     {
         $rule = [
-            // "person[N]" => [
+            // "person.*" => [
             //     "name" => "*|string",
             //     "relation" => [
             //         "father" => "*|string",
             //         "mother" => "O|string",
             //         "brother" => [
-            //             "[O],[N]" => [
-            //                 "[N]" => [
+            //             "[O].*" => [
+            //                 "*" => [
             //                     "name" => "*|string",
             //                     "level" => [
             //                         "[||]" => [
@@ -850,8 +850,8 @@ class Unit
             //         ]
             //     ],
             //     "fruit" => [
-            //         "[N]" => [
-            //             "[N]" => [
+            //         "*" => [
+            //             "*" => [
             //                 "name" => "*|string",
             //                 "color" => "O|string",
             //             ]
@@ -860,14 +860,14 @@ class Unit
             //     ],
             // ],
             "person" => [
-                "[N]" => [
+                "*" => [
                     "name" => "*|string",
                     "relation" => [
                         "father" => "*|string",
                         "mother" => "O|string",
                         "brother" => [
-                            "[O],[N]" => [
-                                "[N]" => [
+                            "[O].*" => [
+                                "*" => [
                                     "name" => "*|string",
                                     "level" => [
                                         "[||]" => [
@@ -880,8 +880,8 @@ class Unit
                         ]
                     ],
                     "fruit" => [
-                        "[N]" => [
-                            "[N]" => [
+                        "*" => [
+                            "*" => [
                                 "name" => "*|string",
                                 "color" => "O|string",
                             ]
@@ -1188,7 +1188,7 @@ class Unit
     protected function test_root_data_rule_4()
     {
         $rule = [
-            "[N]" => "*|string"
+            "*" => "*|string"
         ];
 
         $cases = [
@@ -1868,7 +1868,7 @@ class Unit
                 "name" => "*|len<=>:8,64",
                 "country" => "O|len>=:3",
                 "addr" => "*|len>:16",
-                "colleagues[N]" => [
+                "colleagues.*" => [
                     "name" => "*|string|len<=>:3,32",
                     "position" => "*|(s):Reception,Financial,PHP,JAVA"
                 ],
@@ -1878,7 +1878,7 @@ class Unit
                     "O|(s):Johnny,David"
                 ]
             ],
-            "favourite_food[O][N]" => [
+            "favourite_food[O].*" => [
                 "name" => "*|string",
                 "place_name" => "O|string" 
             ]
@@ -2065,8 +2065,8 @@ class Unit
             'symbol_field_name_separator' => '->',  // Field name separator, suce as "fruit.apple"
             'symbol_required' => '!*',              // Symbol of required field
             'symbol_optional' => 'o',               // Symbol of optional field
-            'symbol_numeric_array' => '[!n]',       // Symbol of association array
             'symbol_array_optional' => '[o]',       // Symbol of array optional
+            'symbol_numeric_array' => '[N]',        // Symbol of association array
         );
 
         $rule = [
@@ -2090,7 +2090,7 @@ class Unit
                 "name" => "!*&&len<=>~8,64",
                 "country" => "o&&len>=~3",
                 "addr" => "!*&&len>~16",
-                "colleagues[!n]" => [
+                "colleagues[N]" => [
                     "name" => "!*&&string&&len<=>~3,32",
                     "position" => "!*&&(s)~Reception,Financial,PHP,JAVA"
                 ],
@@ -2100,7 +2100,7 @@ class Unit
                     "o&&(s)~Johnny,David"
                 ]
             ],
-            "favourite_food[o][!n]" => [
+            "favourite_food[o][N]" => [
                 "name" => "!*&&string",
                 "place_name" => "o&&string" 
             ]

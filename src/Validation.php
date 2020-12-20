@@ -82,8 +82,8 @@ class Validation
         'symbol_required' => '*',               // Symbol of required field
         'symbol_optional' => 'O',               // Symbol of optional field
         'symbol_or' => '[||]',                  // Symbol of or rule
-        'symbol_numeric_array' => '[N]',        // Symbol of association array rule
         'symbol_array_optional' => '[O]',       // Symbol of array optional rule
+        'symbol_numeric_array' => '.*',         // Symbol of association array rule
     );
 
     /**
@@ -406,7 +406,8 @@ class Validation
                     $result = $this->execute_or_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol]);
                 }
                 // Validate numeric array
-                else if (strpos($rule_system_symbol, $this->config['symbol_numeric_array']) !== false) {
+                else if (strpos($rule_system_symbol, $this->config['symbol_numeric_array']) !== false
+                    || strpos($rule_system_symbol, ltrim($this->config['symbol_numeric_array'], '.')) !== false) {
                     $result = $this->execute_numeric_array_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol], $is_array_loop);
                 }
                 // Validate association array
@@ -471,7 +472,7 @@ class Validation
 
     /**
      * There are some special rule system symbols
-     * [||], [O], [N]
+     * [||], [O], .*
      * 
      * @Author   Devin
      * @param    array                   $rule 
@@ -486,19 +487,27 @@ class Validation
         if (count($keys) != 1) return false;
 
         $rule_system_symbol_string = $keys[0];
+        $rule_system_symbol_string_tmp = $rule_system_symbol_string;
 
-        $rule_system_symbol_array = explode(',', $rule_system_symbol_string);
-        foreach($rule_system_symbol_array as $symbol) {
-            if (
-                $symbol === $this->config['symbol_array_optional'] ||
-                $symbol === $this->config['symbol_or'] ||
-                $symbol === $this->config['symbol_numeric_array']
-            ) {
-                return $rule_system_symbol_string;
+        if (strpos($rule_system_symbol_string, $this->config['symbol_array_optional']) !== false) {
+            $rule_system_symbol_string_tmp = str_replace($this->config['symbol_array_optional'], '', $rule_system_symbol_string_tmp);
+        }
+
+        if (strpos($rule_system_symbol_string, $this->config['symbol_or']) !== false) {
+            $rule_system_symbol_string_tmp = str_replace($this->config['symbol_or'], '', $rule_system_symbol_string_tmp);
+        }
+
+        if (strpos($rule_system_symbol_string, $this->config['symbol_numeric_array']) !== false) {
+            $rule_system_symbol_string_tmp = str_replace($this->config['symbol_numeric_array'], '', $rule_system_symbol_string_tmp);
+        } else if (strpos($this->config['symbol_numeric_array'], '.') === 0) {
+            $symbol_numeric_array_tmp = ltrim($this->config['symbol_numeric_array'], '.');
+            if (strpos($rule_system_symbol_string, $symbol_numeric_array_tmp) !== false) {
+                $rule_system_symbol_string_tmp = str_replace($symbol_numeric_array_tmp, '', $rule_system_symbol_string_tmp);
             }
         }
 
-        return false;
+        if (!empty($rule_system_symbol_string_tmp)) return false;
+        else return $rule_system_symbol_string;
     }
 
     /**
@@ -540,8 +549,8 @@ class Validation
     /**
      * Execute validation of numeric array rules.
      * There has two ways to add "or" rules:
-     * 1. Add symbol_numeric_array in the end of the field. Such as $rule = [ "name[N]" => [ "*|string" ] ];
-     * 2. Add symbol_numeric_array as the only one child of the field. Such as $rule = [ "name" => [ "[N]" => [ "*|string" ] ];
+     * 1. Add symbol_numeric_array in the end of the field. Such as $rule = [ "name.*" => [ "*|string" ] ];
+     * 2. Add symbol_numeric_array as the only one child of the field. Such as $rule = [ "name" => [ "*" => [ "*|string" ] ];
      * @Author   Devin
      * @param    array                      $data               The parent data of the field which is related to the rules
      * @param    string                     $field              The field which is related to the rules

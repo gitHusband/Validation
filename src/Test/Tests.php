@@ -111,7 +111,7 @@ class Tests
                 "country" => "O|len<=:32",
                 "addr" => "*|len>:16",
                 "postcode" => "O|len<:16|check_postcode::@parent",
-                "colleagues[N]" => [
+                "colleagues.*" => [
                     "name" => "*|string|len<=>:3,32",
                     "position" => "*|(s):Reception,Financial,PHP,JAVA"
                 ],
@@ -121,7 +121,7 @@ class Tests
                     "O|(s):Johnny,David"
                 ]
             ],
-            "favourite_food[O][N]" => [
+            "favourite_food[O].*" => [
                 "name" => "*|string",
                 "place_name" => "O|string" 
             ]
@@ -229,7 +229,7 @@ class Tests
                 "addr" => "*|len>:16",
                 "postcode" => "O|len<:16|check_postcode::@parent",
                 "colleagues" => [
-                    "[N]" => [
+                    ".*" => [
                         "name" => "*|string|len<=>:3,32",
                         "position" => "*|(s):Reception,Financial,PHP,JAVA"
                     ]
@@ -241,7 +241,7 @@ class Tests
                 ]
             ],
             "favourite_food" => [
-                "[O],[N]" => [
+                "[O].*" => [
                     "name" => "*|string",
                     "place_name" => "O|string"
                 ]
@@ -355,7 +355,7 @@ class Tests
                 "country" => "O|len>=:6",
                 "addr" => "*|len>:16",
                 "postcode" => "O|len<:16|check_postcode::@parent",
-                "colleagues[N]" => [
+                "colleagues.*" => [
                     "name" => "*|string|len<=>:3,32",
                     "position" => "*|(s):Reception,Financial,PHP,JAVA"
                 ],
@@ -365,7 +365,7 @@ class Tests
                     "O|(s):Johnny,David"
                 ]
             ],
-            "favourite_food[O][N]" => [
+            "favourite_food[O].*" => [
                 "name" => "*|string",
                 "place_name" => "O|string" 
             ]
@@ -483,7 +483,7 @@ class Tests
                 "addr" => "*|len>:16",
                 "postcode" => "O|len<:16|check_postcode::@parent",
                 "colleagues" => [
-                    "[N]" => [
+                    ".*" => [
                         "name" => "*|string|len<=>:3,32",
                         "position" => "*|(s):Reception,Financial,PHP,JAVA"
                     ]
@@ -495,7 +495,7 @@ class Tests
                 ]
             ],
             "favourite_food" => [
-                "[O],[N]" => [
+                "[O].*" => [
                     "name" => "*|string",
                     "place_name" => "O|string"
                 ]

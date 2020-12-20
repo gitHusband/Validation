@@ -117,7 +117,7 @@ function validate() {
             "country" => "O|len>=:6",
             "addr" => "*|len>:16",
             "postcode" => "O|len<:16|check_postcode::@parent",
-            "colleagues[n]" => [
+            "colleagues.*" => [
                 "name" => "*|string|len<=>:3,32",
                 "position" => "*|(s):Reception,Financial,PHP,JAVA"
             ],
@@ -128,7 +128,7 @@ function validate() {
             ]
         ],
         // [O] 表示数组或对象是可选的
-        "favourite_food[O][n]" => [
+        "favourite_food[O].*" => [
             "name" => "*|string",
             "place_name" => "O|string" 
         ]
@@ -337,7 +337,7 @@ $rule = [
 ```
 
 ### 4.5 自定义函数验证
-本工具已经内置了不少验证函数，例如 *，>, len>=, ip 等等
+本工具已经内置了不少验证函数，例如 \*，>, len>=, ip 等等
 
 如果内置函数无法满足需求，或者验证规则过于复杂，可以使用自定义函数验证
 
@@ -408,7 +408,7 @@ $rule = [
         "*|len>:4",
         "*|len>:4",
     ],
-    "favourite_fruits[n]" => [
+    "favourite_fruits.*" => [
         "name" => "*|len>:4",
         "color" => "*|len>:4",
         "shape" => "*|len>:4"
@@ -417,14 +417,14 @@ $rule = [
 ```
 **发现了吗？**
 
-关联数组和普通索引数组正常写就可以了，而索引数组里的元素是关联数组，则需要在字段后面加上 "**[n]**" 这个标志即可。
+关联数组和普通索引数组正常写就可以了，而索引数组里的元素是关联数组，则需要在字段后面加上 "**.\***" 这个标志即可。
 
 **可选数组规则**
 
 有时候，数组也是可选的，但是一旦设置，其中的子元素必须按规则验证，这时候只需要在数组字段名后面加上"**[O]**" 标志，表示该数组可选，如：
 
 ```
-"favourite_fruits[O][n]" => [
+"favourite_fruits[O].*" => [
     "name" => "*|len>:4",
     "color" => "*|len>:4",
     "shape" => "*|len>:4"
@@ -472,13 +472,16 @@ $rule = [
     ]
 ];
 ```
-"**[n]**" - 表明该字段是索引数组。
+"**.\***" - 表明该字段是索引数组。
+
+当索引数组的标志以 . 开头时，在标志不是跟随在字段名后面的情况下，可省略 .
 
 ```
 $rule = [
     "person" => [
         // 表明 person 是索引数组, person.* 是关联数组
-        "[n]" => [
+        // 在这种情况下，可省略 . ,只写 *
+        "*" => [
             "name" => "*|string",
             // 表明 person.*.relation 是关联数组
             "relation" => [
@@ -486,9 +489,9 @@ $rule = [
                 "mother" => "O|string",
                 "brother" => [
                     // 表明 person.*.relation.*.brother 是可选的索引数组
-                    "[O],[n]" => [
+                    "[O].*" => [
                         // 表明 person.*.relation.*.brother.* 是索引数组
-                        "[n]" => [
+                        "*" => [
                             "name" => "*|string",
                             "level" => [
                                 "[||]" => [
@@ -501,8 +504,8 @@ $rule = [
                 ]
             ],
             "fruit" => [
-                "[n]" => [
-                    "[n]" => [
+                "*" => [
+                    "*" => [
                         "name" => "*|string",
                         "color" => "O|string",
                     ]
@@ -565,14 +568,13 @@ $data = [
 $_config = array(
     'language' => 'en-us',                  // Language, default is en-us
     'lang_path' => '',                      // Customer Language file path
-    'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
+    'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid
     'auto_field' => "data",                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
     'reg_msg' => '/ >> (.*)$/',             // Set special error msg by user 
     'reg_preg' => '/^(\/.+\/.*)$/',         // If match this, using regular expression instead of method
     'reg_if' => '/^if[01]?\?/',             // If match this, validate this condition first
     'reg_if_true' => '/^if1?\?/',           // If match this, validate this condition first, if true, then validate the field
     'reg_if_true' => '/^if0\?/',            // If match this, validate this condition first, if false, then validate the field
-    'symbol_or' => '[||]',                  // Symbol of or rule
     'symbol_rule_separator' => '|',         // Rule reqarator for one field
     'symbol_param_classic' => ':',          // If set function by this symbol, will add a @me parameter at first 
     'symbol_param_force' => '::',           // If set function by this symbol, will not add a @me parameter at first 
@@ -580,8 +582,9 @@ $_config = array(
     'symbol_field_name_separator' => '.',   // Field name separator, suce as "fruit.apple"
     'symbol_required' => '*',               // Symbol of required field
     'symbol_optional' => 'O',               // Symbol of optional field
-    'symbol_numeric_array' => '[n]',        // Symbol of association array
-    'symbol_array_optional' => '[O]',       // Symbol of array optional
+    'symbol_or' => '[||]',                  // Symbol of or rule
+    'symbol_array_optional' => '[O]',       // Symbol of array optional rule
+    'symbol_numeric_array' => '.*',         // Symbol of association array rule
 );
 ```
 例如:
@@ -605,8 +608,8 @@ $validation_conf = array(
     'symbol_field_name_separator' => '->',  // Field name separator, suce as "fruit.apple"
     'symbol_required' => '!*',              // Symbol of required field
     'symbol_optional' => 'o',               // Symbol of optional field
-    'symbol_numeric_array' => '[!n]',       // Symbol of association array
     'symbol_array_optional' => '[o]',       // Symbol of array optional
+    'symbol_numeric_array' => '[N]',       // Symbol of association array
 );
 ```
 相关规则可以这么写：
@@ -633,7 +636,7 @@ $rule = [
         "name" => "!*&&len<=>~8,64",
         "country" => "o&&len>=~3",
         "addr" => "!*&&len>~16",
-        "colleagues[!n]" => [
+        "colleagues[N]" => [
             "name" => "!*&&string&&len<=>~3,32",
             "position" => "!*&&(s)~Reception,Financial,PHP,JAVA"
         ],
@@ -643,7 +646,7 @@ $rule = [
             "o&&(s)~Johnny,David"
         ]
     ],
-    "favourite_food[o][!n]" => [
+    "favourite_food[o][N]" => [
         "name" => "!*&&string",
         "place_name" => "o&&string" 
     ]
