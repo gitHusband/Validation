@@ -82,8 +82,8 @@ class Validation
         'symbol_required' => '*',               // Symbol of required field
         'symbol_optional' => 'O',               // Symbol of optional field
         'symbol_or' => '[||]',                  // Symbol of or rule
-        'symbol_numeric_array' => '[n]',        // Symbol of association array
-        'symbol_array_optional' => '[O]',       // Symbol of array optional
+        'symbol_numeric_array' => '[N]',        // Symbol of association array rule
+        'symbol_array_optional' => '[O]',       // Symbol of array optional rule
     );
 
     /**
@@ -471,7 +471,7 @@ class Validation
 
     /**
      * There are some special rule system symbols
-     * [||], [O], [n]
+     * [||], [O], [N]
      * 
      * @Author   Devin
      * @param    array                   $rule 
@@ -503,6 +503,9 @@ class Validation
 
     /**
      * Execute validation of "or" rules.
+     * There has two ways to add "or" rules:
+     * 1. Add symbol_or in the end of the field. Such as $rule = [ "name[||]" => [ "*|string", "*|int" ] ];
+     * 2. Add symbol_or as the only one child of the field. Such as $rule = [ "name" => [ "[||]" => [ "*|string", "*|int" ] ] ];
      * If one of "or" rules is valid, then the field is valid.
      * @Author   Devin
      * @param    array                      $data       The parent data of the field which is related to the rules
@@ -519,8 +522,8 @@ class Validation
             $result = $this->execute_one_rule($data, $field, $rule_or['rules'], $rule_or['msg'], $field_path, true);
             $this->set_result($field_path, $result);
             if ($result) {
-                $this->unset($this->standard_errors['simple'], $field_path);
-                $this->unset($this->standard_errors['complex'], $field_path);
+                $this->r_unset($this->standard_errors['simple'], $field_path);
+                $this->r_unset($this->standard_errors['complex'], $field_path);
                 unset($this->classic_errors['simple'][$field_path]);
                 unset($this->classic_errors['complex'][$field_path]);
                 return true;
@@ -536,6 +539,9 @@ class Validation
 
     /**
      * Execute validation of numeric array rules.
+     * There has two ways to add "or" rules:
+     * 1. Add symbol_numeric_array in the end of the field. Such as $rule = [ "name[N]" => [ "*|string" ] ];
+     * 2. Add symbol_numeric_array as the only one child of the field. Such as $rule = [ "name" => [ "[N]" => [ "*|string" ] ];
      * @Author   Devin
      * @param    array                      $data               The parent data of the field which is related to the rules
      * @param    string                     $field              The field which is related to the rules
@@ -948,7 +954,7 @@ class Validation
      * @param    boolean                    $force If false, don't unset a field when it's not empty
      * @return   boolean                     
      */
-    protected function unset(&$data, $field, $force=true)
+    protected function r_unset(&$data, $field, $force=true)
     {
         $point = &$data;
 
@@ -961,10 +967,10 @@ class Validation
                 if ($key === ($len - 1)) {
                     if ($force) {
                         unset($point[$value]);
-                        if ($key > 0) $this->unset($data, $parent_field, false);
+                        if ($key > 0) $this->r_unset($data, $parent_field, false);
                     } else if (empty($point[$value])) {
                         unset($point[$value]);
-                        if ($key > 0) $this->unset($data, $parent_field, false);
+                        if ($key > 0) $this->r_unset($data, $parent_field, false);
                     }
                     return true;
                 } else {

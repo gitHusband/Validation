@@ -581,7 +581,7 @@ class Unit
     protected function test_numberic_array()
     {
         $rule = [
-            "person[n]" => [
+            "person[N]" => [
                 "name" => "*|string|/^\d+.*/",
                 "relation" => [
                     "father" => "*|string",
@@ -596,14 +596,14 @@ class Unit
                     "*|string",
                 ]
             ],
-            "flower[n]" => "*|string",
+            "flower[N]" => "*|string",
             "clothes[O]" => [
                 [
                     "*|string",
                 ]
             ],
             "shoes" => [
-                "[O],[n]" => "*|string"
+                "[O],[N]" => "*|string"
             ],
         ];
 
@@ -830,14 +830,14 @@ class Unit
     protected function test_numberic_assoc_array()
     {
         $rule = [
-            // "person[n]" => [
+            // "person[N]" => [
             //     "name" => "*|string",
             //     "relation" => [
             //         "father" => "*|string",
             //         "mother" => "O|string",
             //         "brother" => [
-            //             "[O],[n]" => [
-            //                 "[n]" => [
+            //             "[O],[N]" => [
+            //                 "[N]" => [
             //                     "name" => "*|string",
             //                     "level" => [
             //                         "[||]" => [
@@ -850,8 +850,8 @@ class Unit
             //         ]
             //     ],
             //     "fruit" => [
-            //         "[n]" => [
-            //             "[n]" => [
+            //         "[N]" => [
+            //             "[N]" => [
             //                 "name" => "*|string",
             //                 "color" => "O|string",
             //             ]
@@ -860,14 +860,14 @@ class Unit
             //     ],
             // ],
             "person" => [
-                "[n]" => [
+                "[N]" => [
                     "name" => "*|string",
                     "relation" => [
                         "father" => "*|string",
                         "mother" => "O|string",
                         "brother" => [
-                            "[O],[n]" => [
-                                "[n]" => [
+                            "[O],[N]" => [
+                                "[N]" => [
                                     "name" => "*|string",
                                     "level" => [
                                         "[||]" => [
@@ -880,8 +880,8 @@ class Unit
                         ]
                     ],
                     "fruit" => [
-                        "[n]" => [
-                            "[n]" => [
+                        "[N]" => [
+                            "[N]" => [
                                 "name" => "*|string",
                                 "color" => "O|string",
                             ]
@@ -1188,7 +1188,7 @@ class Unit
     protected function test_root_data_rule_4()
     {
         $rule = [
-            "[n]" => "*|string"
+            "[N]" => "*|string"
         ];
 
         $cases = [
@@ -1868,7 +1868,7 @@ class Unit
                 "name" => "*|len<=>:8,64",
                 "country" => "O|len>=:3",
                 "addr" => "*|len>:16",
-                "colleagues[n]" => [
+                "colleagues[N]" => [
                     "name" => "*|string|len<=>:3,32",
                     "position" => "*|(s):Reception,Financial,PHP,JAVA"
                 ],
@@ -1878,7 +1878,7 @@ class Unit
                     "O|(s):Johnny,David"
                 ]
             ],
-            "favourite_food[O][n]" => [
+            "favourite_food[O][N]" => [
                 "name" => "*|string",
                 "place_name" => "O|string" 
             ]
