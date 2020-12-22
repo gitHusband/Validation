@@ -2305,6 +2305,41 @@ class Unit
         ];
     }
 
+    protected function test_unset()
+    {
+        $rule = [
+            "name" => "O!|string"
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    "name" => "David"
+                ]
+            ],
+            "Valid_unset" => [
+                "data" => []
+            ],
+            "Invalid_empty" => [
+                "data" => [
+                    "name" => ""
+                ]
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "unset",
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_regular_expression()
     {
         $rule = [

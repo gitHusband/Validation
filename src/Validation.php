@@ -80,7 +80,8 @@ class Validation
         'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
         'symbol_field_name_separator' => '.',   // Field name separator, suce as "fruit.apple"
         'symbol_required' => '*',               // Symbol of required field
-        'symbol_optional' => 'O',               // Symbol of optional field
+        'symbol_optional' => 'O',               // Symbol of optional field, can be unset or empty
+        'symbol_unset' => 'O!',                 // Symbol of optional field, can only be unset
         'symbol_or' => '[||]',                  // Symbol of or rule
         'symbol_array_optional' => '[O]',       // Symbol of array optional rule
         'symbol_numeric_array' => '.*',         // Symbol of association array rule
@@ -165,6 +166,7 @@ class Validation
         'default' => '@me validation failed',
         'numeric_array' => '@me must be a numeric array',
         'required' => '@me can not be empty',
+        'unset' => '@me must be unset or not empty',
         'preg' => '@me format is invalid, should be @preg',
         'call_method' => '@method is undefined',
         '=' => '@me must be equal to @p1',
@@ -722,6 +724,18 @@ class Validation
             else if ($rule == $this->config['symbol_optional']) {
                 if (!isset($data[$field]) || !$this->required($data[$field])) {
                     return true;
+                }
+            }
+            // Unset(O!) rule
+            else if ($rule == $this->config['symbol_unset']) {
+                if (!isset($data[$field])) {
+                    return true;
+                }else if (!$this->required($data[$field])) {
+                    $result = false;
+                    $error_type = 'unset_field';
+                    if (empty($msg)) {
+                        $msg = $this->get_error_template('unset');
+                    }
                 }
             }
             // Regular expression
