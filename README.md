@@ -280,6 +280,7 @@ php Unit.php run test_regular_expression
 ---|---
 \* | 必要的，不允许为空
 O | 可选的，允许不设置或为空
+O! | 可选的，允许不设置，一旦设置则不能为空
 \>:20 | 数字必须大于20
 len<=>:2,16 | 字符长度必须大于2且小于等于16
 ip | 必须是ip地址
@@ -581,7 +582,8 @@ $_config = array(
     'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
     'symbol_field_name_separator' => '.',   // Field name separator, suce as "fruit.apple"
     'symbol_required' => '*',               // Symbol of required field
-    'symbol_optional' => 'O',               // Symbol of optional field
+    'symbol_optional' => 'O',               // Symbol of optional field, can be unset or empty
+    'symbol_unset' => 'O!',                 // Symbol of optional field, can only be unset
     'symbol_or' => '[||]',                  // Symbol of or rule
     'symbol_array_optional' => '[O]',       // Symbol of array optional rule
     'symbol_numeric_array' => '.*',         // Symbol of association array rule
@@ -607,9 +609,10 @@ $validation_conf = array(
     'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
     'symbol_field_name_separator' => '->',  // Field name separator, suce as "fruit.apple"
     'symbol_required' => '!*',              // Symbol of required field
-    'symbol_optional' => 'o',               // Symbol of optional field
+    'symbol_optional' => 'o',               // Symbol of optional field, can be unset or empty
+    'symbol_unset' => 'O!',                 // Symbol of optional field, can only be unset
     'symbol_array_optional' => '[o]',       // Symbol of array optional
-    'symbol_numeric_array' => '[N]',       // Symbol of association array
+    'symbol_numeric_array' => '[N]',        // Symbol of association array
 );
 ```
 相关规则可以这么写：
@@ -795,6 +798,7 @@ function check_age($data, $gender, $param) {
 ---|---
 \* | 必要的，@me 不能为空
 O | 可选的，允许不设置或为空
+O! | 可选的，允许不设置，一旦设置则不能为空
 = | @me 必须等于 @p1
 != | @me 必须不等于 @p1
 == | @me 必须全等于 @p1
