@@ -73,7 +73,7 @@ class Validation
         'reg_preg' => '/^(\/.+\/.*)$/',         // If match this, using regular expression instead of method
         'reg_if' => '/^if[01]?\?/',             // If match this, validate this condition first
         'reg_if_true' => '/^if1?\?/',           // If match this, validate this condition first, if true, then validate the field
-        'reg_if_true' => '/^if0\?/',            // If match this, validate this condition first, if false, then validate the field
+        'reg_if_false' => '/^if0\?/',           // If match this, validate this condition first, if false, then validate the field
         'symbol_rule_separator' => '|',         // Rule reqarator for one field
         'symbol_param_classic' => ':',          // If set function by this symbol, will add a @me parameter at first 
         'symbol_param_force' => '::',           // If set function by this symbol, will not add a @me parameter at first 
@@ -703,10 +703,11 @@ class Validation
                 $result = $this->execute_method($method_rule, $field_path);
 
                 if ($result === "Undefined") return false;
-                if (($result === true && $if_type) || ($result !== true && !$if_type)) {
+                if (($if_type && $result !== true) || (!$if_type && $result === true)) {
                     // If it's a 'if true' or 'if false' rule -> means this field is optional;
-                    // If the 'if true' validation result is true and this field is not set and not empty, no need to validate the other rule
-                    // If the 'if true' validation result is true and this field is set and not empty, need to validate the other rule
+                    // If the 'if true' validation result is true, need to validate the other rule
+                    // If the 'if true' validation result is false and this field is set and not empty, need to validate the other rule
+                    // If the 'if true' validation result is false and this field is not set or empty, no need to validate the other rule
                     if (!isset($data[$field]) || !$this->required($data[$field])) return true;
                 }
             }
