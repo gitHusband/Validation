@@ -1190,6 +1190,11 @@ class Validation
         return !(empty($data) && !is_numeric($data)) || is_bool($data);
     }
 
+    protected function empty($data)
+    {
+        return empty($data);
+    }
+
     protected function equal($data, $param)
     {
         return $data == $param;
