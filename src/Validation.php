@@ -399,7 +399,10 @@ class Validation
             if (!empty($rule_system_symbol)) {
                 // Allow array or object to be optional
                 if (strpos($rule_system_symbol, $this->config['symbol_array_optional']) !== false) {
-                    if (!isset($data[$field]) || !$this->required($data[$field])) return true;
+                    if (!isset($data[$field]) || !$this->required($data[$field])) {
+                        $this->set_result($field_path_tmp, true);
+                        continue;
+                    }
                 }
 
                 // Validate "or" rules.
@@ -436,7 +439,10 @@ class Validation
                     $field_tmp = str_replace($this->config['symbol_or'], '', $field);
                     $field_tmp = str_replace($this->config['symbol_numeric_array'], '', $field_tmp);
 
-                    if (!isset($data[$field_tmp]) || !$this->required($data[$field_tmp])) return true;
+                    if (!isset($data[$field_tmp]) || !$this->required($data[$field_tmp])) {
+                        $this->set_result($field_path_tmp, true);
+                        continue;
+                    }
                 }
 
                 // Validate "or" rules.
