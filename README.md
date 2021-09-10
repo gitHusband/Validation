@@ -306,7 +306,7 @@ ip | 必须是ip地址
 $rule = [
     "gender" => "*|(s):male,female",
     // 若性别是女性，则要求年龄大于22岁，若为男性，则对年龄无要求
-    "age" => "if?=::female@gender,*|>:22",
+    "age" => "if?=::@gender,female|*|>:22",
 ],
 ```
 否条件：**if0?**
@@ -318,7 +318,7 @@ $rule = [
 $rule = [
     "gender" => "*|(s):male,female",
     // 若性别不是女性，则要求年龄大于22岁，若为女性，则对年龄无要求
-    "age" => "if0?=::female@gender,*|>:22",
+    "age" => "if0?=::@gender,female|*|>:22",
 ],
 ```
 
