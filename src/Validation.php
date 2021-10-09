@@ -422,7 +422,7 @@ class Validation
                         $result = $this->execute(isset($data[$field])? $data[$field]:null, $rule[$rule_system_symbol], $field_path_tmp, $is_array_loop);
                     } else {
                         $rule = $this->parse_one_rule($rule[$rule_system_symbol]);
-                        $result = $this->execute_one_rule($data, $field, $rule['rules'], $rule['msg'], $field_path_tmp);
+                        $result = $this->execute_one_rule($data, $field, $rule, $field_path_tmp);
                         $this->set_result($field_path_tmp, $result);
                     }
                 }
@@ -465,7 +465,7 @@ class Validation
                     $result = $this->execute(isset($data[$field])? $data[$field]:null, $rule, $field_path_tmp, $is_array_loop);
                 } else {
                     $rule = $this->parse_one_rule($rule);
-                    $result = $this->execute_one_rule($data, $field, $rule['rules'], $rule['msg'], $field_path_tmp);
+                    $result = $this->execute_one_rule($data, $field, $rule, $field_path_tmp);
 
                     $this->set_result($field_path_tmp, $result);
                 }
@@ -536,7 +536,7 @@ class Validation
         $or_len = count($rules);
         foreach($rules as $key => $rule_or) {
             $rule_or = $this->parse_one_rule($rule_or);
-            $result = $this->execute_one_rule($data, $field, $rule_or['rules'], $rule_or['msg'], $field_path, true);
+            $result = $this->execute_one_rule($data, $field, $rule_or, $field_path, true);
             $this->set_result($field_path, $result);
             if ($result) {
                 $this->r_unset($this->standard_errors['simple'], $field_path);
@@ -570,11 +570,11 @@ class Validation
     protected function execute_numeric_array_rules($data, $field, $field_path, $rules, $is_array_loop=false)
     {
         if (!isset($data[$field]) || !$this->is_numeric_array($data[$field])) {
-            $msg = $this->get_error_template('numeric_array');
-            $msg = str_replace($this->symbol_me, $field_path, $msg);
+            $error_msg = $this->get_error_template('numeric_array');
+            $error_msg = str_replace($this->symbol_me, $field_path, $error_msg);
             $message = array(
                 "error_type" => 'validation',
-                "message" => $msg,
+                "message" => $error_msg,
             );
             $this->set_error($field_path, $message);
             return false;
@@ -595,7 +595,7 @@ class Validation
                 // Validate numberic array, all the rule are the same, only use $rules[0]
                 else {
                     $parsed_rules = $this->parse_one_rule($rules);
-                    $result = $this->execute_one_rule($data[$field], $key, $parsed_rules['rules'], $parsed_rules['msg'], $field_path_tmp);
+                    $result = $this->execute_one_rule($data[$field], $key, $parsed_rules, $field_path_tmp);
                     $this->set_result($field_path_tmp, $result);
                 }
 
@@ -620,10 +620,10 @@ class Validation
      */
     protected function parse_one_rule($rule)
     {
-        $msg = '';
+        $error_msg = '';
 
         if (preg_match($this->config['reg_msg'], $rule, $matches)) {
-            $msg = $matches[1];
+            $error_msg = $matches[1];
             $rule = preg_replace($this->config['reg_msg'], '', $rule);
         }
 
@@ -653,10 +653,62 @@ class Validation
         
         $parse_rule = array(
             'rules' => $rules,
-            'msg' => $msg
+            // 'error_msg' => $error_msg,
+            'error_msg' => $this->parse_error_message($error_msg)
         );
 
         return $parse_rule;
+    }
+
+    /**
+     * Parse rule error message. 
+     * 1. Simple string - show this error message if anything is invalid
+     * 2. Json string - show one of the error message which is related to the invalid method
+     * @Author   Devin
+     * @param    string             $error_msg Simple string or Json string
+     * @return   array              
+     */
+    protected function parse_error_message(string $error_msg)
+    {
+        $json = json_decode($error_msg, true);
+        return $json? $json : [ 'gb_err_msg_key' => $error_msg ];
+    }
+
+    /**
+     * Match rule error message. 
+     * 
+     * @Author   Devin
+     * @param    array                    $rule_error_msg    Parsed error message array
+     * @param    string                   $tag               
+     * @param    bool|boolean             $only_user_err_msg if can not find error message from user error message, will try to find it from error template
+     * @return   [type]                                      [description]
+     */
+    protected function match_error_message(array $rule_error_msg, string $tag, bool $only_user_err_msg = false)
+    {   
+        // Only one error message was set
+        if (!empty($rule_error_msg) && !empty($rule_error_msg['gb_err_msg_key'])) return $rule_error_msg['gb_err_msg_key'];
+
+        // One rule one error message
+        if (isset($rule_error_msg[$tag])) return $rule_error_msg[$tag];
+
+        switch ($tag) {
+            case 'required':
+                if (isset($rule_error_msg[$this->config['symbol_required']])) return $rule_error_msg[$this->config['symbol_required']];
+                break;
+            case 'unset':
+                if (isset($rule_error_msg[$this->config['symbol_unset']])) return $rule_error_msg[$this->config['symbol_unset']];
+                break;
+            default:
+                break;
+        }
+
+        // Can not match user error message and skip match error template
+        if ($only_user_err_msg) return '';
+        
+        // Can not match user error message, return default error message
+        $error_msg = $this->get_error_template($tag);
+        if (empty($error_msg)) $error_msg = $this->get_error_template('default');
+        return $error_msg;
     }
 
     /**
@@ -668,19 +720,20 @@ class Validation
      * @Author   Devin
      * @param    array                      $data       The parent data of the field which is related to the rule
      * @param    string                     $field      The field which is related to the rule
-     * @param    array                      $rules      The rule
-     * @param    string                     $msg        The error message
+     * @param    array                      $rules      The rule details
      * @param    boolean                    $field_path Field path, suce as fruit.apple
      * @param    boolean                    $is_or_rule Flag of or rule
      * @return   boolean                                the result of validation
      */
-    protected function execute_one_rule($data, $field, $rules = array(), $msg = '', $field_path=false, $is_or_rule=false)
+    protected function execute_one_rule($data, $field, $rules = array(), $field_path=false, $is_or_rule=false)
     {
-        if (empty($rules)) {
+        if (empty($rules) || empty($rules['rules'])) {
             return true;
         }
 
-        foreach($rules as $rule) {
+        $rule_error_msg = $rules['error_msg'];
+
+        foreach($rules['rules'] as $rule) {
             if (empty($rule)) {
                 continue;
             }
@@ -722,9 +775,7 @@ class Validation
                 if (!isset($data[$field]) || !$this->required($data[$field])) {
                     $result = false;
                     $error_type = 'required_field';
-                    if (empty($msg)) {
-                        $msg = $this->get_error_template('required');
-                    }
+                    $error_msg = $this->match_error_message($rule_error_msg, 'required');
                 }
             }
             // Optional(O) rule
@@ -740,9 +791,7 @@ class Validation
                 }else if (!$this->required($data[$field])) {
                     $result = false;
                     $error_type = 'unset_field';
-                    if (empty($msg)) {
-                        $msg = $this->get_error_template('unset');
-                    }
+                    $error_msg = $this->match_error_message($rule_error_msg, 'unset');
                 }
             }
             // Regular expression
@@ -750,10 +799,8 @@ class Validation
                 $preg = isset($matches[1])? $matches[1] : $matches[0];
                 if (!preg_match($preg, $data[$field], $matches)) {
                     $result = false;
-                    if (empty($msg)) {
-                        $msg = $this->get_error_template('preg');
-                    }
-                    $msg = str_replace($this->symbol_preg, $preg, $msg);
+                    $error_msg = $this->match_error_message($rule_error_msg, 'preg');
+                    $error_msg = str_replace($this->symbol_preg, $preg, $error_msg);
                 }
             }
             // Method
@@ -768,17 +815,19 @@ class Validation
                 // If retrun anything others which is not equal to true, then means method validation error.
                 // If retrun not a boolean value, will use the result as error message.
                 if ($result !== true) {
+                    $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol'], true);
+
                     if (is_array($result)) {
                         $error_type = isset($result['error_type'])? $result['error_type'] : $error_type;
-                        if (empty($msg)) $msg = isset($result['message'])? $result['message'] : $msg;
+                        if (empty($error_msg)) $error_msg = isset($result['message'])? $result['message'] : $error_msg;
                     } else {
-                        $msg = empty($msg)? $result : $msg;
+                        $error_msg = empty($error_msg)? $result : $error_msg;
                     }
                     
                     // $result = false;
                     
-                    if (empty($msg)) {
-                        $msg = $this->get_error_template($method_rule['symbol'])? $this->get_error_template($method_rule['symbol']) : $this->get_error_template('default');
+                    if (empty($error_msg)) {
+                        $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol']);
                     }
                 }
             }
@@ -787,7 +836,7 @@ class Validation
             // 2. if it's a 'if' rule -> means this field is optional; If result is not true, don't set error
             if ($result !== true && !$if_flag) {
                 // Replace symbol to field name and parameter value
-                $msg = str_replace($this->symbol_me, $field_path, $msg);
+                $error_msg = str_replace($this->symbol_me, $field_path, $error_msg);
                 foreach($params as $key => $value) {
                     // if ($key == 0) continue;
                     if (is_array($value)) {
@@ -798,12 +847,12 @@ class Validation
                         }
                     }
 
-                    $msg = str_replace('@p'.$key, $value, $msg);
+                    $error_msg = str_replace('@p'.$key, $value, $error_msg);
                 }
 
                 $message = array(
                     "error_type" => $error_type,
-                    "message" => $msg,
+                    "message" => $error_msg,
                 );
 
                 // Default fields: error_type, message
@@ -917,10 +966,10 @@ class Validation
         } else if (function_exists($method_rule['method'])) {
             $result = call_user_func_array($method_rule['method'], $params);
         } else {
-            $msg = str_replace('@method', $method_rule['symbol'], $this->error_template['call_method']);
+            $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_template['call_method']);
             $message = array(
                 "error_type" => 'internal_server_error',
-                "message" => $msg,
+                "message" => $error_msg,
             );
             $this->set_error($field_path, $message);
             return "Undefined";
@@ -1071,10 +1120,10 @@ class Validation
                 $this->classic_errors['complex'][$field] = $message;
                 $this->classic_errors['simple'][$field] = isset($message['message'])? $message['message'] : 'Unknown error';
             } else {
-                $msg = isset($message['message'])? $message['message'] : 'Unknown error';
-                if ($this->classic_errors['complex'][$field]['message'] !== $msg) {
-                    $this->classic_errors['complex'][$field]['message'] .= " or " . $msg;
-                    $this->classic_errors['simple'][$field] .= " or " . $msg;
+                $error_msg = isset($message['message'])? $message['message'] : 'Unknown error';
+                if ($this->classic_errors['complex'][$field]['message'] !== $error_msg) {
+                    $this->classic_errors['complex'][$field]['message'] .= " or " . $error_msg;
+                    $this->classic_errors['simple'][$field] .= " or " . $error_msg;
                 }
             }
         } else {
@@ -1082,7 +1131,7 @@ class Validation
                 $this->classic_errors['complex'][$field] = $message;
                 $this->classic_errors['simple'][$field] = $message;
             } else {
-                if ($this->classic_errors['complex'][$field] !== $msg) {
+                if ($this->classic_errors['complex'][$field] !== $error_msg) {
                     $this->classic_errors['complex'][$field] .= " or " . $message;
                     $this->classic_errors['simple'][$field] .= " or " . $message;
                 }

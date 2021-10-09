@@ -324,7 +324,7 @@ class Tests
         }
 
         $rule = [
-            "id" => "*|int|/^\d+$/",
+            "id" => '*|/^\d+$/ >> { "*": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
             "name" => "*|string|len<=>:8,32",
             "gender" => "*|(s):male,female",
             "dob" => "*|dob",
