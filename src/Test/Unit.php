@@ -2507,7 +2507,8 @@ class Unit
             "Invalid_empty" => [
                 "data" => [
                     "name" => ""
-                ]
+                ],
+                "expected_msg" => "name must be unset or not empty"
             ]
         ];
 

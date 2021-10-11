@@ -79,9 +79,9 @@ class Validation
         'symbol_param_force' => '::',           // If set function by this symbol, will not add a @me parameter at first 
         'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
         'symbol_field_name_separator' => '.',   // Field name separator, suce as "fruit.apple"
-        'symbol_required' => '*',               // Symbol of required field
-        'symbol_optional' => 'O',               // Symbol of optional field, can be unset or empty
-        'symbol_unset' => 'O!',                 // Symbol of optional field, can only be unset
+        'symbol_required' => '*',               // Symbol of required field, Same as "required"
+        'symbol_optional' => 'O',               // Symbol of optional field, can be unset or empty, Same as "optional"
+        'symbol_unset_required' => 'O!',        // Symbol of optional field, can only be unset
         'symbol_or' => '[||]',                  // Symbol of or rule
         'symbol_array_optional' => '[O]',       // Symbol of array optional rule
         'symbol_numeric_array' => '.*',         // Symbol of association array rule
@@ -166,7 +166,7 @@ class Validation
         'default' => '@me validation failed',
         'numeric_array' => '@me must be a numeric array',
         'required' => '@me can not be empty',
-        'unset' => '@me must be unset or not empty',
+        'unset_required' => '@me must be unset or not empty',
         'preg' => '@me format is invalid, should be @preg',
         'call_method' => '@method is undefined',
         '=' => '@me must be equal to @p1',
@@ -399,7 +399,7 @@ class Validation
             if (!empty($rule_system_symbol)) {
                 // Allow array or object to be optional
                 if (strpos($rule_system_symbol, $this->config['symbol_array_optional']) !== false) {
-                    if (!isset($data[$field]) || !$this->required($data[$field])) {
+                    if (!$this->required(isset($data[$field])? $data[$field] : null)) {
                         $this->set_result($field_path_tmp, true);
                         continue;
                     }
@@ -439,7 +439,7 @@ class Validation
                     $field_tmp = str_replace($this->config['symbol_or'], '', $field);
                     $field_tmp = str_replace($this->config['symbol_numeric_array'], '', $field_tmp);
 
-                    if (!isset($data[$field_tmp]) || !$this->required($data[$field_tmp])) {
+                    if (!$this->required(isset($data[$field_tmp])? $data[$field_tmp] : null)) {
                         $this->set_result($field_path_tmp, true);
                         continue;
                     }
@@ -669,7 +669,7 @@ class Validation
      * @param    string             $error_msg Simple string or Json string
      * @return   array              
      */
-    protected function parse_error_message(string $error_msg)
+    protected function parse_error_message($error_msg)
     {
         // '{"*":"Users define - @me is required","preg":"Users define - @me should not be matched /^\\\d+$/"}'
         $json_arr = json_decode($error_msg, true);
@@ -700,7 +700,7 @@ class Validation
      * @param    string                   $type       [description]
      * @return   [type]                               [description]
      */
-    protected function pars_gh_string_to_array(array &$parse_arr, string $string, string $type = "key")
+    protected function pars_gh_string_to_array(&$parse_arr, $string, $type = "key")
     {
         static $key = '';
 
@@ -739,7 +739,7 @@ class Validation
      * @param    bool|boolean             $only_user_err_msg if can not find error message from user error message, will try to find it from error template
      * @return   [type]                                      [description]
      */
-    protected function match_error_message(array $rule_error_msg, string $tag, bool $only_user_err_msg = false)
+    protected function match_error_message($rule_error_msg, $tag, $only_user_err_msg = false)
     {   
         // Only one error message was set
         if (!empty($rule_error_msg) && !empty($rule_error_msg['gb_err_msg_key'])) return $rule_error_msg['gb_err_msg_key'];
@@ -751,8 +751,8 @@ class Validation
             case 'required':
                 if (isset($rule_error_msg[$this->config['symbol_required']])) return $rule_error_msg[$this->config['symbol_required']];
                 break;
-            case 'unset':
-                if (isset($rule_error_msg[$this->config['symbol_unset']])) return $rule_error_msg[$this->config['symbol_unset']];
+            case 'unset_required':
+                if (isset($rule_error_msg[$this->config['symbol_unset_required']])) return $rule_error_msg[$this->config['symbol_unset_required']];
                 break;
             default:
                 break;
@@ -823,31 +823,31 @@ class Validation
                     // If the 'if true' validation result is true, need to validate the other rule
                     // If the 'if true' validation result is false and this field is set and not empty, need to validate the other rule
                     // If the 'if true' validation result is false and this field is not set or empty, no need to validate the other rule
-                    if (!isset($data[$field]) || !$this->required($data[$field])) return true;
+                    if (!$this->required(isset($data[$field])? $data[$field] : null)) return true;
                 }
             }
             // Required(*) rule
-            else if ($rule == $this->config['symbol_required']) {
-                if (!isset($data[$field]) || !$this->required($data[$field])) {
+            else if ($rule == $this->config['symbol_required'] || $rule == 'required') {
+                if (!$this->required(isset($data[$field])? $data[$field] : null)) {
                     $result = false;
                     $error_type = 'required_field';
                     $error_msg = $this->match_error_message($rule_error_msg, 'required');
                 }
             }
             // Optional(O) rule
-            else if ($rule == $this->config['symbol_optional']) {
-                if (!isset($data[$field]) || !$this->required($data[$field])) {
+            else if ($rule == $this->config['symbol_optional'] || $rule == 'optional') {
+                if (!$this->required(isset($data[$field])? $data[$field] : null)) {
                     return true;
                 }
             }
             // Unset(O!) rule
-            else if ($rule == $this->config['symbol_unset']) {
+            else if ($rule == $this->config['symbol_unset_required'] || $rule == 'unset_required') {
                 if (!isset($data[$field])) {
                     return true;
-                }else if (!$this->required($data[$field])) {
+                }else if (!$this->required(isset($data[$field])? $data[$field] : null)) {
                     $result = false;
-                    $error_type = 'unset_field';
-                    $error_msg = $this->match_error_message($rule_error_msg, 'unset');
+                    $error_type = 'unset_required_field';
+                    $error_msg = $this->match_error_message($rule_error_msg, 'unset_required');
                 }
             }
             // Regular expression
@@ -969,18 +969,18 @@ class Validation
             if (strpos($param, '@') !== false) {
                 switch($param) {
                     case $this->symbol_me:
-                    $param = isset($data[$field])? $data[$field] : null;
-                    break;
+                        $param = isset($data[$field])? $data[$field] : null;
+                        break;
                     case $this->symbol_parent:
-                    $param = $data;
-                    break;
+                        $param = $data;
+                        break;
                     case $this->symbol_root:
-                    $param = $this->data;
-                    break;
+                        $param = $this->data;
+                        break;
                     default: 
-                    $param_field = substr($param, 1);
-                    $param = $this->get_field($data, $param_field);
-                    if ($param === null) $param = $this->get_field($this->data, $param_field);
+                        $param_field = substr($param, 1);
+                        $param = $this->get_field($data, $param_field);
+                        if ($param === null) $param = $this->get_field($this->data, $param_field);
                     break;
                 }
             }
@@ -1298,7 +1298,7 @@ class Validation
 
     protected function required($data)
     {
-        return !(empty($data) && !is_numeric($data)) || is_bool($data);
+        return !($data !== 0 && $data !== '0' && $data !== false && empty($data));
     }
 
     protected function empty($data)
