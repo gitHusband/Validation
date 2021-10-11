@@ -82,48 +82,48 @@ class Tests
         $rule = [
             "id" => "*|int|/^\d+$/",
             "name" => "*|string|len<=>:8,32",
-            "gender" => "*|(s):male,female",
-            "dob" => "*|dob",
-            "age" => "*|check_age:@gender,30 >> @me is wrong",
+            "gender" => "required|(s):male,female",
+            "dob" => "required|dob",
+            "age" => "required|check_age:@gender,30 >> @me is wrong",
             "height[||]" => [
-                "*|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                "*|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
+                "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
             ],
-            "height_unit" => "*|(s):cm,m",
+            "height_unit" => "required|(s):cm,m",
             "weight[||]" => [
-                "*|=::@weight_unit,kg|<=>=:40,100",
-                "*|=::@weight_unit,lb|<=>:88,220",
+                "required|=::@weight_unit,kg|<=>=:40,100",
+                "required|=::@weight_unit,lb|<=>:88,220",
             ],
-            "weight_unit" => "*|(s):kg,lb",
-            "email" => "*|email",
-            "phone" => "*|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
-            "ip" => "O|ip",
-            "mac" => "O|mac",
+            "weight_unit" => "required|(s):kg,lb",
+            "email" => "required|email",
+            "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
+            "ip" => "optional|ip",
+            "mac" => "optional|mac",
             "education" => [
-                "primary_school" => "*|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "*|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|*|len>:8",
-                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|*|len>:8",
+                "primary_school" => "required|=:Qiankeng Xiaoxue",
+                "junior_middle_school" => "required|!=:Foshan Zhongxue",
+                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
+                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
             ],
             "company" => [
-                "name" => "*|len<=>:8,64",
-                "website" => "*|url",
-                "country" => "O|len<=:32",
-                "addr" => "*|len>:16",
-                "postcode" => "O|len<:16|check_postcode::@parent",
+                "name" => "required|len<=>:8,64",
+                "website" => "required|url",
+                "country" => "optional|len<=:32",
+                "addr" => "required|len>:16",
+                "postcode" => "optional|len<:16|check_postcode::@parent",
                 "colleagues.*" => [
-                    "name" => "*|string|len<=>:3,32",
-                    "position" => "*|(s):Reception,Financial,PHP,JAVA"
+                    "name" => "required|string|len<=>:3,32",
+                    "position" => "required|(s):Reception,Financial,PHP,JAVA"
                 ],
                 "boss" => [
-                    "*|=:Mike",
-                    "*|(s):Johnny,David",
-                    "O|(s):Johnny,David"
+                    "required|=:Mike",
+                    "required|(s):Johnny,David",
+                    "optional|(s):Johnny,David"
                 ]
             ],
             "favourite_food[O].*" => [
-                "name" => "*|string",
-                "place_name" => "O|string" 
+                "name" => "required|string",
+                "place_name" => "optional|string" 
             ]
         ];
 
@@ -193,57 +193,57 @@ class Tests
         }
 
         $rule = [
-            "id" => "*|int|/^\d+$/",
-            "name" => "*|string|len<=>:8,32",
-            "gender" => "*|(s):male,female",
-            "dob" => "*|dob",
-            "age" => "*|check_age:@gender,30 >> @me is wrong",
+            "id" => "required|int|/^\d+$/",
+            "name" => "required|string|len<=>:8,32",
+            "gender" => "required|(s):male,female",
+            "dob" => "required|dob",
+            "age" => "required|check_age:@gender,30 >> @me is wrong",
             "height" => [
                 "[||]" => [
-                    "*|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                    "*|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                    "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
+                    "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
                 ]
             ],
-            "height_unit" => "*|(s):cm,m",
+            "height_unit" => "required|(s):cm,m",
             "weight" => [
                 "[||]" => [
-                    "*|=::@weight_unit,kg|<=>=:40,100",
-                    "*|=::@weight_unit,lb|<=>:88,220",
+                    "required|=::@weight_unit,kg|<=>=:40,100",
+                    "required|=::@weight_unit,lb|<=>:88,220",
                 ]
             ],
-            "weight_unit" => "*|(s):kg,lb",
-            "email" => "*|email",
-            "phone" => "*|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
-            "ip" => "O|ip",
-            "mac" => "O|mac",
+            "weight_unit" => "required|(s):kg,lb",
+            "email" => "required|email",
+            "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
+            "ip" => "optional|ip",
+            "mac" => "optional|mac",
             "education" => [
-                "primary_school" => "*|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "*|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|*|len>:8",
-                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|*|len>:8",
+                "primary_school" => "required|=:Qiankeng Xiaoxue",
+                "junior_middle_school" => "required|!=:Foshan Zhongxue",
+                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
+                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
             ],
             "company" => [
-                "name" => "*|len<=>:8,64",
-                "website" => "*|url",
-                "country" => "O|len<=:32",
-                "addr" => "*|len>:16",
-                "postcode" => "O|len<:16|check_postcode::@parent",
+                "name" => "required|len<=>:8,64",
+                "website" => "required|url",
+                "country" => "optional|len<=:32",
+                "addr" => "required|len>:16",
+                "postcode" => "optional|len<:16|check_postcode::@parent",
                 "colleagues" => [
                     ".*" => [
-                        "name" => "*|string|len<=>:3,32",
-                        "position" => "*|(s):Reception,Financial,PHP,JAVA"
+                        "name" => "required|string|len<=>:3,32",
+                        "position" => "required|(s):Reception,Financial,PHP,JAVA"
                     ]
                 ],
                 "boss" => [
-                    "*|=:Mike",
-                    "*|(s):Johnny,David",
-                    "O|(s):Johnny,David"
+                    "required|=:Mike",
+                    "required|(s):Johnny,David",
+                    "optional|(s):Johnny,David"
                 ]
             ],
             "favourite_food" => [
                 "[O].*" => [
-                    "name" => "*|string",
-                    "place_name" => "O|string"
+                    "name" => "required|string",
+                    "place_name" => "optional|string"
                 ]
             ]
         ];
@@ -260,7 +260,7 @@ class Tests
     {
         if (empty($data)) {
             $data = [
-                "id" => "ABBC",
+                "id" => "",
                 "name" => "12",
                 "gender" => "female2",
                 "dob" => "2000-01-01",
@@ -324,50 +324,50 @@ class Tests
         }
 
         $rule = [
-            "id" => '*|/^\d+$/ >> { "*": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
-            "name" => "*|string|len<=>:8,32",
-            "gender" => "*|(s):male,female",
-            "dob" => "*|dob",
-            "age" => "*|check_age:@gender,30 >> @me is wrong",
+            "id" => 'required|/^\d+$/ >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
+            "name" => "required|string|len<=>:8,32",
+            "gender" => "required|(s):male,female",
+            "dob" => "required|dob",
+            "age" => "required|check_age:@gender,30 >> @me is wrong",
             "height[||]" => [
-                "*|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                "*|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
+                "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
             ],
-            "height_unit" => "*|(s):cm,m",
+            "height_unit" => "required|(s):cm,m",
             "weight[||]" => [
-                "*|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
-                "*|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
+                "required|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
+                "required|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
             ],
-            "weight_unit" => "*|(s):kg,lb",
-            "email" => "*|email",
-            "phone" => "*|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
-            "ip" => "O|ip",
-            "mac" => "O|mac",
+            "weight_unit" => "required|(s):kg,lb",
+            "email" => "required|email",
+            "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
+            "ip" => "optional|ip",
+            "mac" => "optional|mac",
             "education" => [
-                "primary_school" => "*|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "*|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|*|len>:18",
-                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|*|len>:8",
+                "primary_school" => "required|=:Qiankeng Xiaoxue",
+                "junior_middle_school" => "required|!=:Foshan Zhongxue",
+                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:18",
+                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
             ],
             "company" => [
-                "name" => "*|len<=>:8,64",
-                "website" => "*|url",
-                "country" => "O|len>=:6",
-                "addr" => "*|len>:16",
-                "postcode" => "O|len<:16|check_postcode::@parent",
+                "name" => "required|len<=>:8,64",
+                "website" => "required|url",
+                "country" => "optional|len>=:6",
+                "addr" => "required|len>:16",
+                "postcode" => "optional|len<:16|check_postcode::@parent",
                 "colleagues.*" => [
-                    "name" => "*|string|len<=>:3,32",
-                    "position" => "*|(s):Reception,Financial,PHP,JAVA"
+                    "name" => "required|string|len<=>:3,32",
+                    "position" => "required|(s):Reception,Financial,PHP,JAVA"
                 ],
                 "boss" => [
-                    "*|=:Mike",
-                    "*|(s):Johnny,David",
-                    "O|(s):Johnny,David"
+                    "required|=:Mike",
+                    "required|(s):Johnny,David",
+                    "optional|(s):Johnny,David"
                 ]
             ],
             "favourite_food[O].*" => [
-                "name" => "*|string",
-                "place_name" => "O|string" 
+                "name" => "required|string",
+                "place_name" => "optional|string" 
             ]
         ];
 
@@ -447,57 +447,57 @@ class Tests
         }
 
         $rule = [
-            "id" => "*|int|/^\d+$/",
-            "name" => "*|string|len<=>:8,32",
-            "gender" => "*|(s):male,female",
-            "dob" => "*|dob",
-            "age" => "*|check_age:@gender,30 >> @me is wrong",
+            "id" => "required|int|/^\d+$/",
+            "name" => "required|string|len<=>:8,32",
+            "gender" => "required|(s):male,female",
+            "dob" => "required|dob",
+            "age" => "required|check_age:@gender,30 >> @me is wrong",
             "height" => [
                 "[||]" => [
-                    "*|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                    "*|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                    "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
+                    "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
                 ]
             ],
-            "height_unit" => "*|(s):cm,m",
+            "height_unit" => "required|(s):cm,m",
             "weight[||]" => [
                 "[||]" => [
-                    "*|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
-                    "*|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
+                    "required|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
+                    "required|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
                 ]
             ],
-            "weight_unit" => "*|(s):kg,lb",
-            "email" => "*|email",
-            "phone" => "*|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
-            "ip" => "O|ip",
-            "mac" => "O|mac",
+            "weight_unit" => "required|(s):kg,lb",
+            "email" => "required|email",
+            "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
+            "ip" => "optional|ip",
+            "mac" => "optional|mac",
             "education" => [
-                "primary_school" => "*|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "*|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|*|len>:18",
-                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|*|len>:8",
+                "primary_school" => "required|=:Qiankeng Xiaoxue",
+                "junior_middle_school" => "required|!=:Foshan Zhongxue",
+                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:18",
+                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
             ],
             "company" => [
-                "name" => "*|len<=>:8,64",
-                "website" => "*|url",
-                "country" => "O|len>=:6",
-                "addr" => "*|len>:16",
-                "postcode" => "O|len<:16|check_postcode::@parent",
+                "name" => "required|len<=>:8,64",
+                "website" => "required|url",
+                "country" => "optional|len>=:6",
+                "addr" => "required|len>:16",
+                "postcode" => "optional|len<:16|check_postcode::@parent",
                 "colleagues" => [
                     ".*" => [
-                        "name" => "*|string|len<=>:3,32",
-                        "position" => "*|(s):Reception,Financial,PHP,JAVA"
+                        "name" => "required|string|len<=>:3,32",
+                        "position" => "required|(s):Reception,Financial,PHP,JAVA"
                     ]
                 ],
                 "boss" => [
-                    "*|=:Mike",
-                    "*|(s):Johnny,David",
-                    "O|(s):Johnny,David"
+                    "required|=:Mike",
+                    "required|(s):Johnny,David",
+                    "optional|(s):Johnny,David"
                 ]
             ],
             "favourite_food" => [
                 "[O].*" => [
-                    "name" => "*|string",
-                    "place_name" => "O|string"
+                    "name" => "required|string",
+                    "place_name" => "optional|string"
                 ]
             ]
         ];
