@@ -664,14 +664,70 @@ class Validation
      * Parse rule error message. 
      * 1. Simple string - show this error message if anything is invalid
      * 2. Json string - show one of the error message which is related to the invalid method
+     * 3. Special string - Same functions as Json string. Such as " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes"
      * @Author   Devin
      * @param    string             $error_msg Simple string or Json string
      * @return   array              
      */
     protected function parse_error_message(string $error_msg)
     {
-        $json = json_decode($error_msg, true);
-        return $json? $json : [ 'gb_err_msg_key' => $error_msg ];
+        // '{"*":"Users define - @me is required","preg":"Users define - @me should not be matched /^\\\d+$/"}'
+        $json_arr = json_decode($error_msg, true);
+        if ($json_arr) return $json_arr;
+
+        $gh_arr = [];
+        // " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes"
+        $this->pars_gh_string_to_array($gh_arr, $error_msg);
+        if (!empty($gh_arr)) return $gh_arr;
+
+        return [ 'gb_err_msg_key' => $error_msg ];
+    }
+
+    /**
+     * Parse a string to Array in a special format
+     * 
+     * Example: " [*] => It\'s required! [ preg  ] => It\'s invalid [no]=> [yes] => yes"
+     * Array
+     * (
+     *       [*] => It\'s required!
+     *       [preg] => It\'s invalid
+     *       [no] => 
+     *       [yes] => yes
+     * )
+     * @Author   Devin
+     * @param    array                    &$parse_arr [description]
+     * @param    string                   $string     [description]
+     * @param    string                   $type       [description]
+     * @return   [type]                               [description]
+     */
+    protected function pars_gh_string_to_array(array &$parse_arr, string $string, string $type = "key")
+    {
+        static $key = '';
+
+        // echo "### Current String is $string\n";
+
+        if ($type == 'key') {
+            if (preg_match("/^\s*\[\s*(.*?)\s*\]\s*=>\s*(.*)$/", $string, $matches)) {
+                $key = $matches[1];
+                // echo "--- Current Key is $key\n";
+                $parse_arr[$key] = '';
+
+                return $this->pars_gh_string_to_array($parse_arr, $matches[2], 'value');
+            } else {
+                // echo "Can not get key\n";
+                return false;
+            }
+        } else if ($type == 'value') {
+            if (preg_match("/^(.*?)\s*(\[\s*.*?\s*\]\s*=>\s*.*)?$/", $string, $matches)) {
+                $parse_arr[$key] = $matches[1];
+                // echo "+++ Kye($key) Value is {$parse_arr[$key]}\n";
+                return $this->pars_gh_string_to_array($parse_arr, $matches[2] ?? '', 'key');
+            } else {
+                // echo "Can not get value for Key $key\n";
+                return false;
+            }
+        }
+        
     }
 
     /**
