@@ -2,6 +2,10 @@
 
 Validation 用于对后台参数的合法性检查。使用方便，直观。
 
+> https://github.com/gitHusband/Validation
+
+**有任何意见或想法，咱们可以一起交流探讨！**
+
 至于为啥写这个工具的**原因**：
 - 1. 对于后台参数，理论上对每个参数都应该进行合法性检查，尤其是那些需要转发给其他API接口或者需要存储到数据库的参数。比如，数据库基本上对数据长度类型等有限制，对于长度的验证可谓是简单繁琐，使用该工具可以大大简化代码。
 
@@ -25,6 +29,8 @@ if($validation->set_rules($rule)->validate($data)) {
     return $validation->get_error(true, false);
 }
 ```
+
+> 目录
 
 * [Validation —— 一款功能丰富的 PHP 参数验证器](#validation--%E4%B8%80%E6%AC%BE%E5%8A%9F%E8%83%BD%E4%B8%B0%E5%AF%8C%E7%9A%84-php-%E5%8F%82%E6%95%B0%E9%AA%8C%E8%AF%81%E5%99%A8)
   * [1\. 简介](#1-%E7%AE%80%E4%BB%8B)
@@ -736,10 +742,32 @@ $validation = new Validation($validation_conf);
 
 例如：
 
+1. \*或者**正则**或者<=>=方法 错误都报错 "id is incorrect."
 ```
-"phone" => "*|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
+"id" => '*|/^\d+$/|<=>=:1,100| >> @me is incorrect.'
 ```
-自定义函数也可自定义错误信息, 优先级低于 " >> "
+2. 支持JSON 格式错误信息，为每一个方法设置不同的错误信息
+
+```
+"id" => '*|/^\d+$/|<=>=:1,100| >> { "*": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}'
+
+# 对应的报错信息为
+# id - Users define - id is required
+# /^\d+$/ - Users define - id should be \"MATCHED\" /^\d+$/
+# <=>= - id must be greater than or equal to 1 and less than or equal to 100
+```
+3. 支持特殊格式错误信息，为每一个方法设置不同的错误信息，同JSON
+
+```
+"id" => "*|/^\d+$/|<=>=:1,100| >> [*]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg"
+
+# 对应的报错信息为
+# id - Users define - id is required
+# /^\d+$/ - Users define - id should be \"MATCHED\" /^\d+$/
+# <=>= - id must be greater than or equal to 1 and less than or equal to 100
+```
+
+**自定义函数也可自定义错误信息, 优先级低于 " >> "**
 
 当函数返回值 === true 时，表示验证成功，否则表示验证失败
 
