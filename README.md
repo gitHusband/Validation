@@ -77,124 +77,105 @@ if($validation->set_rules($rule)->validate($data)) {
 > composer require githusband/validation
 
 ## 3. 完整示例
+设想一下，如果用户数据如下，它包含关联数组，索引数组，我们要如何定制规则去验证它，如何做到简单直观呢？
+
+```
+$data = [
+    "id" => "",
+    "name" => "12",
+    "email" => "10000@qq.com.123@qq",
+    "phone" => "15620004000-",
+    "education" => [
+        "primary_school" => "???Qiankeng Xiaoxue",
+        "junior_middle_school" => "Foshan Zhongxue",
+        "high_school" => "Mianhu Gaozhong",
+        "university" => "Foshan",
+    ],
+    "company" => [
+        "name" => "Qianken",
+        "website" => "https://www.qiankeng.com1",
+        "colleagues" => [
+            [
+                "name" => 1,
+                "position" => "Reception"
+            ],
+            [
+                "name" => 2,
+                "position" => "Financial1"
+            ],
+            [
+                "name" => 3,
+                "position" => "JAVA"
+            ],
+            [
+                "name" => "Kurt",
+                "position" => "PHP1"
+            ],
+        ],
+        "boss" => [
+            "Mike1",
+            "David",
+            "Johnny2",
+            "Extra",
+        ]
+    ],
+    "favourite_food" => [
+        [
+            "name" => "HuoGuo",
+            "place_name" => "SiChuan" 
+        ],
+        [
+            "name" => "Beijing Kaoya",
+            "place_name" => "Beijing"
+        ],
+    ]
+];
+```
+
 ```php
-// 这是一个全局函数，规则里面的 age 字段会用到该函数，需要提前定义
-function check_age($data, $gender, $param) {
-    if($gender == "male") {
-        if($data > $param) return false;
-    }else {
-        if($data < $param) return false;
-    }
-
-    return true;
-}
-
-function validate() {
-    // 验证规则
+// $data - 上述待验证的数据 
+function validate($data) {
+    // 设置验证规则
     $rule = [
-        "id" => "*|int|/^\d+$/",
-        "name" => "*|string|len<=>:8,32",
-        "gender" => "*|(s):male,female",
-        "dob" => "*|dob",
-        "age" => "*|check_age:@gender,30 >> @me is wrong",
-        "height[||]" => [
-            "*|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-            "*|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
-        ],
-        "height_unit" => "*|(s):cm,m",
-        "weight[||]" => [
-            "*|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
-            "*|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
-        ],
-        "weight_unit" => "*|(s):kg,lb",
-        "email" => "*|email",
-        "phone" => "*|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
-        "ip" => "O|ip",
-        "mac" => "O|mac",
+        // id 是必要的且必须匹配正则 /^\d+$/， >> 后面的required 和 正则对应的报错信息
+        "id" => 'required|/^\d+$/ >> { "required": "用户自定义 - @me 是必要的", "preg": "用户自定义 - @me 必须匹配 @preg" }',
+        // name 是必要的且必须是字符串且长度在区间 【8，32)
+        "name" => "required|string|len<=>:8,32",
+        "email" => "required|email",
+        "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> 用户自定义 - phone number 错误",
+        // ip 是可选的
+        "ip" => "optional|ip",
         "education" => [
-            "primary_school" => "*|=:Qiankeng Xiaoxue",
-            "junior_middle_school" => "*|!=:Foshan Zhongxue",
-            "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|*|len>:18",
-            "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|*|len>:8",
+            // education.primary_school 必须等于 “Qiankeng Xiaoxue”
+            "primary_school" => "required|=:Qiankeng Xiaoxue",
+            "junior_middle_school" => "required|!=:Foshan Zhongxue",
+            "high_school" => "optional|string",
+            "university" => "optional|string",
         ],
         "company" => [
-            "name" => "*|len<=>:8,64",
-            "website" => "*|url",
-            "country" => "O|len>=:6",
-            "addr" => "*|len>:16",
-            "postcode" => "O|len<:16|check_postcode::@parent",
+            "name" => "required|len<=>:8,64",
+            "website" => "required|url",
             "colleagues.*" => [
-                "name" => "*|string|len<=>:3,32",
-                "position" => "*|(s):Reception,Financial,PHP,JAVA"
+                "name" => "required|string|len<=>:3,32",
+                // company.colleagues.*.position 必须等于 Reception,Financial,PHP,JAVA 其中之一
+                "position" => "required|(s):Reception,Financial,PHP,JAVA"
             ],
+            // 以下三个规则只对 boss.0, boss.1, boss.2 有效，boss.3 及其他都无效 
             "boss" => [
-                "*|=:Mike",
-                "*|(s):Johnny,David",
-                "O|(s):Johnny,David"
+                "required|=:Mike",
+                "required|(s):Johnny,David",
+                "optional|(s):Johnny,David"
             ]
         ],
-        // [O] 表示数组或对象是可选的
-        "favourite_food[O].*" => [
-            "name" => "*|string",
-            "place_name" => "O|string" 
+        // favourite_food 是可选的索引数组，允许为空
+        "favourite_food[optional].*" => [
+            // favourite_food.*.name 必须是字符串
+            "name" => "required|string",
+            "place_name" => "optional|string" 
         ]
     ];
     
-    // 待验证的数据
-    $data = [
-        "id" => "ABBC",
-        "name" => "12",
-        "gender" => "female2",
-        "dob" => "2000-01-01",
-        "age" => 11,
-        "height" => 1.65,
-        "height_unit" => "cm",
-        "weight" => 80,
-        "weight_unit" => "lb1",
-        "email" => "10000@qq.com.123@qq",
-        "phone" => "15620004000-",
-        "ip" => "192.168.1.1111",
-        "mac" => "06:19:C2:FA:36:2B111",
-        "education" => [
-            "primary_school" => "???Qiankeng Xiaoxue",
-            "junior_middle_school" => "Foshan Zhongxue",
-            "high_school" => "Mianhu Gaozhong",
-            "university" => "Foshan",
-        ],
-        "company" => [
-            "name" => "Qianken",
-            "website" => "https://www.qiankeng.com1",
-            "country" => "US",
-            "addr" => "Foshan Nanhai",
-            "postcode" => "532000",
-            "colleagues" => [
-                [
-                    "name" => 1,
-                    "position" => "Reception"
-                ],
-                [
-                    "name" => 2,
-                    "position" => "Financial1"
-                ],
-                [
-                    "name" => 3,
-                    "position" => "JAVA"
-                ],
-                [
-                    "name" => "Kurt",
-                    "position" => "PHP1"
-                ],
-            ],
-            "boss" => [
-                "Mike1",
-                "David",
-                "Johnny2",
-                "Extra",
-            ]
-        ]
-    ];
-    
-    // 简单的自定义配置，不是完整的
+    // 简单的自定义配置，它还不是完整的，也不是必要的
     $validation_conf = [
         'language' => 'zh-cn',
         'validation_global' => true,
@@ -203,25 +184,6 @@ function validate() {
     // 实例化类，不要忘了事先引用类文件
     // 接受一个配置数组，但不必要
     $validation = new Validation($validation_conf);
-    
-    // 支持自定义验证函数，但不必要
-    $validation->add_method('check_postcode', function($company) {
-        if(isset($company['country']) && $company['country'] == "US"){
-            if(!isset($company['postcode']) || $company['postcode'] != "123"){
-                // 支持三种返回错误的方式
-                // return false;
-                // return "#### check_postcode method error message(@me)";
-                return array(
-                    'error_type' => 'server_error',
-                    'message' => '*** check_postcode method error message(@me)',
-                    "extra" => "extra message"
-                );
-            }
-        }
-    
-        // 只有返回true，才表示验证成功，否则表示失败
-        return true;
-    });
     
     // 设置验证规则并验证数据
     if($validation->set_rules($rule)->validate($data)) {
@@ -236,13 +198,37 @@ function validate() {
 
 // 可以通过改变get_error 的两个参数，找到适合自己的报错格式
 // 例子中的 $data 基本都不满足 $rule ，可以改变 $data 的值，验证规则是否正确
-print_r(validate());
+print_r(validate($data));
 ```
+打印结果为
+
+```
+Array
+(
+    [id] => 用户自定义 - id 是必要的
+    [name] => name 长度必须大于 8 且小于等于 32
+    [email] => email 必须是邮箱
+    [phone] => 用户自定义 - phone number 错误
+    [education.primary_school] => education.primary_school 必须等于 Qiankeng Xiaoxue
+    [education.junior_middle_school] => education.junior_middle_school 必须不等于 Foshan Zhongxue
+    [company.name] => company.name 长度必须大于 8 且小于等于 64
+    [company.website] => company.website 必须是网址
+    [company.colleagues.0.name] => company.colleagues.0.name 必须是字符串
+    [company.colleagues.1.name] => company.colleagues.1.name 必须是字符串
+    [company.colleagues.1.position] => company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA
+    [company.colleagues.2.name] => company.colleagues.2.name 必须是字符串
+    [company.colleagues.3.position] => company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA
+    [company.boss.0] => company.boss.0 必须等于 Mike
+    [company.boss.2] => company.boss.2 必须是字符串且在此之内 Johnny,David
+)
+```
+
+
 
 理论上，该工具是用于验证复杂的数据结构的，但如果你想验证单一字符串，也可以，例如
 
 ```
-$validation->set_rules("*|string")->validate("Hello World!");
+$validation->set_rules("required|string")->validate("Hello World!");
 ```
 
 
@@ -250,8 +236,10 @@ $validation->set_rules("*|string")->validate("Hello World!");
 
 **完整测试类**：
 ```
+// 上述测试代码
+php Tests.php readme_case
 // 验证成功测试, 返回测试结果：
-php Tests.php run
+php Tests.php success
 // 验证成功测试，返回错误信息：
 php Tests.php error
 ```
@@ -274,22 +262,26 @@ php Unit.php run test_regular_expression
 ## 4. 功能介绍
 
 ### 4.1 语意明确
-为了便于理解，采用一些***标志***代表实际的功能。
+为了便于理解以及使规则更加简短，允许采用一些函数***标志***代表实际的功能。
 ```php
 // 名字是必要的，必须是字符串，长度必须大于3且小于等于32
-"name" => "*|string|len<=>:3,32",
+"name" => "required|string|length_greater_lessequal:3,32"
+
+// 采用函数标志，同上
+// 若是觉得函数标志难以理解，请直接使用函数全称即可
+"name" => "required|string|len<=>:3,32"
 ```
 
 例如:
 
-标志 | 含义
----|---
-\* | 必要的，不允许为空
-O | 可选的，允许不设置或为空
-O! | 可选的，允许不设置，一旦设置则不能为空
-\>:20 | 数字必须大于20
-len<=>:2,16 | 字符长度必须大于2且小于等于16
-ip | 必须是ip地址
+标志 | 函数 | 含义
+---|---|---
+\* | required | 必要的，不允许为空
+O | optional | 可选的，允许不设置或为空
+O! | unset_required | 可选的，允许不设置，一旦设置则不能为空
+\>:20 | greater_than | 数字必须大于20
+len<=>:2,16 | length_greater_lessequal | 字符长度必须大于2且小于等于16
+ip | ip | 必须是ip地址
 
 **完整功能请查看附录1**
 
@@ -297,7 +289,7 @@ ip | 必须是ip地址
 以 "**/**" 开头，以 "**/**" 结尾，表示是正则表达式
 ```php
 // id 必须是数字
-"id" => "*|/^\d+$/",
+"id" => "required|/^\d+$/",
 ```
 
 ### 4.3 条件验证
@@ -310,9 +302,9 @@ ip | 必须是ip地址
 
 ```php
 $rule = [
-    "gender" => "*|(s):male,female",
+    "gender" => "required|(s):male,female",
     // 若性别是女性，则要求年龄大于22岁，若为男性，则对年龄无要求
-    "age" => "if?=::@gender,female|*|>:22",
+    "age" => "if?=::@gender,female|required|>:22",
 ],
 ```
 否条件：**if0?**
@@ -322,25 +314,25 @@ $rule = [
 
 ```php
 $rule = [
-    "gender" => "*|(s):male,female",
+    "gender" => "required|(s):male,female",
     // 若性别不是女性，则要求年龄大于22岁，若为女性，则对年龄无要求
-    "age" => "if0?=::@gender,female|*|>:22",
+    "age" => "if0?=::@gender,female|required|>:22",
 ],
 ```
 
 ### 4.4 支持串联，并联验证
 - 串联：一个参数多个规则同时满足，标志是 **|**
-- 并联：一个参数多个规则满足其一，标志是 {字段名} + **[||]**
+- 并联：一个参数多个规则满足其一，标志是 {字段名} + **[or]**
 ```php
 // 并联
-"height[||]" => [
+"height[or]" => [
     // 若身高单位是cm, 则身高必须大于等于100，小于等于200 
-    "*|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
+    "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
     // 若身高单位是m, 则身高必须大于等于1，小于等于2
-    "*|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+    "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
 ],
 // 串联，身高单位是必须的，且必须是 cm 或者 m
-"height_unit" => "*|(s):cm,m",
+"height_unit" => "required|(s):cm,m",
 ```
 
 ### 4.5 自定义函数验证
@@ -410,15 +402,15 @@ $data = [
 
 // 若要验证上述 $data，规则可以这么写
 $rule = [
-    "name" => "*|len>:4",
+    "name" => "required|len>:4",
     "favourite_color" => [
-        "*|len>:4",
-        "*|len>:4",
+        "required|len>:4",
+        "required|len>:4",
     ],
     "favourite_fruits.*" => [
-        "name" => "*|len>:4",
-        "color" => "*|len>:4",
-        "shape" => "*|len>:4"
+        "name" => "required|len>:4",
+        "color" => "required|len>:4",
+        "shape" => "required|len>:4"
     ]
 ]
 ```
@@ -428,53 +420,53 @@ $rule = [
 
 **可选数组规则**
 
-有时候，数组也是可选的，但是一旦设置，其中的子元素必须按规则验证，这时候只需要在数组字段名后面加上"**[O]**" 标志，表示该数组可选，如：
+有时候，数组也是可选的，但是一旦设置，其中的子元素必须按规则验证，这时候只需要在数组字段名后面加上"**[optional]**" 标志，表示该数组可选，如：
 
 ```
-"favourite_fruits[O].*" => [
-    "name" => "*|len>:4",
-    "color" => "*|len>:4",
-    "shape" => "*|len>:4"
+"favourite_fruits[optional].*" => [
+    "name" => "required|len>:4",
+    "color" => "required|len>:4",
+    "shape" => "required|len>:4"
 ]
 ```
 ### 4.7 支持特殊的验证规则
 支持的特殊规则有：
 
-"**[O]**" - 表明单个字段或数组是可选的。
-注意，表明单个字段可远，可在字段规则上加上 **O** 即可。
+"**[optional]**" - 表明单个字段或数组是可选的。
+注意，表明单个字段可选，可在字段规则上加上 **optional** 即可。
 
 ```
 $rule = [
-    "name" => "O|string",
-    "gender" => [ "[O]" => "string" ],
+    "name" => "optional|string",
+    "gender" => [ "[optional]" => "string" ],
     // favourite_fruit 是可选的，如果存在，则必须是数组
-    "favourite_fruit[O]" => [
-        "name" => "*|string",
-        "color" => "*|string"
+    "favourite_fruit[optional]" => [
+        "name" => "required|string",
+        "color" => "required|string"
     ],
     // 等同于上的写法
     "favourite_meat" => [
-        "[O]" => [
-            "name" => "*|string",
-            "from" => "*|string"
+        "[optional]" => [
+            "name" => "required|string",
+            "from" => "required|string"
         ]
     ],
 ];
 ```
-"**[||]**" - 表明单个字段是或规则，多个规则满足其一即可。
+"**[or]**" - 表明单个字段是或规则，多个规则满足其一即可。
 
 ```
 $rule = [
     // name 可以是布尔值或者布尔字符串
-    "name[||]" => [
-        "*|bool",
-        "*|bool_str",
+    "name[or]" => [
+        "required|bool",
+        "required|bool_str",
     ],
     // 等同于上的写法
     "height" => [
-        "[||]" => [
-            "*|int|>:100",
-            "*|string",
+        "[or]" => [
+            "required|int|>:100",
+            "required|string",
         ]
     ]
 ];
@@ -489,21 +481,21 @@ $rule = [
         // 表明 person 是索引数组, person.* 是关联数组
         // 在这种情况下，可省略 . ,只写 *
         "*" => [
-            "name" => "*|string",
+            "name" => "required|string",
             // 表明 person.*.relation 是关联数组
             "relation" => [
-                "father" => "*|string",
-                "mother" => "O|string",
+                "father" => "required|string",
+                "mother" => "optional|string",
                 "brother" => [
                     // 表明 person.*.relation.*.brother 是可选的索引数组
-                    "[O].*" => [
+                    "[optional].*" => [
                         // 表明 person.*.relation.*.brother.* 是索引数组
                         "*" => [
-                            "name" => "*|string",
+                            "name" => "required|string",
                             "level" => [
-                                "[||]" => [
-                                    "*|int",
-                                    "*|string",
+                                "[or]" => [
+                                    "required|int",
+                                    "required|string",
                                 ]
                             ]
                         ]
@@ -513,8 +505,8 @@ $rule = [
             "fruit" => [
                 "*" => [
                     "*" => [
-                        "name" => "*|string",
-                        "color" => "O|string",
+                        "name" => "required|string",
+                        "color" => "optional|string",
                     ]
 
                 ]
@@ -572,7 +564,7 @@ $data = [
 支持自定义的配置有：
 
 ```
-$_config = array(
+$config = array(
     'language' => 'en-us',                  // Language, default is en-us
     'lang_path' => '',                      // Customer Language file path
     'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid
@@ -587,12 +579,12 @@ $_config = array(
     'symbol_param_force' => '::',           // If set function by this symbol, will not add a @me parameter at first 
     'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
     'symbol_field_name_separator' => '.',   // Field name separator, suce as "fruit.apple"
-    'symbol_required' => '*',               // Symbol of required field
-    'symbol_optional' => 'O',               // Symbol of optional field, can be unset or empty
-    'symbol_unset' => 'O!',                 // Symbol of optional field, can only be unset
-    'symbol_or' => '[||]',                  // Symbol of or rule
-    'symbol_array_optional' => '[O]',       // Symbol of array optional rule
-    'symbol_numeric_array' => '.*',         // Symbol of association array rule
+    'symbol_required' => '*',               // Symbol of required field, Same as "required"
+    'symbol_optional' => 'O',               // Symbol of optional field, can be unset or empty, Same as "optional"
+    'symbol_unset_required' => 'O!',        // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
+    'symbol_or' => '[||]',                  // Symbol of or rule, Same as "[or]"
+    'symbol_array_optional' => '[O]',       // Symbol of array optional rule, Same as "[optional]"
+    'symbol_index_array' => '.*',           // Symbol of index array rule
 );
 ```
 例如:
@@ -608,17 +600,17 @@ $validation_conf = array(
     'reg_if' => '/^IF[yn]?\?/',             // If match this, validate this condition first
     'reg_if_true' => '/^IFy?\?/',           // If match this, validate this condition first, if true, then validate the field
     'reg_if_false' => '/^IFn\?/',           // If match this, validate this condition first, if false, then validate the field
-    'symbol_or' => '[or]',                  // Symbol of or rule
     'symbol_rule_separator' => '&&',        // Rule reqarator for one field
     'symbol_param_classic' => '~',          // If set function by this symbol, will add a @me parameter at first 
     'symbol_param_force' => '~~',           // If set function by this symbol, will not add a @me parameter at first 
     'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
     'symbol_field_name_separator' => '->',  // Field name separator, suce as "fruit.apple"
-    'symbol_required' => '!*',              // Symbol of required field
-    'symbol_optional' => 'o',               // Symbol of optional field, can be unset or empty
-    'symbol_unset' => 'O!',                 // Symbol of optional field, can only be unset
-    'symbol_array_optional' => '[o]',       // Symbol of array optional
-    'symbol_numeric_array' => '[N]',        // Symbol of association array
+    'symbol_required' => '!*',              // Symbol of required field, Same as "required"
+    'symbol_optional' => 'o',               // Symbol of optional field, can be unset or empty, Same as "optional"
+    'symbol_unset' => 'O!',                 // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
+    'symbol_or' => '[or]',                  // Symbol of or rule, Same as "[or]"
+    'symbol_array_optional' => '[o]',       // Symbol of array optional rule, Same as "[optional]"
+    'symbol_index_array' => '[N]',          // Symbol of index array rule
 );
 ```
 相关规则可以这么写：
@@ -744,12 +736,12 @@ $validation = new Validation($validation_conf);
 
 1. \*或者**正则**或者<=>=方法 错误都报错 "id is incorrect."
 ```
-"id" => '*|/^\d+$/|<=>=:1,100| >> @me is incorrect.'
+"id" => 'required|/^\d+$/|<=>=:1,100| >> @me is incorrect.'
 ```
 2. 支持JSON 格式错误信息，为每一个方法设置不同的错误信息
 
 ```
-"id" => '*|/^\d+$/|<=>=:1,100| >> { "*": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}'
+"id" => 'required|/^\d+$/|<=>=:1,100| >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}'
 
 # 对应的报错信息为
 # id - Users define - id is required
@@ -759,7 +751,7 @@ $validation = new Validation($validation_conf);
 3. 支持特殊格式错误信息，为每一个方法设置不同的错误信息，同JSON
 
 ```
-"id" => "*|/^\d+$/|<=>=:1,100| >> [*]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg"
+"id" => "required|/^\d+$/|<=>=:1,100| >> [required]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg"
 
 # 对应的报错信息为
 # id - Users define - id is required
@@ -822,52 +814,52 @@ function check_age($data, $gender, $param) {
 
 ## 附录 1
 
-标志 | 含义
----|---
-\* | 必要的，@me 不能为空
-O | 可选的，允许不设置或为空
-O! | 可选的，允许不设置，一旦设置则不能为空
-= | @me 必须等于 @p1
-!= | @me 必须不等于 @p1
-== | @me 必须全等于 @p1
-!== | @me 必须不全等于 @p1
-\> | @me 必须大于 @p1
-< | @me 必须小于 @p1
-\>= | @me 必须大于等于 @p1
-<= | @me 必须小于等于 @p1
-<> | @me 必须大于 @p1 且小于 @p2
-<=> | @me 必须大于 @p1 且小于等于 @p2
-<>= | @me 必须大于等于 @p1 且小于 @p2
-<=>= | @me 必须大于等于 @p1 且小于等于 @p2
-(n) | @me 必须是数字且在此之内 @p1
-!(n) | @me 必须是数字且不在此之内 @p1
-(s) | @me 必须是字符串且在此之内 @p1
-!(s) | @me 必须是字符串且不在此之内 @p1
-len= | @me 长度必须等于 @p1
-len!= | @me 长度必须不等于 @p1
-len> | @me 长度必须大于 @p1
-len< | @me 长度必须小于 @p1
-len>= | @me 长度必须大于等于 @p1
-len<= | @me 长度必须小于等于 @p1
-len<> | @me 长度必须大于 @p1 且小于 @p2
-len<=> | @me 长度必须大于 @p1 且小于等于 @p2
-len<>= | @me 长度必须大于等于 @p1 且小于 @p2
-len<=>= | @me 长度必须大于等于 @p1 且小于等于 @p2
-int | @me 必须是整型
-float | @me 必须是小数
-string | @me 必须是字符串
-arr | @me 必须是数组,
-bool | @me 必须是布尔型
-bool= | @me 必须是布尔型且等于 @p1
-bool_str | @me 必须是布尔型字符串
-bool_str= | @me 必须是布尔型字符串且等于 @p1
-email | @me 必须是邮箱
-url | @me 必须是网址
-ip | @me 必须是IP地址
-mac | @me 必须是MAC地址
-dob | @me 必须是正确的日期
-file_base64 | @me 必须是正确的文件的base64码
-uuid | @me 必须是 UUID
+标志 | 函数 | 含义
+---|---|---
+\* | required | 必要的，@me 不能为空
+O | optional | 可选的，允许不设置或为空
+O! | symbol_unset_required | 可选的，允许不设置，一旦设置则不能为空
+= | equal | @me 必须等于 @p1
+!= | not_equal | @me 必须不等于 @p1
+== | identically_equal | @me 必须全等于 @p1
+!== | not_identically_equal | @me 必须不全等于 @p1
+\> | greater_than | @me 必须大于 @p1
+< | less_than | @me 必须小于 @p1
+\>= | greater_than_equal | @me 必须大于等于 @p1
+<= | less_than_equal | @me 必须小于等于 @p1
+<> | interval | @me 必须大于 @p1 且小于 @p2
+<=> | greater_lessequal | @me 必须大于 @p1 且小于等于 @p2
+<>= | greaterequal_less | @me 必须大于等于 @p1 且小于 @p2
+<=>= | greaterequal_lessequal | @me 必须大于等于 @p1 且小于等于 @p2
+(n) | in_number | @me 必须是数字且在此之内 @p1
+!(n) | not_in_number | @me 必须是数字且不在此之内 @p1
+(s) | in_string | @me 必须是字符串且在此之内 @p1
+!(s) | not_in_string | @me 必须是字符串且不在此之内 @p1
+len= | length_equal | @me 长度必须等于 @p1
+len!= | length_not_equal | @me 长度必须不等于 @p1
+len> | length_greater_than | @me 长度必须大于 @p1
+len< | length_less_than | @me 长度必须小于 @p1
+len>= | length_greater_than_equal | @me 长度必须大于等于 @p1
+len<= | length_less_than_equal | @me 长度必须小于等于 @p1
+len<> | length_interval | @me 长度必须大于 @p1 且小于 @p2
+len<=> | length_greater_lessequal | @me 长度必须大于 @p1 且小于等于 @p2
+len<>= | length_greaterequal_less | @me 长度必须大于等于 @p1 且小于 @p2
+len<=>= | length_greaterequal_lessequal | @me 长度必须大于等于 @p1 且小于等于 @p2
+int | integer | @me 必须是整型
+float | float | @me 必须是小数
+string | string | @me 必须是字符串
+arr | arr | @me 必须是数组,
+bool | bool | @me 必须是布尔型
+bool= | bool | @me 必须是布尔型且等于 @p1
+bool_str | bool_str | @me 必须是布尔型字符串
+bool_str= | bool_str | @me 必须是布尔型字符串且等于 @p1
+email | email | @me 必须是邮箱
+url | url | @me 必须是网址
+ip | ip | @me 必须是IP地址
+mac | mac | @me 必须是MAC地址
+dob | dob | @me 必须是正确的日期
+file_base64 | file_base64 | @me 必须是正确的文件的base64码
+uuid | uuid | @me 必须是 UUID
 
 ---
 
@@ -879,9 +871,14 @@ uuid | @me 必须是 UUID
 
 ```
 {
-    "id": "id 必须是整型",
-    "height": "height should be in [100,200] when height_unit is cm or height should be in [1,2] when height_unit is m",
-    "company.postcode": "*** check_postcode method error message(company.postcode)",
+    "id": "用户自定义 - id 是必要的",
+    "name": "name 长度必须大于 8 且小于等于 32",
+    "email": "email 必须是邮箱",
+    "phone": "用户自定义 - phone number 错误",
+    "education.primary_school": "education.primary_school 必须等于 Qiankeng Xiaoxue",
+    "education.junior_middle_school": "education.junior_middle_school 必须不等于 Foshan Zhongxue",
+    "company.name": "company.name 长度必须大于 8 且小于等于 64",
+    "company.website": "company.website 必须是网址",
     "company.colleagues.0.name": "company.colleagues.0.name 必须是字符串",
     "company.colleagues.1.name": "company.colleagues.1.name 必须是字符串",
     "company.colleagues.1.position": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA",
@@ -897,17 +894,36 @@ uuid | @me 必须是 UUID
 ```
 {
     "id": {
-        "error_type": "validation",
-        "message": "id 必须是整型"
+        "error_type": "required_field",
+        "message": "用户自定义 - id 是必要的"
     },
-    "height": {
+    "name": {
         "error_type": "validation",
-        "message": "height should be in [100,200] when height_unit is cm or height should be in [1,2] when height_unit is m"
+        "message": "name 长度必须大于 8 且小于等于 32"
     },
-    "company.postcode": {
-        "error_type": "server_error",
-        "message": "*** check_postcode method error message(company.postcode)",
-        "extra": "extra message"
+    "email": {
+        "error_type": "validation",
+        "message": "email 必须是邮箱"
+    },
+    "phone": {
+        "error_type": "validation",
+        "message": "用户自定义 - phone number 错误"
+    },
+    "education.primary_school": {
+        "error_type": "validation",
+        "message": "education.primary_school 必须等于 Qiankeng Xiaoxue"
+    },
+    "education.junior_middle_school": {
+        "error_type": "validation",
+        "message": "education.junior_middle_school 必须不等于 Foshan Zhongxue"
+    },
+    "company.name": {
+        "error_type": "validation",
+        "message": "company.name 长度必须大于 8 且小于等于 64"
+    },
+    "company.website": {
+        "error_type": "validation",
+        "message": "company.website 必须是网址"
     },
     "company.colleagues.0.name": {
         "error_type": "validation",
@@ -945,10 +961,17 @@ uuid | @me 必须是 UUID
 
 ```
 {
-    "id": "id 必须是整型",
-    "height": "height should be in [100,200] when height_unit is cm or height should be in [1,2] when height_unit is m",
+    "id": "用户自定义 - id 是必要的",
+    "name": "name 长度必须大于 8 且小于等于 32",
+    "email": "email 必须是邮箱",
+    "phone": "用户自定义 - phone number 错误",
+    "education": {
+        "primary_school": "education.primary_school 必须等于 Qiankeng Xiaoxue",
+        "junior_middle_school": "education.junior_middle_school 必须不等于 Foshan Zhongxue"
+    },
     "company": {
-        "postcode": "*** check_postcode method error message(company.postcode)",
+        "name": "company.name 长度必须大于 8 且小于等于 64",
+        "website": "company.website 必须是网址",
         "colleagues": [
             {
                 "name": "company.colleagues.0.name 必须是字符串"
@@ -978,18 +1001,39 @@ uuid | @me 必须是 UUID
 ```
 {
     "id": {
-        "error_type": "validation",
-        "message": "id 必须是整型"
+        "error_type": "required_field",
+        "message": "用户自定义 - id 是必要的"
     },
-    "height": {
+    "name": {
         "error_type": "validation",
-        "message": "height should be in [100,200] when height_unit is cm or height should be in [1,2] when height_unit is m"
+        "message": "name 长度必须大于 8 且小于等于 32"
+    },
+    "email": {
+        "error_type": "validation",
+        "message": "email 必须是邮箱"
+    },
+    "phone": {
+        "error_type": "validation",
+        "message": "用户自定义 - phone number 错误"
+    },
+    "education": {
+        "primary_school": {
+            "error_type": "validation",
+            "message": "education.primary_school 必须等于 Qiankeng Xiaoxue"
+        },
+        "junior_middle_school": {
+            "error_type": "validation",
+            "message": "education.junior_middle_school 必须不等于 Foshan Zhongxue"
+        }
     },
     "company": {
-        "postcode": {
-            "error_type": "server_error",
-            "message": "*** check_postcode method error message(company.postcode)",
-            "extra": "extra message"
+        "name": {
+            "error_type": "validation",
+            "message": "company.name 长度必须大于 8 且小于等于 64"
+        },
+        "website": {
+            "error_type": "validation",
+            "message": "company.website 必须是网址"
         },
         "colleagues": [
             {
