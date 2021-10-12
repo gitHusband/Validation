@@ -1,4 +1,5 @@
 <?php
+
 namespace githusband;
 
 class Validation
@@ -81,10 +82,25 @@ class Validation
         'symbol_field_name_separator' => '.',   // Field name separator, suce as "fruit.apple"
         'symbol_required' => '*',               // Symbol of required field, Same as "required"
         'symbol_optional' => 'O',               // Symbol of optional field, can be unset or empty, Same as "optional"
-        'symbol_unset_required' => 'O!',        // Symbol of optional field, can only be unset
-        'symbol_or' => '[||]',                  // Symbol of or rule
-        'symbol_array_optional' => '[O]',       // Symbol of array optional rule
+        'symbol_unset_required' => 'O!',        // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
+        'symbol_or' => '[||]',                  // Symbol of or rule, Same as "[or]"
+        'symbol_array_optional' => '[O]',       // Symbol of array optional rule, Same as "[optional]"
         'symbol_numeric_array' => '.*',         // Symbol of association array rule
+    );
+
+    /**
+     * See $config array, there are several symbol that are not semantically explicit.
+     * So I set up the related full name for them
+     *
+     * The $symbol_full_name can not be customized and they are always meaningful
+     * @var array
+     */
+    protected $symbol_full_name = array(
+        'symbol_required' => 'required',                // Symbol Full Name of required field
+        'symbol_optional' => 'optional',                // Symbol Full Name of optional field
+        'symbol_unset_required' => 'unset_required',    // Symbol Full Name of optional field
+        'symbol_or' => '[or]',                          // Symbol Full Name of or rule
+        'symbol_array_optional' => '[optional]',        // Symbol Full Name of array optional rule
     );
 
     /**
@@ -398,7 +414,7 @@ class Validation
             $rule_system_symbol = $this->get_rule_system_symbol($rule);
             if (!empty($rule_system_symbol)) {
                 // Allow array or object to be optional
-                if (strpos($rule_system_symbol, $this->config['symbol_array_optional']) !== false) {
+                if ($this->has_system_symbol($rule_system_symbol, 'symbol_array_optional')) {
                     if (!$this->required(isset($data[$field])? $data[$field] : null)) {
                         $this->set_result($field_path_tmp, true);
                         continue;
@@ -407,12 +423,11 @@ class Validation
 
                 // Validate "or" rules.
                 // If one of "or" rules is valid, then the field is valid.
-                if (strpos($rule_system_symbol, $this->config['symbol_or']) !== false) {
+                if ($this->has_system_symbol($rule_system_symbol, 'symbol_or')) {
                     $result = $this->execute_or_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol]);
                 }
                 // Validate numeric array
-                else if (strpos($rule_system_symbol, $this->config['symbol_numeric_array']) !== false
-                    || strpos($rule_system_symbol, ltrim($this->config['symbol_numeric_array'], '.')) !== false) {
+                else if ($this->has_system_symbol($rule_system_symbol, 'symbol_numeric_array', true)) {
                     $result = $this->execute_numeric_array_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol], $is_array_loop);
                 }
                 // Validate association array
@@ -431,13 +446,13 @@ class Validation
                 if (!$result && !$this->validation_global) return false;
             } else {
                 // Allow array or object to be optional
-                if (strpos($field, $this->config['symbol_array_optional']) !== false) {
-                    $field = str_replace($this->config['symbol_array_optional'], '', $field);
-                    $field_path_tmp = str_replace($this->config['symbol_array_optional'], '', $field_path_tmp);
+                if ($this->has_system_symbol($field, 'symbol_array_optional')) {
+                    $field = $this->delete_system_symbol($field, 'symbol_array_optional');
+                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_array_optional');
 
                     // Delete all other array symbols
-                    $field_tmp = str_replace($this->config['symbol_or'], '', $field);
-                    $field_tmp = str_replace($this->config['symbol_numeric_array'], '', $field_tmp);
+                    $field_tmp = $this->delete_system_symbol($field, 'symbol_or');
+                    $field_tmp = $this->delete_system_symbol($field_tmp, 'symbol_numeric_array');
 
                     if (!$this->required(isset($data[$field_tmp])? $data[$field_tmp] : null)) {
                         $this->set_result($field_path_tmp, true);
@@ -447,16 +462,16 @@ class Validation
 
                 // Validate "or" rules.
                 // If one of "or" rules is valid, then the field is valid.
-                if (strpos($field, $this->config['symbol_or']) !== false) {
-                    $field = str_replace($this->config['symbol_or'], '', $field);
-                    $field_path_tmp = str_replace($this->config['symbol_or'], '', $field_path_tmp);
+                if ($this->has_system_symbol($field, 'symbol_or')) {
+                    $field = $this->delete_system_symbol($field, 'symbol_or');
+                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_or');
 
                     $result = $this->execute_or_rules($data, $field, $field_path_tmp, $rule);
                 }
                 // Validate numeric array
-                else if (strpos($field, $this->config['symbol_numeric_array']) !== false) {
-                    $field = str_replace($this->config['symbol_numeric_array'], '', $field);
-                    $field_path_tmp = str_replace($this->config['symbol_numeric_array'], '', $field_path_tmp);
+                else if ($this->has_system_symbol($field, 'symbol_numeric_array')) {
+                    $field = $this->delete_system_symbol($field, 'symbol_numeric_array');
+                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_numeric_array');
 
                     $result = $this->execute_numeric_array_rules($data, $field, $field_path_tmp, $rule);
                 }
@@ -480,7 +495,11 @@ class Validation
 
     /**
      * There are some special rule system symbols
-     * [||], [O], .*
+     * It's allowed to have multiple system symbols in one field name
+     * 
+     * [or] - It's default symbol is [||] which can be customized
+     * [optional] - It's default symbol is [O] which can be customized
+     * .* - This is a symbol which has not a full name and can be customized
      * 
      * @Author   Devin
      * @param    array                   $rule 
@@ -497,20 +516,20 @@ class Validation
         $rule_system_symbol_string = $keys[0];
         $rule_system_symbol_string_tmp = $rule_system_symbol_string;
 
-        if (strpos($rule_system_symbol_string, $this->config['symbol_array_optional']) !== false) {
-            $rule_system_symbol_string_tmp = str_replace($this->config['symbol_array_optional'], '', $rule_system_symbol_string_tmp);
+        if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_array_optional')) {
+            $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_array_optional');
         }
 
-        if (strpos($rule_system_symbol_string, $this->config['symbol_or']) !== false) {
-            $rule_system_symbol_string_tmp = str_replace($this->config['symbol_or'], '', $rule_system_symbol_string_tmp);
+        if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_or')) {
+            $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_or');
         }
 
-        if (strpos($rule_system_symbol_string, $this->config['symbol_numeric_array']) !== false) {
-            $rule_system_symbol_string_tmp = str_replace($this->config['symbol_numeric_array'], '', $rule_system_symbol_string_tmp);
+        if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_numeric_array')) {
+            $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_numeric_array');
         } else if (strpos($this->config['symbol_numeric_array'], '.') === 0) {
             $symbol_numeric_array_tmp = ltrim($this->config['symbol_numeric_array'], '.');
-            if (strpos($rule_system_symbol_string, $symbol_numeric_array_tmp) !== false) {
-                $rule_system_symbol_string_tmp = str_replace($symbol_numeric_array_tmp, '', $rule_system_symbol_string_tmp);
+            if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_numeric_array', true)) {
+                $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_numeric_array', true);
             }
         }
 
@@ -519,10 +538,91 @@ class Validation
     }
 
     /**
+     * Check a field name contains a specific system symbol or not. 
+     * Should check the system symbol and it's symbol full name at the meantime 
+     * 
+     * @Author   Devin
+     * @param    string                   $rule_system_symbol_string [description]
+     * @param    string                   $symbol_name               [description]
+     * @param    boolean                  $ingore_left_dot           Only for symbol_numeric_array because symbol_numeric_array can ingore the left dot if it's not at the end of the field name
+     * @return   boolean                                             [description]
+     */
+    protected function has_system_symbol($rule_system_symbol_string, $symbol_name, $ingore_left_dot = false)
+    {
+        switch ($symbol_name) {
+            case 'symbol_array_optional':
+                if (strpos($rule_system_symbol_string, $this->config['symbol_array_optional']) !== false
+                    || strpos($rule_system_symbol_string, $this->symbol_full_name['symbol_array_optional']) !== false
+                ) {
+                    return true;
+                }
+                break;
+            case 'symbol_or':
+                if (strpos($rule_system_symbol_string, $this->config['symbol_or']) !== false
+                    || strpos($rule_system_symbol_string, $this->symbol_full_name['symbol_or']) !== false
+                ) {
+                    return true;
+                }
+                break;
+            case 'symbol_numeric_array':
+                if (strpos($rule_system_symbol_string, $this->config['symbol_numeric_array']) !== false) {
+                    return true;
+                }
+
+                if ($ingore_left_dot) {
+                    if (strpos($rule_system_symbol_string, ltrim($this->config['symbol_numeric_array'], '.')) !== false) {
+                        return true;
+                    }
+                }
+                break;
+            default:
+                return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Delete a specific system symbol from a field name. 
+     * Should delete the system symbol and it's symbol full name at the meantime 
+     * 
+     * @Author   Devin
+     * @param    string                   $rule_system_symbol_string [description]
+     * @param    string                   $symbol_name               [description]
+     * @param    boolean                  $ingore_left_dot           Only for symbol_numeric_array because symbol_numeric_array can ingore the left dot if it's not at the end of the field name
+     * @param    string                   $replace_str               Replace the symbol to this string
+     * @return   string                                              [description]
+     */
+    protected function delete_system_symbol($rule_system_symbol_string, $symbol_name, $ingore_left_dot = false, $replace_str = '')
+    {
+        switch ($symbol_name) {
+            case 'symbol_array_optional':
+                $rule_system_symbol_string = str_replace($this->config['symbol_array_optional'], '', $rule_system_symbol_string);
+                $rule_system_symbol_string = str_replace($this->symbol_full_name['symbol_array_optional'], '', $rule_system_symbol_string);
+                return $rule_system_symbol_string;
+                break;
+            case 'symbol_or':
+                $rule_system_symbol_string = str_replace($this->config['symbol_or'], '', $rule_system_symbol_string);
+                $rule_system_symbol_string = str_replace($this->symbol_full_name['symbol_or'], '', $rule_system_symbol_string);
+                return $rule_system_symbol_string;
+                break;
+            case 'symbol_numeric_array':
+                $rule_system_symbol_string = str_replace($this->config['symbol_numeric_array'], '', $rule_system_symbol_string);
+                if ($ingore_left_dot) $rule_system_symbol_string = str_replace(ltrim($this->config['symbol_numeric_array'], '.'), '', $rule_system_symbol_string);
+                return $rule_system_symbol_string;
+                break;
+            default:
+                return $rule_system_symbol_string;
+        }
+
+        return $rule_system_symbol_string;
+    }
+
+    /**
      * Execute validation of "or" rules.
      * There has two ways to add "or" rules:
-     * 1. Add symbol_or in the end of the field. Such as $rule = [ "name[||]" => [ "*|string", "*|int" ] ];
-     * 2. Add symbol_or as the only one child of the field. Such as $rule = [ "name" => [ "[||]" => [ "*|string", "*|int" ] ] ];
+     * 1. Add symbol_or in the end of the field. Such as $rule = [ "name[or]" => [ "*|string", "*|int" ] ];
+     * 2. Add symbol_or as the only one child of the field. Such as $rule = [ "name" => [ "[or]" => [ "*|string", "*|int" ] ] ];
      * If one of "or" rules is valid, then the field is valid.
      * @Author   Devin
      * @param    array                      $data       The parent data of the field which is related to the rules
@@ -671,6 +771,11 @@ class Validation
      */
     protected function parse_error_message($error_msg)
     {
+        // $error_msg = " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes";
+        // $parse_arr = [];
+        // $this->pars_gh_string_to_array($parse_arr, $error_msg);
+        // print_r($parse_arr);die;
+
         // '{"*":"Users define - @me is required","preg":"Users define - @me should not be matched /^\\\d+$/"}'
         $json_arr = json_decode($error_msg, true);
         if ($json_arr) return $json_arr;
@@ -827,27 +932,27 @@ class Validation
                 }
             }
             // Required(*) rule
-            else if ($rule == $this->config['symbol_required'] || $rule == 'required') {
+            else if ($rule == $this->config['symbol_required'] || $rule == $this->symbol_full_name['symbol_required']) {
                 if (!$this->required(isset($data[$field])? $data[$field] : null)) {
                     $result = false;
                     $error_type = 'required_field';
-                    $error_msg = $this->match_error_message($rule_error_msg, 'required');
+                    $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_required']);
                 }
             }
             // Optional(O) rule
-            else if ($rule == $this->config['symbol_optional'] || $rule == 'optional') {
+            else if ($rule == $this->config['symbol_optional'] || $rule == $this->symbol_full_name['symbol_optional']) {
                 if (!$this->required(isset($data[$field])? $data[$field] : null)) {
                     return true;
                 }
             }
             // Unset(O!) rule
-            else if ($rule == $this->config['symbol_unset_required'] || $rule == 'unset_required') {
+            else if ($rule == $this->config['symbol_unset_required'] || $rule == $this->symbol_full_name['symbol_unset_required']) {
                 if (!isset($data[$field])) {
                     return true;
                 }else if (!$this->required(isset($data[$field])? $data[$field] : null)) {
                     $result = false;
                     $error_type = 'unset_required_field';
-                    $error_msg = $this->match_error_message($rule_error_msg, 'unset_required');
+                    $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_unset_required']);
                 }
             }
             // Regular expression

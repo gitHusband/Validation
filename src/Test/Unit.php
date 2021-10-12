@@ -248,7 +248,7 @@ class Unit
     protected function test_series_rule()
     {
         $rule = [
-            "name" => "*|string|/^\d+.*/"
+            "name" => "required|string|/^\d+.*/"
         ];
 
         $cases = [
@@ -289,71 +289,66 @@ class Unit
         ];
     }
 
-    protected function test_if_rule()
+    protected function test_require()
     {
         $rule = [
-            "id" => "*|<>:0,10",
-            "name" => "if?<::@id,5|*|string|/^\d+.*/",
-            "name1" => "if1?<::@id,5|*|string|/^\d+.*/",
-            "name0" => "if0?<::@id,5|*|string|/^\d+.*/",
+            "name" => "required"
         ];
 
         $cases = [
-            "Valid_data_1" => [
+            "Valid_data" => [
                 "data" => [
-                    "id" => 1,
-                    "name" => "123ABC",
-                    "name1" => "123ABC",
+                    "name" => "a"
                 ]
             ],
-            "Valid_data_2" => [
+            "Invalid_empty" => [
                 "data" => [
-                    "id" => 8,
-                    "name" => "",
-                    "name0" => "123ABC"
-                ]
-            ],
-            "Invalid_data_1" => [
-                "data" => [
-                    "id" => 1,
                     "name" => ""
-                ],
-                "expected_msg" => "name can not be empty"
+                ]
             ],
-            "Invalid_data_2" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "abc"
-                ],
-                "expected_msg" => "name format is invalid, should be /^\d+.*/"
-            ],
-            "Invalid_data_3" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "123ABC",
-                    "name1" => "abc",
-                ],
-                "expected_msg" => "name1 format is invalid, should be /^\d+.*/"
-            ],
-            "Invalid_data_4" => [
-                "data" => [
-                    "id" => 8,
-                    "name0" => "abc"
-                ],
-                "expected_msg" => "name0 format is invalid, should be /^\d+.*/"
-            ],
-            "Invalid_data_5" => [
-                "data" => [
-                    "id" => 8,
-                    "name1" => "abc",
-                    "name0" => "abc"
-                ],
-                "expected_msg" => "name1 format is invalid, should be /^\d+.*/"
+            "Invalid_unset" => [
+                "data" => []
             ]
         ];
 
         $extra = [
             "method_name" => __METHOD__,
+            "error_tag" => "required",
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_require_symbol()
+    {
+        $rule = [
+            "name" => "*"
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    "name" => "a"
+                ]
+            ],
+            "Invalid_empty" => [
+                "data" => [
+                    "name" => ""
+                ]
+            ],
+            "Invalid_unset" => [
+                "data" => []
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "required",
             "field_path" => "name",
         ];
 
@@ -367,16 +362,16 @@ class Unit
     protected function test_optional()
     {
         $rule = [
-            "name" => "O|string",
-            "gender" => [ "[O]" => "string"],
-            "favourite_fruit[O]" => [
-                "name" => "*|string",
-                "color" => "*|string"
+            "name" => "optional|string",
+            "gender" => [ "[optional]" => "string"],
+            "favourite_fruit[optional]" => [
+                "name" => "required|string",
+                "color" => "required|string"
             ],
             "favourite_meat" => [
-                "[O]" => [
-                    "name" => "*|string",
-                    "from" => "*|string"
+                "[optional]" => [
+                    "name" => "required|string",
+                    "from" => "required|string"
                 ]
             ],
         ];
@@ -463,17 +458,324 @@ class Unit
         ];
     }
 
+    protected function test_optional_symbol()
+    {
+        $rule = [
+            "name" => "O|string",
+            "gender" => [ "[O]" => "string"],
+            "favourite_fruit[O]" => [
+                "name" => "required|string",
+                "color" => "required|string"
+            ],
+            "favourite_meat" => [
+                "[O]" => [
+                    "name" => "required|string",
+                    "from" => "required|string"
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Valid_set" => [
+                "data" => [
+                    "name" => "",
+                    "gender" => "",
+                    "favourite_fruit" => [],
+                    "favourite_meat" => [],
+                ]
+            ],
+            "Valid_unset" => [
+                "data" => [
+                ]
+            ],
+            "Valid_data" => [
+                "data" => [
+                    "name" => "Devin",
+                    "gender" => "male",
+                    "favourite_fruit" => [
+                        "name" => "Apple",
+                        "color" => "red"
+                    ],
+                    "favourite_meat" => [
+                        "name" => "Beef",
+                        "from" => "Cattle"
+                    ],
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "name" => 1,
+                    "gender" => "male",
+                ],
+                "expected_msg" => "name must be string"
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "name" => "Devin",
+                    "gender" => 1,
+                ],
+                "expected_msg" => "gender must be string"
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "name" => "Devin",
+                    "gender" => "male",
+                    "favourite_fruit" => [
+                        "name" => "Apple",
+                        "color" => 1
+                    ],
+                ],
+                "expected_msg" => "favourite_fruit.color must be string"
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "name" => "Devin",
+                    "gender" => "male",
+                    "favourite_fruit" => [
+                        "name" => "Apple",
+                        "color" => "red"
+                    ],
+                    "favourite_meat" => [
+                        "name" => 1,
+                        "from" => "Cattle"
+                    ],
+                ],
+                "expected_msg" => "favourite_meat.name must be string"
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "O",
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_unset_required()
+    {
+        $rule = [
+            "name" => "unset_required|string"
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    "name" => "David"
+                ]
+            ],
+            "Valid_unset" => [
+                "data" => []
+            ],
+            "Invalid_empty" => [
+                "data" => [
+                    "name" => ""
+                ],
+                "expected_msg" => "name must be unset or not empty"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "unset",
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_unset_required_symbol()
+    {
+        $rule = [
+            "name" => "O!|string"
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    "name" => "David"
+                ]
+            ],
+            "Valid_unset" => [
+                "data" => []
+            ],
+            "Invalid_empty" => [
+                "data" => [
+                    "name" => ""
+                ],
+                "expected_msg" => "name must be unset or not empty"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "unset",
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_if_rule()
+    {
+        $rule = [
+            "id" => "required|<>:0,10",
+            "name" => "if?<::@id,5|required|string|/^\d+.*/",
+            "name1" => "if1?<::@id,5|required|string|/^\d+.*/",
+            "name0" => "if0?<::@id,5|required|string|/^\d+.*/",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "123ABC",
+                    "name1" => "123ABC",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "id" => 8,
+                    "name" => "",
+                    "name0" => "123ABC"
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => ""
+                ],
+                "expected_msg" => "name can not be empty"
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "abc"
+                ],
+                "expected_msg" => "name format is invalid, should be /^\d+.*/"
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "123ABC",
+                    "name1" => "abc",
+                ],
+                "expected_msg" => "name1 format is invalid, should be /^\d+.*/"
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name0" => "abc"
+                ],
+                "expected_msg" => "name0 format is invalid, should be /^\d+.*/"
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "id" => 8,
+                    "name1" => "abc",
+                    "name0" => "abc"
+                ],
+                "expected_msg" => "name1 format is invalid, should be /^\d+.*/"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_or_rule()
     {
         $rule = [
+            "name[or]" => [
+                "required|bool",
+                "required|bool_str",
+            ],
+            "height" => [
+                "[or]" => [
+                    "required|int|>:100",
+                    "required|string",
+                ]
+            ]
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    "name" => false,
+                    "height" => 170
+                ]
+            ],
+            "Valid_data2" => [
+                "data" => [
+                    "name" => "false",
+                    "height" => "1.70m"
+                ]
+            ],
+            "Invalid_empty" => [
+                "data" => [
+                    "name" => ""
+                ],
+                "expected_msg" => "name can not be empty"
+            ],
+            "Invalid_0" => [
+                "data" => [
+                    "name" => 0
+                ],
+                "expected_msg" => "name must be boolean or name must be boolean string"
+            ],
+            "Invalid_1" => [
+                "data" => [
+                    "name" => "false",
+                    "height" => 50,
+                ],
+                "expected_msg" => "height must be greater than 100 or height must be string"
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_or_rule_symbol()
+    {
+        $rule = [
             "name[||]" => [
-                "*|bool",
-                "*|bool_str",
+                "required|bool",
+                "required|bool_str",
             ],
             "height" => [
                 "[||]" => [
-                    "*|int|>:100",
-                    "*|string",
+                    "required|int|>:100",
+                    "required|string",
                 ]
             ]
         ];
@@ -528,7 +830,7 @@ class Unit
     {
         $rule = [
             "person" => [
-                "name" => "*|string|/^\d+.*/"
+                "name" => "required|string|/^\d+.*/"
             ]
         ];
 
@@ -582,28 +884,28 @@ class Unit
     {
         $rule = [
             "person.*" => [
-                "name" => "*|string|/^\d+.*/",
+                "name" => "required|string|/^\d+.*/",
                 "relation" => [
-                    "father" => "*|string",
-                    "mother" => "O|string",
+                    "father" => "required|string",
+                    "mother" => "optional|string",
                 ]
             ],
             "pet" => [
-                "*|string",
-                "*|string",
+                "required|string",
+                "required|string",
                 [
-                    "*|string",
-                    "*|string",
+                    "required|string",
+                    "required|string",
                 ]
             ],
-            "flower.*" => "*|string",
-            "clothes[O]" => [
+            "flower.*" => "required|string",
+            "clothes[optional]" => [
                 [
-                    "*|string",
+                    "required|string",
                 ]
             ],
             "shoes" => [
-                "[O].*" => "*|string"
+                "[optional].*" => "required|string"
             ],
         ];
 
@@ -831,18 +1133,18 @@ class Unit
     {
         $rule = [
             // "person.*" => [
-            //     "name" => "*|string",
+            //     "name" => "required|string",
             //     "relation" => [
-            //         "father" => "*|string",
-            //         "mother" => "O|string",
+            //         "father" => "required|string",
+            //         "mother" => "optional|string",
             //         "brother" => [
-            //             "[O].*" => [
+            //             "[optional].*" => [
             //                 "*" => [
-            //                     "name" => "*|string",
+            //                     "name" => "required|string",
             //                     "level" => [
-            //                         "[||]" => [
-            //                             "*|int",
-            //                             "*|string",
+            //                         "[or]" => [
+            //                             "required|int",
+            //                             "required|string",
             //                         ]
             //                     ]
             //                 ]
@@ -852,8 +1154,8 @@ class Unit
             //     "fruit" => [
             //         "*" => [
             //             "*" => [
-            //                 "name" => "*|string",
-            //                 "color" => "O|string",
+            //                 "name" => "required|string",
+            //                 "color" => "optional|string",
             //             ]
                         
             //         ]
@@ -861,18 +1163,18 @@ class Unit
             // ],
             "person" => [
                 "*" => [
-                    "name" => "*|string",
+                    "name" => "required|string",
                     "relation" => [
-                        "father" => "*|string",
-                        "mother" => "O|string",
+                        "father" => "required|string",
+                        "mother" => "optional|string",
                         "brother" => [
-                            "[O].*" => [
+                            "[optional].*" => [
                                 "*" => [
-                                    "name" => "*|string",
+                                    "name" => "required|string",
                                     "level" => [
-                                        "[||]" => [
-                                            "*|int",
-                                            "*|string",
+                                        "[or]" => [
+                                            "required|int",
+                                            "required|string",
                                         ]
                                     ]
                                 ]
@@ -882,8 +1184,8 @@ class Unit
                     "fruit" => [
                         "*" => [
                             "*" => [
-                                "name" => "*|string",
-                                "color" => "O|string",
+                                "name" => "required|string",
+                                "color" => "optional|string",
                             ]
 
                         ]
@@ -1076,7 +1378,7 @@ class Unit
 
     protected function test_root_data_rule_1()
     {
-        $rule = "*|string";
+        $rule = "required|string";
 
         $cases = [
             "Valid_data" => [
@@ -1111,9 +1413,9 @@ class Unit
     protected function test_root_data_rule_2()
     {
         $rule = [
-            "[||]" => [
-                "*|string",
-                "*|int"
+            "[or]" => [
+                "required|string",
+                "required|int"
             ]
         ];
 
@@ -1150,9 +1452,9 @@ class Unit
     protected function test_root_data_rule_3()
     {
         $rule = [
-            "[O]" => [
-                "*|string",
-                "*|int"
+            "[optional]" => [
+                "required|string",
+                "required|int"
             ]
         ];
 
@@ -1188,7 +1490,7 @@ class Unit
     protected function test_root_data_rule_4()
     {
         $rule = [
-            "*" => "*|string"
+            "*" => "required|string"
         ];
 
         $cases = [
@@ -1224,8 +1526,8 @@ class Unit
     protected function test_dynamic_err_msg_simple()
     {
         $rule = [
-            "id" => "*|<=>=:1,100 >> Users define - @me should not be >= @p1 and <= @p2",
-            "name" => "*|string >> Users define - @me should not be empty and must be string",
+            "id" => "required|<=>=:1,100 >> Users define - @me should not be >= @p1 and <= @p2",
+            "name" => "required|string >> Users define - @me should not be empty and must be string",
         ];
 
         $cases = [
@@ -1258,12 +1560,12 @@ class Unit
     protected function test_method_and_parameter()
     {
         $rule = [
-            "id" => "*|string|check_id:1,100",
-            "name" => "*|string|check_name:@id",
+            "id" => "required|string|check_id:1,100",
+            "name" => "required|string|check_name:@id",
             "favourite_fruit" => [
-                "fruit_id" => "O|check_fruit_id::@root",
-                "fruit_name" => "O|check_fruit_name::@parent",
-                "fruit_color" => "O|check_fruit_color:@fruit_name,@me >> fruit name(@p0) and color(@p1) is not matched",
+                "fruit_id" => "optional|check_fruit_id::@root",
+                "fruit_name" => "optional|check_fruit_name::@parent",
+                "fruit_color" => "optional|check_fruit_color:@fruit_name,@me >> fruit name(@p0) and color(@p1) is not matched",
             ]
         ];
 
@@ -1402,8 +1704,8 @@ class Unit
     protected function test_validation_global_execute($error_data=false)
     {
         $rule = [
-            "id" => "*|int",
-            "name" => "*|string",
+            "id" => "required|int",
+            "name" => "required|string",
         ];
 
         $cases = [
@@ -1459,11 +1761,11 @@ class Unit
     protected function test_err_format_execute($error_data=false)
     {
         $rule = [
-            "id" => "*|int",
-            "name" => "*|string",
+            "id" => "required|int",
+            "name" => "required|string",
             "favourite_fruit" => [
-                "fruit_id" => "*|int",
-                "fruit_name" => "*|string",
+                "fruit_id" => "required|int",
+                "fruit_name" => "required|string",
             ]
         ];
 
@@ -1604,8 +1906,8 @@ class Unit
     protected function test_dynamic_err_msg_complex()
     {
         $rule = [
-            "id" => "*|check_err_field",
-            "number" => "*|check_err_field >> @me error!",
+            "id" => "required|check_err_field",
+            "number" => "required|check_err_field >> @me error!",
         ];
 
         $cases = [
@@ -1735,9 +2037,9 @@ class Unit
     protected function test_dynamic_err_msg_user_json()
     {
         $rule = [
-            "id" => '*|/^\d+$/|<=>=:1,100| >> { "*": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
-            "name" => 'O!|string >> { "O!": "Users define - @me should be unset or not be empty", "string": "Users define - Note! @me should be string"}',
-            "age" => 'O|<=>=:1,60|check_err_field >> { "<=>=": "Users define - @me is not allowed.", "check_err_field": "Users define - @me is not passed."}',
+            "id" => 'required|/^\d+$/|<=>=:1,100| >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
+            "name" => 'unset_required|string >> { "unset_required": "Users define - @me should be unset or not be empty", "string": "Users define - Note! @me should be string"}',
+            "age" => 'optional|<=>=:1,60|check_err_field >> { "<=>=": "Users define - @me is not allowed.", "check_err_field": "Users define - @me is not passed."}',
         ];
 
         $cases = [
@@ -1827,9 +2129,9 @@ class Unit
     protected function test_dynamic_err_msg_user_gh_string()
     {
         $rule = [
-            "id" => "*|/^\d+$/|<=>=:1,100| >> [*]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg",
-            "name" => "O!|string >> [O!] => Users define - @me should be unset or not be empty [string]=> Users define - Note! @me should be string",
-            "age" => "O|<=>=:1,60|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
+            "id" => "required|/^\d+$/|<=>=:1,100| >> [required]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg",
+            "name" => "unset_required|string >> [unset_required] => Users define - @me should be unset or not be empty [string]=> Users define - Note! @me should be string",
+            "age" => "optional|<=>=:1,60|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
         ];
 
         $cases = [
@@ -1919,7 +2221,7 @@ class Unit
     protected function test_set_language_execute($error_data=false)
     {
         $rule = [
-            "name" => "*|string"
+            "name" => "required|string"
         ];
 
         $cases = [
@@ -2032,39 +2334,39 @@ class Unit
     protected function test_default_config_execute($error_data=false)
     {
         $rule = [
-            "id" => "*|int|/^\d+$/",
-            "name" => "*|string|len<=>:8,32",
-            "gender" => "*|(s):male,female",
-            "dob" => "*|dob",
-            "age" => "*|check_age:@gender,30 >> @me is wrong",
-            "height_unit" => "*|(s):cm,m",
-            "height[||]" => [
-                "*|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                "*|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+            "id" => "required|int|/^\d+$/",
+            "name" => "required|string|len<=>:8,32",
+            "gender" => "required|(s):male,female",
+            "dob" => "required|dob",
+            "age" => "required|check_age:@gender,30 >> @me is wrong",
+            "height_unit" => "required|(s):cm,m",
+            "height[or]" => [
+                "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
+                "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
             ],
             "education" => [
-                "primary_school" => "*|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "*|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|*|len>:10",
-                "university" => "if0?=::@junior_middle_school,Qiankeng Zhongxue|*|len>:10",
+                "primary_school" => "required|=:Qiankeng Xiaoxue",
+                "junior_middle_school" => "required|!=:Foshan Zhongxue",
+                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:10",
+                "university" => "if0?=::@junior_middle_school,Qiankeng Zhongxue|required|len>:10",
             ],
             "company" => [
-                "name" => "*|len<=>:8,64",
-                "country" => "O|len>=:3",
-                "addr" => "*|len>:16",
+                "name" => "required|len<=>:8,64",
+                "country" => "optional|len>=:3",
+                "addr" => "required|len>:16",
                 "colleagues.*" => [
-                    "name" => "*|string|len<=>:3,32",
-                    "position" => "*|(s):Reception,Financial,PHP,JAVA"
+                    "name" => "required|string|len<=>:3,32",
+                    "position" => "required|(s):Reception,Financial,PHP,JAVA"
                 ],
                 "boss" => [
-                    "*|=:Mike",
-                    "*|(s):Johnny,David",
-                    "O|(s):Johnny,David"
+                    "required|=:Mike",
+                    "required|(s):Johnny,David",
+                    "optional|(s):Johnny,David"
                 ]
             ],
-            "favourite_food[O].*" => [
-                "name" => "*|string",
-                "place_name" => "O|string" 
+            "favourite_food[optional].*" => [
+                "name" => "required|string",
+                "place_name" => "optional|string" 
             ]
         ];
 
@@ -2454,87 +2756,16 @@ class Unit
         return $result;
     }
 
-    protected function test_require()
-    {
-        $rule = [
-            "name" => "*"
-        ];
-
-        $cases = [
-            "Valid_data" => [
-                "data" => [
-                    "name" => "a"
-                ]
-            ],
-            "Invalid_empty" => [
-                "data" => [
-                    "name" => ""
-                ]
-            ],
-            "Invalid_unset" => [
-                "data" => []
-            ]
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "error_tag" => "required",
-            "field_path" => "name",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
-    protected function test_unset()
-    {
-        $rule = [
-            "name" => "O!|string"
-        ];
-
-        $cases = [
-            "Valid_data" => [
-                "data" => [
-                    "name" => "David"
-                ]
-            ],
-            "Valid_unset" => [
-                "data" => []
-            ],
-            "Invalid_empty" => [
-                "data" => [
-                    "name" => ""
-                ],
-                "expected_msg" => "name must be unset or not empty"
-            ]
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "error_tag" => "unset",
-            "field_path" => "name",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
     protected function test_regular_expression()
     {
         $rule = [
-            "id" => "*|/^\d+$/",
-            "name" => "*|/Tom/i|string"
+            "id" => "required|/^\d+$/",
+            "name" => "required|/Tom/i|string"
         ];
 
         $rule1 = [
-            "id" => "*|Reg>/^\d+$/",
-            "name" => "*|Reg>/Tom/i|string"
+            "id" => "required|Reg>/^\d+$/",
+            "name" => "required|Reg>/Tom/i|string"
         ];
 
         $cases = [
@@ -2580,7 +2811,7 @@ class Unit
     protected function test_in_method()
     {
         $rule = [
-            "id" => "*|(n):1,2,3",
+            "id" => "required|(n):1,2,3",
         ];
 
         $cases = [

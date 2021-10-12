@@ -80,17 +80,17 @@ class Tests
         }
 
         $rule = [
-            "id" => "*|int|/^\d+$/",
-            "name" => "*|string|len<=>:8,32",
+            "id" => "required|int|/^\d+$/",
+            "name" => "required|string|len<=>:8,32",
             "gender" => "required|(s):male,female",
             "dob" => "required|dob",
             "age" => "required|check_age:@gender,30 >> @me is wrong",
-            "height[||]" => [
+            "height[or]" => [
                 "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
                 "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
             ],
             "height_unit" => "required|(s):cm,m",
-            "weight[||]" => [
+            "weight[or]" => [
                 "required|=::@weight_unit,kg|<=>=:40,100",
                 "required|=::@weight_unit,lb|<=>:88,220",
             ],
@@ -121,7 +121,7 @@ class Tests
                     "optional|(s):Johnny,David"
                 ]
             ],
-            "favourite_food[O].*" => [
+            "favourite_food[optional].*" => [
                 "name" => "required|string",
                 "place_name" => "optional|string" 
             ]
@@ -199,14 +199,14 @@ class Tests
             "dob" => "required|dob",
             "age" => "required|check_age:@gender,30 >> @me is wrong",
             "height" => [
-                "[||]" => [
+                "[or]" => [
                     "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
                     "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
                 ]
             ],
             "height_unit" => "required|(s):cm,m",
             "weight" => [
-                "[||]" => [
+                "[or]" => [
                     "required|=::@weight_unit,kg|<=>=:40,100",
                     "required|=::@weight_unit,lb|<=>:88,220",
                 ]
@@ -241,7 +241,7 @@ class Tests
                 ]
             ],
             "favourite_food" => [
-                "[O].*" => [
+                "[optional].*" => [
                     "name" => "required|string",
                     "place_name" => "optional|string"
                 ]
@@ -329,12 +329,12 @@ class Tests
             "gender" => "required|(s):male,female",
             "dob" => "required|dob",
             "age" => "required|check_age:@gender,30 >> @me is wrong",
-            "height[||]" => [
+            "height[or]" => [
                 "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
                 "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
             ],
             "height_unit" => "required|(s):cm,m",
-            "weight[||]" => [
+            "weight[or]" => [
                 "required|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
                 "required|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
             ],
@@ -365,7 +365,7 @@ class Tests
                     "optional|(s):Johnny,David"
                 ]
             ],
-            "favourite_food[O].*" => [
+            "favourite_food[optional].*" => [
                 "name" => "required|string",
                 "place_name" => "optional|string" 
             ]
@@ -453,14 +453,14 @@ class Tests
             "dob" => "required|dob",
             "age" => "required|check_age:@gender,30 >> @me is wrong",
             "height" => [
-                "[||]" => [
+                "[or]" => [
                     "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
                     "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
                 ]
             ],
             "height_unit" => "required|(s):cm,m",
-            "weight[||]" => [
-                "[||]" => [
+            "weight[or]" => [
+                "[or]" => [
                     "required|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
                     "required|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
                 ]
@@ -495,7 +495,7 @@ class Tests
                 ]
             ],
             "favourite_food" => [
-                "[O].*" => [
+                "[optional].*" => [
                     "name" => "required|string",
                     "place_name" => "optional|string"
                 ]
