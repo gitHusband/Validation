@@ -22,7 +22,7 @@ class Tests
 
     }
 
-    public function run($data = array())
+    public function success($data = array())
     {
         if (empty($data)) {
             $data = [
@@ -80,7 +80,7 @@ class Tests
         }
 
         $rule = [
-            "id" => "required|int|/^\d+$/",
+            "id" => "required|/^\d+$/",
             "name" => "required|string|len<=>:8,32",
             "gender" => "required|(s):male,female",
             "dob" => "required|dob",
@@ -135,7 +135,7 @@ class Tests
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function run2($data = array())
+    public function success2($data = array())
     {
         if (empty($data)) {
             $data = [
@@ -193,7 +193,7 @@ class Tests
         }
 
         $rule = [
-            "id" => "required|int|/^\d+$/",
+            "id" => "required|/^\d+$/",
             "name" => "required|string|len<=>:8,32",
             "gender" => "required|(s):male,female",
             "dob" => "required|dob",
@@ -510,6 +510,108 @@ class Tests
         return $this->validate($data, $rule, $validation_conf);
     }
 
+    public function readme_case($data = array())
+    {
+        if (empty($data)) {
+            $data = [
+                "id" => "",
+                "name" => "12",
+                "email" => "10000@qq.com.123@qq",
+                "phone" => "15620004000-",
+                "education" => [
+                    "primary_school" => "???Qiankeng Xiaoxue",
+                    "junior_middle_school" => "Foshan Zhongxue",
+                    "high_school" => "Mianhu Gaozhong",
+                    "university" => "Foshan",
+                ],
+                "company" => [
+                    "name" => "Qianken",
+                    "website" => "https://www.qiankeng.com1",
+                    "colleagues" => [
+                        [
+                            "name" => 1,
+                            "position" => "Reception"
+                        ],
+                        [
+                            "name" => 2,
+                            "position" => "Financial1"
+                        ],
+                        [
+                            "name" => 3,
+                            "position" => "JAVA"
+                        ],
+                        [
+                            "name" => "Kurt",
+                            "position" => "PHP1"
+                        ],
+                    ],
+                    "boss" => [
+                        "Mike1",
+                        "David",
+                        "Johnny2",
+                        "Extra",
+                    ]
+                ],
+                "favourite_food" => [
+                    [
+                        "name" => "HuoGuo",
+                        "place_name" => "SiChuan" 
+                    ],
+                    [
+                        "name" => "Beijing Kaoya",
+                        "place_name" => "Beijing"
+                    ],
+                ]
+            ];
+        }
+
+        $rule = [
+            // id 是必要的且必须匹配正则 /^\d+$/， >> 后面的required 和 正则对应的报错信息
+            "id" => 'required|/^\d+$/ >> { "required": "用户自定义 - @me 是必要的", "preg": "用户自定义 - @me 必须匹配 @preg" }',
+            // name 是必要的且必须是字符串且长度在区间 【8，32)
+            "name" => "required|string|len<=>:8,32",
+            "email" => "required|email",
+            "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> 用户自定义 - phone number 错误",
+            // ip 是可选的
+            "ip" => "optional|ip",
+            "education" => [
+                // education.primary_school 必须等于 “Qiankeng Xiaoxue”
+                "primary_school" => "required|=:Qiankeng Xiaoxue",
+                "junior_middle_school" => "required|!=:Foshan Zhongxue",
+                "high_school" => "optional|string",
+                "university" => "optional|string",
+            ],
+            "company" => [
+                "name" => "required|len<=>:8,64",
+                "website" => "required|url",
+                "colleagues.*" => [
+                    "name" => "required|string|len<=>:3,32",
+                    // company.colleagues.*.position 必须等于 Reception,Financial,PHP,JAVA 其中之一
+                    "position" => "required|(s):Reception,Financial,PHP,JAVA"
+                ],
+                // 以下三个规则只对 boss.0, boss.1, boss.2 有效，boss.3 及其他都无效 
+                "boss" => [
+                    "required|=:Mike",
+                    "required|(s):Johnny,David",
+                    "optional|(s):Johnny,David"
+                ]
+            ],
+            // favourite_food 是可选的索引数组，允许为空
+            "favourite_food[optional].*" => [
+                // favourite_food.*.name 必须是字符串
+                "name" => "required|string",
+                "place_name" => "optional|string" 
+            ]
+        ];
+
+        $validation_conf = [
+            'language' => 'zh-cn',
+            'validation_global' => true,
+        ];
+
+        return $this->validate($data, $rule, $validation_conf);
+    }
+
     protected function validate($data, $rule, $validation_conf=array())
     {
         $validation = new Validation($validation_conf);
@@ -550,4 +652,5 @@ if (method_exists($test, $method)) {
     die;
 }
 
+// echo json_encode($result, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + JSON_UNESCAPED_UNICODE)."\n";die;
 print_r($result);
