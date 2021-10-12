@@ -85,7 +85,7 @@ class Validation
         'symbol_unset_required' => 'O!',        // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
         'symbol_or' => '[||]',                  // Symbol of or rule, Same as "[or]"
         'symbol_array_optional' => '[O]',       // Symbol of array optional rule, Same as "[optional]"
-        'symbol_numeric_array' => '.*',         // Symbol of association array rule
+        'symbol_index_array' => '.*',           // Symbol of index array rule
     );
 
     /**
@@ -180,7 +180,7 @@ class Validation
      */
     protected $error_template = array(
         'default' => '@me validation failed',
-        'numeric_array' => '@me must be a numeric array',
+        'index_array' => '@me must be a index array',
         'required' => '@me can not be empty',
         'unset_required' => '@me must be unset or not empty',
         'preg' => '@me format is invalid, should be @preg',
@@ -426,9 +426,9 @@ class Validation
                 if ($this->has_system_symbol($rule_system_symbol, 'symbol_or')) {
                     $result = $this->execute_or_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol]);
                 }
-                // Validate numeric array
-                else if ($this->has_system_symbol($rule_system_symbol, 'symbol_numeric_array', true)) {
-                    $result = $this->execute_numeric_array_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol], $is_array_loop);
+                // Validate index array
+                else if ($this->has_system_symbol($rule_system_symbol, 'symbol_index_array', true)) {
+                    $result = $this->execute_index_array_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol], $is_array_loop);
                 }
                 // Validate association array
                 else {
@@ -452,7 +452,7 @@ class Validation
 
                     // Delete all other array symbols
                     $field_tmp = $this->delete_system_symbol($field, 'symbol_or');
-                    $field_tmp = $this->delete_system_symbol($field_tmp, 'symbol_numeric_array');
+                    $field_tmp = $this->delete_system_symbol($field_tmp, 'symbol_index_array');
 
                     if (!$this->required(isset($data[$field_tmp])? $data[$field_tmp] : null)) {
                         $this->set_result($field_path_tmp, true);
@@ -468,12 +468,12 @@ class Validation
 
                     $result = $this->execute_or_rules($data, $field, $field_path_tmp, $rule);
                 }
-                // Validate numeric array
-                else if ($this->has_system_symbol($field, 'symbol_numeric_array')) {
-                    $field = $this->delete_system_symbol($field, 'symbol_numeric_array');
-                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_numeric_array');
+                // Validate index array
+                else if ($this->has_system_symbol($field, 'symbol_index_array')) {
+                    $field = $this->delete_system_symbol($field, 'symbol_index_array');
+                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_index_array');
 
-                    $result = $this->execute_numeric_array_rules($data, $field, $field_path_tmp, $rule);
+                    $result = $this->execute_index_array_rules($data, $field, $field_path_tmp, $rule);
                 }
                 // Validate association array
                 else if (is_array($rule)) {
@@ -524,12 +524,12 @@ class Validation
             $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_or');
         }
 
-        if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_numeric_array')) {
-            $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_numeric_array');
-        } else if (strpos($this->config['symbol_numeric_array'], '.') === 0) {
-            $symbol_numeric_array_tmp = ltrim($this->config['symbol_numeric_array'], '.');
-            if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_numeric_array', true)) {
-                $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_numeric_array', true);
+        if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_index_array')) {
+            $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_index_array');
+        } else if (strpos($this->config['symbol_index_array'], '.') === 0) {
+            $symbol_index_array_tmp = ltrim($this->config['symbol_index_array'], '.');
+            if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_index_array', true)) {
+                $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_index_array', true);
             }
         }
 
@@ -544,7 +544,7 @@ class Validation
      * @Author   Devin
      * @param    string                   $rule_system_symbol_string [description]
      * @param    string                   $symbol_name               [description]
-     * @param    boolean                  $ingore_left_dot           Only for symbol_numeric_array because symbol_numeric_array can ingore the left dot if it's not at the end of the field name
+     * @param    boolean                  $ingore_left_dot           Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
      * @return   boolean                                             [description]
      */
     protected function has_system_symbol($rule_system_symbol_string, $symbol_name, $ingore_left_dot = false)
@@ -564,13 +564,13 @@ class Validation
                     return true;
                 }
                 break;
-            case 'symbol_numeric_array':
-                if (strpos($rule_system_symbol_string, $this->config['symbol_numeric_array']) !== false) {
+            case 'symbol_index_array':
+                if (strpos($rule_system_symbol_string, $this->config['symbol_index_array']) !== false) {
                     return true;
                 }
 
                 if ($ingore_left_dot) {
-                    if (strpos($rule_system_symbol_string, ltrim($this->config['symbol_numeric_array'], '.')) !== false) {
+                    if (strpos($rule_system_symbol_string, ltrim($this->config['symbol_index_array'], '.')) !== false) {
                         return true;
                     }
                 }
@@ -589,7 +589,7 @@ class Validation
      * @Author   Devin
      * @param    string                   $rule_system_symbol_string [description]
      * @param    string                   $symbol_name               [description]
-     * @param    boolean                  $ingore_left_dot           Only for symbol_numeric_array because symbol_numeric_array can ingore the left dot if it's not at the end of the field name
+     * @param    boolean                  $ingore_left_dot           Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
      * @param    string                   $replace_str               Replace the symbol to this string
      * @return   string                                              [description]
      */
@@ -606,9 +606,9 @@ class Validation
                 $rule_system_symbol_string = str_replace($this->symbol_full_name['symbol_or'], '', $rule_system_symbol_string);
                 return $rule_system_symbol_string;
                 break;
-            case 'symbol_numeric_array':
-                $rule_system_symbol_string = str_replace($this->config['symbol_numeric_array'], '', $rule_system_symbol_string);
-                if ($ingore_left_dot) $rule_system_symbol_string = str_replace(ltrim($this->config['symbol_numeric_array'], '.'), '', $rule_system_symbol_string);
+            case 'symbol_index_array':
+                $rule_system_symbol_string = str_replace($this->config['symbol_index_array'], '', $rule_system_symbol_string);
+                if ($ingore_left_dot) $rule_system_symbol_string = str_replace(ltrim($this->config['symbol_index_array'], '.'), '', $rule_system_symbol_string);
                 return $rule_system_symbol_string;
                 break;
             default:
@@ -655,22 +655,22 @@ class Validation
     }
 
     /**
-     * Execute validation of numeric array rules.
-     * There has two ways to add "or" rules:
-     * 1. Add symbol_numeric_array in the end of the field. Such as $rule = [ "name.*" => [ "*|string" ] ];
-     * 2. Add symbol_numeric_array as the only one child of the field. Such as $rule = [ "name" => [ "*" => [ "*|string" ] ];
+     * Execute validation of index array rules.
+     * There has two ways to add index array rules:
+     * 1. Add symbol_index_array in the end of the field. Such as $rule = [ "name.*" => [ "*|string" ] ];
+     * 2. Add symbol_index_array as the only one child of the field. Such as $rule = [ "name" => [ "*" => [ "*|string" ] ];
      * @Author   Devin
      * @param    array                      $data               The parent data of the field which is related to the rules
      * @param    string                     $field              The field which is related to the rules
      * @param    boolean                    $field_path         Field path, suce as fruit.apple
-     * @param    array                      $rules              The numeric array rules
+     * @param    array                      $rules              The index array rules
      * @param    boolean                    $is_array_loop      If _execute method is called in array loop, $is_array_loop should be true
      * @return   boolean                                        the result of validation
      */
-    protected function execute_numeric_array_rules($data, $field, $field_path, $rules, $is_array_loop=false)
+    protected function execute_index_array_rules($data, $field, $field_path, $rules, $is_array_loop=false)
     {
-        if (!isset($data[$field]) || !$this->is_numeric_array($data[$field])) {
-            $error_msg = $this->get_error_template('numeric_array');
+        if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
+            $error_msg = $this->get_error_template('index_array');
             $error_msg = str_replace($this->symbol_me, $field_path, $error_msg);
             $message = array(
                 "error_type" => 'validation',
@@ -1392,7 +1392,7 @@ class Validation
         return mb_strlen($string);
     }
 
-    protected function is_numeric_array($array) {
+    protected function is_index_array($array) {
         if (!is_array($array)) return false;
         return array_keys($array) === range(0, count($array) - 1);
     }

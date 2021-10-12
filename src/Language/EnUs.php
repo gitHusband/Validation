@@ -7,7 +7,7 @@ class EnUs
 {
     public $error_template = array(
         'default' => '@me validation failed',
-        'numeric_array' => '@me must be a numeric array',
+        'index_array' => '@me must be a numeric array',
         'required' => '@me can not be empty',
         'unset_required' => '@me must be unset or not empty',
         'preg' => '@me format is invalid, should be @preg',
