@@ -7,7 +7,7 @@ class ZhCn
 {
     public $error_template = array(
         'default' => '@me 验证错误',
-        'numeric_array' => '@me 必须是索引数组',
+        'index_array' => '@me 必须是索引数组',
         'required' => '@me 不能为空',
         'unset_required' => '@me 允许不设置，一旦设置则不能为空',
         'preg' => '@me 格式错误，必须是 @preg',

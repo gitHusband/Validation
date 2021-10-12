@@ -880,7 +880,7 @@ class Unit
         ];
     }
 
-    protected function test_numberic_array()
+    protected function test_index_array()
     {
         $rule = [
             "person.*" => [
@@ -1129,7 +1129,7 @@ class Unit
         ];
     }
 
-    protected function test_numberic_assoc_array()
+    protected function test_index_assoc_array()
     {
         $rule = [
             // "person.*" => [
@@ -2552,7 +2552,7 @@ class Unit
             'symbol_required' => '!*',              // Symbol of required field
             'symbol_optional' => 'o',               // Symbol of optional field
             'symbol_array_optional' => '[o]',       // Symbol of array optional
-            'symbol_numeric_array' => '[N]',        // Symbol of association array
+            'symbol_index_array' => '[N]',          // Symbol of index array
         );
 
         $rule = [
