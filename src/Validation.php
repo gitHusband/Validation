@@ -1389,6 +1389,7 @@ class Validation
     }
 
     protected function string_length($string) {
+        if (!$this->string($string)) return -1;
         return mb_strlen($string);
     }
 
@@ -1492,61 +1493,81 @@ class Validation
     }
 
     protected function length_equal($data, $param)
-    {   
+    {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len == $param;
     }
 
     protected function length_not_equal($data, $param)
     {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len != $param;
     }
 
     protected function length_greater_than($data, $param)
-    {   
+    {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len > $param;
     }
 
     protected function length_less_than($data, $param)
     {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len < $param;
     }
 
     protected function length_greater_than_equal($data, $param)
     {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len >= $param;
     }
 
     protected function length_less_than_equal($data, $param)
     {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len <= $param;
     }
 
     protected function length_interval($data, $param1, $param2)
     {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len > $param1 && $data_len < $param2;
     }
 
     protected function length_greater_lessequal($data, $param1, $param2)
     {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len > $param1 && $data_len <= $param2;
     }
 
     protected function length_greaterequal_less($data, $param1, $param2)
     {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len >= $param1 && $data_len < $param2;
     }
 
     protected function length_greaterequal_lessequal($data, $param1, $param2)
     {
+        if (!$this->string($data)) return false;
+
         $data_len = $this->string_length($data);
         return $data_len >= $param1 && $data_len <= $param2;
     }
