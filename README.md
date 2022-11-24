@@ -744,12 +744,12 @@ $validation = new Validation($validation_conf);
 
 1. \*或者**正则**或者<=>=方法 错误都报错 "id is incorrect."
 ```
-"id" => 'required|/^\d+$/|<=>=:1,100| >> @me is incorrect.'
+"id" => 'required|/^\d+$/|<=>=:1,100 >> @me is incorrect.'
 ```
 2. 支持JSON 格式错误信息，为每一个方法设置不同的错误信息
 
 ```
-"id" => 'required|/^\d+$/|<=>=:1,100| >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}'
+"id" => 'required|/^\d+$/|<=>=:1,100 >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}'
 
 # 对应的报错信息为
 # id - Users define - id is required
@@ -759,7 +759,7 @@ $validation = new Validation($validation_conf);
 3. 支持特殊格式错误信息，为每一个方法设置不同的错误信息，同JSON
 
 ```
-"id" => "required|/^\d+$/|<=>=:1,100| >> [required]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg"
+"id" => "required|/^\d+$/|<=>=:1,100 >> [required]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg"
 
 # 对应的报错信息为
 # id - Users define - id is required
@@ -767,7 +767,22 @@ $validation = new Validation($validation_conf);
 # <=>= - id must be greater than or equal to 1 and less than or equal to 100
 ```
 
-**自定义函数也可自定义错误信息, 优先级低于 " >> "**
+4. 支持错误信息数组，格式如下。
+- 键 0: 验证规则
+- 键 error_message：错误信息数组
+```
+$rule = [
+    "id" => [
+        'required|/^\d+$/|<=>=:1,100',
+        'error_message' => [                        
+            'required' => 'Users define - @me is required',
+            'preg' => 'Users define - @me should be \"MATCHED\" @preg',
+        ]
+    ]
+];
+```
+
+**自定义函数也可自定义错误信息, 优先级低于 " >> " 和错误信息数组**
 
 当函数返回值 === true 时，表示验证成功，否则表示验证失败
 
