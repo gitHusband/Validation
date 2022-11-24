@@ -2218,6 +2218,117 @@ class Unit
         ];
     }
 
+    protected function test_dynamic_err_msg_user_object()
+    {
+        $rule = [
+            "id" => [
+                "required|/^\d+$/|<=>=:1,100",
+                "error_message" => [
+                    "required" => "Users define - @me is required",
+                    "preg" => "Users define - @me should be \"MATCHED\" @preg"
+                ]
+            ],
+            "name" => [
+                "unset_required|string",
+                "error_message" => [
+                    "unset_required" => "Users define - @me should be unset or not be empty",
+                    "string" => "Users define - Note! @me should be string"
+                ]
+            ],
+            "age" => "optional|<=>=:1,60|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
+            "age" => [
+                "optional|<=>=:1,60|check_err_field",
+                "error_message" => [
+                    "<=>=" => "Users define - @me is not allowed.",
+                    "check_err_field" => "Users define - @me is not passed."
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Invalid_id_empty" => [
+                "data" => [
+                    "name" => "devin"
+                ],
+                "expected_msg" => "Users define - id is required"
+            ],
+            "Invalid_id_preg" => [
+                "data" => [
+                    "id" => "devin"
+                ],
+                "expected_msg" => "Users define - id should be \"MATCHED\" /^\d+$/"
+            ],
+            "Invalid_id_not_in" => [
+                "data" => [
+                    "id" => 101
+                ],
+                "expected_msg" => "id must be greater than or equal to 1 and less than or equal to 100"
+            ],
+            "Invalid_name_unset" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => ''
+                ],
+                "expected_msg" => "Users define - name should be unset or not be empty"
+            ],
+            "Invalid_name_unset_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => 123
+                ],
+                "expected_msg" => "Users define - Note! name should be string"
+            ],
+            "Invalid_age" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 61,
+                ],
+                "expected_msg" => "Users define - age is not allowed."
+            ],
+            "Invalid_age_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 11,
+                ],
+                "expected_msg" => "Users define - age is not passed."
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        $this->validation->add_method("check_err_field", function($data) {
+            if ($data < 10) {
+                return false;
+            }else if ($data < 20) {
+                return "id: check_err_field error. [10, 20]";
+            }else if ($data < 30) {
+                return [
+                    "error_type" => "3",
+                    "message" => "@me: check_err_field error. [20, 30]",
+                ];
+            }else if ($data <= 40) {
+                return [
+                    "error_type" => "4",
+                    "message" => "@me: check_err_field error. [30, 40]",
+                    "extra" => "It should be greater than 40"
+                ];
+            }
+
+            return true;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_set_language_execute($error_data=false)
     {
         $rule = [
