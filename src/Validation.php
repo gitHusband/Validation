@@ -433,7 +433,7 @@ class Validation
                 // Validate association array
                 else {
                     // Validate association array
-                    if (is_array($rule[$rule_system_symbol])) {
+                    if ($this->is_association_array_rule($rule[$rule_system_symbol])) {
                         $result = $this->execute(isset($data[$field])? $data[$field]:null, $rule[$rule_system_symbol], $field_path_tmp, $is_array_loop);
                     } else {
                         $rule = $this->parse_one_rule($rule[$rule_system_symbol]);
@@ -476,7 +476,7 @@ class Validation
                     $result = $this->execute_index_array_rules($data, $field, $field_path_tmp, $rule);
                 }
                 // Validate association array
-                else if (is_array($rule)) {
+                else if ($this->is_association_array_rule($rule)) {
                     $result = $this->execute(isset($data[$field])? $data[$field]:null, $rule, $field_path_tmp, $is_array_loop);
                 } else {
                     $rule = $this->parse_one_rule($rule);
@@ -689,7 +689,7 @@ class Validation
                     $cur_field_path = $is_array_loop? $field_path : $field_path_tmp;
                     $result = $this->execute($data[$field], [$key => $rules], $cur_field_path, true);
                 }
-                else if (is_array($rules)) {
+                else if ($this->is_association_array_rule($rules)) {
                     $result = $this->execute($data[$field][$key], $rules, $field_path_tmp, true);
                 }
                 // Validate numberic array, all the rule are the same, only use $rules[0]
@@ -710,6 +710,44 @@ class Validation
     }
 
     /**
+     * One rule object allows user to set error message in an object.
+     * You don't have to set the rule and error message in one string.
+     *
+     * @param array $rule
+     * @return bool
+     */
+    protected function is_one_rule_object($rule)
+    {
+        // Here is an one_rule_object example
+        $one_rule_object_template = [
+            'required|int',             // rule
+            'error_message' => [        // error message
+                'required' => 'It is request field',
+                'int' => 'Must be integer',
+            ]
+        ];
+
+        // $diff1 = array_diff_key($one_rule_object_template, $rule);
+        // $diff2 = array_diff_key($rule, $one_rule_object_template);
+        if (!array_diff_key($one_rule_object_template, $rule) && !array_diff_key($rule, $one_rule_object_template)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Check if it's a association array, except one_rule_object
+     *
+     * @param mixed $rule
+     * @return bool
+     */
+    protected function is_association_array_rule($rule)
+    {
+        return is_array($rule) && !$this->is_one_rule_object($rule);
+    }
+
+    /**
      * Parse rule. Rule contains: 
      * 1. method and parameters
      * 2. regular expression
@@ -720,11 +758,18 @@ class Validation
      */
     protected function parse_one_rule($rule)
     {
-        $error_msg = '';
+        if (is_array($rule)
+            // && $this->is_one_rule_object($rule)
+        ) {
+            $error_msg = $rule['error_message'];
+            $rule = $rule[0];
+        } else {
+            $error_msg = '';
 
-        if (preg_match($this->config['reg_msg'], $rule, $matches)) {
-            $error_msg = $matches[1];
-            $rule = preg_replace($this->config['reg_msg'], '', $rule);
+            if (preg_match($this->config['reg_msg'], $rule, $matches)) {
+                $error_msg = $matches[1];
+                $rule = preg_replace($this->config['reg_msg'], '', $rule);
+            }
         }
 
         // In consideration of the case that the regular expression cantains the character(|) which is the same as rule separator(|)
@@ -753,7 +798,6 @@ class Validation
         
         $parse_rule = array(
             'rules' => $rules,
-            // 'error_msg' => $error_msg,
             'error_msg' => $this->parse_error_message($error_msg)
         );
 
@@ -765,6 +809,7 @@ class Validation
      * 1. Simple string - show this error message if anything is invalid
      * 2. Json string - show one of the error message which is related to the invalid method
      * 3. Special string - Same functions as Json string. Such as " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes"
+     * 4. Array
      * @Author   Devin
      * @param    string             $error_msg Simple string or Json string
      * @return   array              
@@ -775,6 +820,8 @@ class Validation
         // $parse_arr = [];
         // $this->pars_gh_string_to_array($parse_arr, $error_msg);
         // print_r($parse_arr);die;
+
+        if (is_array($error_msg)) return $error_msg; 
 
         // '{"*":"Users define - @me is required","preg":"Users define - @me should not be matched /^\\\d+$/"}'
         $json_arr = json_decode($error_msg, true);
@@ -1292,7 +1339,7 @@ class Validation
                 $this->classic_errors['complex'][$field] = $message;
                 $this->classic_errors['simple'][$field] = $message;
             } else {
-                if ($this->classic_errors['complex'][$field] !== $error_msg) {
+                if ($this->classic_errors['complex'][$field] !== $message) {
                     $this->classic_errors['complex'][$field] .= " or " . $message;
                     $this->classic_errors['simple'][$field] .= " or " . $message;
                 }
