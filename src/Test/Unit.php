@@ -632,10 +632,10 @@ class Unit
     protected function test_if_rule()
     {
         $rule = [
-            "id" => "required|<>:0,10",
-            "name" => "if?<::@id,5|required|string|/^\d+.*/",
-            "name1" => "if1?<::@id,5|required|string|/^\d+.*/",
-            "name0" => "if0?<::@id,5|required|string|/^\d+.*/",
+            "id" => "required|<>[0,10]",
+            "name" => "if?<(@id,5)|required|string|/^\d+.*/",
+            "name1" => "if1?<(@id,5)|required|string|/^\d+.*/",
+            "name0" => "if0?<(@id,5)|required|string|/^\d+.*/",
         ];
 
         $cases = [
@@ -713,7 +713,7 @@ class Unit
             ],
             "height" => [
                 "[or]" => [
-                    "required|int|>:100",
+                    "required|int|>[100]",
                     "required|string",
                 ]
             ]
@@ -774,7 +774,7 @@ class Unit
             ],
             "height" => [
                 "[||]" => [
-                    "required|int|>:100",
+                    "required|int|>[100]",
                     "required|string",
                 ]
             ]
@@ -1526,7 +1526,7 @@ class Unit
     protected function test_dynamic_err_msg_simple()
     {
         $rule = [
-            "id" => "required|<=>=:1,100 >> Users define - @me should not be >= @p1 and <= @p2",
+            "id" => "required|<=>=[1,100] >> Users define - @me should not be >= @p1 and <= @p2",
             "name" => "required|string >> Users define - @me should not be empty and must be string",
         ];
 
@@ -1560,12 +1560,12 @@ class Unit
     protected function test_method_and_parameter()
     {
         $rule = [
-            "id" => "required|string|check_id:1,100",
-            "name" => "required|string|check_name:@id",
+            "id" => "required|string|check_id[1,100]",
+            "name" => "required|string|check_name[@id]",
             "favourite_fruit" => [
-                "fruit_id" => "optional|check_fruit_id::@root",
-                "fruit_name" => "optional|check_fruit_name::@parent",
-                "fruit_color" => "optional|check_fruit_color:@fruit_name,@me >> fruit name(@p0) and color(@p1) is not matched",
+                "fruit_id" => "optional|check_fruit_id(@root)",
+                "fruit_name" => "optional|check_fruit_name(@parent)",
+                "fruit_color" => "optional|check_fruit_color[@fruit_name,@me] >> fruit name(@p0) and color(@p1) is not matched",
             ]
         ];
 
@@ -2037,9 +2037,9 @@ class Unit
     protected function test_dynamic_err_msg_user_json()
     {
         $rule = [
-            "id" => 'required|/^\d+$/|<=>=:1,100| >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
+            "id" => 'required|/^\d+$/|<=>=[1,100]| >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
             "name" => 'unset_required|string >> { "unset_required": "Users define - @me should be unset or not be empty", "string": "Users define - Note! @me should be string"}',
-            "age" => 'optional|<=>=:1,60|check_err_field >> { "<=>=": "Users define - @me is not allowed.", "check_err_field": "Users define - @me is not passed."}',
+            "age" => 'optional|<=>=[1,60]|check_err_field >> { "<=>=": "Users define - @me is not allowed.", "check_err_field": "Users define - @me is not passed."}',
         ];
 
         $cases = [
@@ -2129,9 +2129,9 @@ class Unit
     protected function test_dynamic_err_msg_user_gh_string()
     {
         $rule = [
-            "id" => "required|/^\d+$/|<=>=:1,100| >> [required]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg",
+            "id" => "required|/^\d+$/|<=>=[1,100]| >> [required]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg",
             "name" => "unset_required|string >> [unset_required] => Users define - @me should be unset or not be empty [string]=> Users define - Note! @me should be string",
-            "age" => "optional|<=>=:1,60|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
+            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
         ];
 
         $cases = [
@@ -2222,7 +2222,7 @@ class Unit
     {
         $rule = [
             "id" => [
-                "required|/^\d+$/|<=>=:1,100",
+                "required|/^\d+$/|<=>=[1,100]",
                 "error_message" => [
                     "required" => "Users define - @me is required",
                     "preg" => "Users define - @me should be \"MATCHED\" @preg"
@@ -2235,9 +2235,9 @@ class Unit
                     "string" => "Users define - Note! @me should be string"
                 ]
             ],
-            "age" => "optional|<=>=:1,60|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
+            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
             "age" => [
-                "optional|<=>=:1,60|check_err_field",
+                "optional|<=>=[1,60]|check_err_field",
                 "error_message" => [
                     "<=>=" => "Users define - @me is not allowed.",
                     "check_err_field" => "Users define - @me is not passed."
@@ -2371,7 +2371,7 @@ class Unit
     protected function test_custom_language_file_execute($error_data=false)
     {
         $rule = [
-            "id" => "check_custom:100"
+            "id" => "check_custom[100]"
         ];
 
         $cases = [
@@ -2408,7 +2408,7 @@ class Unit
     protected function test_custom_language_object_execute($error_data=false)
     {
         $rule = [
-            "id" => "check_id:1,100"
+            "id" => "check_id[1,100]"
         ];
 
         $cases = [
@@ -2446,33 +2446,33 @@ class Unit
     {
         $rule = [
             "id" => "required|int|/^\d+$/",
-            "name" => "required|string|len<=>:8,32",
-            "gender" => "required|(s):male,female",
+            "name" => "required|string|len<=>[8,32]",
+            "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age:@gender,30 >> @me is wrong",
-            "height_unit" => "required|(s):cm,m",
+            "age" => "required|check_age[@gender,30] >> @me is wrong",
+            "height_unit" => "required|(s)[cm,m]",
             "height[or]" => [
-                "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
             ],
             "education" => [
-                "primary_school" => "required|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "required|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:10",
-                "university" => "if0?=::@junior_middle_school,Qiankeng Zhongxue|required|len>:10",
+                "primary_school" => "required|=[Qiankeng Xiaoxue]",
+                "junior_middle_school" => "required|!=[Foshan Zhongxue]",
+                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[10]",
+                "university" => "if0?=(@junior_middle_school,Qiankeng Zhongxue)|required|len>[10]",
             ],
             "company" => [
-                "name" => "required|len<=>:8,64",
-                "country" => "optional|len>=:3",
-                "addr" => "required|len>:16",
+                "name" => "required|len<=>[8,64]",
+                "country" => "optional|len>=[3]",
+                "addr" => "required|len>[16]",
                 "colleagues.*" => [
-                    "name" => "required|string|len<=>:3,32",
-                    "position" => "required|(s):Reception,Financial,PHP,JAVA"
+                    "name" => "required|string|len<=>[3,32]",
+                    "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
                 ],
                 "boss" => [
-                    "required|=:Mike",
-                    "required|(s):Johnny,David",
-                    "optional|(s):Johnny,David"
+                    "required|=[Mike]",
+                    "required|(s)[Johnny,David]",
+                    "optional|(s)[Johnny,David]"
                 ]
             ],
             "favourite_food[optional].*" => [
@@ -2645,25 +2645,27 @@ class Unit
         return $result;
     }
 
-    protected function test_user_config_execute($error_data=false) {
+    // Don't test this function temporarily
+    protected function test_user_config_execute($error_data=false)
+    {
         $validation_conf = array(
-            'language' => 'en-us',                  // Language, default is en-us
-            'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid.
-            'reg_msg' => '/ >>>(.*)$/',             // Set special error msg by user 
-            'reg_preg' => '/^Reg:(\/.+\/.*)$/',     // If match this, using regular expression instead of method
-            'reg_if' => '/^IF[yn]?\?/',             // If match this, validate this condition first
-            'reg_if_true' => '/^IFy?\?/',           // If match this, validate this condition first, if true, then validate the field
-            'reg_if_true' => '/^IFn\?/',            // If match this, validate this condition first, if false, then validate the field
-            'symbol_or' => '[or]',                  // Symbol of or rule
-            'symbol_rule_separator' => '&&',        // Rule reqarator for one field
-            'symbol_param_classic' => '~',          // If set function by this symbol, will add a @me parameter at first 
-            'symbol_param_force' => '~~',           // If set function by this symbol, will not add a @me parameter at first 
-            'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
-            'symbol_field_name_separator' => '->',  // Field name separator, suce as "fruit.apple"
-            'symbol_required' => '!*',              // Symbol of required field
-            'symbol_optional' => 'o',               // Symbol of optional field
-            'symbol_array_optional' => '[o]',       // Symbol of array optional
-            'symbol_index_array' => '[N]',          // Symbol of index array
+            'language' => 'en-us',                          // Language, default is en-us
+            'validation_global' => true,                    // If true, validate all rules; If false, stop validating when one rule was invalid.
+            'reg_msg' => '/ >>>(.*)$/',                     // Set special error msg by user 
+            'reg_preg' => '/^Reg:(\/.+\/.*)$/',             // If match this, using regular expression instead of method
+            'reg_if' => '/^IF[yn]?\?/',                     // If match this, validate this condition first
+            'reg_if_true' => '/^IFy?\?/',                   // If match this, validate this condition first, if true, then validate the field
+            'reg_if_true' => '/^IFn\?/',                    // If match this, validate this condition first, if false, then validate the field
+            'symbol_or' => '[or]',                          // Symbol of or rule
+            'symbol_rule_separator' => '&&',                // Rule reqarator for one field
+            'symbol_param_classic' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @me parameter at first 
+            'symbol_param_force' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @me parameter at first 
+            'symbol_param_separator' => ',',                // Parameters separator, such as @me,@field1,@field2
+            'symbol_field_name_separator' => '->',          // Field name separator, suce as "fruit.apple"
+            'symbol_required' => '!*',                      // Symbol of required field
+            'symbol_optional' => 'o',                       // Symbol of optional field
+            'symbol_array_optional' => '[o]',               // Symbol of array optional
+            'symbol_index_array' => '[N]',                  // Symbol of index array
         );
 
         $rule = [
@@ -2922,7 +2924,7 @@ class Unit
     protected function test_in_method()
     {
         $rule = [
-            "id" => "required|(n):1,2,3",
+            "id" => "required|(n)[1,2,3]",
         ];
 
         $cases = [

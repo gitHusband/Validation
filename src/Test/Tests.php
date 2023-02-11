@@ -81,44 +81,44 @@ class Tests
 
         $rule = [
             "id" => "required|/^\d+$/",
-            "name" => "required|string|len<=>:8,32",
-            "gender" => "required|(s):male,female",
+            "name" => "required|string|len<=>[8,32]",
+            "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age:@gender,30 >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @me is wrong",
             "height[or]" => [
-                "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
             ],
-            "height_unit" => "required|(s):cm,m",
+            "height_unit" => "required|(s)[cm,m]",
             "weight[or]" => [
-                "required|=::@weight_unit,kg|<=>=:40,100",
-                "required|=::@weight_unit,lb|<=>:88,220",
+                "required|=(@weight_unit,kg)|<=>=[40,100]",
+                "required|=(@weight_unit,lb)|<=>[88,220]",
             ],
-            "weight_unit" => "required|(s):kg,lb",
+            "weight_unit" => "required|(s)[kg,lb]",
             "email" => "required|email",
             "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
             "ip" => "optional|ip",
             "mac" => "optional|mac",
             "education" => [
-                "primary_school" => "required|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "required|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
-                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
+                "primary_school" => "required|=[Qiankeng Xiaoxue]",
+                "junior_middle_school" => "required|!=[Foshan Zhongxue]",
+                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
+                "university" => "if0?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
             ],
             "company" => [
-                "name" => "required|len<=>:8,64",
+                "name" => "required|len<=>[8,64]",
                 "website" => "required|url",
-                "country" => "optional|len<=:32",
-                "addr" => "required|len>:16",
-                "postcode" => "optional|len<:16|check_postcode::@parent",
+                "country" => "optional|len<=[32]",
+                "addr" => "required|len>[16]",
+                "postcode" => "optional|len<[16]|check_postcode(@parent)",
                 "colleagues.*" => [
-                    "name" => "required|string|len<=>:3,32",
-                    "position" => "required|(s):Reception,Financial,PHP,JAVA"
+                    "name" => "required|string|len<=>[3,32]",
+                    "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
                 ],
                 "boss" => [
-                    "required|=:Mike",
-                    "required|(s):Johnny,David",
-                    "optional|(s):Johnny,David"
+                    "required|=[Mike]",
+                    "required|(s)[Johnny,David]",
+                    "optional|(s)[Johnny,David]"
                 ]
             ],
             "favourite_food[optional].*" => [
@@ -194,50 +194,50 @@ class Tests
 
         $rule = [
             "id" => "required|/^\d+$/",
-            "name" => "required|string|len<=>:8,32",
-            "gender" => "required|(s):male,female",
+            "name" => "required|string|len<=>[8,32]",
+            "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age:@gender,30 >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @me is wrong",
             "height" => [
                 "[or]" => [
-                    "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                    "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                    "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
+                    "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
                 ]
             ],
-            "height_unit" => "required|(s):cm,m",
+            "height_unit" => "required|(s)[cm,m]",
             "weight" => [
                 "[or]" => [
-                    "required|=::@weight_unit,kg|<=>=:40,100",
-                    "required|=::@weight_unit,lb|<=>:88,220",
+                    "required|=(@weight_unit,kg)|<=>=[40,100]",
+                    "required|=(@weight_unit,lb)|<=>[88,220]",
                 ]
             ],
-            "weight_unit" => "required|(s):kg,lb",
+            "weight_unit" => "required|(s)[kg,lb]",
             "email" => "required|email",
             "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
             "ip" => "optional|ip",
             "mac" => "optional|mac",
             "education" => [
-                "primary_school" => "required|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "required|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
-                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
+                "primary_school" => "required|=[Qiankeng Xiaoxue]",
+                "junior_middle_school" => "required|!=[Foshan Zhongxue]",
+                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
+                "university" => "if0?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
             ],
             "company" => [
-                "name" => "required|len<=>:8,64",
+                "name" => "required|len<=>[8,64]",
                 "website" => "required|url",
-                "country" => "optional|len<=:32",
-                "addr" => "required|len>:16",
-                "postcode" => "optional|len<:16|check_postcode::@parent",
+                "country" => "optional|len<=[32]",
+                "addr" => "required|len>[16]",
+                "postcode" => "optional|len<[16]|check_postcode(@parent)",
                 "colleagues" => [
                     ".*" => [
-                        "name" => "required|string|len<=>:3,32",
-                        "position" => "required|(s):Reception,Financial,PHP,JAVA"
+                        "name" => "required|string|len<=>[3,32]",
+                        "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
                     ]
                 ],
                 "boss" => [
-                    "required|=:Mike",
-                    "required|(s):Johnny,David",
-                    "optional|(s):Johnny,David"
+                    "required|=[Mike]",
+                    "required|(s)[Johnny,David]",
+                    "optional|(s)[Johnny,David]"
                 ]
             ],
             "favourite_food" => [
@@ -325,44 +325,44 @@ class Tests
 
         $rule = [
             "id" => 'required|/^\d+$/ >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
-            "name" => "required|string|len<=>:8,32",
-            "gender" => "required|(s):male,female",
+            "name" => "required|string|len<=>[8,32]",
+            "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age:@gender,30 >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @me is wrong",
             "height[or]" => [
-                "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
             ],
-            "height_unit" => "required|(s):cm,m",
+            "height_unit" => "required|(s)[cm,m]",
             "weight[or]" => [
-                "required|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
-                "required|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
+                "required|=(@weight_unit,kg)|<=>=[40,100] >> @me should be in [40,100] when height_unit is kg",
+                "required|=(@weight_unit,lb)|<=>[88,220] >> @me should be in [88,220] when height_unit is lb",
             ],
-            "weight_unit" => "required|(s):kg,lb",
+            "weight_unit" => "required|(s)[kg,lb]",
             "email" => "required|email",
             "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
             "ip" => "optional|ip",
             "mac" => "optional|mac",
             "education" => [
-                "primary_school" => "required|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "required|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:18",
-                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
+                "primary_school" => "required|=[Qiankeng Xiaoxue]",
+                "junior_middle_school" => "required|!=[Foshan Zhongxue]",
+                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[18]",
+                "university" => "if0?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
             ],
             "company" => [
-                "name" => "required|len<=>:8,64",
+                "name" => "required|len<=>[8,64]",
                 "website" => "required|url",
-                "country" => "optional|len>=:6",
-                "addr" => "required|len>:16",
-                "postcode" => "optional|len<:16|check_postcode::@parent",
+                "country" => "optional|len>=[6]",
+                "addr" => "required|len>[16]",
+                "postcode" => "optional|len<[16]|check_postcode(@parent)",
                 "colleagues.*" => [
-                    "name" => "required|string|len<=>:3,32",
-                    "position" => "required|(s):Reception,Financial,PHP,JAVA"
+                    "name" => "required|string|len<=>[3,32]",
+                    "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
                 ],
                 "boss" => [
-                    "required|=:Mike",
-                    "required|(s):Johnny,David",
-                    "optional|(s):Johnny,David"
+                    "required|=[Mike]",
+                    "required|(s)[Johnny,David]",
+                    "optional|(s)[Johnny,David]"
                 ]
             ],
             "favourite_food[optional].*" => [
@@ -448,50 +448,50 @@ class Tests
 
         $rule = [
             "id" => "required|int|/^\d+$/",
-            "name" => "required|string|len<=>:8,32",
-            "gender" => "required|(s):male,female",
+            "name" => "required|string|len<=>[8,32]",
+            "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age:@gender,30 >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @me is wrong",
             "height" => [
                 "[or]" => [
-                    "required|=::@height_unit,cm|<=>=:100,200 >> @me should be in [100,200] when height_unit is cm",
-                    "required|=::@height_unit,m|<=>=:1,2 >> @me should be in [1,2] when height_unit is m",
+                    "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
+                    "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
                 ]
             ],
-            "height_unit" => "required|(s):cm,m",
+            "height_unit" => "required|(s)[cm,m]",
             "weight[or]" => [
                 "[or]" => [
-                    "required|=::@weight_unit,kg|<=>=:40,100 >> @me should be in [40,100] when height_unit is kg",
-                    "required|=::@weight_unit,lb|<=>:88,220 >> @me should be in [88,220] when height_unit is lb",
+                    "required|=(@weight_unit,kg)|<=>=[40,100] >> @me should be in [40,100] when height_unit is kg",
+                    "required|=(@weight_unit,lb)|<=>[88,220] >> @me should be in [88,220] when height_unit is lb",
                 ]
             ],
-            "weight_unit" => "required|(s):kg,lb",
+            "weight_unit" => "required|(s)[kg,lb]",
             "email" => "required|email",
             "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
             "ip" => "optional|ip",
             "mac" => "optional|mac",
             "education" => [
-                "primary_school" => "required|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "required|!=:Foshan Zhongxue",
-                "high_school" => "if?=::@junior_middle_school,Mianhu Zhongxue|required|len>:18",
-                "university" => "if0?=::@junior_middle_school,Mianhu Zhongxue|required|len>:8",
+                "primary_school" => "required|=[Qiankeng Xiaoxue]",
+                "junior_middle_school" => "required|!=[Foshan Zhongxue]",
+                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[18]",
+                "university" => "if0?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
             ],
             "company" => [
-                "name" => "required|len<=>:8,64",
+                "name" => "required|len<=>[8,64]",
                 "website" => "required|url",
-                "country" => "optional|len>=:6",
-                "addr" => "required|len>:16",
-                "postcode" => "optional|len<:16|check_postcode::@parent",
+                "country" => "optional|len>=[6]",
+                "addr" => "required|len>[16]",
+                "postcode" => "optional|len<[16]|check_postcode(@parent)",
                 "colleagues" => [
                     ".*" => [
-                        "name" => "required|string|len<=>:3,32",
-                        "position" => "required|(s):Reception,Financial,PHP,JAVA"
+                        "name" => "required|string|len<=>[3,32]",
+                        "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
                     ]
                 ],
                 "boss" => [
-                    "required|=:Mike",
-                    "required|(s):Johnny,David",
-                    "optional|(s):Johnny,David"
+                    "required|=[Mike]",
+                    "required|(s)[Johnny,David]",
+                    "optional|(s)[Johnny,David]"
                 ]
             ],
             "favourite_food" => [
@@ -569,31 +569,31 @@ class Tests
             // id 是必要的且必须匹配正则 /^\d+$/， >> 后面的required 和 正则对应的报错信息
             "id" => 'required|/^\d+$/ >> { "required": "用户自定义 - @me 是必要的", "preg": "用户自定义 - @me 必须匹配 @preg" }',
             // name 是必要的且必须是字符串且长度在区间 【8，32)
-            "name" => "required|string|len<=>:8,32",
+            "name" => "required|string|len<=>[8,32]",
             "email" => "required|email",
             "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> 用户自定义 - phone number 错误",
             // ip 是可选的
             "ip" => "optional|ip",
             "education" => [
                 // education.primary_school 必须等于 “Qiankeng Xiaoxue”
-                "primary_school" => "required|=:Qiankeng Xiaoxue",
-                "junior_middle_school" => "required|!=:Foshan Zhongxue",
+                "primary_school" => "required|=[Qiankeng Xiaoxue]",
+                "junior_middle_school" => "required|!=[Foshan Zhongxue]",
                 "high_school" => "optional|string",
                 "university" => "optional|string",
             ],
             "company" => [
-                "name" => "required|len<=>:8,64",
+                "name" => "required|len<=>[8,64]",
                 "website" => "required|url",
                 "colleagues.*" => [
-                    "name" => "required|string|len<=>:3,32",
+                    "name" => "required|string|len<=>[3,32]",
                     // company.colleagues.*.position 必须等于 Reception,Financial,PHP,JAVA 其中之一
-                    "position" => "required|(s):Reception,Financial,PHP,JAVA"
+                    "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
                 ],
                 // 以下三个规则只对 boss.0, boss.1, boss.2 有效，boss.3 及其他都无效 
                 "boss" => [
-                    "required|=:Mike",
-                    "required|(s):Johnny,David",
-                    "optional|(s):Johnny,David"
+                    "required|=[Mike]",
+                    "required|(s)[Johnny,David]",
+                    "optional|(s)[Johnny,David]"
                 ]
             ],
             // favourite_food 是可选的索引数组，允许为空

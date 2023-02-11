@@ -66,26 +66,26 @@ class Validation
 
     protected $default_config_backup;
     protected $config = array(
-        'language' => 'en-us',                  // Language, default is en-us
-        'lang_path' => '',                      // Customer Language file path
-        'validation_global' => true,            // If true, validate all rules; If false, stop validating when one rule was invalid
-        'auto_field' => "data",                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
-        'reg_msg' => '/ >> (.*)$/',             // Set special error msg by user 
-        'reg_preg' => '/^(\/.+\/.*)$/',         // If match this, using regular expression instead of method
-        'reg_if' => '/^if[01]?\?/',             // If match this, validate this condition first
-        'reg_if_true' => '/^if1?\?/',           // If match this, validate this condition first, if true, then validate the field
-        'reg_if_false' => '/^if0\?/',           // If match this, validate this condition first, if false, then validate the field
-        'symbol_rule_separator' => '|',         // Rule reqarator for one field
-        'symbol_param_classic' => ':',          // If set function by this symbol, will add a @me parameter at first 
-        'symbol_param_force' => '::',           // If set function by this symbol, will not add a @me parameter at first 
-        'symbol_param_separator' => ',',        // Parameters separator, such as @me,@field1,@field2
-        'symbol_field_name_separator' => '.',   // Field name separator, suce as "fruit.apple"
-        'symbol_required' => '*',               // Symbol of required field, Same as "required"
-        'symbol_optional' => 'O',               // Symbol of optional field, can be unset or empty, Same as "optional"
-        'symbol_unset_required' => 'O!',        // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
-        'symbol_or' => '[||]',                  // Symbol of or rule, Same as "[or]"
-        'symbol_array_optional' => '[O]',       // Symbol of array optional rule, Same as "[optional]"
-        'symbol_index_array' => '.*',           // Symbol of index array rule
+        'language' => 'en-us',                                  // Language, default is en-us
+        'lang_path' => '',                                      // Customer Language file path
+        'validation_global' => true,                            // If true, validate all rules; If false, stop validating when one rule was invalid
+        'auto_field' => "data",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
+        'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
+        'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
+        'reg_if' => '/^if[01]?\?/',                             // If match this, validate this condition first
+        'reg_if_true' => '/^if1?\?/',                           // If match this, validate this condition first, if true, then validate the field
+        'reg_if_false' => '/^if0\?/',                           // If match this, validate this condition first, if false, then validate the field
+        'symbol_rule_separator' => '|',                         // Rule reqarator for one field
+        'symbol_param_classic' => '/^(.*)\\[(.*)\\]$/',         // If set function by this symbol, will add a @me parameter at first 
+        'symbol_param_force' => '/^(.*)\\((.*)\\)$/',           // If set function by this symbol, will not add a @me parameter at first 
+        'symbol_param_separator' => ',',                        // Parameters separator, such as @me,@field1,@field2
+        'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
+        'symbol_required' => '*',                               // Symbol of required field, Same as "required"
+        'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
+        'symbol_unset_required' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
+        'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
+        'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
+        'symbol_index_array' => '.*',                           // Symbol of index array rule
     );
 
     /**
@@ -1088,20 +1088,14 @@ class Validation
     protected function parse_method($rule, $data, $field)
     {
         // If force parameter, will not add the field value as the first parameter even though no the field parameter
-        if (strpos($rule, $this->config['symbol_param_force']) !== false) {
-            $pos = strpos($rule, $this->config['symbol_param_force']);
-            $offset = strlen($this->config['symbol_param_force']);
-            
-            $method = substr($rule, 0, $pos);
-            $params = substr($rule, $pos+$offset);
+        if (preg_match($this->config['symbol_param_force'], $rule, $matches)) {
+            $method = $matches[1];
+            $params = $matches[2];
             $params = explode($this->config['symbol_param_separator'], $params);
         // If classic parameter, will add the field value as the first parameter if no the field parameter
-        } else if (strpos($rule, $this->config['symbol_param_classic']) !== false) {
-            $pos = strpos($rule, $this->config['symbol_param_classic']);
-            $offset = strlen($this->config['symbol_param_classic']);
-            
-            $method = substr($rule, 0, $pos);
-            $params = substr($rule, $pos+$offset);
+        } else if (preg_match($this->config['symbol_param_classic'], $rule, $matches)) {
+            $method = $matches[1];
+            $params = $matches[2];
             $params = explode($this->config['symbol_param_separator'], $params);
             if (!in_array($this->symbol_me, $params)) {
                 array_unshift($params, $this->symbol_me);
@@ -1141,7 +1135,7 @@ class Validation
         // "in" method, all the parameters are treated as the second parameter.
         if ($this->is_in_method($symbol)) {
             $field_name = $params[0];
-            $in_array = array_shift($params);
+            array_shift($params);
             $params = array(
                 $field_name,
                 $params
