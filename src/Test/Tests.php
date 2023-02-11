@@ -102,8 +102,8 @@ class Tests
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
-                "university" => "if0?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[8]",
+                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[8]",
             ],
             "company" => [
                 "name" => "required|len<=>[8,64]",
@@ -219,8 +219,8 @@ class Tests
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
-                "university" => "if0?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[8]",
+                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[8]",
             ],
             "company" => [
                 "name" => "required|len<=>[8,64]",
@@ -346,8 +346,8 @@ class Tests
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[18]",
-                "university" => "if0?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[18]",
+                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[8]",
             ],
             "company" => [
                 "name" => "required|len<=>[8,64]",
@@ -473,8 +473,8 @@ class Tests
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[18]",
-                "university" => "if0?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[18]",
+                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[8]",
             ],
             "company" => [
                 "name" => "required|len<=>[8,64]",

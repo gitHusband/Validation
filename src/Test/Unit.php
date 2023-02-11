@@ -633,9 +633,9 @@ class Unit
     {
         $rule = [
             "id" => "required|<>[0,10]",
-            "name" => "if?<(@id,5)|required|string|/^\d+.*/",
-            "name1" => "if1?<(@id,5)|required|string|/^\d+.*/",
-            "name0" => "if0?<(@id,5)|required|string|/^\d+.*/",
+            "name" => "if(<(@id,5))|required|string|/^\d+.*/",
+            "name1" => "if(<(@id,5))|required|string|/^\d+.*/",
+            "name0" => "!if(<(@id,5))|required|string|/^\d+.*/",
         ];
 
         $cases = [
@@ -2458,8 +2458,8 @@ class Unit
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if?=(@junior_middle_school,Mianhu Zhongxue)|required|len>[10]",
-                "university" => "if0?=(@junior_middle_school,Qiankeng Zhongxue)|required|len>[10]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[10]",
+                "university" => "!if(=(@junior_middle_school,Qiankeng Zhongxue))|required|len>[10]",
             ],
             "company" => [
                 "name" => "required|len<=>[8,64]",
@@ -2653,7 +2653,7 @@ class Unit
             'validation_global' => true,                    // If true, validate all rules; If false, stop validating when one rule was invalid.
             'reg_msg' => '/ >>>(.*)$/',                     // Set special error msg by user 
             'reg_preg' => '/^Reg:(\/.+\/.*)$/',             // If match this, using regular expression instead of method
-            'reg_if' => '/^IF[yn]?\?/',                     // If match this, validate this condition first
+            'reg_if' => '/^IF[yn]?\?(.*)$/',                     // If match this, validate this condition first
             'reg_if_true' => '/^IFy?\?/',                   // If match this, validate this condition first, if true, then validate the field
             'reg_if_true' => '/^IFn\?/',                    // If match this, validate this condition first, if false, then validate the field
             'symbol_or' => '[or]',                          // Symbol of or rule
