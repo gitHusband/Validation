@@ -72,9 +72,9 @@ class Validation
         'auto_field' => "data",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
         'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
         'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
-        'reg_if' => '/^if[01]?\?/',                             // If match this, validate this condition first
-        'reg_if_true' => '/^if1?\?/',                           // If match this, validate this condition first, if true, then validate the field
-        'reg_if_false' => '/^if0\?/',                           // If match this, validate this condition first, if false, then validate the field
+        'reg_if' => '/^!?if\((.*)\)/',                          // If match this, validate this condition first
+        'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
+        'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
         'symbol_rule_separator' => '|',                         // Rule reqarator for one field
         'symbol_param_classic' => '/^(.*)\\[(.*)\\]$/',         // If set function by this symbol, will add a @me parameter at first 
         'symbol_param_force' => '/^(.*)\\((.*)\\)$/',           // If set function by this symbol, will not add a @me parameter at first 
@@ -955,7 +955,7 @@ class Validation
             if (preg_match($this->config['reg_if'], $rule, $matches)) {
                 $if_flag = true;
 
-                if (preg_match($this->config['reg_if_true'], $rule, $matches)) {
+                if (preg_match($this->config['reg_if_true'], $rule)) {
                     // 'if true' rule
                     $if_type = true;
                 } else {
@@ -963,7 +963,7 @@ class Validation
                     $if_type = false;
                 }
 
-                $rule = preg_replace($this->config['reg_if'], '', $rule);
+                $rule = $matches[1];
                 
                 $method_rule = $this->parse_method($rule, $data, $field);
                 $params = $method_rule['params'];
