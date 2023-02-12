@@ -59,7 +59,7 @@ class Validation
         'complex' => array()    // message array, contains error type and error message
     );
 
-    protected $symbol_me = '@me';
+    protected $symbol_this = '@this';
     protected $symbol_root = '@root';
     protected $symbol_parent = '@parent';
     protected $symbol_preg = '@preg';
@@ -76,9 +76,9 @@ class Validation
         'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
         'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
         'symbol_rule_separator' => '|',                         // Rule reqarator for one field
-        'symbol_param_classic' => '/^(.*)\\[(.*)\\]$/',         // If set function by this symbol, will add a @me parameter at first 
-        'symbol_param_force' => '/^(.*)\\((.*)\\)$/',           // If set function by this symbol, will not add a @me parameter at first 
-        'symbol_param_separator' => ',',                        // Parameters separator, such as @me,@field1,@field2
+        'symbol_param_classic' => '/^(.*)\\[(.*)\\]$/',         // If set function by this symbol, will add a @this parameter at first 
+        'symbol_param_force' => '/^(.*)\\((.*)\\)$/',           // If set function by this symbol, will not add a @this parameter at first 
+        'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
         'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
         'symbol_required' => '*',                               // Symbol of required field, Same as "required"
         'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
@@ -179,54 +179,54 @@ class Validation
      * @var array
      */
     protected $error_template = array(
-        'default' => '@me validation failed',
-        'index_array' => '@me must be a index array',
-        'required' => '@me can not be empty',
-        'unset_required' => '@me must be unset or not empty',
-        'preg' => '@me format is invalid, should be @preg',
-        'call_method' => '@method is undefined',
-        '=' => '@me must be equal to @p1',
-        '!=' => '@me must be not equal to @p1',
-        '==' => '@me must be identically equal to @p1',
-        '!==' => '@me must be not identically equal to @p1',
-        '>' => '@me must be greater than @p1',
-        '<' => '@me must be less than @p1',
-        '>=' => '@me must be greater than or equal to @p1',
-        '<=' => '@me must be less than or equal to @p1',
-        '<>' => '@me must be greater than @p1 and less than @p2',
-        '<=>' => '@me must be greater than @p1 and less than or equal to @p2',
-        '<>=' => '@me must be greater than or equal to @p1 and less than @p2',
-        '<=>=' => '@me must be greater than or equal to @p1 and less than or equal to @p2',
-        '(n)' => '@me must be numeric and in @p1',
-        '!(n)' => '@me must be numeric and can not be in @p1',
-        '(s)' => '@me must be string and in @p1',
-        '!(s)' => '@me must be string and can not be in @p1',
-        'len=' => '@me length must be equal to @p1',
-        'len!=' => '@me length must be not equal to @p1',
-        'len>' => '@me length must be greater than @p1',
-        'len<' => '@me length must be less than @p1',
-        'len>=' => '@me length must be greater than or equal to @p1',
-        'len<=' => '@me length must be less than or equal to @p1',
-        'len<>' => '@me length must be greater than @p1 and less than @p2',
-        'len<=>' => '@me length must be greater than @p1 and less than or equal to @p2',
-        'len<>=' => '@me length must be greater than or equal to @p1 and less than @p2',
-        'len<=>=' => '@me length must be greater than or equal to @p1 and less than or equal to @p2',
-        'int' => '@me must be integer',
-        'float' => '@me must be float',
-        'string' => '@me must be string',
-        'arr' => '@me must be array',
-        'bool' => '@me must be boolean',
-        'bool=' => '@me must be boolean @p1',
-        'bool_str' => '@me must be boolean string',
-        'bool_str=' => '@me must be boolean string @p1',
-        'email' => '@me must be email',
-        'url' => '@me must be url',
-        'ip' => '@me must be IP address',
-        'mac' => '@me must be MAC address',
-        'dob' => '@me must be a valid date',
-        'file_base64' => '@me must be a valid file base64',
-        'uuid' => '@me must be a UUID',
-        'oauth2_grant_type' => '@me is not a valid OAuth2 grant type'
+        'default' => '@this validation failed',
+        'index_array' => '@this must be a index array',
+        'required' => '@this can not be empty',
+        'unset_required' => '@this must be unset or not empty',
+        'preg' => '@this format is invalid, should be @preg',
+        'call_method' => '@thisthod is undefined',
+        '=' => '@this must be equal to @p1',
+        '!=' => '@this must be not equal to @p1',
+        '==' => '@this must be identically equal to @p1',
+        '!==' => '@this must be not identically equal to @p1',
+        '>' => '@this must be greater than @p1',
+        '<' => '@this must be less than @p1',
+        '>=' => '@this must be greater than or equal to @p1',
+        '<=' => '@this must be less than or equal to @p1',
+        '<>' => '@this must be greater than @p1 and less than @p2',
+        '<=>' => '@this must be greater than @p1 and less than or equal to @p2',
+        '<>=' => '@this must be greater than or equal to @p1 and less than @p2',
+        '<=>=' => '@this must be greater than or equal to @p1 and less than or equal to @p2',
+        '(n)' => '@this must be numeric and in @p1',
+        '!(n)' => '@this must be numeric and can not be in @p1',
+        '(s)' => '@this must be string and in @p1',
+        '!(s)' => '@this must be string and can not be in @p1',
+        'len=' => '@this length must be equal to @p1',
+        'len!=' => '@this length must be not equal to @p1',
+        'len>' => '@this length must be greater than @p1',
+        'len<' => '@this length must be less than @p1',
+        'len>=' => '@this length must be greater than or equal to @p1',
+        'len<=' => '@this length must be less than or equal to @p1',
+        'len<>' => '@this length must be greater than @p1 and less than @p2',
+        'len<=>' => '@this length must be greater than @p1 and less than or equal to @p2',
+        'len<>=' => '@this length must be greater than or equal to @p1 and less than @p2',
+        'len<=>=' => '@this length must be greater than or equal to @p1 and less than or equal to @p2',
+        'int' => '@this must be integer',
+        'float' => '@this must be float',
+        'string' => '@this must be string',
+        'arr' => '@this must be array',
+        'bool' => '@this must be boolean',
+        'bool=' => '@this must be boolean @p1',
+        'bool_str' => '@this must be boolean string',
+        'bool_str=' => '@this must be boolean string @p1',
+        'email' => '@this must be email',
+        'url' => '@this must be url',
+        'ip' => '@this must be IP address',
+        'mac' => '@this must be MAC address',
+        'dob' => '@this must be a valid date',
+        'file_base64' => '@this must be a valid file base64',
+        'uuid' => '@this must be a UUID',
+        'oauth2_grant_type' => '@this is not a valid OAuth2 grant type'
     );
 
     public function __construct($config=array())
@@ -671,7 +671,7 @@ class Validation
     {
         if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
             $error_msg = $this->get_error_template('index_array');
-            $error_msg = str_replace($this->symbol_me, $field_path, $error_msg);
+            $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
             $message = array(
                 "error_type" => 'validation',
                 "message" => $error_msg,
@@ -823,7 +823,7 @@ class Validation
 
         if (is_array($error_msg)) return $error_msg; 
 
-        // '{"*":"Users define - @me is required","preg":"Users define - @me should not be matched /^\\\d+$/"}'
+        // '{"*":"Users define - @this is required","preg":"Users define - @this should not be matched /^\\\d+$/"}'
         $json_arr = json_decode($error_msg, true);
         if ($json_arr) return $json_arr;
 
@@ -1044,7 +1044,7 @@ class Validation
             // 2. if it's a 'if' rule -> means this field is optional; If result is not true, don't set error
             if ($result !== true && !$if_flag) {
                 // Replace symbol to field name and parameter value
-                $error_msg = str_replace($this->symbol_me, $field_path, $error_msg);
+                $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
                 foreach($params as $key => $value) {
                     // if ($key == 0) continue;
                     if (is_array($value)) {
@@ -1097,13 +1097,13 @@ class Validation
             $method = $matches[1];
             $params = $matches[2];
             $params = explode($this->config['symbol_param_separator'], $params);
-            if (!in_array($this->symbol_me, $params)) {
-                array_unshift($params, $this->symbol_me);
+            if (!in_array($this->symbol_this, $params)) {
+                array_unshift($params, $this->symbol_this);
             }
         // If no parameter, will add the field value as the first parameter
         } else {
             $method = $rule;
-            $params = array($this->symbol_me);
+            $params = array($this->symbol_this);
         }
 
         $symbol = $method;
@@ -1114,7 +1114,7 @@ class Validation
 
             if (strpos($param, '@') !== false) {
                 switch($param) {
-                    case $this->symbol_me:
+                    case $this->symbol_this:
                         $param = isset($data[$field])? $data[$field] : null;
                         break;
                     case $this->symbol_parent:

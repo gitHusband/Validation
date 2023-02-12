@@ -34,7 +34,7 @@ class Unit
     // If true, means unit testing is error
     protected $is_error = false;
 
-    private $_symbol_me = "@me";
+    private $_symbol_me = "@this";
 
     public function __construct()
     {
@@ -113,7 +113,7 @@ class Unit
      *      'simple' => is simple error format
      *  ],
      *  4. error_tag - get error message of the error_tag
-     *  5. field_path - parse error message of @me
+     *  5. field_path - parse error message of @this
      * extra contains:
      *  1. method_name
      *  2. error_tag - use this if case do not contains error_tag
@@ -1526,8 +1526,8 @@ class Unit
     protected function test_dynamic_err_msg_simple()
     {
         $rule = [
-            "id" => "required|<=>=[1,100] >> Users define - @me should not be >= @p1 and <= @p2",
-            "name" => "required|string >> Users define - @me should not be empty and must be string",
+            "id" => "required|<=>=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
+            "name" => "required|string >> Users define - @this should not be empty and must be string",
         ];
 
         $cases = [
@@ -1565,7 +1565,7 @@ class Unit
             "favourite_fruit" => [
                 "fruit_id" => "optional|check_fruit_id(@root)",
                 "fruit_name" => "optional|check_fruit_name(@parent)",
-                "fruit_color" => "optional|check_fruit_color[@fruit_name,@me] >> fruit name(@p0) and color(@p1) is not matched",
+                "fruit_color" => "optional|check_fruit_color[@fruit_name,@this] >> fruit name(@p0) and color(@p1) is not matched",
             ]
         ];
 
@@ -1907,7 +1907,7 @@ class Unit
     {
         $rule = [
             "id" => "required|check_err_field",
-            "number" => "required|check_err_field >> @me error!",
+            "number" => "required|check_err_field >> @this error!",
         ];
 
         $cases = [
@@ -2014,12 +2014,12 @@ class Unit
             }else if ($data < 30) {
                 return [
                     "error_type" => "3",
-                    "message" => "@me: check_err_field error. [20, 30]",
+                    "message" => "@this: check_err_field error. [20, 30]",
                 ];
             }else if ($data <= 40) {
                 return [
                     "error_type" => "4",
-                    "message" => "@me: check_err_field error. [30, 40]",
+                    "message" => "@this: check_err_field error. [30, 40]",
                     "extra" => "It should be greater than 40"
                 ];
             }
@@ -2037,9 +2037,9 @@ class Unit
     protected function test_dynamic_err_msg_user_json()
     {
         $rule = [
-            "id" => 'required|/^\d+$/|<=>=[1,100]| >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
-            "name" => 'unset_required|string >> { "unset_required": "Users define - @me should be unset or not be empty", "string": "Users define - Note! @me should be string"}',
-            "age" => 'optional|<=>=[1,60]|check_err_field >> { "<=>=": "Users define - @me is not allowed.", "check_err_field": "Users define - @me is not passed."}',
+            "id" => 'required|/^\d+$/|<=>=[1,100]| >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
+            "name" => 'unset_required|string >> { "unset_required": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
+            "age" => 'optional|<=>=[1,60]|check_err_field >> { "<=>=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
         ];
 
         $cases = [
@@ -2106,12 +2106,12 @@ class Unit
             }else if ($data < 30) {
                 return [
                     "error_type" => "3",
-                    "message" => "@me: check_err_field error. [20, 30]",
+                    "message" => "@this: check_err_field error. [20, 30]",
                 ];
             }else if ($data <= 40) {
                 return [
                     "error_type" => "4",
-                    "message" => "@me: check_err_field error. [30, 40]",
+                    "message" => "@this: check_err_field error. [30, 40]",
                     "extra" => "It should be greater than 40"
                 ];
             }
@@ -2129,9 +2129,9 @@ class Unit
     protected function test_dynamic_err_msg_user_gh_string()
     {
         $rule = [
-            "id" => "required|/^\d+$/|<=>=[1,100]| >> [required]=> Users define - @me is required [preg]=> Users define - @me should be \"MATCHED\" @preg",
-            "name" => "unset_required|string >> [unset_required] => Users define - @me should be unset or not be empty [string]=> Users define - Note! @me should be string",
-            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
+            "id" => "required|/^\d+$/|<=>=[1,100]| >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
+            "name" => "unset_required|string >> [unset_required] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
+            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
         ];
 
         $cases = [
@@ -2198,12 +2198,12 @@ class Unit
             }else if ($data < 30) {
                 return [
                     "error_type" => "3",
-                    "message" => "@me: check_err_field error. [20, 30]",
+                    "message" => "@this: check_err_field error. [20, 30]",
                 ];
             }else if ($data <= 40) {
                 return [
                     "error_type" => "4",
-                    "message" => "@me: check_err_field error. [30, 40]",
+                    "message" => "@this: check_err_field error. [30, 40]",
                     "extra" => "It should be greater than 40"
                 ];
             }
@@ -2224,23 +2224,23 @@ class Unit
             "id" => [
                 "required|/^\d+$/|<=>=[1,100]",
                 "error_message" => [
-                    "required" => "Users define - @me is required",
-                    "preg" => "Users define - @me should be \"MATCHED\" @preg"
+                    "required" => "Users define - @this is required",
+                    "preg" => "Users define - @this should be \"MATCHED\" @preg"
                 ]
             ],
             "name" => [
                 "unset_required|string",
                 "error_message" => [
-                    "unset_required" => "Users define - @me should be unset or not be empty",
-                    "string" => "Users define - Note! @me should be string"
+                    "unset_required" => "Users define - @this should be unset or not be empty",
+                    "string" => "Users define - Note! @this should be string"
                 ]
             ],
-            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @me is not allowed. [check_err_field]=> Users define - @me is not passed.",
+            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
             "age" => [
                 "optional|<=>=[1,60]|check_err_field",
                 "error_message" => [
-                    "<=>=" => "Users define - @me is not allowed.",
-                    "check_err_field" => "Users define - @me is not passed."
+                    "<=>=" => "Users define - @this is not allowed.",
+                    "check_err_field" => "Users define - @this is not passed."
                 ]
             ],
         ];
@@ -2309,12 +2309,12 @@ class Unit
             }else if ($data < 30) {
                 return [
                     "error_type" => "3",
-                    "message" => "@me: check_err_field error. [20, 30]",
+                    "message" => "@this: check_err_field error. [20, 30]",
                 ];
             }else if ($data <= 40) {
                 return [
                     "error_type" => "4",
-                    "message" => "@me: check_err_field error. [30, 40]",
+                    "message" => "@this: check_err_field error. [30, 40]",
                     "extra" => "It should be greater than 40"
                 ];
             }
@@ -2434,7 +2434,7 @@ class Unit
 
         $lang_config = (object)array();
         $lang_config->error_template = array(
-            'check_id' => '@me error!(customed)'
+            'check_id' => '@this error!(customed)'
         );
         $this->validation->custom_language($lang_config);
         $result = $this->valid_cases($rule, $cases, $extra);
@@ -2449,11 +2449,11 @@ class Unit
             "name" => "required|string|len<=>[8,32]",
             "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age[@gender,30] >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @this is wrong",
             "height_unit" => "required|(s)[cm,m]",
             "height[or]" => [
-                "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
-                "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
+                "required|=(@height_unit,cm)|<=>=[100,200] >> @this should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|<=>=[1,2] >> @this should be in [1,2] when height_unit is m",
             ],
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
@@ -2658,9 +2658,9 @@ class Unit
             'reg_if_true' => '/^IFn\?/',                    // If match this, validate this condition first, if false, then validate the field
             'symbol_or' => '[or]',                          // Symbol of or rule
             'symbol_rule_separator' => '&&',                // Rule reqarator for one field
-            'symbol_param_classic' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @me parameter at first 
-            'symbol_param_force' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @me parameter at first 
-            'symbol_param_separator' => ',',                // Parameters separator, such as @me,@field1,@field2
+            'symbol_param_classic' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @this parameter at first 
+            'symbol_param_force' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @this parameter at first 
+            'symbol_param_separator' => ',',                // Parameters separator, such as @this,@field1,@field2
             'symbol_field_name_separator' => '->',          // Field name separator, suce as "fruit.apple"
             'symbol_required' => '!*',                      // Symbol of required field
             'symbol_optional' => 'o',                       // Symbol of optional field
@@ -2673,11 +2673,11 @@ class Unit
             "name" => "!*&&string&&len<=>~8,32",
             "gender" => "!*&&(s)~male,female",
             "dob" => "!*&&dob",
-            "age" => "!*&&check_age~@gender,30 >>>@me is wrong",
+            "age" => "!*&&check_age~@gender,30 >>>@this is wrong",
             "height_unit" => "!*&&(s)~cm,m",
             "height[or]" => [
-                "!*&&=~~@height_unit,cm&&<=>=~100,200 >>>@me should be in [100,200] when height_unit is cm",
-                "!*&&=~~@height_unit,m&&<=>=~1,2 >>>@me should be in [1,2] when height_unit is m",
+                "!*&&=~~@height_unit,cm&&<=>=~100,200 >>>@this should be in [100,200] when height_unit is cm",
+                "!*&&=~~@height_unit,m&&<=>=~1,2 >>>@this should be in [1,2] when height_unit is m",
             ],
             "education" => [
                 "primary_school" => "!*&&=~Qiankeng Xiaoxue",
