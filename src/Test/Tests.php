@@ -84,10 +84,10 @@ class Tests
             "name" => "required|string|len<=>[8,32]",
             "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age[@gender,30] >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @this is wrong",
             "height[or]" => [
-                "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
-                "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
+                "required|=(@height_unit,cm)|<=>=[100,200] >> @this should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|<=>=[1,2] >> @this should be in [1,2] when height_unit is m",
             ],
             "height_unit" => "required|(s)[cm,m]",
             "weight[or]" => [
@@ -197,11 +197,11 @@ class Tests
             "name" => "required|string|len<=>[8,32]",
             "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age[@gender,30] >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @this is wrong",
             "height" => [
                 "[or]" => [
-                    "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
-                    "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
+                    "required|=(@height_unit,cm)|<=>=[100,200] >> @this should be in [100,200] when height_unit is cm",
+                    "required|=(@height_unit,m)|<=>=[1,2] >> @this should be in [1,2] when height_unit is m",
                 ]
             ],
             "height_unit" => "required|(s)[cm,m]",
@@ -324,19 +324,19 @@ class Tests
         }
 
         $rule = [
-            "id" => 'required|/^\d+$/ >> { "required": "Users define - @me is required", "preg": "Users define - @me should be \"MATCHED\" @preg"}',
+            "id" => 'required|/^\d+$/ >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
             "name" => "required|string|len<=>[8,32]",
             "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age[@gender,30] >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @this is wrong",
             "height[or]" => [
-                "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
-                "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
+                "required|=(@height_unit,cm)|<=>=[100,200] >> @this should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|<=>=[1,2] >> @this should be in [1,2] when height_unit is m",
             ],
             "height_unit" => "required|(s)[cm,m]",
             "weight[or]" => [
-                "required|=(@weight_unit,kg)|<=>=[40,100] >> @me should be in [40,100] when height_unit is kg",
-                "required|=(@weight_unit,lb)|<=>[88,220] >> @me should be in [88,220] when height_unit is lb",
+                "required|=(@weight_unit,kg)|<=>=[40,100] >> @this should be in [40,100] when height_unit is kg",
+                "required|=(@weight_unit,lb)|<=>[88,220] >> @this should be in [88,220] when height_unit is lb",
             ],
             "weight_unit" => "required|(s)[kg,lb]",
             "email" => "required|email",
@@ -451,18 +451,18 @@ class Tests
             "name" => "required|string|len<=>[8,32]",
             "gender" => "required|(s)[male,female]",
             "dob" => "required|dob",
-            "age" => "required|check_age[@gender,30] >> @me is wrong",
+            "age" => "required|check_age[@gender,30] >> @this is wrong",
             "height" => [
                 "[or]" => [
-                    "required|=(@height_unit,cm)|<=>=[100,200] >> @me should be in [100,200] when height_unit is cm",
-                    "required|=(@height_unit,m)|<=>=[1,2] >> @me should be in [1,2] when height_unit is m",
+                    "required|=(@height_unit,cm)|<=>=[100,200] >> @this should be in [100,200] when height_unit is cm",
+                    "required|=(@height_unit,m)|<=>=[1,2] >> @this should be in [1,2] when height_unit is m",
                 ]
             ],
             "height_unit" => "required|(s)[cm,m]",
             "weight[or]" => [
                 "[or]" => [
-                    "required|=(@weight_unit,kg)|<=>=[40,100] >> @me should be in [40,100] when height_unit is kg",
-                    "required|=(@weight_unit,lb)|<=>[88,220] >> @me should be in [88,220] when height_unit is lb",
+                    "required|=(@weight_unit,kg)|<=>=[40,100] >> @this should be in [40,100] when height_unit is kg",
+                    "required|=(@weight_unit,lb)|<=>[88,220] >> @this should be in [88,220] when height_unit is lb",
                 ]
             ],
             "weight_unit" => "required|(s)[kg,lb]",
@@ -567,7 +567,7 @@ class Tests
 
         $rule = [
             // id 是必要的且必须匹配正则 /^\d+$/， >> 后面的required 和 正则对应的报错信息
-            "id" => 'required|/^\d+$/ >> { "required": "用户自定义 - @me 是必要的", "preg": "用户自定义 - @me 必须匹配 @preg" }',
+            "id" => 'required|/^\d+$/ >> { "required": "用户自定义 - @this 是必要的", "preg": "用户自定义 - @this 必须匹配 @preg" }',
             // name 是必要的且必须是字符串且长度在区间 【8，32)
             "name" => "required|string|len<=>[8,32]",
             "email" => "required|email",
@@ -620,10 +620,10 @@ class Tests
             if (isset($company['country']) && $company['country'] == "US"){
                 if (!isset($company['postcode']) || $company['postcode'] != "123"){
                     // return false;
-                    // return "#### check_postcode method error message(@me)";
+                    // return "#### check_postcode method error message(@this)";
                     return array(
                         'error_type' => 'server_error',
-                        'message' => '*** check_postcode method error message(@me)',
+                        'message' => '*** check_postcode method error message(@this)',
                         "extra" => "extra message"
                     );
                 }
