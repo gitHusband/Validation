@@ -229,7 +229,7 @@ $validation->add_method('check_postcode', function($company) {
 - 并联：一个参数多个规则满足其一即可，使用方法： {字段名} + **[or]**（标志是 **[||]** , 标志支持自定义，使用方法同 **[or]** ）
 ```php
 // 串联，身高单位是必须的，且必须是 cm 或者 m
-"height_unit" => "required|(s):cm,m",
+"height_unit" => "required|(s)[cm,m]",
 // 并联
 "height[or]" => [
     // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
@@ -356,9 +356,9 @@ $rule = [
 
 ```
 "favourite_fruits[optional].*" => [
-    "name" => "required|len>:4",
-    "color" => "required|len>:4",
-    "shape" => "required|len>:4"
+    "name" => "required|len>[4]",
+    "color" => "required|len>[4]",
+    "shape" => "required|len>[4]"
 ]
 ```
 ### 4.8 特殊的验证规则
