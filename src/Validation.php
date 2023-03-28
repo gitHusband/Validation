@@ -1055,7 +1055,7 @@ class Validation
                         }
                     }
 
-                    $error_msg = str_replace('@p'.$key, $value, $error_msg);
+                    $error_msg = str_replace('@p'.$key, $value ?? "NULL", $error_msg);
                 }
 
                 $message = array(
@@ -1199,8 +1199,8 @@ class Validation
         foreach($fields as $key => $value) {
             if (!isset($point[$value])) {
                 if (!$force) {
-                    $point = null;
-                    return $point;
+                    $tmpNull = null;
+                    return $tmpNull;
                 }
 
                 if ($key !== ($len - 1)) {
