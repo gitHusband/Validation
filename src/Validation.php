@@ -1676,7 +1676,7 @@ class Validation
 
     public function url($data)
     {
-        if (!empty($data) && !preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,4}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)){
+        if (!empty($data) && !preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,8}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)){
             return FALSE;
         } else {
             return TRUE;
