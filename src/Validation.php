@@ -860,7 +860,7 @@ class Validation
      * @param    array                    &$parse_arr [description]
      * @param    string                   $string     [description]
      * @param    string                   $type       [description]
-     * @return   [type]                               [description]
+     * @return   bool                                 [description]
      */
     protected function pars_gh_string_to_array(&$parse_arr, $string, $type = "key")
     {
@@ -899,7 +899,7 @@ class Validation
      * @param    array                    $rule_error_msg    Parsed error message array
      * @param    string                   $tag               
      * @param    bool|boolean             $only_user_err_msg if can not find error message from user error message, will try to find it from error template
-     * @return   [type]                                      [description]
+     * @return   string
      */
     protected function match_error_message($rule_error_msg, $tag, $only_user_err_msg = false)
     {   
@@ -1278,11 +1278,11 @@ class Validation
      * error template message
      * @Author   Devin
      * @param    string                   $tag 
-     * @return   [type]                        
+     * @return   string                        
      */
     public function get_error_template($tag = '')
     {
-        return ($tag == '' || !isset($this->error_template[$tag])) ? false : $this->error_template[$tag];
+        return ($tag == '' || !isset($this->error_template[$tag])) ? '' : $this->error_template[$tag];
     }
 
     /**
@@ -1363,7 +1363,7 @@ class Validation
      * Get error message
      * @Author   Devin
      * @param    boolean                  $fromat [description]
-     * @return   [type]                           [description]
+     * @return   array                            [description]
      */
     public function get_error($standard=true, $simple=true)
     {
@@ -1381,11 +1381,11 @@ class Validation
      * If set to true, replace field value to "true" if it's valid, replace field value to error_message if it's invalid.
      * If set to false, don't replace field value if it's valid, replace field value to error_message if it's invalid.
      * @Author   Devin
-     * @param    [type]                   $bool [description]
+     * @param    bool   $result_classic [description]
      */
-    public function set_result_classic($bool)
+    public function set_result_classic($result_classic)
     {
-        $this->result_classic = $bool;
+        $this->result_classic = $result_classic;
     }
 
     /**
@@ -1393,8 +1393,8 @@ class Validation
      * If set to true, replace field value to "true" if it's valid, replace field value to error_message if it's invalid.
      * If set to false, don't replace field value if it's valid, replace field value to error_message if it's invalid.
      * @Author   Devin
-     * @param    [type]                   $field  [description]
-     * @param    [type]                   $result [description]
+     * @param    string     $field  [description]
+     * @param    bool       $result [description]
      */
     protected function set_result($field, $result)
     {   
