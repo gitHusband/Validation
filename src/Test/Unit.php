@@ -167,6 +167,9 @@ class Unit
                         $params = isset($extra['parameters'])? $extra['parameters'] : [];
                         $params = isset($case['parameters'])? $case['parameters'] : $params;
                         $expected_msg = $this->parse_error_message($error_tag, $field_path, $params);
+                        if (!$this->validation->get_validation_global() && !is_array($expected_msg)) {
+                            $expected_msg = [ $field_path => $expected_msg ];
+                        }
                     }
 
                     $error_msg = $this->validation->get_error($standard, $simple);
@@ -261,19 +264,19 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => "name can not be empty"
+                "expected_msg" => [ "name" => "name can not be empty" ]
             ],
             "Invalid_not_string" => [
                 "data" => [
                     "name" => 123
                 ],
-                "expected_msg" => "name must be string"
+                "expected_msg" => [ "name" => "name must be string" ]
             ],
             "Invalid_not_start_num" => [
                 "data" => [
                     "name" => "abcABC"
                 ],
-                "expected_msg" => "name format is invalid, should be /^\d+.*/"
+                "expected_msg" => [ "name" => "name format is invalid, should be /^\d+.*/" ]
             ]
         ];
 
@@ -408,14 +411,14 @@ class Unit
                     "name" => 1,
                     "gender" => "male",
                 ],
-                "expected_msg" => "name must be string"
+                "expected_msg" => [ "name" => "name must be string" ]
             ],
             "Invalid_data_2" => [
                 "data" => [
                     "name" => "Devin",
                     "gender" => 1,
                 ],
-                "expected_msg" => "gender must be string"
+                "expected_msg" => [ "gender" => "gender must be string" ]
             ],
             "Invalid_data_3" => [
                 "data" => [
@@ -426,7 +429,7 @@ class Unit
                         "color" => 1
                     ],
                 ],
-                "expected_msg" => "favourite_fruit.color must be string"
+                "expected_msg" => [ "favourite_fruit.color" => "favourite_fruit.color must be string" ]
             ],
             "Invalid_data_4" => [
                 "data" => [
@@ -441,7 +444,7 @@ class Unit
                         "from" => "Cattle"
                     ],
                 ],
-                "expected_msg" => "favourite_meat.name must be string"
+                "expected_msg" => [ "favourite_meat.name" => "favourite_meat.name must be string" ]
             ],
         ];
 
@@ -507,14 +510,14 @@ class Unit
                     "name" => 1,
                     "gender" => "male",
                 ],
-                "expected_msg" => "name must be string"
+                "expected_msg" => [ "name" => "name must be string" ]
             ],
             "Invalid_data_2" => [
                 "data" => [
                     "name" => "Devin",
                     "gender" => 1,
                 ],
-                "expected_msg" => "gender must be string"
+                "expected_msg" => [ "gender" => "gender must be string" ]
             ],
             "Invalid_data_3" => [
                 "data" => [
@@ -525,7 +528,7 @@ class Unit
                         "color" => 1
                     ],
                 ],
-                "expected_msg" => "favourite_fruit.color must be string"
+                "expected_msg" => [ "favourite_fruit.color" => "favourite_fruit.color must be string" ]
             ],
             "Invalid_data_4" => [
                 "data" => [
@@ -540,7 +543,7 @@ class Unit
                         "from" => "Cattle"
                     ],
                 ],
-                "expected_msg" => "favourite_meat.name must be string"
+                "expected_msg" => [ "favourite_meat.name" => "favourite_meat.name must be string" ]
             ],
         ];
 
@@ -576,7 +579,7 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => "name must be unset or not empty"
+                "expected_msg" => [ "name" => "name must be unset or not empty" ]
             ]
         ];
 
@@ -612,7 +615,7 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => "name must be unset or not empty"
+                "expected_msg" => [ "name" => "name must be unset or not empty" ]
             ]
         ];
 
@@ -658,14 +661,14 @@ class Unit
                     "id" => 1,
                     "name" => ""
                 ],
-                "expected_msg" => "name can not be empty"
+                "expected_msg" => [ "name" => "name can not be empty" ]
             ],
             "Invalid_data_2" => [
                 "data" => [
                     "id" => 1,
                     "name" => "abc"
                 ],
-                "expected_msg" => "name format is invalid, should be /^\d+.*/"
+                "expected_msg" => [ "name" => "name format is invalid, should be /^\d+.*/" ]
             ],
             "Invalid_data_3" => [
                 "data" => [
@@ -673,14 +676,14 @@ class Unit
                     "name" => "123ABC",
                     "name1" => "abc",
                 ],
-                "expected_msg" => "name1 format is invalid, should be /^\d+.*/"
+                "expected_msg" => [ "name1" => "name1 format is invalid, should be /^\d+.*/" ]
             ],
             "Invalid_data_4" => [
                 "data" => [
                     "id" => 8,
                     "name0" => "abc"
                 ],
-                "expected_msg" => "name0 format is invalid, should be /^\d+.*/"
+                "expected_msg" => [ "name0" => "name0 format is invalid, should be /^\d+.*/" ]
             ],
             "Invalid_data_5" => [
                 "data" => [
@@ -688,7 +691,7 @@ class Unit
                     "name1" => "abc",
                     "name0" => "abc"
                 ],
-                "expected_msg" => "name1 format is invalid, should be /^\d+.*/"
+                "expected_msg" => [ "name1" => "name1 format is invalid, should be /^\d+.*/" ]
             ]
         ];
 
@@ -736,20 +739,20 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => "name can not be empty"
+                "expected_msg" => [ "name" => "name can not be empty" ]
             ],
             "Invalid_0" => [
                 "data" => [
                     "name" => 0
                 ],
-                "expected_msg" => "name must be boolean or name must be boolean string"
+                "expected_msg" => [ "name" => "name must be boolean or name must be boolean string" ]
             ],
             "Invalid_1" => [
                 "data" => [
                     "name" => "false",
                     "height" => 50,
                 ],
-                "expected_msg" => "height must be greater than 100 or height must be string"
+                "expected_msg" => [ "height" => "height must be greater than 100 or height must be string" ]
             ]
         ];
 
@@ -797,20 +800,20 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => "name can not be empty"
+                "expected_msg" => [ "name" => "name can not be empty" ]
             ],
             "Invalid_0" => [
                 "data" => [
                     "name" => 0
                 ],
-                "expected_msg" => "name must be boolean or name must be boolean string"
+                "expected_msg" => [ "name" => "name must be boolean or name must be boolean string" ]
             ],
             "Invalid_1" => [
                 "data" => [
                     "name" => "false",
                     "height" => 50,
                 ],
-                "expected_msg" => "height must be greater than 100 or height must be string"
+                "expected_msg" => [ "height" => "height must be greater than 100 or height must be string" ]
             ]
         ];
 
@@ -848,7 +851,7 @@ class Unit
                         "name" => ""
                     ]
                 ],
-                "expected_msg" => "person.name can not be empty"
+                "expected_msg" => [ "person.name" => "person.name can not be empty" ]
             ],
             "Invalid_not_string" => [
                 "data" => [
@@ -856,7 +859,7 @@ class Unit
                         "name" => 123
                     ]
                 ],
-                "expected_msg" => "person.name must be string"
+                "expected_msg" => [ "person.name" => "person.name must be string" ]
             ],
             "Invalid_not_start_num" => [
                 "data" => [
@@ -864,7 +867,7 @@ class Unit
                         "name" => "abcABC"
                     ]
                 ],
-                "expected_msg" => "person.name format is invalid, should be /^\d+.*/"
+                "expected_msg" => [ "person.name" => "person.name format is invalid, should be /^\d+.*/" ]
             ]
         ];
 
@@ -939,7 +942,7 @@ class Unit
                         ["name" => ""],
                     ]
                 ],
-                "expected_msg" => "person.0.name can not be empty"
+                "expected_msg" => [ "person.0.name" => "person.0.name can not be empty" ]
             ],
             "Invalid_item_0-1(assoc_arr)" => [
                 "data" => [
@@ -948,7 +951,7 @@ class Unit
                         ["name" => "abcABC"],
                     ]
                 ],
-                "expected_msg" => "person.1.name format is invalid, should be /^\d+.*/"
+                "expected_msg" => [ "person.1.name" => "person.1.name format is invalid, should be /^\d+.*/" ]
             ],
             "Invalid_item_0-2(assoc_arr)" => [
                 "data" => [
@@ -957,7 +960,7 @@ class Unit
                         ["name" => "123ABC", "relation" => ["father" => "", "mother" => "m123ABC"]],
                     ]
                 ],
-                "expected_msg" => "person.1.relation.father can not be empty"
+                "expected_msg" => [ "person.1.relation.father" => "person.1.relation.father can not be empty" ]
             ],
             "Invalid_item_1-0(static,string)" => [
                 "data" => [
@@ -970,7 +973,7 @@ class Unit
                         "ABC",
                     ]
                 ],
-                "expected_msg" => "pet.0 can not be empty"
+                "expected_msg" => [ "pet.0" => "pet.0 can not be empty" ]
             ],
             "Invalid_item_1-1(static,string)" => [
                 "data" => [
@@ -983,7 +986,7 @@ class Unit
                         123,
                     ]
                 ],
-                "expected_msg" => "pet.1 must be string"
+                "expected_msg" => [ "pet.1" => "pet.1 must be string" ]
             ],
             "Invalid_item_1-2(static,string)" => [
                 "data" => [
@@ -997,7 +1000,7 @@ class Unit
                         ["cat", ""],
                     ]
                 ],
-                "expected_msg" => "pet.2.1 can not be empty"
+                "expected_msg" => [ "pet.2.1" => "pet.2.1 can not be empty" ]
             ],
             "Invalid_item_2-0(dynamic,string)" => [
                 "data" => [
@@ -1016,7 +1019,7 @@ class Unit
                         "Peony",
                     ],
                 ],
-                "expected_msg" => "flower.0 can not be empty"
+                "expected_msg" => [ "flower.0" => "flower.0 can not be empty" ]
             ],
             "Invalid_item_2-1(dynamic,string)" => [
                 "data" => [
@@ -1035,7 +1038,7 @@ class Unit
                         123,
                     ],
                 ],
-                "expected_msg" => "flower.2 must be string"
+                "expected_msg" => [ "flower.2" => "flower.2 must be string" ]
             ],
             "Invalid_item_3-0" => [
                 "data" => [
@@ -1059,7 +1062,7 @@ class Unit
                         ["", "dog"],
                     ],
                 ],
-                "expected_msg" => "clothes.0.0 can not be empty"
+                "expected_msg" => [ "clothes.0.0" => "clothes.0.0 can not be empty" ]
             ],
             "Invalid_item_4-0" => [
                 "data" => [
@@ -1088,7 +1091,7 @@ class Unit
                         // ["", "dog"],
                     ],
                 ],
-                "expected_msg" => "shoes.1 can not be empty"
+                "expected_msg" => [ "shoes.1" => "shoes.1 can not be empty" ]
             ],
             "Invalid_item_4-1" => [
                 "data" => [
@@ -1114,7 +1117,7 @@ class Unit
                         ["cat", "dog"],
                     ],
                 ],
-                "expected_msg" => "shoes.0 must be string"
+                "expected_msg" => [ "shoes.0" => "shoes.0 must be string" ]
             ],
         ];
 
@@ -1257,7 +1260,7 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => "person.0.fruit.0.0.name can not be empty"
+                "expected_msg" => [ "person.0.fruit.0.0.name" => "person.0.fruit.0.0.name can not be empty" ]
             ],
             "Invalid_item_0-1" => [
                 "data" => [
@@ -1278,7 +1281,7 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => "person.0.fruit.1.1.name can not be empty"
+                "expected_msg" => [ "person.0.fruit.1.1.name" => "person.0.fruit.1.1.name can not be empty" ]
             ],
             "Invalid_item_0-2" => [
                 "data" => [
@@ -1305,7 +1308,7 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => "person.1.fruit.0.1.name can not be empty"
+                "expected_msg" => [ "person.1.fruit.0.1.name" => "person.1.fruit.0.1.name can not be empty" ]
             ],
             "Invalid_item_1-0" => [
                 "data" => [
@@ -1331,7 +1334,7 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => "person.0.relation.brother.0.0.level must be integer or person.0.relation.brother.0.0.level must be string"
+                "expected_msg" => [ "person.0.relation.brother.0.0.level" => "person.0.relation.brother.0.0.level must be integer or person.0.relation.brother.0.0.level must be string" ]
             ],
             "Invalid_item_1-1" => [
                 "data" => [
@@ -1361,7 +1364,7 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => "person.0.relation.brother.1.1.level must be integer or person.0.relation.brother.1.1.level must be string"
+                "expected_msg" => [ "person.0.relation.brother.1.1.level" => "person.0.relation.brother.1.1.level must be integer or person.0.relation.brother.1.1.level must be string" ]
             ],
         ];
 
@@ -1386,15 +1389,15 @@ class Unit
             ],
             "Invalid_empty" => [
                 "data" => "",
-                "expected_msg" => "data can not be empty"
+                "expected_msg" => [ "data" => "data can not be empty" ]
             ],
             "Invalid_0" => [
                 "data" => 0,
-                "expected_msg" => "data must be string"
+                "expected_msg" => [ "data" => "data must be string" ]
             ],
             "Invalid_1" => [
                 "data" => ["name" => "false"],
-                "expected_msg" => "data must be string"
+                "expected_msg" => [ "data" => "data must be string" ]
             ]
         ];
 
@@ -1425,15 +1428,15 @@ class Unit
             ],
             "Invalid_empty" => [
                 "data" => "",
-                "expected_msg" => "data can not be empty"
+                "expected_msg" => [ "data" => "data can not be empty" ]
             ],
             "Invalid_0" => [
                 "data" => false,
-                "expected_msg" => "data must be string or data must be integer"
+                "expected_msg" => [ "data" => "data must be string or data must be integer" ]
             ],
             "Invalid_1" => [
                 "data" => ["name" => "false"],
-                "expected_msg" => "data must be string or data must be integer"
+                "expected_msg" => [ "data" => "data must be string or data must be integer" ]
             ]
         ];
 
@@ -1467,11 +1470,11 @@ class Unit
             ],
             "Invalid_0" => [
                 "data" => ["", 1],
-                "expected_msg" => "data.0 can not be empty"
+                "expected_msg" => [ "data.0" => "data.0 can not be empty" ]
             ],
             "Invalid_1" => [
                 "data" => ["Hello World!", false],
-                "expected_msg" => "data.1 must be integer"
+                "expected_msg" => [ "data.1" => "data.1 must be integer" ]
             ],
         ];
 
@@ -1499,15 +1502,15 @@ class Unit
             ],
             "Invalid_data_empty" => [
                 "data" => "",
-                "expected_msg" => "data must be a numeric array"
+                "expected_msg" => [ "data" => "data must be a numeric array" ]
             ],
             "Invalid_0" => [
                 "data" => ["", 1],
-                "expected_msg" => "data.0 can not be empty"
+                "expected_msg" => [ "data.0" => "data.0 can not be empty" ]
             ],
             "Invalid_1" => [
                 "data" => ["Hello World!", false],
-                "expected_msg" => "data.1 must be string"
+                "expected_msg" => [ "data.1" => "data.1 must be string" ]
             ],
         ];
 
@@ -1535,13 +1538,13 @@ class Unit
                 "data" => [
                     "id" => 101
                 ],
-                "expected_msg" => "Users define - id should not be >= 1 and <= 100"
+                "expected_msg" => [ "id" => "Users define - id should not be >= 1 and <= 100" ]
             ],
             "Invalid_unset" => [
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => "Users define - name should not be empty and must be string"
+                "expected_msg" => [ "name" => "Users define - name should not be empty and must be string" ]
             ]
         ];
 
@@ -1596,14 +1599,14 @@ class Unit
                 "data" => [
                     "id" => "101",
                 ],
-                "expected_msg" => "id validation failed"
+                "expected_msg" => [ "id" => "id validation failed" ]
             ],
             "Invalid_add_1" => [
                 "data" => [
                     "id" => "1",
                     "name" => "Tom"
                 ],
-                "expected_msg" => "name validation failed"
+                "expected_msg" => [ "name" => "name validation failed" ]
             ],
             "Invalid_add_2" => [
                 "data" => [
@@ -1613,7 +1616,7 @@ class Unit
                         "fruit_id" => "51",
                     ]
                 ],
-                "expected_msg" => "favourite_fruit.fruit_id validation failed"
+                "expected_msg" => [ "favourite_fruit.fruit_id" => "favourite_fruit.fruit_id validation failed" ]
             ],
             "Invalid_add_3" => [
                 "data" => [
@@ -1625,7 +1628,7 @@ class Unit
                         "fruit_color" => "red",
                     ]
                 ],
-                "expected_msg" => "favourite_fruit.fruit_name validation failed"
+                "expected_msg" => [ "favourite_fruit.fruit_name" => "favourite_fruit.fruit_name validation failed" ]
             ],
             "Invalid_add_4" => [
                 "data" => [
@@ -1637,7 +1640,7 @@ class Unit
                         "fruit_color" => "yellow",
                     ]
                 ],
-                "expected_msg" => "fruit name(apple) and color(yellow) is not matched"
+                "expected_msg" => [ "favourite_fruit.fruit_color" => "fruit name(apple) and color(yellow) is not matched" ]
             ],
         ];
 
@@ -1922,8 +1925,10 @@ class Unit
                     "id" => 1
                 ],
                 "expected_msg" => [
-                    "error_type" => "validation",
-                    "message" => "id validation failed",
+                    "id" => [
+                        "error_type" => "validation",
+                        "message" => "id validation failed",
+                    ]
                 ],
                 "err_format" => [
                     "standard" => true,
@@ -1935,8 +1940,10 @@ class Unit
                     "id" => 11
                 ],
                 "expected_msg" => [
-                    "error_type" => "validation",
-                    "message" => "id: check_err_field error. [10, 20]",
+                    "id" => [
+                        "error_type" => "validation",
+                        "message" => "id: check_err_field error. [10, 20]",
+                    ]
                 ],
                 "err_format" => [
                     "standard" => true,
@@ -1948,8 +1955,10 @@ class Unit
                     "id" => 21
                 ],
                 "expected_msg" => [
-                    "error_type" => "3",
-                    "message" => "id: check_err_field error. [20, 30]",
+                    "id" => [
+                        "error_type" => "3",
+                        "message" => "id: check_err_field error. [20, 30]",
+                    ]
                 ],
                 "err_format" => [
                     "standard" => true,
@@ -1961,9 +1970,11 @@ class Unit
                     "id" => 31
                 ],
                 "expected_msg" => [
-                    "error_type" => "4",
-                    "message" => "id: check_err_field error. [30, 40]",
-                    "extra" => "It should be greater than 40"
+                    "id" => [
+                        "error_type" => "4",
+                        "message" => "id: check_err_field error. [30, 40]",
+                        "extra" => "It should be greater than 40"
+                    ]
                 ],
                 "err_format" => [
                     "standard" => true,
@@ -1975,9 +1986,11 @@ class Unit
                     "id" => 41,
                     "number" => 11
                 ],
-                "expected_msg" => [
-                    "error_type" => "validation",
-                    "message" => "number error!",
+                "expected_msg" =>[
+                    "number" => [
+                        "error_type" => "validation",
+                        "message" => "number error!",
+                    ]
                 ],
                 "err_format" => [
                     "standard" => true,
@@ -1990,9 +2003,11 @@ class Unit
                     "number" => 31
                 ],
                 "expected_msg" => [
-                    "error_type" => "4",
-                    "message" => "number error!",
-                    "extra" => "It should be greater than 40"
+                    "number" => [
+                        "error_type" => "4",
+                        "message" => "number error!",
+                        "extra" => "It should be greater than 40"
+                    ]
                 ],
                 "err_format" => [
                     "standard" => true,
@@ -2047,33 +2062,33 @@ class Unit
                 "data" => [
                     "name" => "devin"
                 ],
-                "expected_msg" => "Users define - id is required"
+                "expected_msg" => [ "id" => "Users define - id is required" ]
             ],
             "Invalid_id_preg" => [
                 "data" => [
                     "id" => "devin"
                 ],
-                "expected_msg" => "Users define - id should be \"MATCHED\" /^\d+$/"
+                "expected_msg" => [ "id" => "Users define - id should be \"MATCHED\" /^\d+$/" ]
             ],
             "Invalid_id_not_in" => [
                 "data" => [
                     "id" => 101
                 ],
-                "expected_msg" => "id must be greater than or equal to 1 and less than or equal to 100"
+                "expected_msg" => [ "id" => "id must be greater than or equal to 1 and less than or equal to 100" ]
             ],
             "Invalid_name_unset" => [
                 "data" => [
                     "id" => 1,
                     "name" => ''
                 ],
-                "expected_msg" => "Users define - name should be unset or not be empty"
+                "expected_msg" => [ "name" => "Users define - name should be unset or not be empty" ]
             ],
             "Invalid_name_unset_1" => [
                 "data" => [
                     "id" => 1,
                     "name" => 123
                 ],
-                "expected_msg" => "Users define - Note! name should be string"
+                "expected_msg" => [ "name" => "Users define - Note! name should be string" ]
             ],
             "Invalid_age" => [
                 "data" => [
@@ -2081,7 +2096,7 @@ class Unit
                     "name" => "devin",
                     "age" => 61,
                 ],
-                "expected_msg" => "Users define - age is not allowed."
+                "expected_msg" => [ "age" => "Users define - age is not allowed." ]
             ],
             "Invalid_age_1" => [
                 "data" => [
@@ -2089,7 +2104,7 @@ class Unit
                     "name" => "devin",
                     "age" => 11,
                 ],
-                "expected_msg" => "Users define - age is not passed."
+                "expected_msg" => [ "age" => "Users define - age is not passed." ]
             ]
         ];
 
@@ -2139,33 +2154,33 @@ class Unit
                 "data" => [
                     "name" => "devin"
                 ],
-                "expected_msg" => "Users define - id is required"
+                "expected_msg" => [ "id" => "Users define - id is required" ]
             ],
             "Invalid_id_preg" => [
                 "data" => [
                     "id" => "devin"
                 ],
-                "expected_msg" => "Users define - id should be \"MATCHED\" /^\d+$/"
+                "expected_msg" => [ "id" => "Users define - id should be \"MATCHED\" /^\d+$/" ]
             ],
             "Invalid_id_not_in" => [
                 "data" => [
                     "id" => 101
                 ],
-                "expected_msg" => "id must be greater than or equal to 1 and less than or equal to 100"
+                "expected_msg" => [ "id" => "id must be greater than or equal to 1 and less than or equal to 100" ]
             ],
             "Invalid_name_unset" => [
                 "data" => [
                     "id" => 1,
                     "name" => ''
                 ],
-                "expected_msg" => "Users define - name should be unset or not be empty"
+                "expected_msg" => [ "name" => "Users define - name should be unset or not be empty" ]
             ],
             "Invalid_name_unset_1" => [
                 "data" => [
                     "id" => 1,
                     "name" => 123
                 ],
-                "expected_msg" => "Users define - Note! name should be string"
+                "expected_msg" => [ "name" => "Users define - Note! name should be string" ]
             ],
             "Invalid_age" => [
                 "data" => [
@@ -2173,7 +2188,7 @@ class Unit
                     "name" => "devin",
                     "age" => 61,
                 ],
-                "expected_msg" => "Users define - age is not allowed."
+                "expected_msg" => [ "age" => "Users define - age is not allowed." ]
             ],
             "Invalid_age_1" => [
                 "data" => [
@@ -2181,7 +2196,7 @@ class Unit
                     "name" => "devin",
                     "age" => 11,
                 ],
-                "expected_msg" => "Users define - age is not passed."
+                "expected_msg" => [ "age" => "Users define - age is not passed." ]
             ]
         ];
 
@@ -2250,33 +2265,33 @@ class Unit
                 "data" => [
                     "name" => "devin"
                 ],
-                "expected_msg" => "Users define - id is required"
+                "expected_msg" => [ "id" => "Users define - id is required" ]
             ],
             "Invalid_id_preg" => [
                 "data" => [
                     "id" => "devin"
                 ],
-                "expected_msg" => "Users define - id should be \"MATCHED\" /^\d+$/"
+                "expected_msg" => [ "id" => "Users define - id should be \"MATCHED\" /^\d+$/" ]
             ],
             "Invalid_id_not_in" => [
                 "data" => [
                     "id" => 101
                 ],
-                "expected_msg" => "id must be greater than or equal to 1 and less than or equal to 100"
+                "expected_msg" => [ "id" => "id must be greater than or equal to 1 and less than or equal to 100" ]
             ],
             "Invalid_name_unset" => [
                 "data" => [
                     "id" => 1,
                     "name" => ''
                 ],
-                "expected_msg" => "Users define - name should be unset or not be empty"
+                "expected_msg" => [ "name" => "Users define - name should be unset or not be empty" ]
             ],
             "Invalid_name_unset_1" => [
                 "data" => [
                     "id" => 1,
                     "name" => 123
                 ],
-                "expected_msg" => "Users define - Note! name should be string"
+                "expected_msg" => [ "name" => "Users define - Note! name should be string" ]
             ],
             "Invalid_age" => [
                 "data" => [
@@ -2284,7 +2299,7 @@ class Unit
                     "name" => "devin",
                     "age" => 61,
                 ],
-                "expected_msg" => "Users define - age is not allowed."
+                "expected_msg" => [ "age" => "Users define - age is not allowed." ]
             ],
             "Invalid_age_1" => [
                 "data" => [
@@ -2292,7 +2307,7 @@ class Unit
                     "name" => "devin",
                     "age" => 11,
                 ],
-                "expected_msg" => "Users define - age is not passed."
+                "expected_msg" => [ "age" => "Users define - age is not passed." ]
             ]
         ];
 
@@ -2340,11 +2355,11 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => "name 不能为空"
+                "expected_msg" => [ "name" => "name 不能为空" ]
             ],
             "Invalid_unset" => [
                 "data" => [],
-                "expected_msg" => "name 不能为空"
+                "expected_msg" => [ "name" => "name 不能为空" ]
             ],
             "Invalid_num" => [
                 "data" => [
@@ -2379,13 +2394,13 @@ class Unit
                 "data" => [
                     "id" => ""
                 ],
-                "expected_msg" => "id error!(CustomLang File)"
+                "expected_msg" => [ "id" => "id error!(CustomLang File)" ]
             ],
             "Invalid_extra" => [
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => "id error!(CustomLang File)"
+                "expected_msg" => [ "id" => "id error!(CustomLang File)" ]
             ]
         ];
 
@@ -2416,13 +2431,13 @@ class Unit
                 "data" => [
                     "id" => ""
                 ],
-                "expected_msg" => "id error!(customed)"
+                "expected_msg" => [ "id" => "id error!(customed)" ]
             ],
             "Invalid_extra" => [
                 "data" => [
                     "id" => 1000,
                 ],
-                "expected_msg" => "id error!(customed)"
+                "expected_msg" => [ "id" => "id error!(customed)" ]
             ]
         ];
 
@@ -2899,14 +2914,14 @@ class Unit
                     "id" => "1a",
                     "name" => "John",
                 ],
-                "expected_msg" => "id format is invalid, should be /^\d+$/"
+                "expected_msg" => [ "id" => "id format is invalid, should be /^\d+$/" ]
             ],
             "Invalid_2" => [
                 "data" => [
                     "id" => "1",
                     "name" => "John",
                 ],
-                "expected_msg" => "name format is invalid, should be /Tom/i"
+                "expected_msg" => [ "name" => "name format is invalid, should be /Tom/i" ]
             ],
         ];
 
@@ -2945,13 +2960,13 @@ class Unit
                 "parameters" => [
                     "1,2,3"
                 ],
-                // "expected_msg" => "id must be numeric and in 1,2,3"
+                // "expected_msg" => [ "id" => "id must be numeric and in 1,2,3" ]
             ],
             "Invalid_2" => [
                 "data" => [
                     "id" => "12",
                 ],
-                "expected_msg" => "id must be numeric and in 1,2,3"
+                "expected_msg" => [ "id" => "id must be numeric and in 1,2,3" ]
             ],
         ];
 
