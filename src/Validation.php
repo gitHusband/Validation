@@ -353,6 +353,16 @@ class Validation
     }
 
     /**
+     * Get validation_global flag
+     * @Author   Devin
+     * @param    boolean                   $bool
+     */
+    public function get_validation_global()
+    {
+        return $this->validation_global;
+    }
+
+    /**
      * Allow user to add special methods 
      * @Author   Devin
      * @param    string                   $tag    tag name
@@ -1357,11 +1367,6 @@ class Validation
      */
     public function get_error($standard=true, $simple=true)
     {
-        if (!$this->validation_global) {
-            if ($simple) return current($this->classic_errors['simple']);
-            else return current($this->classic_errors['complex']);
-        }
-
         if ($standard) {
             if ($simple) return $this->standard_errors['simple'];
             else return $this->standard_errors['complex'];
