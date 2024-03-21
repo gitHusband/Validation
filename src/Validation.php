@@ -72,6 +72,7 @@ class Validation
         'auto_field' => "data",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
         'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
         'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
+        'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
         'reg_if' => '/^!?if\((.*)\)/',                          // If match this, validate this condition first
         'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
         'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
@@ -184,6 +185,7 @@ class Validation
         'required' => '@this can not be empty',
         'unset_required' => '@this must be unset or not empty',
         'preg' => '@this format is invalid, should be @preg',
+        'preg_format' => '@this method @preg is not a valid regular expression',
         'call_method' => '@thisthod is undefined',
         '=' => '@this must be equal to @p1',
         '!=' => '@this must be not equal to @p1',
@@ -781,10 +783,31 @@ class Validation
                 $rule = preg_replace($this->config['reg_msg'], '', $rule);
             }
         }
+        
+        $rules = $this->split_serial_rule_strict($rule);
 
+        $parse_rule = array(
+            'rules' => $rules,
+            'error_msg' => $this->parse_error_message($error_msg)
+        );
+
+        return $parse_rule;
+    }
+
+    /**
+     * Split a serial rule into multiple methods or regular expression by using the separator |
+     * NOTE: 
+     * - The regular expression may cantain the character(|) which is the same as rule separator(|)
+     * - Only one regular expression is allowed in one serial rule
+     *
+     * @param string $rule
+     * @return array
+     */
+    protected function split_serial_rule($rule)
+    {
         // In consideration of the case that the regular expression cantains the character(|) which is the same as rule separator(|)
         // Using the way to handle regular expression
-        // Only one regular expression is allowed in one rule string 
+        // Only one regular expression is allowed in one serial rule
         $reg_flag = false;
         $reg_mark = "@reg_mark";
         // $reg_preg = '/\/.+?(?<!\\\)\//';
@@ -798,20 +821,98 @@ class Validation
 
         if ($reg_flag == true) {
             $i = 0;
-            foreach($rules as &$value) {
+            foreach ($rules as &$value) {
                 if (strpos($value, $reg_mark) !== false) {
                     $value = str_replace($reg_mark, $matches[0][$i], $value);
-                    $i ++;
+                    $i++;
                 }
             }
         }
-        
-        $parse_rule = array(
-            'rules' => $rules,
-            'error_msg' => $this->parse_error_message($error_msg)
-        );
 
-        return $parse_rule;
+        return $rules;
+    }
+
+    /**
+     * Split a serial rule into multiple methods or regular expression by using the separator |
+     * NOTE: 
+     * - The regular expression may cantain the character(|) which is the same as rule separator(|)
+     * - Multiple regular expressions are allowed in one serial rule
+     *
+     * @param string $rule
+     * @return array
+     */
+    protected function split_serial_rule_strict($rule)
+    {
+        $symbol_rule_separator = $this->config['symbol_rule_separator'];
+        $symbol_rule_separator_length = strlen($symbol_rule_separator);
+
+        $rules = [];
+        $current_method = '';
+        $is_next_method_flag = 0;
+        $is_reg_flag = 0;
+
+        $rule_length = strlen($rule);
+        for ($i = 0; $i < $rule_length; $i++) {
+            $char = $rule[$i];
+
+            // 支持自定义配置 symbol_rule_separator 为多个字符
+            if ($symbol_rule_separator_length > 1 && $char == $symbol_rule_separator[0]) {
+                $ii = $i + 1;
+                $is_symbol_rule_separator = true;
+                for ($j = 1; $j < $symbol_rule_separator_length; $j++) {
+                    if ($symbol_rule_separator[$j] != $rule[$ii]) {
+                        $is_symbol_rule_separator = false;
+                        break;
+                    }
+                }
+                if ($is_symbol_rule_separator) {
+                    $i = $i + $symbol_rule_separator_length - 1;
+                    $char = $symbol_rule_separator;
+                }
+            }
+
+            // \ 是转义字符，在它之后的任意一个字符，都是正则表达式的一部分。
+            // 例如：\/, \| 
+            if ($char === '\\') {
+                $current_method .= $char;
+                $current_method .= $rule[$i + 1];
+                $i++;
+                continue;
+            }
+
+            // 首次正则表达式开头 /，表明接下来是正则表达式。此为 正则阶段 1
+            // 直到匹配到下一个 /，表明正则表达式即将结束。此为 正则阶段 2
+            // 在此之后，匹配的字符都当作是正则表达式的模式修饰符。直到匹配到 |，表示正则表达式完全结束
+            if ($char === '/') {
+                if ($is_reg_flag == 0) {
+                    $is_reg_flag = 1;
+                } else if ($is_reg_flag == 1) {
+                    $is_reg_flag = 2;
+                }
+            }
+            // 一般非正则表达式的方法中，不会包含 |，所以匹配到它则表明接下来是下一个方法
+            // 在正则表达式的方法中，可能包含 |，所以必须在正则阶段 2 后，匹配到它才表明接下来是下一个方法
+            else if ($char === $symbol_rule_separator) {
+                if ($is_reg_flag == 0) {
+                    $is_next_method_flag = 1;
+                } else if ($is_reg_flag == 2) {
+                    $is_reg_flag = 0;
+                    $is_next_method_flag = 1;
+                }
+            }
+
+            if ($is_next_method_flag == 0) {
+                $current_method .= $char;
+            } else {
+                $is_next_method_flag = 0;
+                if (!empty($current_method)) $rules[] = $current_method;
+                $current_method = '';
+                $is_reg_flag = 0;
+            }
+        }
+
+        if (!empty($current_method)) $rules[] = $current_method;
+        return $rules;
     }
 
     /**
@@ -1015,10 +1116,17 @@ class Validation
             // Regular expression
             else if (preg_match($this->config['reg_preg'], $rule, $matches)) {
                 $preg = isset($matches[1])? $matches[1] : $matches[0];
-                if (!preg_match($preg, $data[$field], $matches)) {
+                if (!preg_match($this->config['reg_preg_strict'], $preg, $matches)) {
                     $result = false;
-                    $error_msg = $this->match_error_message($rule_error_msg, 'preg');
+                    $error_type = 'preg';
+                    $error_msg = $this->match_error_message('', 'preg_format');
                     $error_msg = str_replace($this->symbol_preg, $preg, $error_msg);
+                } else {
+                    if (!preg_match($preg, $data[$field], $matches)) {
+                        $result = false;
+                        $error_msg = $this->match_error_message($rule_error_msg, 'preg');
+                        $error_msg = str_replace($this->symbol_preg, $preg, $error_msg);
+                    }
                 }
             }
             // Method

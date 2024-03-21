@@ -11,6 +11,7 @@ class ZhCn
         'required' => '@this 不能为空',
         'unset_required' => '@this 允许不设置，一旦设置则不能为空',
         'preg' => '@this 格式错误，必须是 @preg',
+        'preg_format' => '@this 方法 @preg 不是合法的正则表达式',
         'call_method' => '@thisthod 未定义',
         '=' => '@this 必须等于 @p1',
         '!=' => '@this 必须不等于 @p1',
