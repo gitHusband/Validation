@@ -1450,7 +1450,7 @@ class Validation
 
     protected function required($data)
     {
-        return !($data !== 0 && $data !== '0' && $data !== false && empty($data));
+        return $data === 0 || $data === 0.0 || $data === 0.00 || $data === '0' || $data === '0.0' || $data === '0.00' || $data === false || !empty($data);
     }
 
     protected function empty($data)
@@ -1759,10 +1759,10 @@ class Validation
 
     public function uuid($data)
     {
-        if (!empty($data) && !preg_match('/^\w{8}(-\w{4}){3}-\w{12}$/', $data)) {
-            return false;
-        } else {
+        if (!empty($data) && preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/', $data)) {
             return true;
+        } else {
+            return false;
         }
     }
 
