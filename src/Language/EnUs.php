@@ -11,6 +11,7 @@ class EnUs
         'required' => '@this can not be empty',
         'unset_required' => '@this must be unset or not empty',
         'preg' => '@this format is invalid, should be @preg',
+        'preg_format' => '@this method @preg is not a valid regular expression',
         'call_method' => '@thisthod is undefined',
         '=' => '@this must be equal to @p1',
         '!=' => '@this must be not equal to @p1',
