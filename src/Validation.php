@@ -2,6 +2,8 @@
 
 namespace githusband;
 
+use githusband\Exception\ghException;
+
 class Validation
 {
     /**
@@ -58,6 +60,16 @@ class Validation
         'simple' => array(),    // only message string
         'complex' => array()    // message array, contains error type and error message
     );
+
+    /**
+     * Current info of the recurrence validation: field path or its rule, etc.
+     * If something get wrong, we can easily know which field or rule get wrong.
+     * @var array
+     */
+    protected $recurrence_current = [
+        'field_path' => '',
+        'rule' => '',
+    ];
 
     protected $symbol_this = '@this';
     protected $symbol_root = '@root';
@@ -391,7 +403,20 @@ class Validation
 
         $this->validation_status = true;
 
-        $this->execute($data, $this->rules);
+        try {
+            $this->execute($data, $this->rules);
+        } catch (\Throwable $t) {
+            if ($t instanceof ghException) {
+                throw $t;
+            } else {
+                $current_field_path = $this->get_current_field_path();
+                $current_field_path = empty($current_field_path) ? $this->config['auto_field'] : $current_field_path;
+                $current_rule = $this->get_current_rule();
+                $current_rule = empty($current_rule) ? 'NotSet' : $current_rule;
+                throw (new ghException("@field:{$current_field_path}, @rule:{$current_rule} - " . $t->getMessage(), $t->getCode(), $t))
+                    ->set_recurrence_current($this->get_recurrence_current());
+            }
+        }
 
         return $this->validation_status;
     }
@@ -422,6 +447,10 @@ class Validation
             $field_path_tmp = '';
             if ($field_path === false) $field_path_tmp = $field;
             else $field_path_tmp = $field_path. $this->config['symbol_field_name_separator'] .$field;
+            $this->set_current_field_path($field_path_tmp)
+                ->set_current_rule($rule);
+
+            // if ($field == 'fruit_id') $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_1
 
             $rule_system_symbol = $this->get_rule_system_symbol($rule);
             if (!empty($rule_system_symbol)) {
@@ -448,6 +477,8 @@ class Validation
                     if ($this->is_association_array_rule($rule[$rule_system_symbol])) {
                         $result = $this->execute(isset($data[$field])? $data[$field]:null, $rule[$rule_system_symbol], $field_path_tmp, $is_array_loop);
                     } else {
+                        $this->set_current_field_path($field_path_tmp)
+                            ->set_current_rule($rule);
                         $rule = $this->parse_one_rule($rule[$rule_system_symbol]);
                         $result = $this->execute_one_rule($data, $field, $rule, $field_path_tmp);
                         $this->set_result($field_path_tmp, $result);
@@ -491,6 +522,8 @@ class Validation
                 else if ($this->is_association_array_rule($rule)) {
                     $result = $this->execute(isset($data[$field])? $data[$field]:null, $rule, $field_path_tmp, $is_array_loop);
                 } else {
+                    $this->set_current_field_path($field_path_tmp)
+                            ->set_current_rule($rule);
                     $rule = $this->parse_one_rule($rule);
                     $result = $this->execute_one_rule($data, $field, $rule, $field_path_tmp);
 
@@ -647,6 +680,10 @@ class Validation
     {
         $or_len = count($rules);
         foreach($rules as $key => $rule_or) {
+            $this->set_current_rule($rule_or);
+
+            // if ($key == 1) $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_2
+
             $rule_or = $this->parse_one_rule($rule_or);
             $result = $this->execute_one_rule($data, $field, $rule_or, $field_path, true);
             $this->set_result($field_path, $result);
@@ -706,6 +743,8 @@ class Validation
                 }
                 // Validate numberic array, all the rule are the same, only use $rules[0]
                 else {
+                    $this->set_current_field_path($field_path_tmp)
+                        ->set_current_rule($rules);
                     $parsed_rules = $this->parse_one_rule($rules);
                     $result = $this->execute_one_rule($data[$field], $key, $parsed_rules, $field_path_tmp);
                     $this->set_result($field_path_tmp, $result);
@@ -1278,24 +1317,79 @@ class Validation
      */
     protected function execute_method($method_rule, $field_path)
     {
-        $params = $method_rule['params'];
-        if (isset($this->methods[$method_rule['method']])) {
-            $result = call_user_func_array($this->methods[$method_rule['method']], $params);
-        } else if (method_exists($this, $method_rule['method'])) {
-            $result = call_user_func_array([$this, $method_rule['method']], $params);
-        } else if (function_exists($method_rule['method'])) {
-            $result = call_user_func_array($method_rule['method'], $params);
-        } else {
-            $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_template['call_method']);
-            $message = array(
-                "error_type" => 'internal_server_error',
-                "message" => $error_msg,
-            );
-            $this->set_error($field_path, $message);
-            return "Undefined";
+        try {
+            $params = $method_rule['params'];
+            if (isset($this->methods[$method_rule['method']])) {
+                $result = call_user_func_array($this->methods[$method_rule['method']], $params);
+            } else if (method_exists($this, $method_rule['method'])) {
+                $result = call_user_func_array([$this, $method_rule['method']], $params);
+            } else if (function_exists($method_rule['method'])) {
+                $result = call_user_func_array($method_rule['method'], $params);
+            } else {
+                $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_template['call_method']);
+                $message = array(
+                    "error_type" => 'internal_server_error',
+                    "message" => $error_msg,
+                );
+                $this->set_error($field_path, $message);
+                return "Undefined";
+            }
+        } catch (\Throwable $t) {
+            throw (new ghException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
+                ->set_recurrence_current($this->get_recurrence_current());
         }
 
         return $result;
+    }
+
+    /**
+     * Get the current info of the recurrence validation
+     * @return array
+     */
+    protected function get_recurrence_current()
+    {
+        return $this->recurrence_current;
+    }
+
+    /**
+     * Set current field path
+     * @param string $field_path
+     * @return static
+     */
+    protected function set_current_field_path($field_path)
+    {
+        $this->recurrence_current['field_path'] = $field_path;
+        return $this;
+    }
+
+    /**
+     * Get current field path
+     * @return string
+     */
+    protected function get_current_field_path()
+    {
+        return $this->recurrence_current['field_path'];
+    }
+
+    /**
+     * Set the rule of current field path
+     * @param string|array $rule
+     * @return static
+     */
+    protected function set_current_rule($rule)
+    {
+        if (is_array($rule)) $rule = json_encode($rule, JSON_UNESCAPED_SLASHES);
+        $this->recurrence_current['rule'] = $rule;
+        return $this;
+    }
+
+    /**
+     * Get the rule of current field path
+     * @return string|array
+     */
+    protected function get_current_rule()
+    {
+        return $this->recurrence_current['rule'];
     }
 
     /**

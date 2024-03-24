@@ -4,8 +4,8 @@
  *
  * method_name - optional. If empty, run all test case. if is not empty, only run this test case.
  */
+require_once __DIR__ . "/TestCommon.php";
 
-require_once(__DIR__."/../Validation.php");
 use githusband\Validation;
 
 function check_id($data, $min, $max)
@@ -24,7 +24,7 @@ function check_age($data, $gender, $param)
     return true;
 }
 
-class Unit
+class Unit extends TestCommon
 {
     // Validation Instance
     protected $validation;
@@ -65,10 +65,7 @@ class Unit
 
             foreach ($class_methods as $method_name) {
                 if (preg_match('/^test_.*/', $method_name)) {
-
-
                     $result = $this->execute_tests($method_name);
-
                     if (!$result) break;
                 }
             }
@@ -184,6 +181,32 @@ class Unit
                         $result = false;
                     }
                 }
+            }
+            // Check exception cases
+            else if (strpos($c_field, "Exception") !== false) {
+                $valid_alert = isset($case['valid_alert'])? $case['valid_alert'] : "Validation error. It should be valid.";
+
+                try {
+                    if (!$this->validation->validate($case['data'])) {
+                        $this->set_unit_error($extra['method_name'], $c_field, [
+                            "valid_alert" => $valid_alert,
+                            "error_msg" => $this->validation->get_error($standard, $simple)
+                        ], $rule, $cases);
+                        $result = false;
+                    }
+                } catch (\Throwable $t) {
+                    $exception_message = $t->getMessage();
+                    $expected_msg = $case["expected_msg"] ?? '';
+
+                    if ($exception_message != $expected_msg) {
+                        $this->set_unit_error($extra['method_name'], $c_field, [
+                            "valid_alert" => $valid_alert,
+                            "error_msg" => $exception_message
+                        ], $rule, $cases);
+                        return $result = false;
+                    }
+                }
+                
             }
         }
 
@@ -1695,6 +1718,105 @@ class Unit
             }
 
             return false;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception()
+    {
+        $rule = [
+            "id" => "optional|php_warning_id",
+            "name" => "optional|php_exception_name",
+            "height" => [
+                "[or]" => [
+                    "optional|int|>[100]",
+                    "optional|string",
+                ]
+            ],
+            "favourite_fruit" => [
+                "fruit_id" => "optional|php_exception_fruit_id(@root)",
+            ],
+            "favourite_fruits" => [
+                "*" => [
+                    "fruit_id" => "optional|php_exception_fruit_id(@root)",
+                ]
+            ]
+        ];
+
+        $cases = [
+            "Exception_add_1" => [
+                "data" => [
+                    "name" => "Devin",
+                ],
+                "expected_msg" => '@field:name, @method:php_exception_name - Undefined constant "UNDEFINED_VAR"'
+            ],
+            "Exception_add_2" => [
+                "data" => [
+                    "favourite_fruit" => [
+                        "fruit_id" => "f_1",
+                    ]
+                ],
+                "expected_msg" => '@field:favourite_fruit.fruit_id, @method:php_exception_fruit_id - fruit id is not valid'
+            ],
+            "Exception_add_3" => [
+                "data" => [
+                    "favourite_fruits" => [
+                        [
+                            "fruit_id" => "",
+                        ],
+                        [
+                            "fruit_id" => "f_2",
+                        ],
+                    ]
+                ],
+                "expected_msg" => '@field:favourite_fruits.1.fruit_id, @method:php_exception_fruit_id - fruit id is not valid'
+            ],
+            "Invalid_add_1" => [
+                "data" => [
+                    "id" => "1",
+                ],
+                "expected_msg" => [ "id" => "id validation failed" ]
+            ],
+        ];
+
+        if (0) $cases = [
+            "Exception_lib_1" => [
+                "data" => [
+                    "favourite_fruits" => [
+                        [
+                            "fruit_id" => "1",
+                        ],
+                    ]
+                ],
+                "expected_msg" => '@field:favourite_fruit.fruit_id, @rule:optional|php_exception_fruit_id(@root) - Undefined constant "githusband\UNDEFINED_VAR"'
+            ],
+            "Exception_lib_2" => [
+                "data" => [
+                    "height" => 10
+                ],
+                "expected_msg" => '@field:height, @rule:optional|string - Undefined constant "githusband\UNDEFINED_VAR"'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        $this->validation->add_method("php_warning_id", function($id) {
+            return $fake_id > 1;
+        });
+
+        $this->validation->add_method("php_exception_name", function($name) {
+            return UNDEFINED_VAR;
+        });
+
+        $this->validation->add_method("php_exception_fruit_id", function($fruit_id) {
+            throw new \Exception("fruit id is not valid");
         });
 
         return $method_info = [

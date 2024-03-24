@@ -1,6 +1,7 @@
 <?php
 
-require_once(__DIR__."/../Validation.php");
+require_once __DIR__ . "/TestCommon.php";
+
 use githusband\Validation;
 
 function check_age($data, $gender, $param)
@@ -14,7 +15,7 @@ function check_age($data, $gender, $param)
     return true;
 }
 
-class Tests
+class Tests extends TestCommon
 {
 
     public function __construct($config=array())
