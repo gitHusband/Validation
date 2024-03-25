@@ -112,9 +112,10 @@ class Unit extends TestCommon
      *  4. error_tag - get error message of the error_tag
      *  5. field_path - parse error message of @this
      * extra contains:
-     *  1. method_name
-     *  2. error_tag - use this if case do not contains error_tag
-     *  3. field_path - use this if case do not contains field_path
+     *  1. validation_class - The validation class. If not set, then use {$this->validation}
+     *  2. method_name
+     *  3. error_tag - use this if case do not contains error_tag
+     *  4. field_path - use this if case do not contains field_path
      * @Author   Devin
      * @param    [type]                   $rule   validation rule
      * @param    [type]                   $cases  test cases, has many test case
@@ -123,7 +124,8 @@ class Unit extends TestCommon
      */
     protected function valid_cases($rule, $cases, $extra)
     {
-        $this->validation->set_rules($rule);
+        $validation = $extra['validation_class'] ?? $this->validation;
+        $validation->set_rules($rule);
 
         $result = true;
 
@@ -135,10 +137,10 @@ class Unit extends TestCommon
             if (strpos($c_field, "Valid") !== false) {
                 $valid_alert = isset($case['valid_alert'])? $case['valid_alert'] : "Validation error. It should be valid.";
 
-                if (!$this->validation->validate($case['data'])) {
+                if (!$validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, [
                         "valid_alert" => $valid_alert,
-                        "error_msg" => $this->validation->get_error($standard, $simple)
+                        "error_msg" => $validation->get_error($standard, $simple)
                     ], $rule, $cases);
                     $result = false;
                 }
@@ -147,7 +149,7 @@ class Unit extends TestCommon
             }else if (strpos($c_field, "Invalid") !== false) {
                 $valid_alert = isset($case['valid_alert'])? $case['valid_alert'] : "Validation error. It should be invalid.";
 
-                if ($this->validation->validate($case['data'])) {
+                if ($validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, $valid_alert, $rule, $cases);
                     $result = false;
                 }else {
@@ -163,13 +165,13 @@ class Unit extends TestCommon
                         $field_path = isset($case['field_path'])? $case['field_path'] : $field_path;
                         $params = isset($extra['parameters'])? $extra['parameters'] : [];
                         $params = isset($case['parameters'])? $case['parameters'] : $params;
-                        $expected_msg = $this->parse_error_message($error_tag, $field_path, $params);
-                        if (!$this->validation->get_validation_global() && !is_array($expected_msg)) {
+                        $expected_msg = $this->parse_error_message($validation, $error_tag, $field_path, $params);
+                        if (!$validation->get_validation_global() && !is_array($expected_msg)) {
                             $expected_msg = [ $field_path => $expected_msg ];
                         }
                     }
 
-                    $error_msg = $this->validation->get_error($standard, $simple);
+                    $error_msg = $validation->get_error($standard, $simple);
                     if ($expected_msg !== $error_msg) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
                             "Error msg is unexpected.", 
@@ -187,10 +189,10 @@ class Unit extends TestCommon
                 $valid_alert = isset($case['valid_alert'])? $case['valid_alert'] : "Validation error. It should be valid.";
 
                 try {
-                    if (!$this->validation->validate($case['data'])) {
+                    if (!$validation->validate($case['data'])) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
                             "valid_alert" => $valid_alert,
-                            "error_msg" => $this->validation->get_error($standard, $simple)
+                            "error_msg" => $validation->get_error($standard, $simple)
                         ], $rule, $cases);
                         $result = false;
                     }
@@ -222,9 +224,9 @@ class Unit extends TestCommon
         $this->error_message[$method]["error"][$cases_field] = $error_message;
     }
 
-    protected function parse_error_message($tag, $field_path, $params=array())
+    protected function parse_error_message($validation, $tag, $field_path, $params=array())
     {
-        $error_template = $this->validation->get_error_template($tag);
+        $error_template = $validation->get_error_template($tag);
         $error_template = str_replace($this->_symbol_me, $field_path, $error_template);
 
         foreach($params as $key => $value) {
@@ -1807,11 +1809,14 @@ class Unit extends TestCommon
             "method_name" => __METHOD__,
         ];
 
+
         $this->validation->add_method("php_warning_id", function($id) {
+            if (false) $fake_id = 0;
             return $fake_id > 1;
         });
 
         $this->validation->add_method("php_exception_name", function($name) {
+            if (false) define('UNDEFINED_VAR', 1);
             return UNDEFINED_VAR;
         });
 
@@ -3048,6 +3053,71 @@ class Unit extends TestCommon
         ];
 
         $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_extend_rule()
+    {
+        $rule = [
+            "id" => "required|<>[0,100]",
+            "start_date" => "optional|date<>[2024-02-01 00:00:00,2024-02-28 23:59:59]",
+            "end_date" => "optional|date<=>=[2024-03-01 00:00:00,2024-03-31 23:59:59]"
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "start_date" => "2024-02-01 01:00:00",
+                    "end_date" => "2024-03-01 01:00:00",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "id" => 1,
+                    "start_date" => "2024-02-02",
+                ],
+            ],
+            "Invalid_1" => [
+                "data" => [
+                    "id" => 100,
+                ],
+                "expected_msg" => [ "id" => "id must be greater than 0 and less than 100" ]
+            ],
+            "Invalid_2" => [
+                "data" => [
+                    "id" => 1,
+                    "start_date" => "2024-02-01 00:00:00",
+                ],
+                "expected_msg" => [ "start_date" => "start_date is not between 2024-02-01 00:00:00 and 2024-02-28 23:59:59" ]
+            ],
+            "Invalid_3" => [
+                "data" => [
+                    "id" => 1,
+                    "end_date" => "2024-04-01 00:00:00",
+                ],
+                "expected_msg" => [ "end_date" => "end_date must be greater than or equal to 2024-03-01 00:00:00 and less than or equal to 2024-03-31 23:59:59" ]
+            ],
+            "Invalid_4" => [
+                "data" => [
+                    "id" => 1,
+                    "start_date" => "2024-02-02asdfadsf",
+                ],
+                "expected_msg" => [ "start_date" => "start_date is not a date" ]
+            ],
+        ];
+
+        $extra = [
+            "validation_class" => new githusband\Test\Extend\MyValidation([
+                "validation_global" => false,
+            ]),
             "method_name" => __METHOD__,
         ];
 
