@@ -8,7 +8,7 @@ function check_age($data, $gender, $param)
 {
     if ($gender == "male") {
         if ($data > $param) return false;
-    }else {
+    } else {
         if ($data < $param) return false;
     }
 
@@ -18,9 +18,8 @@ function check_age($data, $gender, $param)
 class Tests extends TestCommon
 {
 
-    public function __construct($config=array())
+    public function __construct($config = array())
     {
-
     }
 
     public function success($data = array())
@@ -124,13 +123,13 @@ class Tests extends TestCommon
             ],
             "favourite_food[optional].*" => [
                 "name" => "required|string",
-                "place_name" => "optional|string" 
+                "place_name" => "optional|string"
             ]
         ];
 
         $validation_conf = [
             'language' => 'en-us',
-            'validation_global' => true, 
+            'validation_global' => true,
         ];
 
         return $this->validate($data, $rule, $validation_conf);
@@ -251,7 +250,7 @@ class Tests extends TestCommon
 
         $validation_conf = [
             'language' => 'en-us',
-            'validation_global' => true, 
+            'validation_global' => true,
         ];
 
         return $this->validate($data, $rule, $validation_conf);
@@ -314,7 +313,7 @@ class Tests extends TestCommon
                 "favourite_food" => [
                     [
                         "name" => "HuoGuo",
-                        "place_name" => "SiChuan" 
+                        "place_name" => "SiChuan"
                     ],
                     [
                         "name" => "Beijing Kaoya",
@@ -368,7 +367,7 @@ class Tests extends TestCommon
             ],
             "favourite_food[optional].*" => [
                 "name" => "required|string",
-                "place_name" => "optional|string" 
+                "place_name" => "optional|string"
             ]
         ];
 
@@ -437,7 +436,7 @@ class Tests extends TestCommon
                 "favourite_food" => [
                     [
                         "name" => "HuoGuo",
-                        "place_name" => "SiChuan" 
+                        "place_name" => "SiChuan"
                     ],
                     [
                         "name" => "Beijing Kaoya",
@@ -556,7 +555,7 @@ class Tests extends TestCommon
                 "favourite_food" => [
                     [
                         "name" => "HuoGuo",
-                        "place_name" => "SiChuan" 
+                        "place_name" => "SiChuan"
                     ],
                     [
                         "name" => "Beijing Kaoya",
@@ -601,7 +600,7 @@ class Tests extends TestCommon
             "favourite_food[optional].*" => [
                 // favourite_food.*.name 必须是字符串
                 "name" => "required|string",
-                "place_name" => "optional|string" 
+                "place_name" => "optional|string"
             ]
         ];
 
@@ -613,13 +612,13 @@ class Tests extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    protected function validate($data, $rule, $validation_conf=array())
+    protected function validate($data, $rule, $validation_conf = array())
     {
         $validation = new Validation($validation_conf);
 
-        $validation->add_method('check_postcode', function($company) {
-            if (isset($company['country']) && $company['country'] == "US"){
-                if (!isset($company['postcode']) || $company['postcode'] != "123"){
+        $validation->add_method('check_postcode', function ($company) {
+            if (isset($company['country']) && $company['country'] == "US") {
+                if (!isset($company['postcode']) || $company['postcode'] != "123") {
                     // return false;
                     // return "#### check_postcode method error message(@this)";
                     return array(
@@ -635,7 +634,7 @@ class Tests extends TestCommon
 
         if ($validation->set_rules($rule)->validate($data)) {
             return $validation->get_result();
-        }else {
+        } else {
             // return $validation->get_error(true, false);
             // return $validation->get_error(Validation::ERROR_FORMAT_NESTED_DETAILED);
             // return $validation->get_error(Validation::ERROR_FORMAT_NESTED_GENERAL);
@@ -645,13 +644,13 @@ class Tests extends TestCommon
     }
 }
 
-$method = isset($argv[1])? $argv[1] : "error";
+$method = isset($argv[1]) ? $argv[1] : "error";
 
 $test = new Tests();
 
 if (method_exists($test, $method)) {
     $result = call_user_func_array([$test, $method], []);
-}else {
+} else {
     echo "Error test method {$method}.\n";
     die;
 }
