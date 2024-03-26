@@ -110,13 +110,13 @@ class Validation
         'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
         'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
         'symbol_rule_separator' => '|',                         // Rule reqarator for one field
-        'symbol_param_classic' => '/^(.*)\\[(.*)\\]$/',         // If set function by this symbol, will add a @this parameter at first 
-        'symbol_param_force' => '/^(.*)\\((.*)\\)$/',           // If set function by this symbol, will not add a @this parameter at first 
+        'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
+        'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
         'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
         'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
         'symbol_required' => '*',                               // Symbol of required field, Same as "required"
         'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
-        'symbol_unset_required' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
+        'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "optional_unset"
         'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
         'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
         'symbol_index_array' => '.*',                           // Symbol of index array rule
@@ -132,7 +132,7 @@ class Validation
     protected $symbol_full_name = array(
         'symbol_required' => 'required',                // Symbol Full Name of required field
         'symbol_optional' => 'optional',                // Symbol Full Name of optional field
-        'symbol_unset_required' => 'unset_required',    // Symbol Full Name of optional field
+        'symbol_optional_unset' => 'optional_unset',    // Symbol Full Name of optional field
         'symbol_or' => '[or]',                          // Symbol Full Name of or rule
         'symbol_array_optional' => '[optional]',        // Symbol Full Name of array optional rule
     );
@@ -1034,8 +1034,8 @@ class Validation
             case 'required':
                 if (isset($rule_error_msg[$this->config['symbol_required']])) return $rule_error_msg[$this->config['symbol_required']];
                 break;
-            case 'unset_required':
-                if (isset($rule_error_msg[$this->config['symbol_unset_required']])) return $rule_error_msg[$this->config['symbol_unset_required']];
+            case 'optional_unset':
+                if (isset($rule_error_msg[$this->config['symbol_optional_unset']])) return $rule_error_msg[$this->config['symbol_optional_unset']];
                 break;
             default:
                 break;
@@ -1124,13 +1124,13 @@ class Validation
                 }
             }
             // Unset(O!) rule
-            else if ($rule == $this->config['symbol_unset_required'] || $rule == $this->symbol_full_name['symbol_unset_required']) {
+            else if ($rule == $this->config['symbol_optional_unset'] || $rule == $this->symbol_full_name['symbol_optional_unset']) {
                 if (!isset($data[$field])) {
                     return true;
                 } else if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
                     $result = false;
-                    $error_type = 'unset_required_field';
-                    $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_unset_required']);
+                    $error_type = 'optional_unset_field';
+                    $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset']);
                 }
             }
             // Regular expression
@@ -1226,12 +1226,12 @@ class Validation
     protected function parse_method($rule, $data, $field)
     {
         // If force parameter, will not add the field value as the first parameter even though no the field parameter
-        if (preg_match($this->config['symbol_param_force'], $rule, $matches)) {
+        if (preg_match($this->config['symbol_param_standard'], $rule, $matches)) {
             $method = $matches[1];
             $params = $matches[2];
             $params = explode($this->config['symbol_param_separator'], $params);
             // If classic parameter, will add the field value as the first parameter if no the field parameter
-        } else if (preg_match($this->config['symbol_param_classic'], $rule, $matches)) {
+        } else if (preg_match($this->config['symbol_param_this_omitted'], $rule, $matches)) {
             $method = $matches[1];
             $params = $matches[2];
             $params = explode($this->config['symbol_param_separator'], $params);
