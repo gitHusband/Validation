@@ -106,8 +106,9 @@ class Unit extends TestCommon
      *  1. data - case data 
      *  2. expected_msg - expected validation error message
      *  3. err_format => [
-     *      'standard' => is standard error format
-     *      'simple' => is simple error format
+     *      'format' => error format
+     *      'nested' => is nested error format (@deprecated)
+     *      'general' => is general error format (@deprecated)
      *  ],
      *  4. error_tag - get error message of the error_tag
      *  5. field_path - parse error message of @this
@@ -130,8 +131,17 @@ class Unit extends TestCommon
         $result = true;
 
         foreach($cases as $c_field => $case) {
-            $standard = isset($case['err_format']['standard'])? $case['err_format']['standard'] : false;
-            $simple = isset($case['err_format']['simple'])? $case['err_format']['simple'] : true;
+            $is_nested = isset($case['err_format']['nested'])? $case['err_format']['nested'] : false;
+            $is_general = isset($case['err_format']['general'])? $case['err_format']['general'] : true;
+            $error_format = '';
+            if ($is_nested) {
+                if ($is_general) $error_format = Validation::ERROR_FORMAT_NESTED_GENERAL;
+                else $error_format = Validation::ERROR_FORMAT_NESTED_DETAILED;
+            } else {
+                if ($is_general) $error_format = Validation::ERROR_FORMAT_DOTTED_GENERAL;
+                else $error_format = Validation::ERROR_FORMAT_DOTTED_DETAILED;
+            }
+            $error_format = isset($case['err_format']['format']) ? $case['err_format']['format'] : $error_format;
 
             // Check valid cases
             if (strpos($c_field, "Valid") !== false) {
@@ -140,7 +150,7 @@ class Unit extends TestCommon
                 if (!$validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, [
                         "valid_alert" => $valid_alert,
-                        "error_msg" => $validation->get_error($standard, $simple)
+                        "error_msg" => $validation->get_error($error_format)
                     ], $rule, $cases);
                     $result = false;
                 }
@@ -171,7 +181,7 @@ class Unit extends TestCommon
                         }
                     }
 
-                    $error_msg = $validation->get_error($standard, $simple);
+                    $error_msg = $validation->get_error($error_format);
                     if ($expected_msg !== $error_msg) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
                             "Error msg is unexpected.", 
@@ -192,7 +202,7 @@ class Unit extends TestCommon
                     if (!$validation->validate($case['data'])) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
                             "valid_alert" => $valid_alert,
-                            "error_msg" => $validation->get_error($standard, $simple)
+                            "error_msg" => $validation->get_error($error_format)
                         ], $rule, $cases);
                         $result = false;
                     }
@@ -1551,7 +1561,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_dynamic_err_msg_simple()
+    protected function test_dynamic_err_msg_general()
     {
         $rule = [
             "id" => "required|<=>=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
@@ -1926,8 +1936,9 @@ class Unit extends TestCommon
                     "favourite_fruit.fruit_name" => "favourite_fruit.fruit_name must be string",
                 ],
                 "err_format" => [
-                    "standard" => false,
-                    "simple" => true,
+                    "format" => Validation::ERROR_FORMAT_DOTTED_GENERAL,
+                    // "nested" => false,
+                    // "general" => true,
                 ]
             ],
             "Invalid_2" => [
@@ -1958,8 +1969,9 @@ class Unit extends TestCommon
                     ],
                 ],
                 "err_format" => [
-                    "standard" => false,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_DOTTED_DETAILED,
+                    // "nested" => false,
+                    // "general" => false,
                 ]
             ],
             "Invalid_3" => [
@@ -1980,8 +1992,9 @@ class Unit extends TestCommon
                     ],
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => true,
+                    "format" => Validation::ERROR_FORMAT_NESTED_GENERAL,
+                    // "nested" => true,
+                    // "general" => true,
                 ]
             ],
             "Invalid_4" => [
@@ -2014,8 +2027,9 @@ class Unit extends TestCommon
                     ],
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
         ];
@@ -2058,8 +2072,9 @@ class Unit extends TestCommon
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_2" => [
@@ -2073,8 +2088,9 @@ class Unit extends TestCommon
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_3" => [
@@ -2088,8 +2104,9 @@ class Unit extends TestCommon
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_4" => [
@@ -2104,8 +2121,9 @@ class Unit extends TestCommon
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_5" => [
@@ -2120,8 +2138,9 @@ class Unit extends TestCommon
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_6" => [
@@ -2137,8 +2156,9 @@ class Unit extends TestCommon
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
         ];
@@ -2767,8 +2787,9 @@ class Unit extends TestCommon
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => true,
+                    "format" => Validation::ERROR_FORMAT_NESTED_GENERAL,
+                    "nested" => true,
+                    "general" => true,
                 ]
 
             ],
@@ -2991,8 +3012,9 @@ class Unit extends TestCommon
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => true,
+                    "format" => Validation::ERROR_FORMAT_NESTED_GENERAL,
+                    // "nested" => true,
+                    // "general" => true,
                 ]
             ],
         ];

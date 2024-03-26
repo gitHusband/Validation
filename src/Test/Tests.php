@@ -636,8 +636,11 @@ class Tests extends TestCommon
         if ($validation->set_rules($rule)->validate($data)) {
             return $validation->get_result();
         }else {
-            // return $validation->get_result();
-            return $validation->get_error(true, false);
+            // return $validation->get_error(true, false);
+            // return $validation->get_error(Validation::ERROR_FORMAT_NESTED_DETAILED);
+            // return $validation->get_error(Validation::ERROR_FORMAT_NESTED_GENERAL);
+            // return $validation->get_error(Validation::ERROR_FORMAT_DOTTED_DETAILED);
+            return $validation->get_error(Validation::ERROR_FORMAT_DOTTED_GENERAL);
         }
     }
 }

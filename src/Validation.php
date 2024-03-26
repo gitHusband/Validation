@@ -9,6 +9,11 @@ class Validation
 {
     use RuleDefault;
 
+    const ERROR_FORMAT_NESTED_GENERAL = 'NESTED_GENERAL';
+    const ERROR_FORMAT_NESTED_DETAILED = 'NESTED_DETAILED';
+    const ERROR_FORMAT_DOTTED_GENERAL = 'DOTTED_GENERAL';
+    const ERROR_FORMAT_DOTTED_DETAILED = 'DOTTED_DETAILED';
+
     /**
      * Validation rules. Default empty. Should be set before validation.
      * @var array
@@ -45,23 +50,36 @@ class Validation
     /**
      * Contains all error messages.
      * One-dimensional array
-     * Format: parent_field.error_filed => error_message
+     * Format:
+     * {
+     *      "A.1": "error_msg_A1",
+     *      "A.2.a": "error_msg_A2a",
+     * }
+     * 
      * @var array
      */
-    protected $classic_errors = array(
-        'simple' => array(),    // only message string
-        'complex' => array()    // message array, contains error type and error message
+    protected $dotted_errors = array(
+        'general' => array(),    // only message string
+        'detailed' => array()    // message array, contains error type and error message
     );
 
     /**
      * Contains all error messages.
      * Multidimensional array
-     * Format: error_filed => error_message
+     * Format: 
+     * {
+     *      "A": {
+     *          "1": "error_msg_A1",
+     *          "2": {
+     *              "a": "error_msg_A2a"
+     *          }
+     *      }
+     * }
      * @var array
      */
-    protected $standard_errors = array(
-        'simple' => array(),    // only message string
-        'complex' => array()    // message array, contains error type and error message
+    protected $nested_errors = array(
+        'general' => array(),    // only message string
+        'detailed' => array()    // message array, contains error type and error message
     );
 
     /**
@@ -360,8 +378,8 @@ class Validation
     {   
         $this->data = $data;
         $this->result = $data;
-        $this->classic_errors = array();
-        $this->standard_errors = array();
+        $this->dotted_errors = array();
+        $this->nested_errors = array();
 
         $this->validation_status = true;
 
@@ -650,10 +668,10 @@ class Validation
             $result = $this->execute_one_rule($data, $field, $rule_or, $field_path, true);
             $this->set_result($field_path, $result);
             if ($result) {
-                $this->r_unset($this->standard_errors['simple'], $field_path);
-                $this->r_unset($this->standard_errors['complex'], $field_path);
-                unset($this->classic_errors['simple'][$field_path]);
-                unset($this->classic_errors['complex'][$field_path]);
+                $this->r_unset($this->nested_errors['general'], $field_path);
+                $this->r_unset($this->nested_errors['detailed'], $field_path);
+                unset($this->dotted_errors['general'][$field_path]);
+                unset($this->dotted_errors['detailed'][$field_path]);
                 return true;
             }
             if ($key == $or_len-1) {
@@ -1452,35 +1470,6 @@ class Validation
     /**
      * Set error message
      * If one of "or" rule is invalid, don't set _validation_status to false
-     * @Author   Devin
-     * @param    string                   $field      field path
-     * @param    string                   $message    error message
-     * @param    boolean                  $is_or_rule Flag of or rule
-     */
-    protected function set_error_0($field = '', $message = '', $is_or_rule=false)
-    {
-        if (!$is_or_rule) $this->validation_status = false;
-
-        if (!isset($this->classic_errors[$field])) {
-            $this->classic_errors[$field] = $message;
-        } else {
-            // $this->classic_errors[$field] .= " or " . $message;
-            if (is_array($message)) {
-                $this->classic_errors[$field]['message'] .= " or " . $message['message'];
-            } else {
-                $this->classic_errors[$field] .= " or " . $message;
-            }
-        }
-
-        $p_standard_error = & $this->get_field($this->standard_errors, $field, true);
-        $p_standard_error = $this->classic_errors[$field];
-
-        return $this;
-    }
-
-    /**
-     * Set error message
-     * If one of "or" rule is invalid, don't set _validation_status to false
      * If all of "or" rule is invalid, will set _validation_status to false in other method
      * @Author   Devin
      * @param    string                   $field      field path
@@ -1492,51 +1481,78 @@ class Validation
         if (!$is_or_rule) $this->validation_status = false;
 
         if (is_array($message)) {
-            if (!isset($this->classic_errors['simple'][$field])) {
-                $this->classic_errors['complex'][$field] = $message;
-                $this->classic_errors['simple'][$field] = isset($message['message'])? $message['message'] : 'Unknown error';
+            if (!isset($this->dotted_errors['general'][$field])) {
+                $this->dotted_errors['detailed'][$field] = $message;
+                $this->dotted_errors['general'][$field] = isset($message['message'])? $message['message'] : 'Unknown error';
             } else {
                 $error_msg = isset($message['message'])? $message['message'] : 'Unknown error';
-                if ($this->classic_errors['complex'][$field]['message'] !== $error_msg) {
-                    $this->classic_errors['complex'][$field]['message'] .= " or " . $error_msg;
-                    $this->classic_errors['simple'][$field] .= " or " . $error_msg;
+                if ($this->dotted_errors['detailed'][$field]['message'] !== $error_msg) {
+                    $this->dotted_errors['detailed'][$field]['message'] .= " or " . $error_msg;
+                    $this->dotted_errors['general'][$field] .= " or " . $error_msg;
                 }
             }
         } else {
-            if (!isset($this->classic_errors['simple'][$field])) {
-                $this->classic_errors['complex'][$field] = $message;
-                $this->classic_errors['simple'][$field] = $message;
+            if (!isset($this->dotted_errors['general'][$field])) {
+                $this->dotted_errors['detailed'][$field] = $message;
+                $this->dotted_errors['general'][$field] = $message;
             } else {
-                if ($this->classic_errors['complex'][$field] !== $message) {
-                    $this->classic_errors['complex'][$field] .= " or " . $message;
-                    $this->classic_errors['simple'][$field] .= " or " . $message;
+                if ($this->dotted_errors['detailed'][$field] !== $message) {
+                    $this->dotted_errors['detailed'][$field] .= " or " . $message;
+                    $this->dotted_errors['general'][$field] .= " or " . $message;
                 }
             }
         }
 
-        $p_standard_error_simple = & $this->get_field($this->standard_errors['complex'], $field, true);
-        $p_standard_error_simple = $this->classic_errors['complex'][$field];
+        $p_nested_error_detailed = & $this->get_field($this->nested_errors['detailed'], $field, true);
+        $p_nested_error_detailed = $this->dotted_errors['detailed'][$field];
 
-        $p_standard_error_complex = & $this->get_field($this->standard_errors['simple'], $field, true);
-        $p_standard_error_complex = $this->classic_errors['simple'][$field];
+        $p_nested_error_general = & $this->get_field($this->nested_errors['general'], $field, true);
+        $p_nested_error_general = $this->dotted_errors['general'][$field];
 
         return $this;
     }
 
     /**
      * Get error message
-     * @Author   Devin
-     * @param    boolean                  $fromat [description]
-     * @return   array                            [description]
+     *
+     * @param string|bool $error_format Recommend using format strings, not using bool
+     * @param bool $is_general If true, return error message for general error. If false, return error message for detailed error.
+     * @return array
      */
-    public function get_error($standard=true, $simple=true)
+    public function get_error($error_format = self::ERROR_FORMAT_DOTTED_GENERAL, $is_general = true)
     {
-        if ($standard) {
-            if ($simple) return $this->standard_errors['simple'];
-            else return $this->standard_errors['complex'];
-        } else {
-            if ($simple) return $this->classic_errors['simple'];
-            else return $this->classic_errors['complex'];
+        /**
+         * $is_nested and $is_general are deprecated.
+         * Please use $error_format instead.
+         * @deprecated
+         */
+        if (is_bool($error_format)) {
+            $is_nested = $error_format;
+            if ($is_nested) {
+                if ($is_general) return $this->nested_errors['general'];
+                else return $this->nested_errors['detailed'];
+            } else {
+                if ($is_general) return $this->dotted_errors['general'];
+                else return $this->dotted_errors['detailed'];
+            }
+        }
+        
+        switch ($error_format) {
+            case self::ERROR_FORMAT_NESTED_GENERAL:
+                return $this->nested_errors['general'];
+                break;
+            case self::ERROR_FORMAT_NESTED_DETAILED:
+                return $this->nested_errors['detailed'];
+                break;
+            case self::ERROR_FORMAT_DOTTED_GENERAL:
+                return $this->dotted_errors['general'];
+                break;
+            case self::ERROR_FORMAT_DOTTED_DETAILED:
+                return $this->dotted_errors['detailed'];
+                break;
+            default:
+                return $this->nested_errors['general'];
+                break;
         }
     }
 
@@ -1568,7 +1584,7 @@ class Validation
         if ($result == true) {
             if ($p_result !== 'Extra field') $p_result = true;
         } else {
-            $p_result = $this->classic_errors['complex'][$field];
+            $p_result = $this->dotted_errors['detailed'][$field];
         }
     }
 
