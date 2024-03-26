@@ -9,7 +9,7 @@ class ZhCn
         'default' => '@this 验证错误',
         'index_array' => '@this 必须是索引数组',
         'required' => '@this 不能为空',
-        'unset_required' => '@this 允许不设置，一旦设置则不能为空',
+        'optional_unset' => '@this 允许不设置，一旦设置则不能为空',
         'preg' => '@this 格式错误，必须是 @preg',
         'preg_format' => '@this 方法 @preg 不是合法的正则表达式',
         'call_method' => '@method 未定义',

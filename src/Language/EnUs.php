@@ -9,7 +9,7 @@ class EnUs
         'default' => '@this validation failed',
         'index_array' => '@this must be a numeric array',
         'required' => '@this can not be empty',
-        'unset_required' => '@this must be unset or not empty',
+        'optional_unset' => '@this must be unset or not empty',
         'preg' => '@this format is invalid, should be @preg',
         'preg_format' => '@this method @preg is not a valid regular expression',
         'call_method' => '@method is undefined',

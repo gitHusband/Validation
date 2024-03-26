@@ -595,10 +595,10 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_unset_required()
+    protected function test_optional_unset()
     {
         $rule = [
-            "name" => "unset_required|string"
+            "name" => "optional_unset|string"
         ];
 
         $cases = [
@@ -631,7 +631,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_unset_required_symbol()
+    protected function test_optional_unset_symbol()
     {
         $rule = [
             "name" => "O!|string"
@@ -2200,7 +2200,7 @@ class Unit extends TestCommon
     {
         $rule = [
             "id" => 'required|/^\d+$/|<=>=[1,100]| >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
-            "name" => 'unset_required|string >> { "unset_required": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
+            "name" => 'optional_unset|string >> { "optional_unset": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
             "age" => 'optional|<=>=[1,60]|check_err_field >> { "<=>=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
         ];
 
@@ -2292,7 +2292,7 @@ class Unit extends TestCommon
     {
         $rule = [
             "id" => "required|/^\d+$/|<=>=[1,100]| >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
-            "name" => "unset_required|string >> [unset_required] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
+            "name" => "optional_unset|string >> [optional_unset] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
             "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
         ];
 
@@ -2391,9 +2391,9 @@ class Unit extends TestCommon
                 ]
             ],
             "name" => [
-                "unset_required|string",
+                "optional_unset|string",
                 "error_message" => [
-                    "unset_required" => "Users define - @this should be unset or not be empty",
+                    "optional_unset" => "Users define - @this should be unset or not be empty",
                     "string" => "Users define - Note! @this should be string"
                 ]
             ],
@@ -2821,8 +2821,8 @@ class Unit extends TestCommon
             'reg_if_true' => '/^IFn\?/',                    // If match this, validate this condition first, if false, then validate the field
             'symbol_or' => '[or]',                          // Symbol of or rule
             'symbol_rule_separator' => '&&',                // Rule reqarator for one field
-            'symbol_param_classic' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @this parameter at first 
-            'symbol_param_force' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @this parameter at first 
+            'symbol_param_this_omitted' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @this parameter at first 
+            'symbol_param_standard' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @this parameter at first 
             'symbol_param_separator' => ',',                // Parameters separator, such as @this,@field1,@field2
             'symbol_field_name_separator' => '->',          // Field name separator, suce as "fruit.apple"
             'symbol_required' => '!*',                      // Symbol of required field
