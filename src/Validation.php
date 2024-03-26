@@ -252,7 +252,9 @@ class Validation
         $used_traits = $this->get_all_traits();
 
         foreach ($used_traits as $key => $trait) {
-            $trait_name = substr($trait, strrpos($trait, '\\') + 1);
+            $slash_pos = strrpos($trait, '\\');
+            if ($slash_pos !== false) $trait_name = substr($trait, strrpos($trait, '\\') + 1);
+            else $trait_name = $trait;
             $trait_name_uncamelized = $this->uncamelize($trait_name);
             $trait_method_symbol = "method_symbol_of_{$trait_name_uncamelized}";
             if (property_exists($this, $trait_method_symbol)) {
