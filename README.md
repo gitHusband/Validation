@@ -1,281 +1,385 @@
-> 目录
+目录
+=================
 
-- [Validation —— 一款功能丰富的 PHP 参数验证器](#validation--一款功能丰富的-php-参数验证器)
-  - [1. 简介](#1-简介)
-    - [1.1 特点](#11-特点)
-  - [2. 安装](#2-安装)
-  - [3. 规则测试示例](#3-规则测试示例)
-  - [4. 功能介绍](#4-功能介绍)
-    - [4.1 标志性语意](#41-标志性语意)
-    - [4.2 支持正则表达式验证](#42-支持正则表达式验证)
-    - [4.3 自定义验证函数的参数](#43-自定义验证函数的参数)
-    - [4.4 自定义验证函数](#44-自定义验证函数)
-    - [4.5 串联，并联验证](#45-串联并联验证)
-    - [4.6 条件验证](#46-条件验证)
-    - [4.7 无限嵌套的数据结构的验证](#47-无限嵌套的数据结构的验证)
-    - [4.8 特殊的验证规则](#48-特殊的验证规则)
-    - [4.9 自定义配置](#49-自定义配置)
-    - [4.10 支持国际化配置](#410-支持国际化配置)
-    - [4.11 支持一次性验证所有参数](#411-支持一次性验证所有参数)
-    - [4.12 支持自定义错误信息](#412-支持自定义错误信息)
-    - [4.13 支持多种错误信息格式](#413-支持多种错误信息格式)
-  - [附录 1 - 函数标志及其含义](#附录-1---函数标志及其含义)
-  - [附录 2. 验证完整示例](#附录-2-验证完整示例)
-  - [附录 3. 错误信息格式](#附录-3-错误信息格式)
-    - [第一种 - 一维字符型数组](#第一种---一维字符型数组)
-    - [第二种 - 一维关联型数组](#第二种---一维关联型数组)
-    - [第三种 - 无限嵌套字符型数组](#第三种---无限嵌套字符型数组)
-    - [第四种 - 无限嵌套关联型数组](#第四种---无限嵌套关联型数组)
+* [Validation —— PHP 数据合法性的验证器](#validation--php-数据合法性的验证器)
+   * [1. 简介](#1-简介)
+      * [1.1 特点](#11-特点)
+      * [1.2 一个例子](#12-一个例子)
+   * [2. 安装](#2-安装)
+   * [3. 开发](#3-开发)
+   * [4. 功能介绍](#4-功能介绍)
+      * [4.1 方法及其标志](#41-方法及其标志)
+      * [4.2 正则表达式](#42-正则表达式)
+      * [4.3 方法传参](#43-方法传参)
+      * [4.4 方法拓展](#44-方法拓展)
+      * [4.5 串联并联规则](#45-串联并联规则)
+      * [4.6 条件规则](#46-条件规则)
+      * [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
+      * [4.8 可选字段](#48-可选字段)
+      * [4.9 特殊的验证规则](#49-特殊的验证规则)
+      * [4.10 客制化配置](#410-客制化配置)
+      * [4.11 国际化](#411-国际化)
+      * [4.12 验证全部数据](#412-验证全部数据)
+      * [4.13 错误信息](#413-错误信息)
+      * [4.14 错误信息格式](#414-错误信息格式)
+   * [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
+   * [附录 2 - 验证完整示例](#附录-2---验证完整示例)
+   * [附录 3 - 错误信息格式](#附录-3---错误信息格式)
+      * [一维字符型结构](#一维字符型结构)
+      * [一维关联型结构](#一维关联型结构)
+      * [无限嵌套字符型结构](#无限嵌套字符型结构)
+      * [无限嵌套关联型结构](#无限嵌套关联型结构)
 
 
+# Validation —— PHP 数据合法性的验证器
 
-# Validation —— 一款功能丰富的 PHP 参数验证器
+Validation 用于对数据合法性的检查。
 
-Validation 用于对后台参数的合法性检查。
+> [github 仓库](https://github.com/gitHusband/Validation)
 
-> https://github.com/gitHusband/Validation
+**有任何意见或想法，我们可以一起交流探讨！**
 
-**有任何意见或想法，咱们可以一起交流探讨！**
-**联系我：707077549@qq.com**
-
-**# 为什么写这个工具？**
-- 1. 对于后台参数，理论上对每个参数都应该进行合法性检查，尤其是那些需要转发给其他API接口或者需要存储到数据库的参数。
+**:raising_hand: 为什么写这个工具？**
+- 1. 对于API的参数，理论上对每个参数都应该进行合法性检查，尤其是那些需要转发给其他API接口或者需要存储到数据库的参数。
 *比如，数据库基本上对数据长度类型等有限制，对于长度的验证可谓是简单繁琐，使用该工具可以大大简化代码。*
-- 2. 如果参数过多，验证的代码量势必很大，无法直观通过代码明白参数格式。
+- 2. 如果API参数过多，验证的代码量势必很大，无法直观通过代码明白参数格式。
 - 3. 定制一个验证规则数组，规则数组长啥样，请求参数就长啥样。
 - 4. 方便地多样化地设置验证方法返回的错误信息
-- 5. ~~暂时想不到，想到了再给你们编。【狗头保命】~~
+- 5. ~~暂时想不到，想到了再给你们编。~~:dog:
 
-**# 下面简单介绍下该工具的用法：**
-```php
-// 请求参数
-// 简单示例，实际上无论请求参数多么复杂，都支持一个验证规则数组完成验证
+## 1. 简介
+### 1.1 特点
+- 一个字段对应一个验证规则，一个规则由多个验证方法（函数）组成。
+- 验证方法支持用标志代替，易于理解，简化规则。采用`*`, `>`, `<`, `len>` 等方法标志，比如 `*` 表示必要的
+- 支持正则表达式
+- 支持方法传参。如 `@this` 代表当前字段值
+- 支持拓展方法
+- 支持串联验证：一个参数多个方法必须全部满足
+- 支持并联验证：一个参数多个规则满足其一即可
+- 支持条件验证：条件满足则继续验证后续方法，不满足则表明该字段是可选的
+- 支持无限嵌套的数据结构，包括关联数组，索引数组
+- 支持特殊的验证规则
+- 支持客制化配置。比如多个方法的分隔符号默认 `|`，可以改为其他字符，如 `;`
+- 支持国际化。默认英语，支持自定义方法返回错误信息
+- 支持一次性验证全部数据(默认)，也可设置参数验证失败后立即结束验证
+- 支持自定义错误信息，支持多种格式的错误信息，无限嵌套或者一维数组的错误信息格式
+- ~~暂时想不到，想到了再给你们编。~~:dog:
+
+### 1.2 一个例子
+```PHP
+use githusband\Validation;
+
+// 待验证参数的简单示例。实际上无论参数多么复杂，都支持一个验证规则数组完成验证
 $data = [
     "id" => 1,
-    "name" => "Peter",
-    "age" => 18
+    "name" => "Devin",
+    "age" => 18,
+    "favorite_animation" => [
+        "name" => "A Record of A Mortal's Journey to Immortality",
+        "release_date" => "July 25, 2020 (China)"
+    ]
 ];
 
-// 验证规则数组
+// 验证规则数组。规则数组的格式与待验证参数的格式相同。
 $rule = [
     "id" => "required|/^\d+$/",         // 必要的，且只能是数字
-    "name" => "required|len<=>[3,32]"   // 必要的，且字符串长度必须大于3，小于等于32
+    "name" => "required|len<=>[3,32]",  // 必要的，且字符串长度必须大于3，小于等于32
+    "favorite_animation" => [
+        "name" => "required|len<=>[1,64]",          // 必要的，且字符串长度必须大于1，小于等于64
+        "release_date" => "optional|len<=>[4,64]",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
+    ]
 ];
 
-// 实例化类，接受一个配置数组，但不必要
 $config = [];
+// 实例化类，接受一个自定义配置数组，但不必要
 $validation = new Validation($config);
 
 // 设置验证规则并验证数据，成功返回 true，失败返回 false
-if($validation->set_rules($rule)->validate($data)) {
+if ($validation->set_rules($rule)->validate($data)) {
     // 这里获取验证结果，有被规则{$rule}验证到的参数，成功则修改其值为true，失败则修改其值为错误信息，
     // 没有被验证到的参数，保持原值不变。比如 age 保持 18 不变。
     return $validation->get_result();
-}else {
-    // 这里有两个参数，分别对应不同的错误信息格式，一共有四种错误信息可供选择。
-    return $validation->get_error(true, false);
+} else {
+    // 一共有四种错误信息格式可供选择。默认 Validation::ERROR_FORMAT_DOTTED_GENERAL
+    return $validation->get_error();
 }
 ```
 
 理论上，该工具是用于验证复杂的数据结构的，但如果你想验证单一字符串，也可以，例如
 
-```
+```PHP
 $validation->set_rules("required|string")->validate("Hello World!");
 ```
 
-以上仅展示简单示例，实际上无论请求参数多么复杂，都支持一个验证规则数组完成验证。具体参考 [附录 2. 验证完整示例](#附录-2-验证完整示例)
-
-## 1. 简介
-### 1.1 特点
-- 标志性语意，易于理解。采用*, >, <, >=, len>, int, (n), (s) 等函数标志，比如(n)表示in_array, 且必须是数字
-- 支持正则表达式
-- 支持自定义验证函数的参数
-*@root(原数据), @parent(验证字段的父数据), @this(当前字段)，@anything(任意字段，如@id)*
-- 支持自定义函数
-- 支持串联验证(一个参数多个规则必须全部满足)，并联验证(一个参数多个规则满足其一即可)
-- 支持条件验证，条件满足则继续验证后续规则，不满足则表明该字段是可选的
-- 支持无限嵌套的数据结构的验证，包括关联数组，索引数组
-- 支持特殊的验证规则
-- 支持自定义配置，比如规则分隔符号"|"，参数分隔符号","等等
-- 支持国际化配置，默认英语，支持自定义方法返回错误信息
-- 支持一次性验证所有参数(默认)，也可设置参数验证失败后立即结束验证
-- 支持自定义错误信息，支持多种格式的错误信息，无限嵌套或者一维数组的错误信息格式
-- ~~暂时想不到，想到了再给你们编。【狗头保命】~~
+- 以上仅展示简单示例，实际上无论请求参数多么复杂，都支持一个验证规则数组完成验证。参考 [附录 2 - 验证完整示例](#附录-2---验证完整示例)
+- 规则写的太丑了？参考 [4.10 客制化配置](#410-客制化配置)
 
 ## 2. 安装
-> composer require githusband/validation
-
-## 3. 规则测试示例
-**注意**：在 src/Test 目录下已经内置了完整测试类Tests.php 和单元测试类 Unit.php。
-
-**完整测试类**：
-```
-// 验证成功测试, 返回测试结果：
-php Tests.php success
-// 验证成功测试，返回错误信息：
-php Tests.php error
-// 附录2 测试代码
-php Tests.php readme_case
-```
-详见[附录 2. 验证完整示例](#附录-2-验证完整示例)
-
-**单元测试类**：
-
-包含了所有功能的测试，只包含部分内置函数
-
-原则上修改代码后跑一遍单元测试，确保功能正常。如果测试报错，定位问题再解决。
-
-```
-// 测试所有例子：
-php Unit.php run
-// 测试单一例子，如测试正则表达式：
-php Unit.php run test_regular_expression
+```BASH
+$ composer require githusband/validation
 ```
 
+## 3. 开发
+如果你有想法优化开发本工具，以下将为你提供帮助：
+
+在 `src/Test` 目录下已经内置了文档测试类 `Readme.php` 和单元测试类 `Unit.php`。
+
+- **文档测试类**
+
+文档代码：[1.2 一个例子](#12-一个例子)
+```BASH
+// 验证成功测试, 返回测试结果
+$ php Readme.php test_simple_example
+```
+文档代码：[附录 2 - 验证完整示例](#附录-2---验证完整示例)
+```BASH
+// 验证成功测试，返回错误信息
+$ php Readme.php test_full_example
+```
+
+- **单元测试类**
+
+这里包含了所有功能的测试，只包含部分内置函数
+原则上修改代码后跑一遍单元测试，确保功能正常。
+如果测试报错，定位问题再解决。
+
+```BASH
+// 测试所有例子
+$ php Unit.php run
+// 测试单一例子，例如，测试正则表达式
+$ php Unit.php run test_regular_expression
+```
 
 
 ## 4. 功能介绍
 
-### 4.1 标志性语意
-为了便于理解以及简化规则，允许采用一些函数**标志**代表实际的函数。
-```php
+### 4.1 方法及其标志
+一般，一个字段对应一个验证规则，一个规则由多个验证方法（函数）组成。
+为了便于理解以及简化规则，允许采用一些方法 **标志** 代表实际的方法（函数）。
+
+```PHP
 // 名字是必要的，必须是字符串，长度必须大于3且小于等于32
 "name" => "required|string|length_greater_lessequal[3,32]"
 
 // 采用函数标志，同上
 // 若是觉得函数标志难以理解，请直接使用函数全称即可
-"name" => "required|string|len<=>[3,32]"
+"name" => "*|string|len<=>[3,32]"
 ```
 
 例如:
 
-标志 | 函数 | 含义
+标志 | 方法 | 含义
 ---|---|---
 \* | required | 必要的，不允许为空
 O | optional | 可选的，允许不设置或为空
-O! | unset_required | 可选的，允许不设置，一旦设置则不能为空
+O! | optional_unset | 可选的，允许不设置，一旦设置则不能为空
 \>[20] | greater_than | 数字必须大于20
 len<=>[2,16] | length_greater_lessequal | 字符长度必须大于2且小于等于16
 ip | ip | 必须是ip地址
 
-**完整函数标志请查看 [附录 1 - 函数标志及其含义](#附录-1---函数标志及其含义)**
+**完整的方法及其标志见** [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
 
-### 4.2 支持正则表达式验证
-以 "**/**" 开头，以 "**/**" 结尾，表示是正则表达式
-```php
+### 4.2 正则表达式
+一般以 `/` 开头，以 `/` 结尾，表示是正则表达式
+正则表达式最后面的 `/` 之后可能跟随着 模式修饰符，如 `/i`
+```PHP
 // id 是必要的，且必须是数字
 "id" => "required|/^\d+$/",
 ```
+支持在一个串联规则中，同时使用多个正则表达式
 
-### 4.3 自定义验证函数的参数
-1. **验证函数使用参数**
-跟 PHP 函数使用参数一样，参数写在小括号`()`里面，多个参数以逗号`,`分隔
+### 4.3 方法传参
+在以字符串书写的规则中，如何给方法传参呢？
+
+1. **标准参数**
+跟 PHP 函数使用参数一样，参数写在小括号`()`里面，多个参数以逗号`,`分隔，`,`前后不允许多余的空格
 例如，
 ```
 "age" => "equal(@this,20)"
 ```
 *表示 age 必须等于20。这里的 `@this` 代表当前 age 字段的值。*
 
-2. **函数默认参数**
-当参数写在中括号[]里面时，首个 @this 参数可省略不写。
-例如，上述例子可简写为
+2. **省略 `@this` 参数**
+当参数写在中括号`[]`里面时，首个 `@this` 参数可省略不写。
+例如，上述例子可简写为：
 ```
 "age" => "equal[20]"
 ```
 
-3. 当函数参数只有一个且为当前字段值时，可省略 () 和 [] ，只写函数名。
+3. **省略参数**
+当函数参数只有一个且为当前字段值时，可省略 `()` 和 `[]` ，只写方法。
+
+**参数类型表**
 
 参数 | 含义
 ---|---
-value | 代表参数是 value 字符串，允许为空。例如 20
+静态值 | 代表参数是静态字符串，允许为空。例如 20
 @this | 代表参数是当前字段的值
 @parent | 代表参数是当前字段的父元素的值
 @root | 代表参数是整个原始验证数据
 @field_name | 代表参数是整个验证数据中的字段名是 field_name 的字段
 
-### 4.4 自定义验证函数
-本工具已经内置了不少验证函数，例如 \*，>, len>=, ip 等等。详见[附录 3. 错误信息格式](#附录-3-错误信息格式)
+### 4.4 方法拓展
+Validation 类中内置了一些验证方法，例如 `*`，`>`, `len>=`, `ip` 等等。详见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
 
-如果验证规则比较复杂，内置函数无法满足需求，可以使用自定义函数验证
+如果验证规则比较复杂，内置方法无法满足你的需求，可以拓展你自己方法
 
-自定义函数验证支持两种方式：
-1. 注册自定义函数的接口：add_method
+拓展方法有三种方式：
+1. **注册新的方法**：`add_method`
 
-```
-// 注册一个自定义函数，check_postcode
-$validation->add_method('check_postcode', function($company) {
-    if(isset($company['country']) && $company['country'] == "US"){
-        if(!isset($company['postcode']) || $company['postcode'] != "123"){
-            return false;
-        }
+```PHP
+// 注册一个新的方法，check_id
+$validation->add_method('check_id', function ($id) {
+    if ($id == 0) {
+        return false;
     }
 
     return true;
 });
+
+// 规则这么写
+$rule = [
+    // 必要的，且只能是数字，且必须大于 0
+    "id" => "required|/^\d+$/|check_id",
+];
 ```
 
-- 全局函数
+2. **拓展 `Validation` 类**
 
-三种函数的优先级是
-> add_method > 内置函数 > 全局函数
+拓展 `Validation` 类并重写内置方法或者增加新的内置方法。推荐用 [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
+ 
+```PHP
+use githusband\Validation;
 
-若函数都不存在，则报错。
+/**
+ * 1. 推荐用 trait 拓展验证方法
+ * 如果需要定义方法标志，将他们放在属性中，属性命名规则：“method_symbol_of_” + 类名（大驼峰转下划线）
+ */
+trait RuleCustome
+{
+    protected $method_symbol_of_rule_custome = [
+        '=1' => 'euqal_to_1',
+    ];
 
-### 4.5 串联，并联验证
-- 串联：一个参数多个规则必须全部满足，标志是 **|**
+    protected function euqal_to_1($data)
+    {
+        return $data == 1;
+    }
+}
+
+/**
+ * 2. 拓展类，直接增加验证方法
+ * 如果需要定义方法标志，将他们放在属性 method_symbol 中
+ */
+class MyValidation extends Validation
+{
+    use RuleCustome;
+
+    protected $method_symbol = [
+        ">=1" => "grater_than_or_equal_to_1",
+    ];
+
+    protected function grater_than_or_equal_to_1($data)
+    {
+        return $data >= 1;
+    }
+}
+
+/**
+ * 规则就这么写
+ */
+$rule = [
+    // id 必要的，且必须大于等于 1
+    "id" => "required|>=1",
+    // parent_id 可选的，且必须等于 1
+    "parent_id" => "optional|euqal_to_1",
+];
 ```
+
+- 3. **全局函数**
+包括系统自带的函数和用户自定义的全局函数。
+
+**三种函数的优先级**
+`add_method` > `内置方法` > `全局函数`
+
+若方法都不存在，则报错：未定义
+
+### 4.5 串联并联规则
+- 串联：一个参数的多个方法必须全部满足，标志是 `|`
+```PHP
 "age" => "required|equal[20]"
 ```
-- 并联：一个参数多个规则满足其一即可，使用方法： {字段名} + **[or]**（标志是 **[||]** , 标志支持自定义，使用方法同 **[or]** ）
-```php
+- 并联：一个参数的多个规则满足其一即可。使用方法：
+  - `{字段名}` + `[or]`
+  - 当前字段下增加唯一子字段 `[or]`
+
+`[or]` 的标志是 `[||]` , 标志支持自定义，使用方法同 `[or]`
+```PHP
 // 串联，身高单位是必须的，且必须是 cm 或者 m
 "height_unit" => "required|(s)[cm,m]",
-// 并联
+// 1. 并联，规则可以这么写，[or] 可以替换成标志 [||]
 "height[or]" => [
     // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
     "required|=(@height_unit,cm)|<=>=[100,200]",
     // 若身高单位是米 m, 则身高必须大于等于1，小于等于2
     "required|=(@height_unit,m)|<=>=[1,2]",
 ]
+// 2. 并联，规则也可以这么写，标志 [||] 可以替换成 [or]
+"height" => [
+    "[||]" => [
+        // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
+        "required|=(@height_unit,cm)|<=>=[100,200]",
+        // 若身高单位是米 m, 则身高必须大于等于1，小于等于2
+        "required|=(@height_unit,m)|<=>=[1,2]",
+    ]
+]
 ```
 
-### 4.6 条件验证
-条件验证写法也跟 PHP 语法差不多，"**if()**" 
+### 4.6 条件规则
 
-正条件：**if()**
+条件规则的写法也跟 PHP 语法差不多，`if()`
 
-- 如果条件成立，则继续验证后续规则
-- 如果条件不成立，说明该字段是可选的：1. 若该字段为空，立刻返回验证成功；2. 若该字段不为空，则继续验证后续规则
+正条件：`if()`
 
-```php
+- 如果条件成立，则继续验证后续方法
+- 如果条件不成立，说明该字段是可选的：
+  1. 若该字段为空，立刻返回验证成功；
+  2. 若该字段不为空，则继续验证后续方法
+
+```PHP
 $rule = [
-    // 性别的必要的，且只能是 male(男性) 或 (female)女性
-    "gender" => "required|(s)[male,female]",
-    // 若性别是女性 female，则要求年龄大于22岁，若为男性，则对年龄无要求
-    "age" => "if(=(@gender,female))|required|>[22]",
-],
+    // 特征是必要的，且只能是 height(身高) 或 weight(体重)
+    "attribute" => "required|(s)[height,weight]",
+    // 若属性是 height, 则 centimeter 是必要的，若为 weight，则是可选的。
+    // 无论如何，若该值非空，则必须大于 180
+    "centimeter" => "if(=(@attribute,height))|required|>[180]",
+];
 ```
-否条件：**!if()**
+否条件：`!if()`
 
-- 如果条件不成立，则继续验证后续规则
-- 如果条件成立，说明该字段是可选的：1. 若该字段为空，立刻返回验证成功；2. 若该字段不为空，则继续验证后续规则
+- 如果条件不成立，则继续验证后续方法
+- 如果条件成立，说明该字段是可选的：
+  1. 若该字段为空，立刻返回验证成功；
+  2. 若该字段不为空，则继续验证后续方法
 
-```php
+```PHP
 $rule = [
-    // 性别的必要的，且只能是 male(男性) 或 (female)女性
-    "gender" => "required|(s)[male,female]",
-    // 若性别不是女性 female，则要求年龄大于22岁，若为女性，则对年龄无要求
-    "age" => "!if(=(@gender,female))|required|>[22]",
-],
+    // 特征是必要的，且只能是 height(身高) 或 weight(体重)
+    "attribute" => "required|(s)[height,weight]",
+    // 若属性不是 weight, 则 centimeter 是必要的，若为 weight，则是可选的。
+    // 无论如何，若该值非空，则必须大于 180
+    "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
+];
 ```
 
-### 4.7 无限嵌套的数据结构的验证
-支持无限嵌套的数据结构的验证，包括关联数组，索引数组
+### 4.7 无限嵌套的数据结构
 
-1. 无限嵌套的关联数组
-验证数据怎么写，规则数组就怎么写。
-```php
-"data" => [
+支持无限嵌套的数据结构，包括关联数组，索引数组
+
+**1. 无限嵌套的关联数组**
+验证数据怎么写，规则数组就怎么写。例如：
+```PHP
+$data = [
     "id" => 1,
     "name" => "Johnny",
     "favourite_fruit" => [
@@ -283,7 +387,7 @@ $rule = [
         "color" => "red",
         "shape" => "circular"
     ]
-]
+];
 
 // 若要验证上述 $data，规则可以这么写
 $rule = [
@@ -297,17 +401,17 @@ $rule = [
 ];
 ```
 
-2. 无限嵌套的索引数组
-索引数组字段名称后面加上标志 **.\***，或者索引数组加上唯一子元素 **\***
-```php
+**2. 无限嵌套的索引数组**
+索引数组字段的名称后面加上标志 `.*`，或者给索引数组字段加上唯一子元素 `*`
+```PHP
 $data = [
     "id" => 1,
     "name" => "Johnny",
-    "favourite_color" => {
+    "favourite_color" => [
         "white",
         "red"
-    },
-    "favourite_fruits" => {
+    ],
+    "favourite_fruits" => [
         [
             "name" => "apple",
             "color" => "red",
@@ -318,7 +422,7 @@ $data = [
             "color" => "yellow",
             "shape" => "long strip"
         ],
-    }
+    ]
 ];
 
 // 若要验证上述 $data，规则可以这么写
@@ -340,7 +444,7 @@ $rule = [
     "favourite_color" => [
         "*" => "required|len>[3]"
     ],
-    "favourite_fruits.*" => [
+    "favourite_fruits" => [
         "*" => [
             "name" => "required|len>[3]",
             "color" => "required|len>[3]",
@@ -350,160 +454,50 @@ $rule = [
 ];
 ```
 
-**可选数组规则**
+### 4.8 可选字段
 
-有时候，数组也是可选的，但是一旦设置，其中的子元素必须按规则验证，这时候只需要在数组字段名后面加上"**[optional]**" 标志，表示该数组可选，如：
+1. 一般的，对于一个叶子字段（无任何子字段），可以直接使用 `optional` 方法，表示该字段是可选的。
+2. 有时候，数组也是可选的，但是一旦设置，其中的子元素必须按规则验证。对于这种情况，只需要在数组字段名后面加上 `[optional]`，表示该数组是可选的。
+3. 与在字段名后面加上 `[optional]` 一样的效果，给字段增加唯一子元素 `[optional]`，也表示该字段是可选的。
+4. `[optional]` 的标志是 `[O]`，两者可以互相替换。
 
-```
-"favourite_fruits[optional].*" => [
-    "name" => "required|len>[4]",
-    "color" => "required|len>[4]",
-    "shape" => "required|len>[4]"
-]
-```
-### 4.8 特殊的验证规则
-支持的特殊规则有：
-
-全称 | 标志 | 含义
----|---|---
-[optional] | [O] | 表明字段是可选的，支持数组
-[or] | [\|\|] | 表明单个字段是或规则，多个规则满足其一即可
- (无全称) | .* | 表明字段是可选的，支持数组
-
-注意：标志使用方法和全称一样，且标志支持自定义为你喜欢的标志。
-
-"**[optional]**" - 表明单个字段或数组是可选的。
-注意，表明单个字段可选，可在字段规则上加上 **optional** 即可。
-
-```
+例如：
+```PHP
 $rule = [
+    // 1. 叶子字段，直接使用 optional 方法，表示该字段是可选的
     "name" => "optional|string",
-    "gender" => [ "[optional]" => "string" ],
-    // favourite_fruit 是可选的，如果存在，则必须是数组
+    // 2. 任意字段，在字段名后面添加 [optional]，表示该字段是可选的
     "favourite_fruit[optional]" => [
         "name" => "required|string",
         "color" => "required|string"
     ],
-    // 等同于上的写法
-    "favourite_meat" => [
+    // 3. 任意字段，增加唯一子元素 [optional]，表示该字段是可选的
+    "gender" => [ "[optional]" => "string" ],
+    "favourite_food" => [
         "[optional]" => [
             "name" => "required|string",
-            "from" => "required|string"
+            "taste" => "required|string"
         ]
     ],
 ];
 ```
-"**[or]**" - 表明单个字段是或规则，多个规则满足其一即可。
+### 4.9 特殊的验证规则
 
-```
-$rule = [
-    // name 可以是布尔值或者布尔字符串
-    "name[or]" => [
-        "required|bool",
-        "required|bool_str",
-    ],
-    // 等同于上的写法
-    "height" => [
-        "[or]" => [
-            "required|int|>[100]",
-            "required|string",
-        ]
-    ]
-];
-```
-"**.\***" - 表明该字段是索引数组。
+特殊规则列表：
 
-当索引数组的标志以 . 开头时，在标志不是跟随在字段名后面的情况下，可省略 .
+全称 | 标志 | 含义
+---|---|---
+[optional] | [O] | 表明字段是可选的，支持数组。见 [4.8 可选字段](#48-可选字段)
+[or] | [\|\|] | 表明单个字段是或规则，多个规则满足其一即可。见 [4.5 串联并联规则](#45-串联并联规则)
+ (无全称) | .* | 表明字段是可选的，支持数组。见 [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
 
-```
-$rule = [
-    "person" => [
-        // 表明 person 是索引数组, person.* 是关联数组
-        // 在这种情况下，可省略 . ,只写 *
-        "*" => [
-            "name" => "required|string",
-            // 表明 person.*.relation 是关联数组
-            "relation" => [
-                "father" => "required|string",
-                "mother" => "optional|string",
-                "brother" => [
-                    // 表明 person.*.relation.*.brother 是可选的索引数组
-                    "[optional].*" => [
-                        // 表明 person.*.relation.*.brother.* 是索引数组
-                        "*" => [
-                            "name" => "required|string",
-                            "level" => [
-                                "[or]" => [
-                                    "required|int",
-                                    "required|string",
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ],
-            "fruit" => [
-                "*" => [
-                    "*" => [
-                        "name" => "required|string",
-                        "color" => "optional|string",
-                    ]
+注意：标志使用方法和全称一样，且标志支持 [客制化](#410-客制化配置)。
 
-                ]
-            ],
-        ]
-    ],
-];
+### 4.10 客制化配置
 
-// 验证数据格式如下
-$data = [
-    "person" => [
-        [
-            "name" => "Devin", 
-            "relation" => [
-                "father" => "fDevin", 
-                "mother" => "mDevin",
-                "brother" => [
-                    [
-                        ["name" => "Tom", "level" => 1],
-                        ["name" => "Mike", "level" => "Second"],
-                    ]
-                ]
-            ],
-            "fruit" => [
-                [
-                    ["name" => "Apple", "color" => "Red"],
-                    ["name" => "Banana", "color" => "Yellow"],
-                ],
-                [
-                    ["name" => "Cherry", "color" => "Red"],
-                    ["name" => "Orange", "color" => "Yellow"],
-                ]
-            ]
-        ],
-        [
-            "name" => "Johnny", 
-            "relation" => ["father" => "fJohnny", "mother" => "mJohnny"],
-            "fruit" => [
-                [
-                    ["name" => "Apple", "color" => "Red"],
-                    ["name" => "Banana", "color" => "Yellow"],
-                ],
-                [
-                    ["name" => "Cherry", "color" => "Red"],
-                    ["name" => "Orange", "color" => "Yellow"],
-                ]
-            ]
-        ],
-    ],
-]
-```
+支持客制化的配置有：
 
-
-### 4.9 自定义配置
-支持自定义的配置有：
-
-```
+```PHP
 $config = array(
     'language' => 'en-us',                                  // Language, default is en-us
     'lang_path' => '',                                      // Customer Language file path
@@ -511,97 +505,65 @@ $config = array(
     'auto_field' => "data",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
     'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
     'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
+    'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
     'reg_if' => '/^!?if\((.*)\)/',                          // If match this, validate this condition first
     'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
     'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
     'symbol_rule_separator' => '|',                         // Rule reqarator for one field
-    'symbol_param_classic' => '/^(.*)\\[(.*)\\]$/',         // If set function by this symbol, will add a @this parameter at first 
-    'symbol_param_force' => '/^(.*)\\((.*)\\)$/',           // If set function by this symbol, will not add a @this parameter at first 
+    'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
+    'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
     'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
     'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
     'symbol_required' => '*',                               // Symbol of required field, Same as "required"
     'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
-    'symbol_unset_required' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
+    'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "optional_unset"
     'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
     'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
     'symbol_index_array' => '.*',                           // Symbol of index array rule
 );
 ```
-例如:
 
-```
-$validation_conf = array(
-    'language' => 'en-us',                          // Language, default is en-us
-    'validation_global' => true,                    // If true, validate all rules; If false, stop validating when one rule was invalid.
-    'reg_msg' => '/ >>>(.*)$/',                     // Set special error msg by user 
-    'reg_preg' => '/^Reg:(\/.+\/.*)$/',             // If match this, using regular expression instead of method
-    'reg_if' => '/^IF[yn]?\?(.*)$/',                     // If match this, validate this condition first
-    'reg_if_true' => '/^IFy?\?/',                   // If match this, validate this condition first, if true, then validate the field
-    'reg_if_true' => '/^IFn\?/',                    // If match this, validate this condition first, if false, then validate the field
-    'symbol_or' => '[or]',                          // Symbol of or rule
-    'symbol_rule_separator' => '&&',                // Rule reqarator for one field
-    'symbol_param_classic' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @this parameter at first 
-    'symbol_param_force' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @this parameter at first 
-    'symbol_param_separator' => ',',                // Parameters separator, such as @this,@field1,@field2
-    'symbol_field_name_separator' => '->',          // Field name separator, suce as "fruit.apple"
-    'symbol_required' => '!*',                      // Symbol of required field
-    'symbol_optional' => 'o',                       // Symbol of optional field
-    'symbol_array_optional' => '[o]',               // Symbol of array optional
-    'symbol_index_array' => '[N]',                  // Symbol of index array
+例如，你觉得我设计的规则太丑了，一点都不好理解。:rage:于是你做了以下的修改:
+
+```PHP
+$custom_config = array(
+    'reg_preg' => '/^Reg:(\/.+\/.*)$/',                     // If match this, using regular expression instead of method
+    'symbol_rule_separator' => '&&',                        // Rule reqarator for one field
+    'symbol_param_this_omitted' => '/^(.*)~(.*)$/',         // If set function by this symbol, will add a @this parameter at first 
+    'symbol_param_standard' => '/^(.*)#(.*)$/',             // If set function by this symbol, will not add a @this parameter at first 
+    'symbol_param_separator' => '+',                        // Parameters separator, such as @this,@field1,@field2
+    'symbol_field_name_separator' => '->',                  // Field name separator, suce as "fruit.apple"
+    'symbol_required' => '!*',                              // Symbol of required field, Same as "required"
+    'symbol_optional' => 'o?',                              // Symbol of optional field, can be unset or empty, Same as "optional"
 );
-```
-相关规则可以这么写：
 
+$validation = new Validation($custom_config);
 ```
+
+那么，[1.2 一个例子](#12-一个例子) 中的规则可以这么写：
+
+```PHP
 $rule = [
-    "id" => "!*&&int&&Reg:/^\d+$/i",
-    "name" => "!*&&string&&len<=>~8,32",
-    "gender" => "!*&&(s)~male,female",
-    "dob" => "!*&&dob",
-    "age" => "!*&&check_age~@gender,30 >>>@this is wrong",
-    "height_unit" => "!*&&(s)~cm,m",
-    "height[or]" => [
-        "!*&&=~~@height_unit,cm&&<=>=~100,200 >>>@this should be in [100,200] when height_unit is cm",
-        "!*&&=~~@height_unit,m&&<=>=~1,2 >>>@this should be in [1,2] when height_unit is m",
-    ],
-    "education" => [
-        "primary_school" => "!*&&=~Qiankeng Xiaoxue",
-        "junior_middle_school" => "!*&&!=~Foshan Zhongxue",
-        "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&len>~10",
-        "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&len>~10",
-    ],
-    "company" => [
-        "name" => "!*&&len<=>~8,64",
-        "country" => "o&&len>=~3",
-        "addr" => "!*&&len>~16",
-        "colleagues[N]" => [
-            "name" => "!*&&string&&len<=>~3,32",
-            "position" => "!*&&(s)~Reception,Financial,PHP,JAVA"
-        ],
-        "boss" => [
-            "!*&&=~Mike",
-            "!*&&(s)~Johnny,David",
-            "o&&(s)~Johnny,David"
-        ]
-    ],
-    "favourite_food[o][N]" => [
-        "name" => "!*&&string",
-        "place_name" => "o&&string" 
+    "id" => "!*&&Reg:/^\d+$/",          // 必要的，且只能是数字
+    "name" => "!*&&len<=>~3+32",        // 必要的，且字符串长度必须大于3，小于等于32
+    "favorite_animation" => [
+        "name" => "!*&&len<=>~1+64",                // 必要的，且字符串长度必须大于1，小于等于64
+        "release_date" => "o?&&len<=>#@this+4+64",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
     ]
 ];
 ```
+是不是变得更加漂亮了呢？:heart_eyes:快来试试吧！
 
 
-
-### 4.10 支持国际化配置
+### 4.11 国际化
 
 配置文件名和类名都采用大驼峰命名方式。
 
-调用时，支持使用标准的语言代码，如"zh-cn", "en-us"等。
+调用时，支持使用标准的语言代码，如`zh-cn`, `en-us`等。
 
-目前支持的语言有，"zh-cn", "en-us"，默认语言是"en-us"英语。
+目前支持的语言有，`zh-cn`, `en-us`，默认语言是`en-us`(英语)。
 
-```
+```PHP
 // 调用接口
 $validation->set_language('zh-cn'); //将加载 ZhCn.php 配置文件
 
@@ -615,10 +577,10 @@ $validation = new Validation($validation_conf);
 
 **自定义国际化文件**
 
-如 /MyPath/MyLang.php。
+如 `/MyPath/MyLang.php`
 
 内容如下：
-```
+```PHP
 <?php
 
 class MyLang
@@ -630,31 +592,31 @@ class MyLang
 ```
 修改语言文件路径
 
-```
+```PHP
 // You should add CustomLang.php in '/MyPath/'
 $validation->set_config(array('lang_path' => /MyPath/'))->set_language('MyLang');
 ```
 
-实际上，国际化配置，配置的是每个验证函数返回的错误信息，也可以自由地覆盖增加你的验证函数返回的错误信息。
+实际上，国际化，配置的是每个验证函数返回的错误信息，也可以自由地覆盖增加你的验证函数返回的错误信息。
 
-```
+```PHP
 // 必须是对象
 $lang_config = (object)array();
 $lang_config->error_template = array(
     'check_id' => '@this error!(customed)'
 );
 
-$validation->custom_language($lang_config);
+$validation->custom_language($lang_config, 'MyErrorTemplate');
 ```
 以上为错误模版增加了一个check_id, 如果check_id 函数验证错误，则返回信息
 
-```
+```PHP
 '@this error!(customed)'
 ```
 
-### 4.11 支持一次性验证所有参数
-支持一次性验证所有参数(默认)，也可设置参数验证失败后立即结束验证
-```
+### 4.12 验证全部数据
+支持一次性验证全部数据(默认)，也可设置任意参数验证失败后立即结束验证后续字段
+```PHP
 // 调用接口
 $validation->set_validation_global(false);
 
@@ -666,40 +628,44 @@ $validation_conf = [
 $validation = new Validation($validation_conf);
 ```
 
-### 4.12 支持自定义错误信息
-自定义错误信息的标志是 " >> ", 注意前后空格。
+### 4.13 错误信息
+
+在一个规则最后，可以设置规则的错误信息。其标志是 "` >> `", 注意前后各有一个空格。
 
 例如：
 
-1. \*或者**正则**或者<=>=方法 错误都报错 "id is incorrect."
-```
+1. **字符串：表示无论规则中的任何方法验证失败，都将返回此错误信息**
+`*`或者 正则 或者`<=>=`方法，无论哪一个验证失败都报错 "id is incorrect."
+```PHP
 "id" => 'required|/^\d+$/|<=>=[1,100] >> @this is incorrect.'
 ```
-2. 支持JSON 格式错误信息，为每一个方法设置不同的错误信息
 
-```
+2. **JSON 格式错误信息，为每一个方法设置不同的错误信息**
+
+```PHP
 "id" => 'required|/^\d+$/|<=>=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}'
 
 # 对应的报错信息为
-# id - Users define - id is required
+# required - Users define - id is required
 # /^\d+$/ - Users define - id should be \"MATCHED\" /^\d+$/
 # <=>= - id must be greater than or equal to 1 and less than or equal to 100
 ```
-3. 支持特殊格式错误信息，为每一个方法设置不同的错误信息，同JSON
 
-```
+3. **特殊格式错误信息，为每一个方法设置不同的错误信息，同JSON**
+
+```PHP
 "id" => "required|/^\d+$/|<=>=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg"
 
 # 对应的报错信息为
-# id - Users define - id is required
+# required - Users define - id is required
 # /^\d+$/ - Users define - id should be \"MATCHED\" /^\d+$/
 # <=>= - id must be greater than or equal to 1 and less than or equal to 100
 ```
 
-4. 支持错误信息数组，格式如下。
-- 键 0: 验证规则
-- 键 error_message：错误信息数组
-```
+4. **错误信息数组，格式如下**
+- 键 `0`: 验证规则
+- 键 `error_message`：错误信息数组
+```PHP
 $rule = [
     "id" => [
         'required|/^\d+$/|<=>=[1,100]',
@@ -711,16 +677,16 @@ $rule = [
 ];
 ```
 
-**自定义函数也可自定义错误信息, 优先级低于 " >> " 和错误信息数组**
+5. **拓展的函数，可通过返回值，设置错误信息, 优先级低于 "` >> `" 和 错误信息数组**
 
-当函数返回值 === true 时，表示验证成功，否则表示验证失败
+当且仅当函数 `返回值 === true` 时，表示验证成功，否则表示验证失败。
 
 所以函数允许三种错误返回：
-1. 直接返回 false
-2. 返回错误信息字符串
-3. 返回错误信息数组，默认有两个字段，error_type 和 message，支持自定义字段
+- 返回 `false`
+- 返回错误信息字符串
+- 返回错误信息数组，默认有两个字段，`error_type` 和 `message`，可自行增加其他字段
 
-```
+```PHP
 function check_age($data, $gender, $param) {
     if($gender == "male") {
         // if($data > $param) return false;
@@ -736,41 +702,46 @@ function check_age($data, $gender, $param) {
     return true;
 }
 ```
-### 4.13 支持多种错误信息格式
-如果是验证一旦错误则立即返回的情况下，有两种错误信息格式可以返回：
 
-返回错误信息字符串
-> $validation->get_error(false, true);
+6. [国际化](#411-国际化)
 
-```
-"id 必须是整型"
-```
-
-返回错误信息数组，默认有两个字段，error_type 和 message，支持自定义字段
-
-> $validation->get_error(false, false);
-
-```
+### 4.14 错误信息格式
+一共有四种不同的错误信息格式：
+- `ERROR_FORMAT_NESTED_GENERAL`: 'NESTED_GENERAL'
+```JSON
 {
-    "error_type": "validation",
-    "message": "id 必须是整型"
+     "A": {
+         "1": "error_msg_A1",
+         "2": {
+             "a": "error_msg_A2a"
+         }
+     }
 }
 ```
+- `ERROR_FORMAT_NESTED_DETAILED`: 'NESTED_DETAILED'
+这种格式和上面的格式类似，只是错误信息变成了数组，包含更多的错误信息。
+- `ERROR_FORMAT_DOTTED_GENERAL`: 'DOTTED_GENERAL'
+```JSON
+{
+     "A.1": "error_msg_A1",
+     "A.2.a": "error_msg_A2a",
+}
+```
+- `ERROR_FORMAT_DOTTED_DETAILED`: 'DOTTED_DETAILED'
+这种格式和上面的格式类似，只是错误信息变成了数组，包含更多的错误信息。
 
-如果是验证所有字段的情况下，有两种错误信息格式可以返回：
-
-详见[附录 3. 错误信息格式](#附录-3-错误信息格式)
+详见 [附录 3 - 错误信息格式](#附录-3---错误信息格式)
 
 
 ---
 
-## 附录 1 - 函数标志及其含义
+## 附录 1 - 方法标志及其含义
 
 标志 | 函数 | 含义
 ---|---|---
 \* | required | 必要的，@this 不能为空
 O | optional | 可选的，允许不设置或为空
-O! | symbol_unset_required | 可选的，允许不设置，一旦设置则不能为空
+O! | symbol_optional_unset | 可选的，允许不设置，一旦设置则不能为空
 = | equal | @this 必须等于 @p1
 != | not_equal | @this 必须不等于 @p1
 == | identically_equal | @this 必须全等于 @p1
@@ -815,363 +786,191 @@ uuid | uuid | @this 必须是 UUID
 
 ---
 
-## 附录 2. 验证完整示例
+## 附录 2 - 验证完整示例
+
 设想一下，如果用户数据如下，它包含关联数组，索引数组，我们要如何定制规则去验证它，如何做到简单直观呢？
 
-```
+```PHP
 $data = [
-    "id" => "",
-    "name" => "12",
-    "email" => "10000@qq.com.123@qq",
-    "phone" => "15620004000-",
-    "education" => [
-        "primary_school" => "???Qiankeng Xiaoxue",
-        "junior_middle_school" => "Foshan Zhongxue",
-        "high_school" => "Mianhu Gaozhong",
-        "university" => "Foshan",
-    ],
-    "company" => [
-        "name" => "Qianken",
-        "website" => "https://www.qiankeng.com1",
-        "colleagues" => [
-            [
-                "name" => 1,
-                "position" => "Reception"
-            ],
-            [
-                "name" => 2,
-                "position" => "Financial1"
-            ],
-            [
-                "name" => 3,
-                "position" => "JAVA"
-            ],
-            [
-                "name" => "Kurt",
-                "position" => "PHP1"
-            ],
+    "id" => 1,
+    "name" => "GH",
+    "age" => 18,
+    "favorite_animation" => [
+        "name" => "A Record of A Mortal's Journey to Immortality",
+        "release_date" => "July 25, 2020 (China)",
+        "series_directed_by" => [
+            "",
+            "Yuren Wang",
+            "Zhao Xia"
         ],
-        "boss" => [
-            "Mike1",
-            "David",
-            "Johnny2",
-            "Extra",
+        "series_cast" => [
+            [
+                "actor" => "Wenqing Qian",
+                "character" => "Han Li",
+            ],
+            [
+                "actor" => "ShiMeng-Li",
+                "character" => "Nan Gong Wan",
+            ],
         ]
-    ],
-    "favourite_food" => [
-        [
-            "name" => "HuoGuo",
-            "place_name" => "SiChuan" 
-        ],
-        [
-            "name" => "Beijing Kaoya",
-            "place_name" => "Beijing"
-        ],
     ]
 ];
 ```
 
-```php
+```PHP
 // $data - 上述待验证的数据 
 function validate($data) {
     // 设置验证规则
     $rule = [
-        // id 是必要的且必须匹配正则 /^\d+$/， >> 后面的required 和 正则对应的报错信息
-        "id" => 'required|/^\d+$/ >> { "required": "用户自定义 - @this 是必要的", "preg": "用户自定义 - @this 必须匹配 @preg" }',
-        // name 是必要的且必须是字符串且长度在区间 【8，32)
-        "name" => "required|string|len<=>[8,32]",
-        "email" => "required|email",
-        "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> 用户自定义 - phone number 错误",
-        // ip 是可选的
-        "ip" => "optional|ip",
-        "education" => [
-            // education.primary_school 必须等于 “Qiankeng Xiaoxue”
-            "primary_school" => "required|=[Qiankeng Xiaoxue]",
-            "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-            "high_school" => "optional|string",
-            "university" => "optional|string",
-        ],
-        "company" => [
-            "name" => "required|len<=>[8,64]",
-            "website" => "required|url",
-            "colleagues.*" => [
-                "name" => "required|string|len<=>[3,32]",
-                // company.colleagues.*.position 必须等于 Reception,Financial,PHP,JAVA 其中之一
-                "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
+        "id" => "required|/^\d+$/",         // id 是必要的，且只能是数字
+        "name" => "required|len<=>[3,32]",  // name 是必要的，且字符串长度必须大于3，小于等于32
+        "favorite_animation" => [
+            // favorite_animation.name 是必要的，且字符串长度必须大于1，小于等于64
+            "name" => "required|len<=>[1,16]",
+            // favorite_animation.release_date 是可选的，如果不为空，那么字符串长度必须大于4，小于等于64
+            "release_date" => "optional|len<=>[4,64]",
+            // "*" 表示 favorite_animation.series_directed_by 是一个索引数组
+            "series_directed_by" => [
+                // favorite_animation.series_directed_by.* 每一个子元素必须满足其规则：不能为空且长度必须大于 3
+                "*" => "required|len>[3]"
             ],
-            // 以下三个规则只对 boss.0, boss.1, boss.2 有效，boss.3 及其他都无效 
-            "boss" => [
-                "required|=[Mike]",
-                "required|(s)[Johnny,David]",
-                "optional|(s)[Johnny,David]"
+            // [optional] 表示 favorite_animation.series_cast 是可选的
+            // ".*"(同上面的“*”) 表示 favorite_animation.series_cast 是一个索引数组，每一个子元素又都是关联数组。
+            "series_cast" => [
+                "[optional].*" => [
+                    // favorite_animation.series_cast.*.actor 不能为空且长度必须大于 3且必须满足正则
+                    "actor" => "required|len>[3]|/^[A-Za-z ]+$/",
+                    // favorite_animation.series_cast.*.character 不能为空且长度必须大于 3
+                    "character" => "required|len>[3]",
+                ]
             ]
-        ],
-        // favourite_food 是可选的索引数组，允许为空
-        "favourite_food[optional].*" => [
-            // favourite_food.*.name 必须是字符串
-            "name" => "required|string",
-            "place_name" => "optional|string" 
         ]
     ];
     
-    // 简单的自定义配置，它还不是完整的，也不是必要的
-    $validation_conf = [
-        'language' => 'zh-cn',
-        'validation_global' => true,
+    $config = [
+        'language' => 'zh-cn'
     ];
-    
-    // 实例化类，不要忘了事先引入类文件
-    // 接受一个配置数组，但不必要
-    $validation = new Validation($validation_conf);
-    
-    // 设置验证规则并验证数据
-    if($validation->set_rules($rule)->validate($data)) {
+    // 实例化类，接受一个自定义配置数组，但不必要
+    $validation = new Validation($config);
+
+    // 设置验证规则并验证数据，成功返回 true，失败返回 false
+    if ($validation->set_rules($rule)->validate($data)) {
         // 这里获取验证结果，有被规则{$rule}验证到的参数，成功则修改其值为true，失败则修改其值为错误信息，
         // 没有被验证到的参数，保持原值不变。比如 age 保持 18 不变。
         return $validation->get_result();
-    }else {
-        // 这里有两个参数，分别对应不同的错误信息格式，一共有四种错误信息可供选择。
-        return $validation->get_error(false, true);
+    } else {
+        // 一共有四种错误信息格式可供选择。默认 Validation::ERROR_FORMAT_DOTTED_GENERAL
+        return $validation->get_error();
     }
 }
 
-// 可以通过改变get_error 的两个参数，找到适合自己的报错格式
+// 可以通过改变 get_error 的参数，找到适合自己的报错格式
 // 例子中的 $data 基本都不满足 $rule ，可以改变 $data 的值，检测验证规则是否正确
-print_r(validate($data));
+echo json_encode(validate($data), JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + JSON_UNESCAPED_UNICODE) . "\n";
 ```
 打印结果为
 
+```JSON
+{
+    "name": "name 长度必须大于 3 且小于等于 32",
+    "favorite_animation.name": "favorite_animation.name 长度必须大于 1 且小于等于 16",
+    "favorite_animation.series_directed_by.0": "favorite_animation.series_directed_by.0 不能为空",
+    "favorite_animation.series_cast.1.actor": "favorite_animation.series_cast.1.actor 格式错误，必须是 /^[A-Za-z ]+$/"
+}
 ```
-Array
-(
-    [id] => 用户自定义 - id 是必要的
-    [name] => name 长度必须大于 8 且小于等于 32
-    [email] => email 必须是邮箱
-    [phone] => 用户自定义 - phone number 错误
-    [education.primary_school] => education.primary_school 必须等于 Qiankeng Xiaoxue
-    [education.junior_middle_school] => education.junior_middle_school 必须不等于 Foshan Zhongxue
-    [company.name] => company.name 长度必须大于 8 且小于等于 64
-    [company.website] => company.website 必须是网址
-    [company.colleagues.0.name] => company.colleagues.0.name 必须是字符串
-    [company.colleagues.1.name] => company.colleagues.1.name 必须是字符串
-    [company.colleagues.1.position] => company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA
-    [company.colleagues.2.name] => company.colleagues.2.name 必须是字符串
-    [company.colleagues.3.position] => company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA
-    [company.boss.0] => company.boss.0 必须等于 Mike
-    [company.boss.2] => company.boss.2 必须是字符串且在此之内 Johnny,David
-)
-```
-
+更多的错误信息格式，见 [附录 3 - 错误信息格式](#附录-3---错误信息格式)
 
 ---
-## 附录 3. 错误信息格式
-### 第一种 - 一维字符型数组
-> $validation->get_error(false, true);
-
+## 附录 3 - 错误信息格式
+### 一维字符型结构
+```PHP
+// 默认 Validation::ERROR_FORMAT_DOTTED_GENERAL
+$validation->get_error();
 ```
+
+```JSON
 {
-    "id": "用户自定义 - id 是必要的",
-    "name": "name 长度必须大于 8 且小于等于 32",
-    "email": "email 必须是邮箱",
-    "phone": "用户自定义 - phone number 错误",
-    "education.primary_school": "education.primary_school 必须等于 Qiankeng Xiaoxue",
-    "education.junior_middle_school": "education.junior_middle_school 必须不等于 Foshan Zhongxue",
-    "company.name": "company.name 长度必须大于 8 且小于等于 64",
-    "company.website": "company.website 必须是网址",
-    "company.colleagues.0.name": "company.colleagues.0.name 必须是字符串",
-    "company.colleagues.1.name": "company.colleagues.1.name 必须是字符串",
-    "company.colleagues.1.position": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA",
-    "company.colleagues.2.name": "company.colleagues.2.name 必须是字符串",
-    "company.colleagues.3.position": "company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA",
-    "company.boss.0": "company.boss.0 必须等于 Mike",
-    "company.boss.2": "company.boss.2 必须是字符串且在此之内 Johnny,David"
+    "name": "name 长度必须大于 3 且小于等于 32",
+    "favorite_animation.name": "favorite_animation.name 长度必须大于 1 且小于等于 16",
+    "favorite_animation.series_directed_by.0": "favorite_animation.series_directed_by.0 不能为空",
+    "favorite_animation.series_cast.1.actor": "favorite_animation.series_cast.1.actor 格式错误，必须是 /^[A-Za-z ]+$/"
 }
 ```
-### 第二种 - 一维关联型数组
-> $validation->get_error(false, false);
-
+### 一维关联型结构
+```PHP
+$validation->get_error();
 ```
+
+```JSON
 {
-    "id": {
-        "error_type": "required_field",
-        "message": "用户自定义 - id 是必要的"
-    },
     "name": {
         "error_type": "validation",
-        "message": "name 长度必须大于 8 且小于等于 32"
+        "message": "name 长度必须大于 3 且小于等于 32"
     },
-    "email": {
+    "favorite_animation.name": {
         "error_type": "validation",
-        "message": "email 必须是邮箱"
+        "message": "favorite_animation.name 长度必须大于 1 且小于等于 16"
     },
-    "phone": {
-        "error_type": "validation",
-        "message": "用户自定义 - phone number 错误"
+    "favorite_animation.series_directed_by.0": {
+        "error_type": "required_field",
+        "message": "favorite_animation.series_directed_by.0 不能为空"
     },
-    "education.primary_school": {
+    "favorite_animation.series_cast.1.actor": {
         "error_type": "validation",
-        "message": "education.primary_school 必须等于 Qiankeng Xiaoxue"
-    },
-    "education.junior_middle_school": {
-        "error_type": "validation",
-        "message": "education.junior_middle_school 必须不等于 Foshan Zhongxue"
-    },
-    "company.name": {
-        "error_type": "validation",
-        "message": "company.name 长度必须大于 8 且小于等于 64"
-    },
-    "company.website": {
-        "error_type": "validation",
-        "message": "company.website 必须是网址"
-    },
-    "company.colleagues.0.name": {
-        "error_type": "validation",
-        "message": "company.colleagues.0.name 必须是字符串"
-    },
-    "company.colleagues.1.name": {
-        "error_type": "validation",
-        "message": "company.colleagues.1.name 必须是字符串"
-    },
-    "company.colleagues.1.position": {
-        "error_type": "validation",
-        "message": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
-    },
-    "company.colleagues.2.name": {
-        "error_type": "validation",
-        "message": "company.colleagues.2.name 必须是字符串"
-    },
-    "company.colleagues.3.position": {
-        "error_type": "validation",
-        "message": "company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
-    },
-    "company.boss.0": {
-        "error_type": "validation",
-        "message": "company.boss.0 必须等于 Mike"
-    },
-    "company.boss.2": {
-        "error_type": "validation",
-        "message": "company.boss.2 必须是字符串且在此之内 Johnny,David"
+        "message": "favorite_animation.series_cast.1.actor 格式错误，必须是 /^[A-Za-z ]+$/"
     }
 }
 ```
 
-### 第三种 - 无限嵌套字符型数组
-> $validation->get_error(true, true);
-
+### 无限嵌套字符型结构
+```PHP
+$validation->get_error(Validation::ERROR_FORMAT_NESTED_GENERAL);
 ```
+
+```JSON
 {
-    "id": "用户自定义 - id 是必要的",
-    "name": "name 长度必须大于 8 且小于等于 32",
-    "email": "email 必须是邮箱",
-    "phone": "用户自定义 - phone number 错误",
-    "education": {
-        "primary_school": "education.primary_school 必须等于 Qiankeng Xiaoxue",
-        "junior_middle_school": "education.junior_middle_school 必须不等于 Foshan Zhongxue"
-    },
-    "company": {
-        "name": "company.name 长度必须大于 8 且小于等于 64",
-        "website": "company.website 必须是网址",
-        "colleagues": [
-            {
-                "name": "company.colleagues.0.name 必须是字符串"
-            },
-            {
-                "name": "company.colleagues.1.name 必须是字符串",
-                "position": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
-            },
-            {
-                "name": "company.colleagues.2.name 必须是字符串"
-            },
-            {
-                "position": "company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
-            }
+    "name": "name 长度必须大于 3 且小于等于 32",
+    "favorite_animation": {
+        "name": "favorite_animation.name 长度必须大于 1 且小于等于 16",
+        "series_directed_by": [
+            "favorite_animation.series_directed_by.0 不能为空"
         ],
-        "boss": {
-            "0": "company.boss.0 必须等于 Mike",
-            "2": "company.boss.2 必须是字符串且在此之内 Johnny,David"
+        "series_cast": {
+            "1": {
+                "actor": "favorite_animation.series_cast.1.actor 格式错误，必须是 /^[A-Za-z ]+$/"
+            }
         }
     }
 }
 ```
-### 第四种 - 无限嵌套关联型数组
-> $validation->get_error(true, false);
-
-
+### 无限嵌套关联型结构
+```PHP
+$validation->get_error(Validation::ERROR_FORMAT_NESTED_DETAILED);
 ```
+
+```JSON
 {
-    "id": {
-        "error_type": "required_field",
-        "message": "用户自定义 - id 是必要的"
-    },
     "name": {
         "error_type": "validation",
-        "message": "name 长度必须大于 8 且小于等于 32"
+        "message": "name 长度必须大于 3 且小于等于 32"
     },
-    "email": {
-        "error_type": "validation",
-        "message": "email 必须是邮箱"
-    },
-    "phone": {
-        "error_type": "validation",
-        "message": "用户自定义 - phone number 错误"
-    },
-    "education": {
-        "primary_school": {
-            "error_type": "validation",
-            "message": "education.primary_school 必须等于 Qiankeng Xiaoxue"
-        },
-        "junior_middle_school": {
-            "error_type": "validation",
-            "message": "education.junior_middle_school 必须不等于 Foshan Zhongxue"
-        }
-    },
-    "company": {
+    "favorite_animation": {
         "name": {
             "error_type": "validation",
-            "message": "company.name 长度必须大于 8 且小于等于 64"
+            "message": "favorite_animation.name 长度必须大于 1 且小于等于 16"
         },
-        "website": {
-            "error_type": "validation",
-            "message": "company.website 必须是网址"
-        },
-        "colleagues": [
+        "series_directed_by": [
             {
-                "name": {
-                    "error_type": "validation",
-                    "message": "company.colleagues.0.name 必须是字符串"
-                }
-            },
-            {
-                "name": {
-                    "error_type": "validation",
-                    "message": "company.colleagues.1.name 必须是字符串"
-                },
-                "position": {
-                    "error_type": "validation",
-                    "message": "company.colleagues.1.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
-                }
-            },
-            {
-                "name": {
-                    "error_type": "validation",
-                    "message": "company.colleagues.2.name 必须是字符串"
-                }
-            },
-            {
-                "position": {
-                    "error_type": "validation",
-                    "message": "company.colleagues.3.position 必须是字符串且在此之内 Reception,Financial,PHP,JAVA"
-                }
+                "error_type": "required_field",
+                "message": "favorite_animation.series_directed_by.0 不能为空"
             }
         ],
-        "boss": {
-            "0": {
-                "error_type": "validation",
-                "message": "company.boss.0 必须等于 Mike"
-            },
-            "2": {
-                "error_type": "validation",
-                "message": "company.boss.2 必须是字符串且在此之内 Johnny,David"
+        "series_cast": {
+            "1": {
+                "actor": {
+                    "error_type": "validation",
+                    "message": "favorite_animation.series_cast.1.actor 格式错误，必须是 /^[A-Za-z ]+$/"
+                }
             }
         }
     }

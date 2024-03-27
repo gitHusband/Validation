@@ -1,11 +1,12 @@
 <?php
+
 /**
  * php Unit.php run [method_name]
  *
  * method_name - optional. If empty, run all test case. if is not empty, only run this test case.
  */
+require_once __DIR__ . "/TestCommon.php";
 
-require_once(__DIR__."/../Validation.php");
 use githusband\Validation;
 
 function check_id($data, $min, $max)
@@ -17,14 +18,14 @@ function check_age($data, $gender, $param)
 {
     if ($gender == "male") {
         if ($data > $param) return false;
-    }else {
+    } else {
         if ($data < $param) return false;
     }
 
     return true;
 }
 
-class Unit
+class Unit extends TestCommon
 {
     // Validation Instance
     protected $validation;
@@ -50,25 +51,22 @@ class Unit
      *  1. Method name starting with "test_" - This kind of method only contains validation config, suce as test cases
      *  2. Method name starting with "test_" and end with "execute" - This kind of method only contains validation config, suce as test cases, and will execute validation.
      * If unit testing is error, stop test and return error message immediatelly
-     *   
-     * @Author   Devin
-     * @return   [type]                   [description]
+     *
+     * @param string $method_name
+     * @return array|string
      */
-    public function run($method_name='')
+    public function run($method_name = '')
     {
         echo "Start run {$method_name}\n";
 
         if (!empty($method_name)) {
             $this->execute_tests($method_name);
-        }else {
+        } else {
             $class_methods = get_class_methods($this);
 
             foreach ($class_methods as $method_name) {
                 if (preg_match('/^test_.*/', $method_name)) {
-
-
                     $result = $this->execute_tests($method_name);
-
                     if (!$result) break;
                 }
             }
@@ -81,12 +79,12 @@ class Unit
      * Auto-executing two kind of methods:
      *  1. Method name starting with "test_" - This kind of method only contains validation config, suce as test cases
      *  2. Method name starting with "test_" and end with "execute" - This kind of method only contains validation config, suce as test cases, and will execute validation.
-     * @Author   Devin
-     * @param    [type]                     $method_name [description]
-     * @param    mixed                      $error_data  If is array, will get config data of method
-     * @return   [type]                                [description]
+     *
+     * @param string $method_name
+     * @param bool $error_data If is array, will get config data of method
+     * @return bool
      */
-    protected function execute_tests($method_name, $error_data=false)
+    protected function execute_tests($method_name, $error_data = false)
     {
         echo "Testing method - {$method_name}\n";
 
@@ -109,79 +107,116 @@ class Unit
      *  1. data - case data 
      *  2. expected_msg - expected validation error message
      *  3. err_format => [
-     *      'standard' => is standard error format
-     *      'simple' => is simple error format
+     *      'format' => error format
+     *      'nested' => is nested error format (@deprecated)
+     *      'general' => is general error format (@deprecated)
      *  ],
      *  4. error_tag - get error message of the error_tag
      *  5. field_path - parse error message of @this
      * extra contains:
-     *  1. method_name
-     *  2. error_tag - use this if case do not contains error_tag
-     *  3. field_path - use this if case do not contains field_path
-     * @Author   Devin
-     * @param    [type]                   $rule   validation rule
-     * @param    [type]                   $cases  test cases, has many test case
-     * @param    [type]                   $extra  extra message, such as method name
-     * @return   [type]                           [description]
+     *  1. validation_class - The validation class. If not set, then use {$this->validation}
+     *  2. method_name
+     *  3. error_tag - use this if case do not contains error_tag
+     *  4. field_path - use this if case do not contains field_path
+     *
+     * @param array $rule Validation rule
+     * @param array $cases Test cases, has many test case
+     * @param array $extra Extra message, such as method name
+     * @return bool
      */
     protected function valid_cases($rule, $cases, $extra)
     {
-        $this->validation->set_rules($rule);
+        $validation = $extra['validation_class'] ?? $this->validation;
+        $validation->set_rules($rule);
 
         $result = true;
 
-        foreach($cases as $c_field => $case) {
-            $standard = isset($case['err_format']['standard'])? $case['err_format']['standard'] : false;
-            $simple = isset($case['err_format']['simple'])? $case['err_format']['simple'] : true;
+        foreach ($cases as $c_field => $case) {
+            $is_nested = isset($case['err_format']['nested']) ? $case['err_format']['nested'] : false;
+            $is_general = isset($case['err_format']['general']) ? $case['err_format']['general'] : true;
+            $error_format = '';
+            if ($is_nested) {
+                if ($is_general) $error_format = Validation::ERROR_FORMAT_NESTED_GENERAL;
+                else $error_format = Validation::ERROR_FORMAT_NESTED_DETAILED;
+            } else {
+                if ($is_general) $error_format = Validation::ERROR_FORMAT_DOTTED_GENERAL;
+                else $error_format = Validation::ERROR_FORMAT_DOTTED_DETAILED;
+            }
+            $error_format = isset($case['err_format']['format']) ? $case['err_format']['format'] : $error_format;
 
             // Check valid cases
             if (strpos($c_field, "Valid") !== false) {
-                $valid_alert = isset($case['valid_alert'])? $case['valid_alert'] : "Validation error. It should be valid.";
+                $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be valid.";
 
-                if (!$this->validation->validate($case['data'])) {
+                if (!$validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, [
                         "valid_alert" => $valid_alert,
-                        "error_msg" => $this->validation->get_error($standard, $simple)
+                        "error_msg" => $validation->get_error($error_format)
                     ], $rule, $cases);
                     $result = false;
                 }
 
-            // Check invalid cases
-            }else if (strpos($c_field, "Invalid") !== false) {
-                $valid_alert = isset($case['valid_alert'])? $case['valid_alert'] : "Validation error. It should be invalid.";
+                // Check invalid cases
+            } else if (strpos($c_field, "Invalid") !== false) {
+                $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be invalid.";
 
-                if ($this->validation->validate($case['data'])) {
+                if ($validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, $valid_alert, $rule, $cases);
                     $result = false;
-                }else {
+                } else {
                     if (isset($case["check_error_msg"]) && $case["check_error_msg"] == false) continue;
 
                     // If invalid, check error massage if it's expected.
                     if (isset($case["expected_msg"])) {
                         $expected_msg = $case["expected_msg"];
-                    }else {
-                        $error_tag = isset($extra['error_tag'])? $extra['error_tag'] : 'default';
-                        $error_tag = isset($case['error_tag'])? $case['error_tag'] : $error_tag;
-                        $field_path = isset($extra['field_path'])? $extra['field_path'] : 'Unknown field path';
-                        $field_path = isset($case['field_path'])? $case['field_path'] : $field_path;
-                        $params = isset($extra['parameters'])? $extra['parameters'] : [];
-                        $params = isset($case['parameters'])? $case['parameters'] : $params;
-                        $expected_msg = $this->parse_error_message($error_tag, $field_path, $params);
-                        if (!$this->validation->get_validation_global() && !is_array($expected_msg)) {
-                            $expected_msg = [ $field_path => $expected_msg ];
+                    } else {
+                        $error_tag = isset($extra['error_tag']) ? $extra['error_tag'] : 'default';
+                        $error_tag = isset($case['error_tag']) ? $case['error_tag'] : $error_tag;
+                        $field_path = isset($extra['field_path']) ? $extra['field_path'] : 'Unknown field path';
+                        $field_path = isset($case['field_path']) ? $case['field_path'] : $field_path;
+                        $params = isset($extra['parameters']) ? $extra['parameters'] : [];
+                        $params = isset($case['parameters']) ? $case['parameters'] : $params;
+                        $expected_msg = $this->parse_error_message($validation, $error_tag, $field_path, $params);
+                        if (!$validation->get_validation_global() && !is_array($expected_msg)) {
+                            $expected_msg = [$field_path => $expected_msg];
                         }
                     }
 
-                    $error_msg = $this->validation->get_error($standard, $simple);
+                    $error_msg = $validation->get_error($error_format);
                     if ($expected_msg !== $error_msg) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
-                            "Error msg is unexpected.", 
+                            "Error msg is unexpected.",
                             [
                                 "expected" => $expected_msg,
                                 "current" => $error_msg
                             ]
                         ], $rule, $cases);
                         $result = false;
+                    }
+                }
+            }
+            // Check exception cases
+            else if (strpos($c_field, "Exception") !== false) {
+                $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be valid.";
+
+                try {
+                    if (!$validation->validate($case['data'])) {
+                        $this->set_unit_error($extra['method_name'], $c_field, [
+                            "valid_alert" => $valid_alert,
+                            "error_msg" => $validation->get_error($error_format)
+                        ], $rule, $cases);
+                        $result = false;
+                    }
+                } catch (\Throwable $t) {
+                    $exception_message = $t->getMessage();
+                    $expected_msg = $case["expected_msg"] ?? '';
+
+                    if ($exception_message != $expected_msg) {
+                        $this->set_unit_error($extra['method_name'], $c_field, [
+                            "valid_alert" => $valid_alert,
+                            "error_msg" => $exception_message
+                        ], $rule, $cases);
+                        return $result = false;
                     }
                 }
             }
@@ -199,29 +234,31 @@ class Unit
         $this->error_message[$method]["error"][$cases_field] = $error_message;
     }
 
-    protected function parse_error_message($tag, $field_path, $params=array())
+    protected function parse_error_message($validation, $tag, $field_path, $params = array())
     {
-        $error_template = $this->validation->get_error_template($tag);
+        $error_template = $validation->get_error_template($tag);
         $error_template = str_replace($this->_symbol_me, $field_path, $error_template);
 
-        foreach($params as $key => $value) {
-            $error_template = str_replace('@p'.($key+1), $value, $error_template);
+        foreach ($params as $key => $value) {
+            $error_template = str_replace('@p' . ($key + 1), $value, $error_template);
         }
 
         return $error_template;
     }
 
-    protected function get_unit_result() {
+    protected function get_unit_result()
+    {
         if ($this->is_error) {
             return $this->error_message;
-        }else {
+        } else {
             return "*******************************\nUnit test success!\n*******************************\n";
         }
     }
 
-    protected function set_method_info() {
-        foreach($this->error_message as $unit_method => $um_value) {
-            $method = str_replace(__CLASS__."::", "", $unit_method);
+    protected function set_method_info()
+    {
+        foreach ($this->error_message as $unit_method => $um_value) {
+            $method = str_replace(__CLASS__ . "::", "", $unit_method);
             $method_info = $this->execute_tests($method, $um_value);
 
             $this->error_message[$unit_method]["rule"] = $method_info["rule"];
@@ -229,7 +266,7 @@ class Unit
         }
     }
 
-    protected function get_method_info($rule, $cases, $extra, $error_data=array())
+    protected function get_method_info($rule, $cases, $extra, $error_data = array())
     {
         $method_info = [
             "rule" => $rule,
@@ -239,12 +276,12 @@ class Unit
 
         if (empty($error_data)) {
             $method_info["cases"] = $cases;
-        }else {
-            foreach($error_data as $field => $value) {
-                $method_info["cases"][$field] = isset($method_info[$field])? $method_info[$field]["data"] : "Unset";
+        } else {
+            foreach ($error_data as $field => $value) {
+                $method_info["cases"][$field] = isset($method_info[$field]) ? $method_info[$field]["data"] : "Unset";
             }
         }
-        
+
         return $method_info;
     }
 
@@ -264,19 +301,19 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => [ "name" => "name can not be empty" ]
+                "expected_msg" => ["name" => "name can not be empty"]
             ],
             "Invalid_not_string" => [
                 "data" => [
                     "name" => 123
                 ],
-                "expected_msg" => [ "name" => "name must be string" ]
+                "expected_msg" => ["name" => "name must be string"]
             ],
             "Invalid_not_start_num" => [
                 "data" => [
                     "name" => "abcABC"
                 ],
-                "expected_msg" => [ "name" => "name format is invalid, should be /^\d+.*/" ]
+                "expected_msg" => ["name" => "name format is invalid, should be /^\d+.*/"]
             ]
         ];
 
@@ -366,7 +403,7 @@ class Unit
     {
         $rule = [
             "name" => "optional|string",
-            "gender" => [ "[optional]" => "string"],
+            "gender" => ["[optional]" => "string"],
             "favourite_fruit[optional]" => [
                 "name" => "required|string",
                 "color" => "required|string"
@@ -389,8 +426,7 @@ class Unit
                 ]
             ],
             "Valid_unset" => [
-                "data" => [
-                ]
+                "data" => []
             ],
             "Valid_data" => [
                 "data" => [
@@ -411,14 +447,14 @@ class Unit
                     "name" => 1,
                     "gender" => "male",
                 ],
-                "expected_msg" => [ "name" => "name must be string" ]
+                "expected_msg" => ["name" => "name must be string"]
             ],
             "Invalid_data_2" => [
                 "data" => [
                     "name" => "Devin",
                     "gender" => 1,
                 ],
-                "expected_msg" => [ "gender" => "gender must be string" ]
+                "expected_msg" => ["gender" => "gender must be string"]
             ],
             "Invalid_data_3" => [
                 "data" => [
@@ -429,7 +465,7 @@ class Unit
                         "color" => 1
                     ],
                 ],
-                "expected_msg" => [ "favourite_fruit.color" => "favourite_fruit.color must be string" ]
+                "expected_msg" => ["favourite_fruit.color" => "favourite_fruit.color must be string"]
             ],
             "Invalid_data_4" => [
                 "data" => [
@@ -444,7 +480,7 @@ class Unit
                         "from" => "Cattle"
                     ],
                 ],
-                "expected_msg" => [ "favourite_meat.name" => "favourite_meat.name must be string" ]
+                "expected_msg" => ["favourite_meat.name" => "favourite_meat.name must be string"]
             ],
         ];
 
@@ -465,7 +501,7 @@ class Unit
     {
         $rule = [
             "name" => "O|string",
-            "gender" => [ "[O]" => "string"],
+            "gender" => ["[O]" => "string"],
             "favourite_fruit[O]" => [
                 "name" => "required|string",
                 "color" => "required|string"
@@ -488,8 +524,7 @@ class Unit
                 ]
             ],
             "Valid_unset" => [
-                "data" => [
-                ]
+                "data" => []
             ],
             "Valid_data" => [
                 "data" => [
@@ -510,14 +545,14 @@ class Unit
                     "name" => 1,
                     "gender" => "male",
                 ],
-                "expected_msg" => [ "name" => "name must be string" ]
+                "expected_msg" => ["name" => "name must be string"]
             ],
             "Invalid_data_2" => [
                 "data" => [
                     "name" => "Devin",
                     "gender" => 1,
                 ],
-                "expected_msg" => [ "gender" => "gender must be string" ]
+                "expected_msg" => ["gender" => "gender must be string"]
             ],
             "Invalid_data_3" => [
                 "data" => [
@@ -528,7 +563,7 @@ class Unit
                         "color" => 1
                     ],
                 ],
-                "expected_msg" => [ "favourite_fruit.color" => "favourite_fruit.color must be string" ]
+                "expected_msg" => ["favourite_fruit.color" => "favourite_fruit.color must be string"]
             ],
             "Invalid_data_4" => [
                 "data" => [
@@ -543,7 +578,7 @@ class Unit
                         "from" => "Cattle"
                     ],
                 ],
-                "expected_msg" => [ "favourite_meat.name" => "favourite_meat.name must be string" ]
+                "expected_msg" => ["favourite_meat.name" => "favourite_meat.name must be string"]
             ],
         ];
 
@@ -560,10 +595,10 @@ class Unit
         ];
     }
 
-    protected function test_unset_required()
+    protected function test_optional_unset()
     {
         $rule = [
-            "name" => "unset_required|string"
+            "name" => "optional_unset|string"
         ];
 
         $cases = [
@@ -579,7 +614,7 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => [ "name" => "name must be unset or not empty" ]
+                "expected_msg" => ["name" => "name must be unset or not empty"]
             ]
         ];
 
@@ -596,7 +631,7 @@ class Unit
         ];
     }
 
-    protected function test_unset_required_symbol()
+    protected function test_optional_unset_symbol()
     {
         $rule = [
             "name" => "O!|string"
@@ -615,7 +650,7 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => [ "name" => "name must be unset or not empty" ]
+                "expected_msg" => ["name" => "name must be unset or not empty"]
             ]
         ];
 
@@ -661,14 +696,14 @@ class Unit
                     "id" => 1,
                     "name" => ""
                 ],
-                "expected_msg" => [ "name" => "name can not be empty" ]
+                "expected_msg" => ["name" => "name can not be empty"]
             ],
             "Invalid_data_2" => [
                 "data" => [
                     "id" => 1,
                     "name" => "abc"
                 ],
-                "expected_msg" => [ "name" => "name format is invalid, should be /^\d+.*/" ]
+                "expected_msg" => ["name" => "name format is invalid, should be /^\d+.*/"]
             ],
             "Invalid_data_3" => [
                 "data" => [
@@ -676,14 +711,14 @@ class Unit
                     "name" => "123ABC",
                     "name1" => "abc",
                 ],
-                "expected_msg" => [ "name1" => "name1 format is invalid, should be /^\d+.*/" ]
+                "expected_msg" => ["name1" => "name1 format is invalid, should be /^\d+.*/"]
             ],
             "Invalid_data_4" => [
                 "data" => [
                     "id" => 8,
                     "name0" => "abc"
                 ],
-                "expected_msg" => [ "name0" => "name0 format is invalid, should be /^\d+.*/" ]
+                "expected_msg" => ["name0" => "name0 format is invalid, should be /^\d+.*/"]
             ],
             "Invalid_data_5" => [
                 "data" => [
@@ -691,7 +726,7 @@ class Unit
                     "name1" => "abc",
                     "name0" => "abc"
                 ],
-                "expected_msg" => [ "name1" => "name1 format is invalid, should be /^\d+.*/" ]
+                "expected_msg" => ["name1" => "name1 format is invalid, should be /^\d+.*/"]
             ]
         ];
 
@@ -739,20 +774,20 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => [ "name" => "name can not be empty" ]
+                "expected_msg" => ["name" => "name can not be empty"]
             ],
             "Invalid_0" => [
                 "data" => [
                     "name" => 0
                 ],
-                "expected_msg" => [ "name" => "name must be boolean or name must be boolean string" ]
+                "expected_msg" => ["name" => "name must be boolean or name must be boolean string"]
             ],
             "Invalid_1" => [
                 "data" => [
                     "name" => "false",
                     "height" => 50,
                 ],
-                "expected_msg" => [ "height" => "height must be greater than 100 or height must be string" ]
+                "expected_msg" => ["height" => "height must be greater than 100 or height must be string"]
             ]
         ];
 
@@ -800,20 +835,20 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => [ "name" => "name can not be empty" ]
+                "expected_msg" => ["name" => "name can not be empty"]
             ],
             "Invalid_0" => [
                 "data" => [
                     "name" => 0
                 ],
-                "expected_msg" => [ "name" => "name must be boolean or name must be boolean string" ]
+                "expected_msg" => ["name" => "name must be boolean or name must be boolean string"]
             ],
             "Invalid_1" => [
                 "data" => [
                     "name" => "false",
                     "height" => 50,
                 ],
-                "expected_msg" => [ "height" => "height must be greater than 100 or height must be string" ]
+                "expected_msg" => ["height" => "height must be greater than 100 or height must be string"]
             ]
         ];
 
@@ -851,7 +886,7 @@ class Unit
                         "name" => ""
                     ]
                 ],
-                "expected_msg" => [ "person.name" => "person.name can not be empty" ]
+                "expected_msg" => ["person.name" => "person.name can not be empty"]
             ],
             "Invalid_not_string" => [
                 "data" => [
@@ -859,7 +894,7 @@ class Unit
                         "name" => 123
                     ]
                 ],
-                "expected_msg" => [ "person.name" => "person.name must be string" ]
+                "expected_msg" => ["person.name" => "person.name must be string"]
             ],
             "Invalid_not_start_num" => [
                 "data" => [
@@ -867,7 +902,7 @@ class Unit
                         "name" => "abcABC"
                     ]
                 ],
-                "expected_msg" => [ "person.name" => "person.name format is invalid, should be /^\d+.*/" ]
+                "expected_msg" => ["person.name" => "person.name format is invalid, should be /^\d+.*/"]
             ]
         ];
 
@@ -942,7 +977,7 @@ class Unit
                         ["name" => ""],
                     ]
                 ],
-                "expected_msg" => [ "person.0.name" => "person.0.name can not be empty" ]
+                "expected_msg" => ["person.0.name" => "person.0.name can not be empty"]
             ],
             "Invalid_item_0-1(assoc_arr)" => [
                 "data" => [
@@ -951,7 +986,7 @@ class Unit
                         ["name" => "abcABC"],
                     ]
                 ],
-                "expected_msg" => [ "person.1.name" => "person.1.name format is invalid, should be /^\d+.*/" ]
+                "expected_msg" => ["person.1.name" => "person.1.name format is invalid, should be /^\d+.*/"]
             ],
             "Invalid_item_0-2(assoc_arr)" => [
                 "data" => [
@@ -960,7 +995,7 @@ class Unit
                         ["name" => "123ABC", "relation" => ["father" => "", "mother" => "m123ABC"]],
                     ]
                 ],
-                "expected_msg" => [ "person.1.relation.father" => "person.1.relation.father can not be empty" ]
+                "expected_msg" => ["person.1.relation.father" => "person.1.relation.father can not be empty"]
             ],
             "Invalid_item_1-0(static,string)" => [
                 "data" => [
@@ -973,7 +1008,7 @@ class Unit
                         "ABC",
                     ]
                 ],
-                "expected_msg" => [ "pet.0" => "pet.0 can not be empty" ]
+                "expected_msg" => ["pet.0" => "pet.0 can not be empty"]
             ],
             "Invalid_item_1-1(static,string)" => [
                 "data" => [
@@ -986,7 +1021,7 @@ class Unit
                         123,
                     ]
                 ],
-                "expected_msg" => [ "pet.1" => "pet.1 must be string" ]
+                "expected_msg" => ["pet.1" => "pet.1 must be string"]
             ],
             "Invalid_item_1-2(static,string)" => [
                 "data" => [
@@ -1000,7 +1035,7 @@ class Unit
                         ["cat", ""],
                     ]
                 ],
-                "expected_msg" => [ "pet.2.1" => "pet.2.1 can not be empty" ]
+                "expected_msg" => ["pet.2.1" => "pet.2.1 can not be empty"]
             ],
             "Invalid_item_2-0(dynamic,string)" => [
                 "data" => [
@@ -1019,7 +1054,7 @@ class Unit
                         "Peony",
                     ],
                 ],
-                "expected_msg" => [ "flower.0" => "flower.0 can not be empty" ]
+                "expected_msg" => ["flower.0" => "flower.0 can not be empty"]
             ],
             "Invalid_item_2-1(dynamic,string)" => [
                 "data" => [
@@ -1038,7 +1073,7 @@ class Unit
                         123,
                     ],
                 ],
-                "expected_msg" => [ "flower.2" => "flower.2 must be string" ]
+                "expected_msg" => ["flower.2" => "flower.2 must be string"]
             ],
             "Invalid_item_3-0" => [
                 "data" => [
@@ -1062,7 +1097,7 @@ class Unit
                         ["", "dog"],
                     ],
                 ],
-                "expected_msg" => [ "clothes.0.0" => "clothes.0.0 can not be empty" ]
+                "expected_msg" => ["clothes.0.0" => "clothes.0.0 can not be empty"]
             ],
             "Invalid_item_4-0" => [
                 "data" => [
@@ -1091,7 +1126,7 @@ class Unit
                         // ["", "dog"],
                     ],
                 ],
-                "expected_msg" => [ "shoes.1" => "shoes.1 can not be empty" ]
+                "expected_msg" => ["shoes.1" => "shoes.1 can not be empty"]
             ],
             "Invalid_item_4-1" => [
                 "data" => [
@@ -1117,7 +1152,7 @@ class Unit
                         ["cat", "dog"],
                     ],
                 ],
-                "expected_msg" => [ "shoes.0" => "shoes.0 must be string" ]
+                "expected_msg" => ["shoes.0" => "shoes.0 must be string"]
             ],
         ];
 
@@ -1160,7 +1195,7 @@ class Unit
             //                 "name" => "required|string",
             //                 "color" => "optional|string",
             //             ]
-                        
+
             //         ]
             //     ],
             // ],
@@ -1202,9 +1237,9 @@ class Unit
                 "data" => [
                     "person" => [
                         [
-                            "name" => "Devin", 
+                            "name" => "Devin",
                             "relation" => [
-                                "father" => "fDevin", 
+                                "father" => "fDevin",
                                 "mother" => "mDevin",
                                 "brother" => [
                                     [
@@ -1225,7 +1260,7 @@ class Unit
                             ]
                         ],
                         [
-                            "name" => "Johnny", 
+                            "name" => "Johnny",
                             "relation" => ["father" => "fJohnny", "mother" => "mJohnny"],
                             "fruit" => [
                                 [
@@ -1245,7 +1280,7 @@ class Unit
                 "data" => [
                     "person" => [
                         [
-                            "name" => "Devin", 
+                            "name" => "Devin",
                             "relation" => ["father" => "fDevin", "mother" => "mDevin"],
                             "fruit" => [
                                 [
@@ -1260,13 +1295,13 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => [ "person.0.fruit.0.0.name" => "person.0.fruit.0.0.name can not be empty" ]
+                "expected_msg" => ["person.0.fruit.0.0.name" => "person.0.fruit.0.0.name can not be empty"]
             ],
             "Invalid_item_0-1" => [
                 "data" => [
                     "person" => [
                         [
-                            "name" => "Devin", 
+                            "name" => "Devin",
                             "relation" => ["father" => "fDevin", "mother" => "mDevin"],
                             "fruit" => [
                                 [
@@ -1281,13 +1316,13 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => [ "person.0.fruit.1.1.name" => "person.0.fruit.1.1.name can not be empty" ]
+                "expected_msg" => ["person.0.fruit.1.1.name" => "person.0.fruit.1.1.name can not be empty"]
             ],
             "Invalid_item_0-2" => [
                 "data" => [
                     "person" => [
                         [
-                            "name" => "Devin", 
+                            "name" => "Devin",
                             "relation" => ["father" => "fDevin", "mother" => "mDevin"],
                             "fruit" => [
                                 [
@@ -1297,7 +1332,7 @@ class Unit
                             ]
                         ],
                         [
-                            "name" => "Devin", 
+                            "name" => "Devin",
                             "relation" => ["father" => "fDevin", "mother" => "mDevin"],
                             "fruit" => [
                                 [
@@ -1308,15 +1343,15 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => [ "person.1.fruit.0.1.name" => "person.1.fruit.0.1.name can not be empty" ]
+                "expected_msg" => ["person.1.fruit.0.1.name" => "person.1.fruit.0.1.name can not be empty"]
             ],
             "Invalid_item_1-0" => [
                 "data" => [
                     "person" => [
                         [
-                            "name" => "Devin", 
+                            "name" => "Devin",
                             "relation" => [
-                                "father" => "fDevin", 
+                                "father" => "fDevin",
                                 "mother" => "mDevin",
                                 "brother" => [
                                     [
@@ -1334,15 +1369,15 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => [ "person.0.relation.brother.0.0.level" => "person.0.relation.brother.0.0.level must be integer or person.0.relation.brother.0.0.level must be string" ]
+                "expected_msg" => ["person.0.relation.brother.0.0.level" => "person.0.relation.brother.0.0.level must be integer or person.0.relation.brother.0.0.level must be string"]
             ],
             "Invalid_item_1-1" => [
                 "data" => [
                     "person" => [
                         [
-                            "name" => "Devin", 
+                            "name" => "Devin",
                             "relation" => [
-                                "father" => "fDevin", 
+                                "father" => "fDevin",
                                 "mother" => "mDevin",
                                 "brother" => [
                                     [
@@ -1364,7 +1399,7 @@ class Unit
                         ],
                     ],
                 ],
-                "expected_msg" => [ "person.0.relation.brother.1.1.level" => "person.0.relation.brother.1.1.level must be integer or person.0.relation.brother.1.1.level must be string" ]
+                "expected_msg" => ["person.0.relation.brother.1.1.level" => "person.0.relation.brother.1.1.level must be integer or person.0.relation.brother.1.1.level must be string"]
             ],
         ];
 
@@ -1389,15 +1424,15 @@ class Unit
             ],
             "Invalid_empty" => [
                 "data" => "",
-                "expected_msg" => [ "data" => "data can not be empty" ]
+                "expected_msg" => ["data" => "data can not be empty"]
             ],
             "Invalid_0" => [
                 "data" => 0,
-                "expected_msg" => [ "data" => "data must be string" ]
+                "expected_msg" => ["data" => "data must be string"]
             ],
             "Invalid_1" => [
                 "data" => ["name" => "false"],
-                "expected_msg" => [ "data" => "data must be string" ]
+                "expected_msg" => ["data" => "data must be string"]
             ]
         ];
 
@@ -1428,15 +1463,15 @@ class Unit
             ],
             "Invalid_empty" => [
                 "data" => "",
-                "expected_msg" => [ "data" => "data can not be empty" ]
+                "expected_msg" => ["data" => "data can not be empty"]
             ],
             "Invalid_0" => [
                 "data" => false,
-                "expected_msg" => [ "data" => "data must be string or data must be integer" ]
+                "expected_msg" => ["data" => "data must be string or data must be integer"]
             ],
             "Invalid_1" => [
                 "data" => ["name" => "false"],
-                "expected_msg" => [ "data" => "data must be string or data must be integer" ]
+                "expected_msg" => ["data" => "data must be string or data must be integer"]
             ]
         ];
 
@@ -1470,11 +1505,11 @@ class Unit
             ],
             "Invalid_0" => [
                 "data" => ["", 1],
-                "expected_msg" => [ "data.0" => "data.0 can not be empty" ]
+                "expected_msg" => ["data.0" => "data.0 can not be empty"]
             ],
             "Invalid_1" => [
                 "data" => ["Hello World!", false],
-                "expected_msg" => [ "data.1" => "data.1 must be integer" ]
+                "expected_msg" => ["data.1" => "data.1 must be integer"]
             ],
         ];
 
@@ -1502,15 +1537,15 @@ class Unit
             ],
             "Invalid_data_empty" => [
                 "data" => "",
-                "expected_msg" => [ "data" => "data must be a numeric array" ]
+                "expected_msg" => ["data" => "data must be a numeric array"]
             ],
             "Invalid_0" => [
                 "data" => ["", 1],
-                "expected_msg" => [ "data.0" => "data.0 can not be empty" ]
+                "expected_msg" => ["data.0" => "data.0 can not be empty"]
             ],
             "Invalid_1" => [
                 "data" => ["Hello World!", false],
-                "expected_msg" => [ "data.1" => "data.1 must be string" ]
+                "expected_msg" => ["data.1" => "data.1 must be string"]
             ],
         ];
 
@@ -1526,7 +1561,7 @@ class Unit
         ];
     }
 
-    protected function test_dynamic_err_msg_simple()
+    protected function test_dynamic_err_msg_general()
     {
         $rule = [
             "id" => "required|<=>=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
@@ -1538,13 +1573,13 @@ class Unit
                 "data" => [
                     "id" => 101
                 ],
-                "expected_msg" => [ "id" => "Users define - id should not be >= 1 and <= 100" ]
+                "expected_msg" => ["id" => "Users define - id should not be >= 1 and <= 100"]
             ],
             "Invalid_unset" => [
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => [ "name" => "Users define - name should not be empty and must be string" ]
+                "expected_msg" => ["name" => "Users define - name should not be empty and must be string"]
             ]
         ];
 
@@ -1599,14 +1634,14 @@ class Unit
                 "data" => [
                     "id" => "101",
                 ],
-                "expected_msg" => [ "id" => "id validation failed" ]
+                "expected_msg" => ["id" => "id validation failed"]
             ],
             "Invalid_add_1" => [
                 "data" => [
                     "id" => "1",
                     "name" => "Tom"
                 ],
-                "expected_msg" => [ "name" => "name validation failed" ]
+                "expected_msg" => ["name" => "name validation failed"]
             ],
             "Invalid_add_2" => [
                 "data" => [
@@ -1616,7 +1651,7 @@ class Unit
                         "fruit_id" => "51",
                     ]
                 ],
-                "expected_msg" => [ "favourite_fruit.fruit_id" => "favourite_fruit.fruit_id validation failed" ]
+                "expected_msg" => ["favourite_fruit.fruit_id" => "favourite_fruit.fruit_id validation failed"]
             ],
             "Invalid_add_3" => [
                 "data" => [
@@ -1628,7 +1663,7 @@ class Unit
                         "fruit_color" => "red",
                     ]
                 ],
-                "expected_msg" => [ "favourite_fruit.fruit_name" => "favourite_fruit.fruit_name validation failed" ]
+                "expected_msg" => ["favourite_fruit.fruit_name" => "favourite_fruit.fruit_name validation failed"]
             ],
             "Invalid_add_4" => [
                 "data" => [
@@ -1640,7 +1675,7 @@ class Unit
                         "fruit_color" => "yellow",
                     ]
                 ],
-                "expected_msg" => [ "favourite_fruit.fruit_color" => "fruit name(apple) and color(yellow) is not matched" ]
+                "expected_msg" => ["favourite_fruit.fruit_color" => "fruit name(apple) and color(yellow) is not matched"]
             ],
         ];
 
@@ -1648,7 +1683,7 @@ class Unit
             "method_name" => __METHOD__,
         ];
 
-        $this->validation->add_method("check_name", function($name, $id) {
+        $this->validation->add_method("check_name", function ($name, $id) {
             if ($id == 1) {
                 if ($name != "Admin") {
                     return false;
@@ -1658,12 +1693,12 @@ class Unit
             return true;
         });
 
-        $this->validation->add_method("check_fruit_id", function($data) {
+        $this->validation->add_method("check_fruit_id", function ($data) {
             if ($data["id"] < 50) {
                 if ($data["favourite_fruit"]["fruit_id"] >= 50) {
                     return false;
                 }
-            }else {
+            } else {
                 if ($data["favourite_fruit"]["fruit_id"] < 50) {
                     return false;
                 }
@@ -1672,7 +1707,7 @@ class Unit
             return true;
         });
 
-        $this->validation->add_method("check_fruit_name", function($favourite_fruit) {
+        $this->validation->add_method("check_fruit_name", function ($favourite_fruit) {
             if ($favourite_fruit['fruit_id'] == 1) {
                 if ($favourite_fruit['fruit_name'] != "Admin Fruit") {
                     return false;
@@ -1682,7 +1717,7 @@ class Unit
             return true;
         });
 
-        $this->validation->add_method("check_fruit_color", function($fruit_name, $fruit_color) {
+        $this->validation->add_method("check_fruit_color", function ($fruit_name, $fruit_color) {
             $fruit_color_arr = [
                 "Admin Fruit" => "",
                 "apple" => "red",
@@ -1704,7 +1739,109 @@ class Unit
         ];
     }
 
-    protected function test_validation_global_execute($error_data=false)
+    protected function test_exception()
+    {
+        $rule = [
+            "id" => "optional|php_warning_id",
+            "name" => "optional|php_exception_name",
+            "height" => [
+                "[or]" => [
+                    "optional|int|>[100]",
+                    "optional|string",
+                ]
+            ],
+            "favourite_fruit" => [
+                "fruit_id" => "optional|php_exception_fruit_id(@root)",
+            ],
+            "favourite_fruits" => [
+                "*" => [
+                    "fruit_id" => "optional|php_exception_fruit_id(@root)",
+                ]
+            ]
+        ];
+
+        $cases = [
+            "Exception_add_1" => [
+                "data" => [
+                    "name" => "Devin",
+                ],
+                "expected_msg" => '@field:name, @method:php_exception_name - Undefined constant "UNDEFINED_VAR"'
+            ],
+            "Exception_add_2" => [
+                "data" => [
+                    "favourite_fruit" => [
+                        "fruit_id" => "f_1",
+                    ]
+                ],
+                "expected_msg" => '@field:favourite_fruit.fruit_id, @method:php_exception_fruit_id - fruit id is not valid'
+            ],
+            "Exception_add_3" => [
+                "data" => [
+                    "favourite_fruits" => [
+                        [
+                            "fruit_id" => "",
+                        ],
+                        [
+                            "fruit_id" => "f_2",
+                        ],
+                    ]
+                ],
+                "expected_msg" => '@field:favourite_fruits.1.fruit_id, @method:php_exception_fruit_id - fruit id is not valid'
+            ],
+            "Invalid_add_1" => [
+                "data" => [
+                    "id" => "1",
+                ],
+                "expected_msg" => ["id" => "id validation failed"]
+            ],
+        ];
+
+        if (0) $cases = [
+            "Exception_lib_1" => [
+                "data" => [
+                    "favourite_fruits" => [
+                        [
+                            "fruit_id" => "1",
+                        ],
+                    ]
+                ],
+                "expected_msg" => '@field:favourite_fruit.fruit_id, @rule:optional|php_exception_fruit_id(@root) - Undefined constant "githusband\UNDEFINED_VAR"'
+            ],
+            "Exception_lib_2" => [
+                "data" => [
+                    "height" => 10
+                ],
+                "expected_msg" => '@field:height, @rule:optional|string - Undefined constant "githusband\UNDEFINED_VAR"'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+
+        $this->validation->add_method("php_warning_id", function ($id) {
+            if (false) $fake_id = 0;
+            return $fake_id > 1;
+        });
+
+        $this->validation->add_method("php_exception_name", function ($name) {
+            if (false) define('UNDEFINED_VAR', 1);
+            return UNDEFINED_VAR;
+        });
+
+        $this->validation->add_method("php_exception_fruit_id", function ($fruit_id) {
+            throw new \Exception("fruit id is not valid");
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_validation_global_execute($error_data = false)
     {
         $rule = [
             "id" => "required|int",
@@ -1761,7 +1898,7 @@ class Unit
         return $result;
     }
 
-    protected function test_err_format_execute($error_data=false)
+    protected function test_err_format_execute($error_data = false)
     {
         $rule = [
             "id" => "required|int",
@@ -1799,8 +1936,9 @@ class Unit
                     "favourite_fruit.fruit_name" => "favourite_fruit.fruit_name must be string",
                 ],
                 "err_format" => [
-                    "standard" => false,
-                    "simple" => true,
+                    "format" => Validation::ERROR_FORMAT_DOTTED_GENERAL,
+                    // "nested" => false,
+                    // "general" => true,
                 ]
             ],
             "Invalid_2" => [
@@ -1831,8 +1969,9 @@ class Unit
                     ],
                 ],
                 "err_format" => [
-                    "standard" => false,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_DOTTED_DETAILED,
+                    // "nested" => false,
+                    // "general" => false,
                 ]
             ],
             "Invalid_3" => [
@@ -1853,8 +1992,9 @@ class Unit
                     ],
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => true,
+                    "format" => Validation::ERROR_FORMAT_NESTED_GENERAL,
+                    // "nested" => true,
+                    // "general" => true,
                 ]
             ],
             "Invalid_4" => [
@@ -1887,8 +2027,9 @@ class Unit
                     ],
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
         ];
@@ -1931,8 +2072,9 @@ class Unit
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_2" => [
@@ -1946,8 +2088,9 @@ class Unit
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_3" => [
@@ -1961,8 +2104,9 @@ class Unit
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_4" => [
@@ -1977,8 +2121,9 @@ class Unit
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_5" => [
@@ -1986,15 +2131,16 @@ class Unit
                     "id" => 41,
                     "number" => 11
                 ],
-                "expected_msg" =>[
+                "expected_msg" => [
                     "number" => [
                         "error_type" => "validation",
                         "message" => "number error!",
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
             "Invalid_data_6" => [
@@ -2010,8 +2156,9 @@ class Unit
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => false,
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                    // "nested" => true,
+                    // "general" => false,
                 ]
             ],
         ];
@@ -2021,17 +2168,17 @@ class Unit
             "field_path" => "name",
         ];
 
-        $this->validation->add_method("check_err_field", function($data) {
+        $this->validation->add_method("check_err_field", function ($data) {
             if ($data < 10) {
                 return false;
-            }else if ($data < 20) {
+            } else if ($data < 20) {
                 return "id: check_err_field error. [10, 20]";
-            }else if ($data < 30) {
+            } else if ($data < 30) {
                 return [
                     "error_type" => "3",
                     "message" => "@this: check_err_field error. [20, 30]",
                 ];
-            }else if ($data <= 40) {
+            } else if ($data <= 40) {
                 return [
                     "error_type" => "4",
                     "message" => "@this: check_err_field error. [30, 40]",
@@ -2053,7 +2200,7 @@ class Unit
     {
         $rule = [
             "id" => 'required|/^\d+$/|<=>=[1,100]| >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
-            "name" => 'unset_required|string >> { "unset_required": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
+            "name" => 'optional_unset|string >> { "optional_unset": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
             "age" => 'optional|<=>=[1,60]|check_err_field >> { "<=>=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
         ];
 
@@ -2062,33 +2209,33 @@ class Unit
                 "data" => [
                     "name" => "devin"
                 ],
-                "expected_msg" => [ "id" => "Users define - id is required" ]
+                "expected_msg" => ["id" => "Users define - id is required"]
             ],
             "Invalid_id_preg" => [
                 "data" => [
                     "id" => "devin"
                 ],
-                "expected_msg" => [ "id" => "Users define - id should be \"MATCHED\" /^\d+$/" ]
+                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
             ],
             "Invalid_id_not_in" => [
                 "data" => [
                     "id" => 101
                 ],
-                "expected_msg" => [ "id" => "id must be greater than or equal to 1 and less than or equal to 100" ]
+                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
             ],
             "Invalid_name_unset" => [
                 "data" => [
                     "id" => 1,
                     "name" => ''
                 ],
-                "expected_msg" => [ "name" => "Users define - name should be unset or not be empty" ]
+                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
             ],
             "Invalid_name_unset_1" => [
                 "data" => [
                     "id" => 1,
                     "name" => 123
                 ],
-                "expected_msg" => [ "name" => "Users define - Note! name should be string" ]
+                "expected_msg" => ["name" => "Users define - Note! name should be string"]
             ],
             "Invalid_age" => [
                 "data" => [
@@ -2096,7 +2243,7 @@ class Unit
                     "name" => "devin",
                     "age" => 61,
                 ],
-                "expected_msg" => [ "age" => "Users define - age is not allowed." ]
+                "expected_msg" => ["age" => "Users define - age is not allowed."]
             ],
             "Invalid_age_1" => [
                 "data" => [
@@ -2104,7 +2251,7 @@ class Unit
                     "name" => "devin",
                     "age" => 11,
                 ],
-                "expected_msg" => [ "age" => "Users define - age is not passed." ]
+                "expected_msg" => ["age" => "Users define - age is not passed."]
             ]
         ];
 
@@ -2113,17 +2260,17 @@ class Unit
             "field_path" => "name",
         ];
 
-        $this->validation->add_method("check_err_field", function($data) {
+        $this->validation->add_method("check_err_field", function ($data) {
             if ($data < 10) {
                 return false;
-            }else if ($data < 20) {
+            } else if ($data < 20) {
                 return "id: check_err_field error. [10, 20]";
-            }else if ($data < 30) {
+            } else if ($data < 30) {
                 return [
                     "error_type" => "3",
                     "message" => "@this: check_err_field error. [20, 30]",
                 ];
-            }else if ($data <= 40) {
+            } else if ($data <= 40) {
                 return [
                     "error_type" => "4",
                     "message" => "@this: check_err_field error. [30, 40]",
@@ -2145,7 +2292,7 @@ class Unit
     {
         $rule = [
             "id" => "required|/^\d+$/|<=>=[1,100]| >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
-            "name" => "unset_required|string >> [unset_required] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
+            "name" => "optional_unset|string >> [optional_unset] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
             "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
         ];
 
@@ -2154,33 +2301,33 @@ class Unit
                 "data" => [
                     "name" => "devin"
                 ],
-                "expected_msg" => [ "id" => "Users define - id is required" ]
+                "expected_msg" => ["id" => "Users define - id is required"]
             ],
             "Invalid_id_preg" => [
                 "data" => [
                     "id" => "devin"
                 ],
-                "expected_msg" => [ "id" => "Users define - id should be \"MATCHED\" /^\d+$/" ]
+                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
             ],
             "Invalid_id_not_in" => [
                 "data" => [
                     "id" => 101
                 ],
-                "expected_msg" => [ "id" => "id must be greater than or equal to 1 and less than or equal to 100" ]
+                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
             ],
             "Invalid_name_unset" => [
                 "data" => [
                     "id" => 1,
                     "name" => ''
                 ],
-                "expected_msg" => [ "name" => "Users define - name should be unset or not be empty" ]
+                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
             ],
             "Invalid_name_unset_1" => [
                 "data" => [
                     "id" => 1,
                     "name" => 123
                 ],
-                "expected_msg" => [ "name" => "Users define - Note! name should be string" ]
+                "expected_msg" => ["name" => "Users define - Note! name should be string"]
             ],
             "Invalid_age" => [
                 "data" => [
@@ -2188,7 +2335,7 @@ class Unit
                     "name" => "devin",
                     "age" => 61,
                 ],
-                "expected_msg" => [ "age" => "Users define - age is not allowed." ]
+                "expected_msg" => ["age" => "Users define - age is not allowed."]
             ],
             "Invalid_age_1" => [
                 "data" => [
@@ -2196,7 +2343,7 @@ class Unit
                     "name" => "devin",
                     "age" => 11,
                 ],
-                "expected_msg" => [ "age" => "Users define - age is not passed." ]
+                "expected_msg" => ["age" => "Users define - age is not passed."]
             ]
         ];
 
@@ -2205,17 +2352,17 @@ class Unit
             "field_path" => "name",
         ];
 
-        $this->validation->add_method("check_err_field", function($data) {
+        $this->validation->add_method("check_err_field", function ($data) {
             if ($data < 10) {
                 return false;
-            }else if ($data < 20) {
+            } else if ($data < 20) {
                 return "id: check_err_field error. [10, 20]";
-            }else if ($data < 30) {
+            } else if ($data < 30) {
                 return [
                     "error_type" => "3",
                     "message" => "@this: check_err_field error. [20, 30]",
                 ];
-            }else if ($data <= 40) {
+            } else if ($data <= 40) {
                 return [
                     "error_type" => "4",
                     "message" => "@this: check_err_field error. [30, 40]",
@@ -2244,9 +2391,9 @@ class Unit
                 ]
             ],
             "name" => [
-                "unset_required|string",
+                "optional_unset|string",
                 "error_message" => [
-                    "unset_required" => "Users define - @this should be unset or not be empty",
+                    "optional_unset" => "Users define - @this should be unset or not be empty",
                     "string" => "Users define - Note! @this should be string"
                 ]
             ],
@@ -2265,33 +2412,33 @@ class Unit
                 "data" => [
                     "name" => "devin"
                 ],
-                "expected_msg" => [ "id" => "Users define - id is required" ]
+                "expected_msg" => ["id" => "Users define - id is required"]
             ],
             "Invalid_id_preg" => [
                 "data" => [
                     "id" => "devin"
                 ],
-                "expected_msg" => [ "id" => "Users define - id should be \"MATCHED\" /^\d+$/" ]
+                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
             ],
             "Invalid_id_not_in" => [
                 "data" => [
                     "id" => 101
                 ],
-                "expected_msg" => [ "id" => "id must be greater than or equal to 1 and less than or equal to 100" ]
+                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
             ],
             "Invalid_name_unset" => [
                 "data" => [
                     "id" => 1,
                     "name" => ''
                 ],
-                "expected_msg" => [ "name" => "Users define - name should be unset or not be empty" ]
+                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
             ],
             "Invalid_name_unset_1" => [
                 "data" => [
                     "id" => 1,
                     "name" => 123
                 ],
-                "expected_msg" => [ "name" => "Users define - Note! name should be string" ]
+                "expected_msg" => ["name" => "Users define - Note! name should be string"]
             ],
             "Invalid_age" => [
                 "data" => [
@@ -2299,7 +2446,7 @@ class Unit
                     "name" => "devin",
                     "age" => 61,
                 ],
-                "expected_msg" => [ "age" => "Users define - age is not allowed." ]
+                "expected_msg" => ["age" => "Users define - age is not allowed."]
             ],
             "Invalid_age_1" => [
                 "data" => [
@@ -2307,7 +2454,7 @@ class Unit
                     "name" => "devin",
                     "age" => 11,
                 ],
-                "expected_msg" => [ "age" => "Users define - age is not passed." ]
+                "expected_msg" => ["age" => "Users define - age is not passed."]
             ]
         ];
 
@@ -2316,17 +2463,17 @@ class Unit
             "field_path" => "name",
         ];
 
-        $this->validation->add_method("check_err_field", function($data) {
+        $this->validation->add_method("check_err_field", function ($data) {
             if ($data < 10) {
                 return false;
-            }else if ($data < 20) {
+            } else if ($data < 20) {
                 return "id: check_err_field error. [10, 20]";
-            }else if ($data < 30) {
+            } else if ($data < 30) {
                 return [
                     "error_type" => "3",
                     "message" => "@this: check_err_field error. [20, 30]",
                 ];
-            }else if ($data <= 40) {
+            } else if ($data <= 40) {
                 return [
                     "error_type" => "4",
                     "message" => "@this: check_err_field error. [30, 40]",
@@ -2344,7 +2491,7 @@ class Unit
         ];
     }
 
-    protected function test_set_language_execute($error_data=false)
+    protected function test_set_language_execute($error_data = false)
     {
         $rule = [
             "name" => "required|string"
@@ -2355,11 +2502,11 @@ class Unit
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => [ "name" => "name 不能为空" ]
+                "expected_msg" => ["name" => "name 不能为空"]
             ],
             "Invalid_unset" => [
                 "data" => [],
-                "expected_msg" => [ "name" => "name 不能为空" ]
+                "expected_msg" => ["name" => "name 不能为空"]
             ],
             "Invalid_num" => [
                 "data" => [
@@ -2383,7 +2530,7 @@ class Unit
         return $result;
     }
 
-    protected function test_custom_language_file_execute($error_data=false)
+    protected function test_custom_language_file_execute($error_data = false)
     {
         $rule = [
             "id" => "check_custom[100]"
@@ -2394,13 +2541,13 @@ class Unit
                 "data" => [
                     "id" => ""
                 ],
-                "expected_msg" => [ "id" => "id error!(CustomLang File)" ]
+                "expected_msg" => ["id" => "id error!(CustomLang File)"]
             ],
             "Invalid_extra" => [
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => [ "id" => "id error!(CustomLang File)" ]
+                "expected_msg" => ["id" => "id error!(CustomLang File)"]
             ]
         ];
 
@@ -2410,17 +2557,17 @@ class Unit
 
         if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
 
-        $this->validation->add_method("check_custom", function($custom, $num) {
+        $this->validation->add_method("check_custom", function ($custom, $num) {
             return $custom > $num;
         });
         // You should add CustomLang.php in __DIR__.'/Language/'
-        $this->validation->set_config(array('lang_path' => __DIR__.'/Language/'))->set_language('CustomLang');
+        $this->validation->set_config(array('lang_path' => __DIR__ . '/Language/'))->set_language('CustomLang');
         $result = $this->valid_cases($rule, $cases, $extra);
 
         return $result;
     }
 
-    protected function test_custom_language_object_execute($error_data=false)
+    protected function test_custom_language_object_execute($error_data = false)
     {
         $rule = [
             "id" => "check_id[1,100]"
@@ -2431,13 +2578,13 @@ class Unit
                 "data" => [
                     "id" => ""
                 ],
-                "expected_msg" => [ "id" => "id error!(customed)" ]
+                "expected_msg" => ["id" => "id error!(customed)"]
             ],
             "Invalid_extra" => [
                 "data" => [
                     "id" => 1000,
                 ],
-                "expected_msg" => [ "id" => "id error!(customed)" ]
+                "expected_msg" => ["id" => "id error!(customed)"]
             ]
         ];
 
@@ -2457,7 +2604,7 @@ class Unit
         return $result;
     }
 
-    protected function test_default_config_execute($error_data=false)
+    protected function test_default_config_execute($error_data = false)
     {
         $rule = [
             "id" => "required|int|/^\d+$/",
@@ -2492,7 +2639,7 @@ class Unit
             ],
             "favourite_food[optional].*" => [
                 "name" => "required|string",
-                "place_name" => "optional|string" 
+                "place_name" => "optional|string"
             ]
         ];
 
@@ -2594,7 +2741,7 @@ class Unit
                     "favourite_food" => [
                         [
                             "name" => "HuoGuo",
-                            "place_name" => "SiChuan" 
+                            "place_name" => "SiChuan"
                         ],
                         [
                             "name" => "Beijing Kaoya",
@@ -2640,8 +2787,9 @@ class Unit
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => true,
+                    "format" => Validation::ERROR_FORMAT_NESTED_GENERAL,
+                    "nested" => true,
+                    "general" => true,
                 ]
 
             ],
@@ -2661,7 +2809,7 @@ class Unit
     }
 
     // Don't test this function temporarily
-    protected function test_user_config_execute($error_data=false)
+    protected function test_user_config_execute($error_data = false)
     {
         $validation_conf = array(
             'language' => 'en-us',                          // Language, default is en-us
@@ -2673,8 +2821,8 @@ class Unit
             'reg_if_true' => '/^IFn\?/',                    // If match this, validate this condition first, if false, then validate the field
             'symbol_or' => '[or]',                          // Symbol of or rule
             'symbol_rule_separator' => '&&',                // Rule reqarator for one field
-            'symbol_param_classic' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @this parameter at first 
-            'symbol_param_force' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @this parameter at first 
+            'symbol_param_this_omitted' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @this parameter at first 
+            'symbol_param_standard' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @this parameter at first 
             'symbol_param_separator' => ',',                // Parameters separator, such as @this,@field1,@field2
             'symbol_field_name_separator' => '->',          // Field name separator, suce as "fruit.apple"
             'symbol_required' => '!*',                      // Symbol of required field
@@ -2716,7 +2864,7 @@ class Unit
             ],
             "favourite_food[o][N]" => [
                 "name" => "!*&&string",
-                "place_name" => "o&&string" 
+                "place_name" => "o&&string"
             ]
         ];
 
@@ -2818,7 +2966,7 @@ class Unit
                     "favourite_food" => [
                         [
                             "name" => "HuoGuo",
-                            "place_name" => "SiChuan" 
+                            "place_name" => "SiChuan"
                         ],
                         [
                             "name" => "Beijing Kaoya",
@@ -2864,8 +3012,9 @@ class Unit
                     ]
                 ],
                 "err_format" => [
-                    "standard" => true,
-                    "simple" => true,
+                    "format" => Validation::ERROR_FORMAT_NESTED_GENERAL,
+                    // "nested" => true,
+                    // "general" => true,
                 ]
             ],
         ];
@@ -2914,18 +3063,83 @@ class Unit
                     "id" => "1a",
                     "name" => "John",
                 ],
-                "expected_msg" => [ "id" => "id format is invalid, should be /^\d+$/" ]
+                "expected_msg" => ["id" => "id format is invalid, should be /^\d+$/"]
             ],
             "Invalid_2" => [
                 "data" => [
                     "id" => "1",
                     "name" => "John",
                 ],
-                "expected_msg" => [ "name" => "name format is invalid, should be /Tom/i" ]
+                "expected_msg" => ["name" => "name format is invalid, should be /Tom/i"]
             ],
         ];
 
         $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_extend_rule()
+    {
+        $rule = [
+            "id" => "required|<>[0,100]",
+            "start_date" => "optional|date<>[2024-02-01 00:00:00,2024-02-28 23:59:59]",
+            "end_date" => "optional|date<=>=[2024-03-01 00:00:00,2024-03-31 23:59:59]"
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "start_date" => "2024-02-01 01:00:00",
+                    "end_date" => "2024-03-01 01:00:00",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "id" => 1,
+                    "start_date" => "2024-02-02",
+                ],
+            ],
+            "Invalid_1" => [
+                "data" => [
+                    "id" => 100,
+                ],
+                "expected_msg" => ["id" => "id must be greater than 0 and less than 100"]
+            ],
+            "Invalid_2" => [
+                "data" => [
+                    "id" => 1,
+                    "start_date" => "2024-02-01 00:00:00",
+                ],
+                "expected_msg" => ["start_date" => "start_date is not between 2024-02-01 00:00:00 and 2024-02-28 23:59:59"]
+            ],
+            "Invalid_3" => [
+                "data" => [
+                    "id" => 1,
+                    "end_date" => "2024-04-01 00:00:00",
+                ],
+                "expected_msg" => ["end_date" => "end_date must be greater than or equal to 2024-03-01 00:00:00 and less than or equal to 2024-03-31 23:59:59"]
+            ],
+            "Invalid_4" => [
+                "data" => [
+                    "id" => 1,
+                    "start_date" => "2024-02-02asdfadsf",
+                ],
+                "expected_msg" => ["start_date" => "start_date is not a date"]
+            ],
+        ];
+
+        $extra = [
+            "validation_class" => new githusband\Test\Extend\MyValidation([
+                "validation_global" => false,
+            ]),
             "method_name" => __METHOD__,
         ];
 
@@ -2966,7 +3180,7 @@ class Unit
                 "data" => [
                     "id" => "12",
                 ],
-                "expected_msg" => [ "id" => "id must be numeric and in 1,2,3" ]
+                "expected_msg" => ["id" => "id must be numeric and in 1,2,3"]
             ],
         ];
 
@@ -2989,14 +3203,14 @@ class Unit
 
 
 $arguments = $argv;
-$method = isset($arguments[1])? $arguments[1] : "error";
+$method = isset($arguments[1]) ? $arguments[1] : "error";
 unset($arguments[0], $arguments[1]);
 
 $test = new Unit();
 
 if (method_exists($test, $method)) {
     $result = call_user_func_array([$test, $method], $arguments);
-}else {
+} else {
     echo "Error test method {$method}.\n";
     die;
 }

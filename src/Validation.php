@@ -2,8 +2,18 @@
 
 namespace githusband;
 
+use githusband\Rule\RuleDefault;
+use githusband\Exception\ghException;
+
 class Validation
 {
+    use RuleDefault;
+
+    const ERROR_FORMAT_NESTED_GENERAL = 'NESTED_GENERAL';
+    const ERROR_FORMAT_NESTED_DETAILED = 'NESTED_DETAILED';
+    const ERROR_FORMAT_DOTTED_GENERAL = 'DOTTED_GENERAL';
+    const ERROR_FORMAT_DOTTED_DETAILED = 'DOTTED_DETAILED';
+
     /**
      * Validation rules. Default empty. Should be set before validation.
      * @var array
@@ -40,24 +50,47 @@ class Validation
     /**
      * Contains all error messages.
      * One-dimensional array
-     * Format: parent_field.error_filed => error_message
+     * Format:
+     * {
+     *      "A.1": "error_msg_A1",
+     *      "A.2.a": "error_msg_A2a",
+     * }
+     * 
      * @var array
      */
-    protected $classic_errors = array(
-        'simple' => array(),    // only message string
-        'complex' => array()    // message array, contains error type and error message
+    protected $dotted_errors = array(
+        'general' => array(),    // only message string
+        'detailed' => array()    // message array, contains error type and error message
     );
 
     /**
      * Contains all error messages.
      * Multidimensional array
-     * Format: error_filed => error_message
+     * Format: 
+     * {
+     *      "A": {
+     *          "1": "error_msg_A1",
+     *          "2": {
+     *              "a": "error_msg_A2a"
+     *          }
+     *      }
+     * }
      * @var array
      */
-    protected $standard_errors = array(
-        'simple' => array(),    // only message string
-        'complex' => array()    // message array, contains error type and error message
+    protected $nested_errors = array(
+        'general' => array(),    // only message string
+        'detailed' => array()    // message array, contains error type and error message
     );
+
+    /**
+     * Current info of the recurrence validation: field path or its rule, etc.
+     * If something get wrong, we can easily know which field or rule get wrong.
+     * @var array
+     */
+    protected $recurrence_current = [
+        'field_path' => '',
+        'rule' => '',
+    ];
 
     protected $symbol_this = '@this';
     protected $symbol_root = '@root';
@@ -72,17 +105,18 @@ class Validation
         'auto_field' => "data",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
         'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
         'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
+        'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
         'reg_if' => '/^!?if\((.*)\)/',                          // If match this, validate this condition first
         'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
         'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
         'symbol_rule_separator' => '|',                         // Rule reqarator for one field
-        'symbol_param_classic' => '/^(.*)\\[(.*)\\]$/',         // If set function by this symbol, will add a @this parameter at first 
-        'symbol_param_force' => '/^(.*)\\((.*)\\)$/',           // If set function by this symbol, will not add a @this parameter at first 
+        'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
+        'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
         'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
         'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
         'symbol_required' => '*',                               // Symbol of required field, Same as "required"
         'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
-        'symbol_unset_required' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "unset_required"
+        'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "optional_unset"
         'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
         'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
         'symbol_index_array' => '.*',                           // Symbol of index array rule
@@ -98,7 +132,7 @@ class Validation
     protected $symbol_full_name = array(
         'symbol_required' => 'required',                // Symbol Full Name of required field
         'symbol_optional' => 'optional',                // Symbol Full Name of optional field
-        'symbol_unset_required' => 'unset_required',    // Symbol Full Name of optional field
+        'symbol_optional_unset' => 'optional_unset',    // Symbol Full Name of optional field
         'symbol_or' => '[or]',                          // Symbol Full Name of or rule
         'symbol_array_optional' => '[optional]',        // Symbol Full Name of array optional rule
     );
@@ -124,49 +158,18 @@ class Validation
     protected $validation_global = true;
 
     /**
-     * method template
-     * mapped to real method
+     * The method symbol
+     * Using symbol mapped to real method. e.g. '=' => 'equal'
+     * @see githusband\Rule\RuleDefault::$method_symbol_of_rule_default
      * @var array
      */
-    protected $method_template = array(
-        '=' => 'equal',
-        '!=' => 'not_equal',
-        '==' => 'identically_equal',
-        '!==' => 'not_identically_equal',
-        '>' => 'greater_than',
-        '<' => 'less_than',
-        '>=' => 'greater_than_equal',
-        '<=' => 'less_than_equal',
-        '<>' => 'interval',
-        '<=>' => 'greater_lessequal',
-        '<>=' => 'greaterequal_less',
-        '<=>=' => 'greaterequal_lessequal',
-        '(n)' => 'in_number',
-        '!(n)' => 'not_in_number',
-        '(s)' => 'in_string',
-        '!(s)' => 'not_in_string',
-        'len=' => 'length_equal',
-        'len!=' => 'length_not_equal',
-        'len>' => 'length_greater_than',
-        'len<' => 'length_less_than',
-        'len>=' => 'length_greater_than_equal',
-        'len<=' => 'length_less_than_equal',
-        'len<>' => 'length_interval',
-        'len<=>' => 'length_greater_lessequal',
-        'len<>=' => 'length_greaterequal_less',
-        'len<=>=' => 'length_greaterequal_lessequal',
-        'int' => 'integer',
-        'float' => 'float',
-        'string' => 'string',
-        'bool=' => 'bool',
-        'bool_str=' => 'bool_str',
-    );
+    protected $method_symbol = array();
 
     /**
      * Language file path
      * @var string
      */
-    protected $lang_path = __DIR__.'/Language/';
+    protected $lang_path = __DIR__ . '/Language/';
 
     /**
      * Languaue
@@ -176,70 +179,25 @@ class Validation
 
     /**
      * If user don't set a error messgae, use this.
+     * @see ./Language/EnUs.php
+     * @see githusband\Rule\RuleDefault::$method_symbol_of_rule_default
      * @var array
      */
-    protected $error_template = array(
-        'default' => '@this validation failed',
-        'index_array' => '@this must be a index array',
-        'required' => '@this can not be empty',
-        'unset_required' => '@this must be unset or not empty',
-        'preg' => '@this format is invalid, should be @preg',
-        'call_method' => '@thisthod is undefined',
-        '=' => '@this must be equal to @p1',
-        '!=' => '@this must be not equal to @p1',
-        '==' => '@this must be identically equal to @p1',
-        '!==' => '@this must be not identically equal to @p1',
-        '>' => '@this must be greater than @p1',
-        '<' => '@this must be less than @p1',
-        '>=' => '@this must be greater than or equal to @p1',
-        '<=' => '@this must be less than or equal to @p1',
-        '<>' => '@this must be greater than @p1 and less than @p2',
-        '<=>' => '@this must be greater than @p1 and less than or equal to @p2',
-        '<>=' => '@this must be greater than or equal to @p1 and less than @p2',
-        '<=>=' => '@this must be greater than or equal to @p1 and less than or equal to @p2',
-        '(n)' => '@this must be numeric and in @p1',
-        '!(n)' => '@this must be numeric and can not be in @p1',
-        '(s)' => '@this must be string and in @p1',
-        '!(s)' => '@this must be string and can not be in @p1',
-        'len=' => '@this length must be equal to @p1',
-        'len!=' => '@this length must be not equal to @p1',
-        'len>' => '@this length must be greater than @p1',
-        'len<' => '@this length must be less than @p1',
-        'len>=' => '@this length must be greater than or equal to @p1',
-        'len<=' => '@this length must be less than or equal to @p1',
-        'len<>' => '@this length must be greater than @p1 and less than @p2',
-        'len<=>' => '@this length must be greater than @p1 and less than or equal to @p2',
-        'len<>=' => '@this length must be greater than or equal to @p1 and less than @p2',
-        'len<=>=' => '@this length must be greater than or equal to @p1 and less than or equal to @p2',
-        'int' => '@this must be integer',
-        'float' => '@this must be float',
-        'string' => '@this must be string',
-        'arr' => '@this must be array',
-        'bool' => '@this must be boolean',
-        'bool=' => '@this must be boolean @p1',
-        'bool_str' => '@this must be boolean string',
-        'bool_str=' => '@this must be boolean string @p1',
-        'email' => '@this must be email',
-        'url' => '@this must be url',
-        'ip' => '@this must be IP address',
-        'mac' => '@this must be MAC address',
-        'dob' => '@this must be a valid date',
-        'file_base64' => '@this must be a valid file base64',
-        'uuid' => '@this must be a UUID',
-        'oauth2_grant_type' => '@this is not a valid OAuth2 grant type'
-    );
+    protected $error_template = array();
 
-    public function __construct($config=array())
+    public function __construct($config = array())
     {
         $this->default_config_backup = $this->config;
         $this->initialzation($config);
     }
 
-    protected function initialzation($config=array())
+    protected function initialzation($config = array())
     {
         $this->config = array_merge($this->config, $config);
 
         $this->set_language($this->config['language']);
+
+        $this->load_method_symbol();
 
         $this->set_validation_global($this->config['validation_global']);
     }
@@ -248,7 +206,7 @@ class Validation
      * Set Config
      * @var array
      */
-    public function set_config($config=array())
+    public function set_config($config = array())
     {
         $this->config = array_merge($this->config, $config);
 
@@ -268,10 +226,49 @@ class Validation
     }
 
     /**
+     * Get all the traits from a class and its ancestors.
+     * @return array
+     */
+    protected function get_all_traits()
+    {
+        $class = static::class;
+        $traits = [];
+        do {
+            $class_traits = class_uses($class);
+            // $reflector = new \ReflectionClass($class);
+            // $class_traits = $reflector->getTraitNames();
+            $traits = array_merge($class_traits, $traits);
+        } while (($class = get_parent_class($class)) !== false);
+
+        return array_unique($traits);
+    }
+
+    /**
+     * Auto load the method symbol from rule traits
+     * @return void
+     */
+    protected function load_method_symbol()
+    {
+        $used_traits = $this->get_all_traits();
+
+        foreach ($used_traits as $key => $trait) {
+            $slash_pos = strrpos($trait, '\\');
+            if ($slash_pos !== false) $trait_name = substr($trait, strrpos($trait, '\\') + 1);
+            else $trait_name = $trait;
+            $trait_name_uncamelized = $this->uncamelize($trait_name);
+            $trait_method_symbol = "method_symbol_of_{$trait_name_uncamelized}";
+            if (property_exists($this, $trait_method_symbol)) {
+                $this->method_symbol = array_merge($this->method_symbol, $this->{$trait_method_symbol});
+            }
+        }
+    }
+
+    /**
      * If user don't set a error messgae, use $lang.
      * The language file must exist.
-     * @Author   Devin
-     * @param    string                   $lang Languagu, suce as 'en-us'
+     *
+     * @param string $lang Languagu, suce as 'en-us'
+     * @return static
      */
     public function set_language($lang)
     {
@@ -303,7 +300,6 @@ class Validation
                 $lang_conf = new $lang();
                 $this->custom_language($lang_conf, $lang);
             }
-            
         }
 
         return $this;
@@ -312,9 +308,10 @@ class Validation
     /**
      * If user don't set a error messgae, use $lang_conf.
      * It allows user to custom their own language
-     * @Author   Devin
-     * @param    object                   $lang_conf Object instance
-     * @param    string                   $lang_name Languagu name
+     *
+     * @param object $lang_conf Object instance
+     * @param string $lang_name Languagu name
+     * @return static
      */
     public function custom_language($lang_conf, $lang_name = '')
     {
@@ -328,8 +325,9 @@ class Validation
 
     /**
      * Set validation rules
-     * @Author   Devin
-     * @param    array                    $rules [description]
+     *
+     * @param array $rules
+     * @return static
      */
     public function set_rules($rules = array())
     {
@@ -343,8 +341,9 @@ class Validation
 
     /**
      * If false, stop validating data immediately when a field was invalid.
-     * @Author   Devin
-     * @param    boolean                   $bool
+     *
+     * @param [type] $bool
+     * @return static
      */
     public function set_validation_global($bool)
     {
@@ -354,8 +353,8 @@ class Validation
 
     /**
      * Get validation_global flag
-     * @Author   Devin
-     * @param    boolean                   $bool
+     *
+     * @return bool
      */
     public function get_validation_global()
     {
@@ -364,9 +363,10 @@ class Validation
 
     /**
      * Allow user to add special methods 
-     * @Author   Devin
-     * @param    string                   $tag    tag name
-     * @param    string                   $method function definition
+     *
+     * @param string $tag tag name
+     * @param string $method function definition
+     * @return static
      */
     public function add_method($tag, $method)
     {
@@ -376,33 +376,47 @@ class Validation
 
     /**
      * Start validating
-     * @Author   Devin
-     * @param    array                    $data the data you want to validate
-     * @return   boolean                  validation result
+     *
+     * @param array $data The data you want to validate
+     * @return bool validation result
      */
     public function validate($data = array())
-    {   
+    {
         $this->data = $data;
         $this->result = $data;
-        $this->classic_errors = array();
-        $this->standard_errors = array();
+        $this->dotted_errors = array();
+        $this->nested_errors = array();
 
         $this->validation_status = true;
 
-        $this->execute($data, $this->rules);
+        try {
+            $this->execute($data, $this->rules);
+        } catch (\Throwable $t) {
+            if ($t instanceof ghException) {
+                throw $t;
+            } else {
+                $current_field_path = $this->get_current_field_path();
+                $current_field_path = empty($current_field_path) ? $this->config['auto_field'] : $current_field_path;
+                $current_rule = $this->get_current_rule();
+                $current_rule = empty($current_rule) ? 'NotSet' : $current_rule;
+                throw (new ghException("@field:{$current_field_path}, @rule:{$current_rule} - " . $t->getMessage(), $t->getCode(), $t))
+                    ->set_recurrence_current($this->get_recurrence_current());
+            }
+        }
 
         return $this->validation_status;
     }
 
     /**
      * Execute validation with all data and all rules
-     * @Author   Devin
-     * @param    array                      $data               the data you want to validate
-     * @param    array                      $rules              the rules you set
-     * @param    boolean                    $field_path         the current field path, suce as fruit.apple
-     * @param    boolean                    $is_array_loop      If _execute method is called in array loop, $is_array_loop should be true
+     *
+     * @param array $data The data you want to validate
+     * @param array $rules The rules you set
+     * @param bool $field_path The current field path, suce as fruit.apple
+     * @param bool $is_array_loop If the execute method is called in array loop, $is_array_loop should be true
+     * @return bool
      */
-    protected function execute($data, $rules, $field_path=false, $is_array_loop=false)
+    protected function execute($data, $rules, $field_path = false, $is_array_loop = false)
     {
         $rules_system_symbol = $this->get_rule_system_symbol($rules);
         // If The root rules has rule_system_symbol
@@ -416,16 +430,20 @@ class Validation
             $this->result = $this->data;
         }
 
-        foreach($rules as $field => $rule) {
+        foreach ($rules as $field => $rule) {
             $field_path_tmp = '';
             if ($field_path === false) $field_path_tmp = $field;
-            else $field_path_tmp = $field_path. $this->config['symbol_field_name_separator'] .$field;
+            else $field_path_tmp = $field_path . $this->config['symbol_field_name_separator'] . $field;
+            $this->set_current_field_path($field_path_tmp)
+                ->set_current_rule($rule);
+
+            // if ($field == 'fruit_id') $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_1
 
             $rule_system_symbol = $this->get_rule_system_symbol($rule);
             if (!empty($rule_system_symbol)) {
                 // Allow array or object to be optional
                 if ($this->has_system_symbol($rule_system_symbol, 'symbol_array_optional')) {
-                    if (!$this->required(isset($data[$field])? $data[$field] : null)) {
+                    if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
                         $this->set_result($field_path_tmp, true);
                         continue;
                     }
@@ -444,8 +462,10 @@ class Validation
                 else {
                     // Validate association array
                     if ($this->is_association_array_rule($rule[$rule_system_symbol])) {
-                        $result = $this->execute(isset($data[$field])? $data[$field]:null, $rule[$rule_system_symbol], $field_path_tmp, $is_array_loop);
+                        $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule[$rule_system_symbol], $field_path_tmp, $is_array_loop);
                     } else {
+                        $this->set_current_field_path($field_path_tmp)
+                            ->set_current_rule($rule);
                         $rule = $this->parse_one_rule($rule[$rule_system_symbol]);
                         $result = $this->execute_one_rule($data, $field, $rule, $field_path_tmp);
                         $this->set_result($field_path_tmp, $result);
@@ -464,7 +484,7 @@ class Validation
                     $field_tmp = $this->delete_system_symbol($field, 'symbol_or');
                     $field_tmp = $this->delete_system_symbol($field_tmp, 'symbol_index_array');
 
-                    if (!$this->required(isset($data[$field_tmp])? $data[$field_tmp] : null)) {
+                    if (!$this->required(isset($data[$field_tmp]) ? $data[$field_tmp] : null)) {
                         $this->set_result($field_path_tmp, true);
                         continue;
                     }
@@ -487,8 +507,10 @@ class Validation
                 }
                 // Validate association array
                 else if ($this->is_association_array_rule($rule)) {
-                    $result = $this->execute(isset($data[$field])? $data[$field]:null, $rule, $field_path_tmp, $is_array_loop);
+                    $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule, $field_path_tmp, $is_array_loop);
                 } else {
+                    $this->set_current_field_path($field_path_tmp)
+                        ->set_current_rule($rule);
                     $rule = $this->parse_one_rule($rule);
                     $result = $this->execute_one_rule($data, $field, $rule, $field_path_tmp);
 
@@ -510,10 +532,9 @@ class Validation
      * [or] - It's default symbol is [||] which can be customized
      * [optional] - It's default symbol is [O] which can be customized
      * .* - This is a symbol which has not a full name and can be customized
-     * 
-     * @Author   Devin
-     * @param    array                   $rule 
-     * @return   mixed                         
+     *
+     * @param array $rule
+     * @return array|string|bool
      */
     protected function get_rule_system_symbol($rule)
     {
@@ -549,26 +570,27 @@ class Validation
 
     /**
      * Check a field name contains a specific system symbol or not. 
-     * Should check the system symbol and it's symbol full name at the meantime 
-     * 
-     * @Author   Devin
-     * @param    string                   $rule_system_symbol_string [description]
-     * @param    string                   $symbol_name               [description]
-     * @param    boolean                  $ingore_left_dot           Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
-     * @return   boolean                                             [description]
+     * Should check the system symbol and it's symbol full name at the meantime
+     *
+     * @param string $rule_system_symbol_string
+     * @param string $symbol_name
+     * @param bool $ingore_left_dot Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
+     * @return bool
      */
     protected function has_system_symbol($rule_system_symbol_string, $symbol_name, $ingore_left_dot = false)
     {
         switch ($symbol_name) {
             case 'symbol_array_optional':
-                if (strpos($rule_system_symbol_string, $this->config['symbol_array_optional']) !== false
+                if (
+                    strpos($rule_system_symbol_string, $this->config['symbol_array_optional']) !== false
                     || strpos($rule_system_symbol_string, $this->symbol_full_name['symbol_array_optional']) !== false
                 ) {
                     return true;
                 }
                 break;
             case 'symbol_or':
-                if (strpos($rule_system_symbol_string, $this->config['symbol_or']) !== false
+                if (
+                    strpos($rule_system_symbol_string, $this->config['symbol_or']) !== false
                     || strpos($rule_system_symbol_string, $this->symbol_full_name['symbol_or']) !== false
                 ) {
                     return true;
@@ -594,14 +616,13 @@ class Validation
 
     /**
      * Delete a specific system symbol from a field name. 
-     * Should delete the system symbol and it's symbol full name at the meantime 
-     * 
-     * @Author   Devin
-     * @param    string                   $rule_system_symbol_string [description]
-     * @param    string                   $symbol_name               [description]
-     * @param    boolean                  $ingore_left_dot           Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
-     * @param    string                   $replace_str               Replace the symbol to this string
-     * @return   string                                              [description]
+     * Should delete the system symbol and it's symbol full name at the meantime
+     *
+     * @param string $rule_system_symbol_string
+     * @param string $symbol_name
+     * @param bool $ingore_left_dot Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
+     * @param string $replace_str Replace the symbol to this string
+     * @return string
      */
     protected function delete_system_symbol($rule_system_symbol_string, $symbol_name, $ingore_left_dot = false, $replace_str = '')
     {
@@ -634,28 +655,32 @@ class Validation
      * 1. Add symbol_or in the end of the field. Such as $rule = [ "name[or]" => [ "*|string", "*|int" ] ];
      * 2. Add symbol_or as the only one child of the field. Such as $rule = [ "name" => [ "[or]" => [ "*|string", "*|int" ] ] ];
      * If one of "or" rules is valid, then the field is valid.
-     * @Author   Devin
-     * @param    array                      $data       The parent data of the field which is related to the rules
-     * @param    string                     $field      The field which is related to the rules
-     * @param    array                      $rules      The or rules
-     * @param    boolean                    $field_path Field path, suce as fruit.apple
-     * @return   boolean                                the result of validation
+     *
+     * @param array $data The parent data of the field which is related to the rules
+     * @param string $field The field which is related to the rules
+     * @param string $field_path Field path, suce as fruit.apple
+     * @param array $rules The or rules
+     * @return bool The result of validation
      */
     protected function execute_or_rules($data, $field, $field_path, $rules)
     {
         $or_len = count($rules);
-        foreach($rules as $key => $rule_or) {
+        foreach ($rules as $key => $rule_or) {
+            $this->set_current_rule($rule_or);
+
+            // if ($key == 1) $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_2
+
             $rule_or = $this->parse_one_rule($rule_or);
             $result = $this->execute_one_rule($data, $field, $rule_or, $field_path, true);
             $this->set_result($field_path, $result);
             if ($result) {
-                $this->r_unset($this->standard_errors['simple'], $field_path);
-                $this->r_unset($this->standard_errors['complex'], $field_path);
-                unset($this->classic_errors['simple'][$field_path]);
-                unset($this->classic_errors['complex'][$field_path]);
+                $this->r_unset($this->nested_errors['general'], $field_path);
+                $this->r_unset($this->nested_errors['detailed'], $field_path);
+                unset($this->dotted_errors['general'][$field_path]);
+                unset($this->dotted_errors['detailed'][$field_path]);
                 return true;
             }
-            if ($key == $or_len-1) {
+            if ($key == $or_len - 1) {
                 // If one of "or" rule is invalid, don't set _validation_status to false
                 // If all of "or" rule is invalid, then set _validation_status to false
                 $this->validation_status = false;
@@ -669,15 +694,15 @@ class Validation
      * There has two ways to add index array rules:
      * 1. Add symbol_index_array in the end of the field. Such as $rule = [ "name.*" => [ "*|string" ] ];
      * 2. Add symbol_index_array as the only one child of the field. Such as $rule = [ "name" => [ "*" => [ "*|string" ] ];
-     * @Author   Devin
-     * @param    array                      $data               The parent data of the field which is related to the rules
-     * @param    string                     $field              The field which is related to the rules
-     * @param    boolean                    $field_path         Field path, suce as fruit.apple
-     * @param    array                      $rules              The index array rules
-     * @param    boolean                    $is_array_loop      If _execute method is called in array loop, $is_array_loop should be true
-     * @return   boolean                                        the result of validation
+     *
+     * @param array $data The parent data of the field which is related to the rules
+     * @param string $field The field which is related to the rules
+     * @param string $field_path Field path, suce as fruit.apple
+     * @param array $rules The index array rules
+     * @param bool $is_array_loop If the execute method is called in array loop, $is_array_loop should be true
+     * @return bool The result of validation
      */
-    protected function execute_index_array_rules($data, $field, $field_path, $rules, $is_array_loop=false)
+    protected function execute_index_array_rules($data, $field, $field_path, $rules, $is_array_loop = false)
     {
         if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
             $error_msg = $this->get_error_template('index_array');
@@ -690,20 +715,21 @@ class Validation
             return false;
         } else {
             $is_all_valid = true;
-            foreach($data[$field] as $key => $value) {
-                $field_path_tmp = $field_path.  $this->config['symbol_field_name_separator'] .$key;
+            foreach ($data[$field] as $key => $value) {
+                $field_path_tmp = $field_path .  $this->config['symbol_field_name_separator'] . $key;
 
                 $rule_system_symbol = $this->get_rule_system_symbol($rules);
                 if (!empty($rule_system_symbol)) {
                     // $is_array_loop is true, means parent data is numberic arrya, too
-                    $cur_field_path = $is_array_loop? $field_path : $field_path_tmp;
+                    $cur_field_path = $is_array_loop ? $field_path : $field_path_tmp;
                     $result = $this->execute($data[$field], [$key => $rules], $cur_field_path, true);
-                }
-                else if ($this->is_association_array_rule($rules)) {
+                } else if ($this->is_association_array_rule($rules)) {
                     $result = $this->execute($data[$field][$key], $rules, $field_path_tmp, true);
                 }
                 // Validate numberic array, all the rule are the same, only use $rules[0]
                 else {
+                    $this->set_current_field_path($field_path_tmp)
+                        ->set_current_rule($rules);
                     $parsed_rules = $this->parse_one_rule($rules);
                     $result = $this->execute_one_rule($data[$field], $key, $parsed_rules, $field_path_tmp);
                     $this->set_result($field_path_tmp, $result);
@@ -762,9 +788,9 @@ class Validation
      * 1. method and parameters
      * 2. regular expression
      * 3. error message
-     * @Author   Devin
-     * @param    string                   $rule
-     * @return   array                          
+     *
+     * @param string $rule
+     * @return array
      */
     protected function parse_one_rule($rule)
     {
@@ -782,9 +808,30 @@ class Validation
             }
         }
 
+        $rules = $this->split_serial_rule_strict($rule);
+
+        $parse_rule = array(
+            'rules' => $rules,
+            'error_msg' => $this->parse_error_message($error_msg)
+        );
+
+        return $parse_rule;
+    }
+
+    /**
+     * Split a serial rule into multiple methods or regular expression by using the separator |
+     * NOTE: 
+     * - The regular expression may cantain the character(|) which is the same as rule separator(|)
+     * - Only one regular expression is allowed in one serial rule
+     *
+     * @param string $rule
+     * @return array
+     */
+    protected function split_serial_rule($rule)
+    {
         // In consideration of the case that the regular expression cantains the character(|) which is the same as rule separator(|)
         // Using the way to handle regular expression
-        // Only one regular expression is allowed in one rule string 
+        // Only one regular expression is allowed in one serial rule
         $reg_flag = false;
         $reg_mark = "@reg_mark";
         // $reg_preg = '/\/.+?(?<!\\\)\//';
@@ -798,20 +845,98 @@ class Validation
 
         if ($reg_flag == true) {
             $i = 0;
-            foreach($rules as &$value) {
+            foreach ($rules as &$value) {
                 if (strpos($value, $reg_mark) !== false) {
                     $value = str_replace($reg_mark, $matches[0][$i], $value);
-                    $i ++;
+                    $i++;
                 }
             }
         }
-        
-        $parse_rule = array(
-            'rules' => $rules,
-            'error_msg' => $this->parse_error_message($error_msg)
-        );
 
-        return $parse_rule;
+        return $rules;
+    }
+
+    /**
+     * Split a serial rule into multiple methods or regular expression by using the separator |
+     * NOTE: 
+     * - The regular expression may cantain the character(|) which is the same as rule separator(|)
+     * - Multiple regular expressions are allowed in one serial rule
+     *
+     * @param string $rule
+     * @return array
+     */
+    protected function split_serial_rule_strict($rule)
+    {
+        $symbol_rule_separator = $this->config['symbol_rule_separator'];
+        $symbol_rule_separator_length = strlen($symbol_rule_separator);
+
+        $rules = [];
+        $current_method = '';
+        $is_next_method_flag = 0;
+        $is_reg_flag = 0;
+
+        $rule_length = strlen($rule);
+        for ($i = 0; $i < $rule_length; $i++) {
+            $char = $rule[$i];
+
+            // 支持自定义配置 symbol_rule_separator 为多个字符
+            if ($symbol_rule_separator_length > 1 && $char == $symbol_rule_separator[0]) {
+                $ii = $i + 1;
+                $is_symbol_rule_separator = true;
+                for ($j = 1; $j < $symbol_rule_separator_length; $j++) {
+                    if ($symbol_rule_separator[$j] != $rule[$ii]) {
+                        $is_symbol_rule_separator = false;
+                        break;
+                    }
+                }
+                if ($is_symbol_rule_separator) {
+                    $i = $i + $symbol_rule_separator_length - 1;
+                    $char = $symbol_rule_separator;
+                }
+            }
+
+            // \ 是转义字符，在它之后的任意一个字符，都是正则表达式的一部分。
+            // 例如：\/, \| 
+            if ($char === '\\') {
+                $current_method .= $char;
+                $current_method .= $rule[$i + 1];
+                $i++;
+                continue;
+            }
+
+            // 首次正则表达式开头 /，表明接下来是正则表达式。此为 正则阶段 1
+            // 直到匹配到下一个 /，表明正则表达式即将结束。此为 正则阶段 2
+            // 在此之后，匹配的字符都当作是正则表达式的模式修饰符。直到匹配到 |，表示正则表达式完全结束
+            if ($char === '/') {
+                if ($is_reg_flag == 0) {
+                    $is_reg_flag = 1;
+                } else if ($is_reg_flag == 1) {
+                    $is_reg_flag = 2;
+                }
+            }
+            // 一般非正则表达式的方法中，不会包含 |，所以匹配到它则表明接下来是下一个方法
+            // 在正则表达式的方法中，可能包含 |，所以必须在正则阶段 2 后，匹配到它才表明接下来是下一个方法
+            else if ($char === $symbol_rule_separator) {
+                if ($is_reg_flag == 0) {
+                    $is_next_method_flag = 1;
+                } else if ($is_reg_flag == 2) {
+                    $is_reg_flag = 0;
+                    $is_next_method_flag = 1;
+                }
+            }
+
+            if ($is_next_method_flag == 0) {
+                $current_method .= $char;
+            } else {
+                $is_next_method_flag = 0;
+                if (!empty($current_method)) $rules[] = $current_method;
+                $current_method = '';
+                $is_reg_flag = 0;
+            }
+        }
+
+        if (!empty($current_method)) $rules[] = $current_method;
+        return $rules;
     }
 
     /**
@@ -820,18 +945,18 @@ class Validation
      * 2. Json string - show one of the error message which is related to the invalid method
      * 3. Special string - Same functions as Json string. Such as " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes"
      * 4. Array
-     * @Author   Devin
-     * @param    string             $error_msg Simple string or Json string
-     * @return   array              
+     *
+     * @param string $error_msg Simple string or Json string
+     * @return array
      */
     protected function parse_error_message($error_msg)
     {
         // $error_msg = " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes";
         // $parse_arr = [];
-        // $this->pars_gh_string_to_array($parse_arr, $error_msg);
+        // $this->parse_gh_string_to_array($parse_arr, $error_msg);
         // print_r($parse_arr);die;
 
-        if (is_array($error_msg)) return $error_msg; 
+        if (is_array($error_msg)) return $error_msg;
 
         // '{"*":"Users define - @this is required","preg":"Users define - @this should not be matched /^\\\d+$/"}'
         $json_arr = json_decode($error_msg, true);
@@ -839,10 +964,10 @@ class Validation
 
         $gh_arr = [];
         // " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes"
-        $this->pars_gh_string_to_array($gh_arr, $error_msg);
+        $this->parse_gh_string_to_array($gh_arr, $error_msg);
         if (!empty($gh_arr)) return $gh_arr;
 
-        return [ 'gb_err_msg_key' => $error_msg ];
+        return ['gb_err_msg_key' => $error_msg];
     }
 
     /**
@@ -856,13 +981,13 @@ class Validation
      *       [no] => 
      *       [yes] => yes
      * )
-     * @Author   Devin
-     * @param    array                    &$parse_arr [description]
-     * @param    string                   $string     [description]
-     * @param    string                   $type       [description]
-     * @return   bool                                 [description]
+     *
+     * @param array $parse_arr
+     * @param string $string
+     * @param string $type
+     * @return bool
      */
-    protected function pars_gh_string_to_array(&$parse_arr, $string, $type = "key")
+    protected function parse_gh_string_to_array(&$parse_arr, $string, $type = "key")
     {
         static $key = '';
 
@@ -874,7 +999,7 @@ class Validation
                 // echo "--- Current Key is $key\n";
                 $parse_arr[$key] = '';
 
-                return $this->pars_gh_string_to_array($parse_arr, $matches[2], 'value');
+                return $this->parse_gh_string_to_array($parse_arr, $matches[2], 'value');
             } else {
                 // echo "Can not get key\n";
                 return false;
@@ -883,26 +1008,24 @@ class Validation
             if (preg_match("/^(.*?)\s*(\[\s*.*?\s*\]\s*=>\s*.*)?$/", $string, $matches)) {
                 $parse_arr[$key] = $matches[1];
                 // echo "+++ Kye($key) Value is {$parse_arr[$key]}\n";
-                return $this->pars_gh_string_to_array($parse_arr, $matches[2] ?? '', 'key');
+                return $this->parse_gh_string_to_array($parse_arr, $matches[2] ?? '', 'key');
             } else {
                 // echo "Can not get value for Key $key\n";
                 return false;
             }
         }
-        
     }
 
     /**
      * Match rule error message. 
-     * 
-     * @Author   Devin
-     * @param    array                    $rule_error_msg    Parsed error message array
-     * @param    string                   $tag               
-     * @param    bool|boolean             $only_user_err_msg if can not find error message from user error message, will try to find it from error template
-     * @return   string
+     *
+     * @param array $rule_error_msg Parsed error message array
+     * @param string $tag
+     * @param bool $only_user_err_msg If can not find error message from user error message, will try to find it from error template
+     * @return string
      */
     protected function match_error_message($rule_error_msg, $tag, $only_user_err_msg = false)
-    {   
+    {
         // Only one error message was set
         if (!empty($rule_error_msg) && !empty($rule_error_msg['gb_err_msg_key'])) return $rule_error_msg['gb_err_msg_key'];
 
@@ -913,8 +1036,8 @@ class Validation
             case 'required':
                 if (isset($rule_error_msg[$this->config['symbol_required']])) return $rule_error_msg[$this->config['symbol_required']];
                 break;
-            case 'unset_required':
-                if (isset($rule_error_msg[$this->config['symbol_unset_required']])) return $rule_error_msg[$this->config['symbol_unset_required']];
+            case 'optional_unset':
+                if (isset($rule_error_msg[$this->config['symbol_optional_unset']])) return $rule_error_msg[$this->config['symbol_optional_unset']];
                 break;
             default:
                 break;
@@ -922,7 +1045,7 @@ class Validation
 
         // Can not match user error message and skip match error template
         if ($only_user_err_msg) return '';
-        
+
         // Can not match user error message, return default error message
         $error_msg = $this->get_error_template($tag);
         if (empty($error_msg)) $error_msg = $this->get_error_template('default');
@@ -935,15 +1058,15 @@ class Validation
      * 2. required(*) rule
      * 3. regular expression
      * 4. method
-     * @Author   Devin
-     * @param    array                      $data       The parent data of the field which is related to the rule
-     * @param    string                     $field      The field which is related to the rule
-     * @param    array                      $rules      The rule details
-     * @param    boolean                    $field_path Field path, suce as fruit.apple
-     * @param    boolean                    $is_or_rule Flag of or rule
-     * @return   boolean                                the result of validation
+     *
+     * @param array $data The parent data of the field which is related to the rule
+     * @param string $field The field which is related to the rule
+     * @param array $rules The rule details
+     * @param bool $field_path Field path, suce as fruit.apple
+     * @param bool $is_or_rule Flag of or rule
+     * @return bool The result of validation
      */
-    protected function execute_one_rule($data, $field, $rules = array(), $field_path=false, $is_or_rule=false)
+    protected function execute_one_rule($data, $field, $rules = array(), $field_path = false, $is_or_rule = false)
     {
         if (empty($rules) || empty($rules['rules'])) {
             return true;
@@ -951,7 +1074,7 @@ class Validation
 
         $rule_error_msg = $rules['error_msg'];
 
-        foreach($rules['rules'] as $rule) {
+        foreach ($rules['rules'] as $rule) {
             if (empty($rule)) {
                 continue;
             }
@@ -974,7 +1097,7 @@ class Validation
                 }
 
                 $rule = $matches[1];
-                
+
                 $method_rule = $this->parse_method($rule, $data, $field);
                 $params = $method_rule['params'];
                 $result = $this->execute_method($method_rule, $field_path);
@@ -985,12 +1108,12 @@ class Validation
                     // If the 'if true' validation result is true, need to validate the other rule
                     // If the 'if true' validation result is false and this field is set and not empty, need to validate the other rule
                     // If the 'if true' validation result is false and this field is not set or empty, no need to validate the other rule
-                    if (!$this->required(isset($data[$field])? $data[$field] : null)) return true;
+                    if (!$this->required(isset($data[$field]) ? $data[$field] : null)) return true;
                 }
             }
             // Required(*) rule
             else if ($rule == $this->config['symbol_required'] || $rule == $this->symbol_full_name['symbol_required']) {
-                if (!$this->required(isset($data[$field])? $data[$field] : null)) {
+                if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
                     $result = false;
                     $error_type = 'required_field';
                     $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_required']);
@@ -998,27 +1121,34 @@ class Validation
             }
             // Optional(O) rule
             else if ($rule == $this->config['symbol_optional'] || $rule == $this->symbol_full_name['symbol_optional']) {
-                if (!$this->required(isset($data[$field])? $data[$field] : null)) {
+                if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
                     return true;
                 }
             }
             // Unset(O!) rule
-            else if ($rule == $this->config['symbol_unset_required'] || $rule == $this->symbol_full_name['symbol_unset_required']) {
+            else if ($rule == $this->config['symbol_optional_unset'] || $rule == $this->symbol_full_name['symbol_optional_unset']) {
                 if (!isset($data[$field])) {
                     return true;
-                }else if (!$this->required(isset($data[$field])? $data[$field] : null)) {
+                } else if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
                     $result = false;
-                    $error_type = 'unset_required_field';
-                    $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_unset_required']);
+                    $error_type = 'optional_unset_field';
+                    $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset']);
                 }
             }
             // Regular expression
             else if (preg_match($this->config['reg_preg'], $rule, $matches)) {
-                $preg = isset($matches[1])? $matches[1] : $matches[0];
-                if (!preg_match($preg, $data[$field], $matches)) {
+                $preg = isset($matches[1]) ? $matches[1] : $matches[0];
+                if (!preg_match($this->config['reg_preg_strict'], $preg, $matches)) {
                     $result = false;
-                    $error_msg = $this->match_error_message($rule_error_msg, 'preg');
+                    $error_type = 'preg';
+                    $error_msg = $this->match_error_message('', 'preg_format');
                     $error_msg = str_replace($this->symbol_preg, $preg, $error_msg);
+                } else {
+                    if (!preg_match($preg, $data[$field], $matches)) {
+                        $result = false;
+                        $error_msg = $this->match_error_message($rule_error_msg, 'preg');
+                        $error_msg = str_replace($this->symbol_preg, $preg, $error_msg);
+                    }
                 }
             }
             // Method
@@ -1036,14 +1166,14 @@ class Validation
                     $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol'], true);
 
                     if (is_array($result)) {
-                        $error_type = isset($result['error_type'])? $result['error_type'] : $error_type;
-                        if (empty($error_msg)) $error_msg = isset($result['message'])? $result['message'] : $error_msg;
+                        $error_type = isset($result['error_type']) ? $result['error_type'] : $error_type;
+                        if (empty($error_msg)) $error_msg = isset($result['message']) ? $result['message'] : $error_msg;
                     } else {
-                        $error_msg = empty($error_msg)? $result : $error_msg;
+                        $error_msg = empty($error_msg) ? $result : $error_msg;
                     }
-                    
+
                     // $result = false;
-                    
+
                     if (empty($error_msg)) {
                         $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol']);
                     }
@@ -1055,7 +1185,7 @@ class Validation
             if ($result !== true && !$if_flag) {
                 // Replace symbol to field name and parameter value
                 $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
-                foreach($params as $key => $value) {
+                foreach ($params as $key => $value) {
                     // if ($key == 0) continue;
                     if (is_array($value)) {
                         if ($this->is_in_method($method_rule['symbol'])) {
@@ -1065,7 +1195,7 @@ class Validation
                         }
                     }
 
-                    $error_msg = str_replace('@p'.$key, $value ?? "NULL", $error_msg);
+                    $error_msg = str_replace('@p' . $key, $value ?? "NULL", $error_msg);
                 }
 
                 $message = array(
@@ -1081,7 +1211,7 @@ class Validation
 
                 $this->set_error($field_path, $message, $is_or_rule);
                 return false;
-            }     
+            }
         }
 
         return true;
@@ -1089,43 +1219,43 @@ class Validation
 
     /**
      * Parse method and its parameters
-     * @Author   Devin
-     * @param    string                     $rule  One separation of rule
-     * @param    array                      $data  The parent data of the field which is related to the rule
-     * @param    string                     $field The field which is related to the rule
-     * @return   array                             method detail
+     *
+     * @param string $rule One separation of rule
+     * @param array $data The parent data of the field which is related to the rule
+     * @param string $field The field which is related to the rule
+     * @return array Method detail
      */
     protected function parse_method($rule, $data, $field)
     {
         // If force parameter, will not add the field value as the first parameter even though no the field parameter
-        if (preg_match($this->config['symbol_param_force'], $rule, $matches)) {
+        if (preg_match($this->config['symbol_param_standard'], $rule, $matches)) {
             $method = $matches[1];
             $params = $matches[2];
             $params = explode($this->config['symbol_param_separator'], $params);
-        // If classic parameter, will add the field value as the first parameter if no the field parameter
-        } else if (preg_match($this->config['symbol_param_classic'], $rule, $matches)) {
+            // If classic parameter, will add the field value as the first parameter if no the field parameter
+        } else if (preg_match($this->config['symbol_param_this_omitted'], $rule, $matches)) {
             $method = $matches[1];
             $params = $matches[2];
             $params = explode($this->config['symbol_param_separator'], $params);
             if (!in_array($this->symbol_this, $params)) {
                 array_unshift($params, $this->symbol_this);
             }
-        // If no parameter, will add the field value as the first parameter
+            // If no parameter, will add the field value as the first parameter
         } else {
             $method = $rule;
             $params = array($this->symbol_this);
         }
 
         $symbol = $method;
-        $method = isset($this->method_template[$method])? $this->method_template[$method] : $method;
+        $method = isset($this->method_symbol[$method]) ? $this->method_symbol[$method] : $method;
 
-        foreach($params as &$param) {
+        foreach ($params as &$param) {
             if (is_array($param)) continue;
 
             if (strpos($param, '@') !== false) {
-                switch($param) {
+                switch ($param) {
                     case $this->symbol_this:
-                        $param = isset($data[$field])? $data[$field] : null;
+                        $param = isset($data[$field]) ? $data[$field] : null;
                         break;
                     case $this->symbol_parent:
                         $param = $data;
@@ -1133,11 +1263,11 @@ class Validation
                     case $this->symbol_root:
                         $param = $this->data;
                         break;
-                    default: 
+                    default:
                         $param_field = substr($param, 1);
                         $param = $this->get_field($data, $param_field);
                         if ($param === null) $param = $this->get_field($this->data, $param_field);
-                    break;
+                        break;
                 }
             }
         }
@@ -1163,50 +1293,110 @@ class Validation
 
     /**
      * Execute method
-     * @Author   Devin
-     * @param    array                      $method_rule method detail
-     * @param    string                     $field_path  The field which is related to the rule
-     * @return   mixed                                  call result
+     *
+     * @param array $method_rule Method detail
+     * @param string $field_path The field which is related to the rule
+     * @return bool|string|array
      */
     protected function execute_method($method_rule, $field_path)
     {
-        $params = $method_rule['params'];
-        if (isset($this->methods[$method_rule['method']])) {
-            $result = call_user_func_array($this->methods[$method_rule['method']], $params);
-        } else if (method_exists($this, $method_rule['method'])) {
-            $result = call_user_func_array([$this, $method_rule['method']], $params);
-        } else if (function_exists($method_rule['method'])) {
-            $result = call_user_func_array($method_rule['method'], $params);
-        } else {
-            $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_template['call_method']);
-            $message = array(
-                "error_type" => 'internal_server_error',
-                "message" => $error_msg,
-            );
-            $this->set_error($field_path, $message);
-            return "Undefined";
+        try {
+            $params = $method_rule['params'];
+            if (isset($this->methods[$method_rule['method']])) {
+                $result = call_user_func_array($this->methods[$method_rule['method']], $params);
+            } else if (method_exists($this, $method_rule['method'])) {
+                $result = call_user_func_array([$this, $method_rule['method']], $params);
+            } else if (function_exists($method_rule['method'])) {
+                $result = call_user_func_array($method_rule['method'], $params);
+            } else {
+                $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_template['call_method']);
+                $message = array(
+                    "error_type" => 'internal_server_error',
+                    "message" => $error_msg,
+                );
+                $this->set_error($field_path, $message);
+                return "Undefined";
+            }
+        } catch (\Throwable $t) {
+            throw (new ghException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
+                ->set_recurrence_current($this->get_recurrence_current());
         }
 
         return $result;
     }
 
     /**
+     * Get the current info of the recurrence validation
+     *
+     * @return void
+     */
+    protected function get_recurrence_current()
+    {
+        return $this->recurrence_current;
+    }
+
+    /**
+     * Set current field path
+     * 
+     * @param string $field_path
+     * @return static
+     */
+    protected function set_current_field_path($field_path)
+    {
+        $this->recurrence_current['field_path'] = $field_path;
+        return $this;
+    }
+
+    /**
+     * Get current field path
+     * 
+     * @return string
+     */
+    protected function get_current_field_path()
+    {
+        return $this->recurrence_current['field_path'];
+    }
+
+    /**
+     * Set the rule of current field path
+     * 
+     * @param string|array $rule
+     * @return static
+     */
+    protected function set_current_rule($rule)
+    {
+        if (is_array($rule)) $rule = json_encode($rule, JSON_UNESCAPED_SLASHES);
+        $this->recurrence_current['rule'] = $rule;
+        return $this;
+    }
+
+    /**
+     * Get the rule of current field path
+     * 
+     * @return string|array
+     */
+    protected function get_current_rule()
+    {
+        return $this->recurrence_current['rule'];
+    }
+
+    /**
      * Get field pointer
      * When force is true, will create the field if field is not existed
-     * @Author   Devin
-     * @param    pointer                    &$data data pointer
-     * @param    string                     $field field path
-     * @param    boolean                    $force When force is true, will create the field if field is not existed
-     * @return   pointer                    
+     *
+     * @param pointer $data data pointer
+     * @param string $field field path
+     * @param bool $force When force is true, will create the field if field is not existed
+     * @return pointer
      */
-    protected function &get_field(&$data, $field, $force=false)
+    protected function &get_field(&$data, $field, $force = false)
     {
         $point = &$data;
 
         $fields = explode($this->config['symbol_field_name_separator'], $field);
         $len = count($fields);
 
-        foreach($fields as $key => $value) {
+        foreach ($fields as $key => $value) {
             if (!isset($point[$value])) {
                 if (!$force) {
                     $tmpNull = null;
@@ -1239,13 +1429,13 @@ class Validation
     /**
      * Recursively delete fields
      * After unset a field, check the parent field, if empty, then unset the parent field
-     * @Author   Devin
-     * @param    pointer                    &$data data
-     * @param    string                     $field field path, suce as fruit.apple
-     * @param    boolean                    $force If false, don't unset a field when it's not empty
-     * @return   boolean                     
+     *
+     * @param pointer $data data pointer
+     * @param string $field field path, suce as fruit.apple
+     * @param bool $force If false, don't unset a field when it's not empty
+     * @return bool
      */
-    protected function r_unset(&$data, $field, $force=true)
+    protected function r_unset(&$data, $field, $force = true)
     {
         $point = &$data;
 
@@ -1253,7 +1443,7 @@ class Validation
         $len = count($fields);
         $parent_field = '';
 
-        foreach($fields as $key => $value) {
+        foreach ($fields as $key => $value) {
             if (isset($point[$value])) {
                 if ($key === ($len - 1)) {
                     if ($force) {
@@ -1265,7 +1455,7 @@ class Validation
                     }
                     return true;
                 } else {
-                    $parent_field = $parent_field? $parent_field.'.'.$value : $value;
+                    $parent_field = $parent_field ? $parent_field . '.' . $value : $value;
                     $point = &$point[$value];
                 }
             } else {
@@ -1276,9 +1466,9 @@ class Validation
 
     /**
      * error template message
-     * @Author   Devin
-     * @param    string                   $tag 
-     * @return   string                        
+     *
+     * @param string $tag
+     * @return string
      */
     public function get_error_template($tag = '')
     {
@@ -1288,91 +1478,90 @@ class Validation
     /**
      * Set error message
      * If one of "or" rule is invalid, don't set _validation_status to false
-     * @Author   Devin
-     * @param    string                   $field      field path
-     * @param    string                   $message    error message
-     * @param    boolean                  $is_or_rule Flag of or rule
-     */
-    protected function set_error_0($field = '', $message = '', $is_or_rule=false)
-    {
-        if (!$is_or_rule) $this->validation_status = false;
-
-        if (!isset($this->classic_errors[$field])) {
-            $this->classic_errors[$field] = $message;
-        } else {
-            // $this->classic_errors[$field] .= " or " . $message;
-            if (is_array($message)) {
-                $this->classic_errors[$field]['message'] .= " or " . $message['message'];
-            } else {
-                $this->classic_errors[$field] .= " or " . $message;
-            }
-        }
-
-        $p_standard_error = & $this->get_field($this->standard_errors, $field, true);
-        $p_standard_error = $this->classic_errors[$field];
-
-        return $this;
-    }
-
-    /**
-     * Set error message
-     * If one of "or" rule is invalid, don't set _validation_status to false
      * If all of "or" rule is invalid, will set _validation_status to false in other method
-     * @Author   Devin
-     * @param    string                   $field      field path
-     * @param    string                   $message    error message
-     * @param    boolean                  $is_or_rule Flag of or rule
+     *
+     * @param string $field field path
+     * @param string $message error message
+     * @param bool $is_or_rule Flag of or rule
+     * @return static
      */
-    protected function set_error($field = '', $message = '', $is_or_rule=false)
+    protected function set_error($field = '', $message = '', $is_or_rule = false)
     {
         if (!$is_or_rule) $this->validation_status = false;
 
         if (is_array($message)) {
-            if (!isset($this->classic_errors['simple'][$field])) {
-                $this->classic_errors['complex'][$field] = $message;
-                $this->classic_errors['simple'][$field] = isset($message['message'])? $message['message'] : 'Unknown error';
+            if (!isset($this->dotted_errors['general'][$field])) {
+                $this->dotted_errors['detailed'][$field] = $message;
+                $this->dotted_errors['general'][$field] = isset($message['message']) ? $message['message'] : 'Unknown error';
             } else {
-                $error_msg = isset($message['message'])? $message['message'] : 'Unknown error';
-                if ($this->classic_errors['complex'][$field]['message'] !== $error_msg) {
-                    $this->classic_errors['complex'][$field]['message'] .= " or " . $error_msg;
-                    $this->classic_errors['simple'][$field] .= " or " . $error_msg;
+                $error_msg = isset($message['message']) ? $message['message'] : 'Unknown error';
+                if ($this->dotted_errors['detailed'][$field]['message'] !== $error_msg) {
+                    $this->dotted_errors['detailed'][$field]['message'] .= " or " . $error_msg;
+                    $this->dotted_errors['general'][$field] .= " or " . $error_msg;
                 }
             }
         } else {
-            if (!isset($this->classic_errors['simple'][$field])) {
-                $this->classic_errors['complex'][$field] = $message;
-                $this->classic_errors['simple'][$field] = $message;
+            if (!isset($this->dotted_errors['general'][$field])) {
+                $this->dotted_errors['detailed'][$field] = $message;
+                $this->dotted_errors['general'][$field] = $message;
             } else {
-                if ($this->classic_errors['complex'][$field] !== $message) {
-                    $this->classic_errors['complex'][$field] .= " or " . $message;
-                    $this->classic_errors['simple'][$field] .= " or " . $message;
+                if ($this->dotted_errors['detailed'][$field] !== $message) {
+                    $this->dotted_errors['detailed'][$field] .= " or " . $message;
+                    $this->dotted_errors['general'][$field] .= " or " . $message;
                 }
             }
         }
 
-        $p_standard_error_simple = & $this->get_field($this->standard_errors['complex'], $field, true);
-        $p_standard_error_simple = $this->classic_errors['complex'][$field];
+        $p_nested_error_detailed = &$this->get_field($this->nested_errors['detailed'], $field, true);
+        $p_nested_error_detailed = $this->dotted_errors['detailed'][$field];
 
-        $p_standard_error_complex = & $this->get_field($this->standard_errors['simple'], $field, true);
-        $p_standard_error_complex = $this->classic_errors['simple'][$field];
+        $p_nested_error_general = &$this->get_field($this->nested_errors['general'], $field, true);
+        $p_nested_error_general = $this->dotted_errors['general'][$field];
 
         return $this;
     }
 
     /**
      * Get error message
-     * @Author   Devin
-     * @param    boolean                  $fromat [description]
-     * @return   array                            [description]
+     *
+     * @param string|bool $error_format Recommend using format strings, not using bool
+     * @param bool $is_general If true, return error message for general error. If false, return error message for detailed error.
+     * @return array
      */
-    public function get_error($standard=true, $simple=true)
+    public function get_error($error_format = self::ERROR_FORMAT_DOTTED_GENERAL, $is_general = true)
     {
-        if ($standard) {
-            if ($simple) return $this->standard_errors['simple'];
-            else return $this->standard_errors['complex'];
-        } else {
-            if ($simple) return $this->classic_errors['simple'];
-            else return $this->classic_errors['complex'];
+        /**
+         * $is_nested and $is_general are deprecated.
+         * Please use $error_format instead.
+         * @deprecated
+         */
+        if (is_bool($error_format)) {
+            $is_nested = $error_format;
+            if ($is_nested) {
+                if ($is_general) return $this->nested_errors['general'];
+                else return $this->nested_errors['detailed'];
+            } else {
+                if ($is_general) return $this->dotted_errors['general'];
+                else return $this->dotted_errors['detailed'];
+            }
+        }
+
+        switch ($error_format) {
+            case self::ERROR_FORMAT_NESTED_GENERAL:
+                return $this->nested_errors['general'];
+                break;
+            case self::ERROR_FORMAT_NESTED_DETAILED:
+                return $this->nested_errors['detailed'];
+                break;
+            case self::ERROR_FORMAT_DOTTED_GENERAL:
+                return $this->dotted_errors['general'];
+                break;
+            case self::ERROR_FORMAT_DOTTED_DETAILED:
+                return $this->dotted_errors['detailed'];
+                break;
+            default:
+                return $this->nested_errors['general'];
+                break;
         }
     }
 
@@ -1380,8 +1569,9 @@ class Validation
      * Set result classic
      * If set to true, replace field value to "true" if it's valid, replace field value to error_message if it's invalid.
      * If set to false, don't replace field value if it's valid, replace field value to error_message if it's invalid.
-     * @Author   Devin
-     * @param    bool   $result_classic [description]
+     *
+     * @param bool $result_classic
+     * @return void
      */
     public function set_result_classic($result_classic)
     {
@@ -1392,19 +1582,20 @@ class Validation
      * Set result
      * If set to true, replace field value to "true" if it's valid, replace field value to error_message if it's invalid.
      * If set to false, don't replace field value if it's valid, replace field value to error_message if it's invalid.
-     * @Author   Devin
-     * @param    string     $field  [description]
-     * @param    bool       $result [description]
+     *
+     * @param string $field
+     * @param bool $result
+     * @return void
      */
     protected function set_result($field, $result)
-    {   
+    {
         if ($this->result_classic != true && $result == true) return;
 
-        $p_result = & $this->get_field($this->result, $field, true);
+        $p_result = &$this->get_field($this->result, $field, true);
         if ($result == true) {
             if ($p_result !== 'Extra field') $p_result = true;
         } else {
-            $p_result = $this->classic_errors['complex'][$field];
+            $p_result = $this->dotted_errors['detailed'][$field];
         }
     }
 
@@ -1418,362 +1609,30 @@ class Validation
         return $this->data;
     }
 
-    protected function uncamelize($camelcaps, $separator='_')
+    protected function uncamelize($camelcaps, $separator = '_')
     {
         return strtolower(preg_replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelcaps));
     }
 
-    protected function big_camelize($uncamelcaps, $separator='_')
+    protected function big_camelize($uncamelcaps, $separator = '_')
     {
         $uncamelcaps = str_replace($separator, " ", strtolower($uncamelcaps));
         return str_replace(" ", "", ucwords($uncamelcaps));
     }
 
-    protected function camelize($uncamelcaps, $separator='_')
+    protected function camelize($uncamelcaps, $separator = '_')
     {
         return lcfirst($this->big_camelize($uncamelcaps, $separator));
     }
 
-    protected function string_length($string) {
-        if (!$this->string($string)) return -1;
-        return mb_strlen($string);
-    }
-
-    protected function is_index_array($array) {
+    protected function is_index_array($array)
+    {
         if (!is_array($array)) return false;
         return array_keys($array) === range(0, count($array) - 1);
     }
 
-    protected function is_in_method($method) {
+    protected function is_in_method($method)
+    {
         return preg_match('/\(.*\)/', $method, $matches);
-    }
-
-    protected function required($data)
-    {
-        return !($data !== 0 && $data !== '0' && $data !== false && empty($data));
-    }
-
-    protected function empty($data)
-    {
-        return empty($data);
-    }
-
-    protected function equal($data, $param)
-    {
-        return $data == $param;
-    }
-
-    protected function not_equal($data, $param)
-    {
-        return $data != $param;
-    }
-
-    protected function identically_equal($data, $param)
-    {
-        return $data === $param;
-    }
-
-    protected function not_identically_equal($data, $param)
-    {
-        return $data !== $param;
-    }
-
-    protected function greater_than($data, $param)
-    {
-        return $data > $param;
-    }
-
-    protected function less_than($data, $param)
-    {
-        return $data < $param;
-    }
-
-    protected function greater_than_equal($data, $param)
-    {
-        return $data >= $param;
-    }
-
-    protected function less_than_equal($data, $param)
-    {
-        return $data <= $param;
-    }
-
-    protected function interval($data, $param1, $param2)
-    {
-        return $data > $param1 && $data < $param2;
-    }
-
-    protected function greater_lessequal($data, $param1, $param2)
-    {
-        return $data > $param1 && $data <= $param2;
-    }
-
-    protected function greaterequal_less($data, $param1, $param2)
-    {
-        return $data >= $param1 && $data < $param2;
-    }
-
-    protected function greaterequal_lessequal($data, $param1, $param2)
-    {
-        return $data >= $param1 && $data <= $param2;
-    }
-
-    protected function in_number($data, $param)
-    {
-        return is_numeric($data) && in_array($data, $param);
-    }
-
-    protected function not_in_number($data, $param)
-    {
-        return is_numeric($data) && !in_array($data, $param);
-    }
-
-    protected function in_string($data, $param)
-    {
-        return is_string($data) && in_array($data, $param);
-    }
-
-    protected function not_in_string($data, $param)
-    {
-        return is_string($data) && !in_array($data, $param);
-    }
-
-    protected function length_equal($data, $param)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len == $param;
-    }
-
-    protected function length_not_equal($data, $param)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len != $param;
-    }
-
-    protected function length_greater_than($data, $param)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len > $param;
-    }
-
-    protected function length_less_than($data, $param)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len < $param;
-    }
-
-    protected function length_greater_than_equal($data, $param)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len >= $param;
-    }
-
-    protected function length_less_than_equal($data, $param)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len <= $param;
-    }
-
-    protected function length_interval($data, $param1, $param2)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len > $param1 && $data_len < $param2;
-    }
-
-    protected function length_greater_lessequal($data, $param1, $param2)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len > $param1 && $data_len <= $param2;
-    }
-
-    protected function length_greaterequal_less($data, $param1, $param2)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len >= $param1 && $data_len < $param2;
-    }
-
-    protected function length_greaterequal_lessequal($data, $param1, $param2)
-    {
-        if (!$this->string($data) && is_numeric($data)) $data = (string)$data;
-
-        $data_len = $this->string_length($data);
-        return $data_len >= $param1 && $data_len <= $param2;
-    }
-
-    protected function integer($data)
-    {
-        return is_int($data);
-    }
-
-    protected function float($data)
-    {
-        return is_float($data);
-    }
-
-    protected function string($data)
-    {
-        return is_string($data);
-    }
-
-    protected function arr($data)
-    {
-        return is_array($data);
-    }
-
-    public function bool($data, $bool='')
-    {
-        $bool = strtolower($bool);
-        if ($data === true || $data === false) {
-            if ($bool === '') return TRUE;
-            if ($data === true && $bool === 'true') {
-                return TRUE;
-            } else if ($data === false && $bool === 'false') {
-                return TRUE;
-            } else {
-                return FALSE;
-            }
-        } else {
-            return FALSE;
-        }
-    }
-
-    public function bool_str($data, $bool='')
-    {
-        $data = strtolower($data);
-        if ($data === "true" || $data === "false") {
-            if ($bool === '') return TRUE;
-            if ($data === $bool) {
-                return TRUE;
-            } else {
-                return FALSE;
-            }
-        } else {
-            return FALSE;
-        }
-    }
-
-    public function email($data)
-    {
-        if (!empty($data) && !preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/', $data)){
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-    }
-
-    public function url($data)
-    {
-        if (!empty($data) && !preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,8}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)){
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-    }
-
-    public function ip($data)
-    {
-        if (!empty($data) && !preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $data)) {
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-    }
-
-    public function mac($data)
-    {
-        if (!empty($data) && !preg_match('/^((([a-f0-9]{2}:){5})|(([a-f0-9]{2}-){5})|(([a-f0-9]{2} ){5}))[a-f0-9]{2}$/i', $data)) {
-            return FALSE;
-        } else {
-            return TRUE;
-        }
-    }
-
-    // date of birth
-    public function dob($date)
-    {
-        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/',$date,$arr)) {
-            $obj = new \DateTime($date);
-            $dob_time = $obj->format("U");
-            $now = time();
-            if (checkdate($arr[2],$arr[3],$arr[1]) && $dob_time < $now) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    public function file_base64_size($file_base64)
-    {
-        $file_base64 = preg_replace('/^(data:\s*(\w+\/\w+);base64,)/', '', $file_base64);
-        $file_base64 = str_replace('=', '',$file_base64);
-        $file_len = strlen($file_base64);
-        $file_size = $file_len - ($file_len/8)*2;
-
-        $file_size = round(($file_size/1024),2);
-
-        return $file_size;
-    }
-
-    public function file_base64($file_base64, $mime=false, $max_size=false)
-    {
-        if (preg_match('/^(data:\s*(\w+\/\w+);base64,)/', $file_base64, $matches)) {
-            $file_mime = $matches[2];
-            if ($mime !== false && $mime != $file_mime) {
-                return false;
-            }
-
-            if ($max_size !== false) {
-                $file_base64 = str_replace($matches[1], '', $file_base64);
-                $file_size = $this->file_base64_size($file_base64);
-                if ($file_size > $max_size) {
-                    return false;
-                }
-            }
-        } else {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function uuid($data)
-    {
-        if (!empty($data) && !preg_match('/^\w{8}(-\w{4}){3}-\w{12}$/', $data)) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    public function oauth2_grant_type($data)
-    {
-        $oauth2_grant_types = array('authorization_code', 'password', 'client_credentials');
-
-        if (in_array($data, $oauth2_grant_types)) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }
