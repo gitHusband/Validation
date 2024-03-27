@@ -15,7 +15,7 @@ function check_age($data, $gender, $param)
     return true;
 }
 
-class Tests extends TestCommon
+class Demo extends TestCommon
 {
 
     public function __construct($config = array())
@@ -646,7 +646,7 @@ class Tests extends TestCommon
 
 $method = isset($argv[1]) ? $argv[1] : "error";
 
-$test = new Tests();
+$test = new Demo();
 
 if (method_exists($test, $method)) {
     $result = call_user_func_array([$test, $method], []);
