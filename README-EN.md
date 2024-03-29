@@ -1,0 +1,1021 @@
+> **Language：[中文](README.md) / [English](README-EN.md)(Current)**
+
+Table of contents
+=================
+
+* [Table of contents](#table-of-contents)
+* [Validation —— A PHP Validator to validate data](#validation--a-php-validator-to-validate-data)
+   * [1. Overview](#1-overview)
+      * [1.1 Feature](#11-feature)
+      * [1.2 An Example](#12-an-example)
+   * [2. Install](#2-install)
+   * [3. Develop](#3-develop)
+   * [4. Features](#4-features)
+      * [4.1 Methods And Their Symbols](#41-methods-and-their-symbols)
+      * [4.2 Regular Expression](#42-regular-expression)
+      * [4.3 Method Parameters](#43-method-parameters)
+      * [4.4 Method Extension](#44-method-extension)
+      * [4.5 Series And Parallel Rules](#45-series-and-parallel-rules)
+      * [4.6 Conditional Rules](#46-conditional-rules)
+      * [4.7 Infinitely Nested Data Structures](#47-infinitely-nested-data-structures)
+      * [4.8 Optional Field](#48-optional-field)
+      * [4.9 Special Validation Rules](#49-special-validation-rules)
+      * [4.10 Customized Configuration](#410-customized-configuration)
+      * [4.11 Internationalization](#411-internationalization)
+      * [4.12 Validate Whole Data](#412-validate-whole-data)
+      * [4.13 Error Message Template](#413-error-message-template)
+      * [4.14 Error Message Format](#414-error-message-format)
+   * [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
+   * [Appendix 2 - Validation Complete Example](#appendix-2---validation-complete-example)
+   * [Appendix 3 - Error Message Format](#appendix-3---error-message-format)
+      * [One-dimensional String Structure](#one-dimensional-string-structure)
+      * [One-dimensional Associative Structure](#one-dimensional-associative-structure)
+      * [Infinitely Nested String Structure](#infinitely-nested-string-structure)
+      * [Infinitely Nested Associative Structure](#infinitely-nested-associative-structure)
+
+
+# Validation —— A PHP Validator to validate data
+
+Validation is used to check the legality of data.
+
+> [Github Repository](https://github.com/gitHusband/Validation)
+
+<details>
+    <summary><span>&#128587;</span> Why write this tool?</summary>
+    <ul>
+        <li>1. For API parameters, every parameter should theoretically be checked for legitimacy, especially those that need to be forwarded to other API interfaces or stored in a database.
+        <em>For example, the database is basically limited to the data length type, but the verification of the length is simple and cumbersome, and the use of this tool can greatly simplify the code.</em>
+        </li>
+        <li>2. If there are too many API parameters, the amount of verification code is bound to be large, and the parameter format cannot be intuitively understood through the code.</li>
+        <li>3. Customize an array of validation rules, and the request parameters format will look the same as rules format.</li>
+        <li>4. Easily vary the error messages returned by validation methods</li>
+        <li>5. <del>I'll make it up when I get another Lofty rhetoric<del> <span>&#128054;</span></li>
+    </ul>
+</details>
+
+## 1. Overview
+### 1.1 Feature
+- One field corresponds to one validation rule, and a rule consists of multiple validation methods (functions).
+- The validation method supports the substitution of symbol, which is easy to understand and simplifies the rules. e.g. `*`, `>`, `<`, `len>`
+- Supports regular expressions
+
+<details>
+    <summary><span>&#128071;</span> Read more...</summary>
+    <ul>
+        <li>Supports method parameter passing. For example, <code>@this</code> represents the value of current field</li>
+        <li>Supports to extend method</li>
+        <li>Supports series validation: multiple methods for one parameter must all be valid</li>
+        <li>Supports parallel validation: one of the multiple rules for a parameter is valid</li>
+        <li>Supports conditional validation: If the condition are met, the subsequent methods continue to be validated. If the conditions are not met, the field is optional</li>
+        <li>Supports infinite nested data structures, including associative arrays, indexed arrays</li>
+        <li>Supports for special validation rules</li>
+        <li>Supports customized configuration. For example, the separator for multiple methods defaults to <code>|</code> and can be changed to other characters, such as <code>;</code></li>
+        <li>Support internationalization. The default is English. User-defined methods are supported to return error messages</li>
+        <li>You can validate the whole data at once (by default). You can also set the parameter validation to end immediately after the parameter validation fails</li>
+        <li>Supports custom error messages, support multiple formats of error messages, infinite nested or dotted array of error message formats</li>
+        <li><del>I'll make it up when I get another Lofty Rhetoric</del> <span>&#128054;</span></li>
+    </ul>
+</details>
+
+### 1.2 An Example
+```PHP
+use githusband\Validation;
+
+// A simple example of a parameter to be validated. In fact, no matter how complex the parameters are, an array of validation rules is supported to complete validation
+$data = [
+    "id" => 1,
+    "name" => "Devin",
+    "age" => 18,
+    "favorite_animation" => [
+        "name" => "A Record of A Mortal's Journey to Immortality",
+        "release_date" => "July 25, 2020 (China)"
+    ]
+];
+
+// The array of validation rules. The format of the rule array is the same as the format of the parameters to be validated.
+$rule = [
+    "id" => "required|/^\d+$/",         // Must not be empty, and must be numbers
+    "name" => "required|len<=>[3,32]",  // Must not be empty and the string length must be greater than 3 and less than or equal to 32
+    "favorite_animation" => [
+        "name" => "required|len<=>[1,64]",          // Must not be empty, the string length must be greater than 1 and less than 64
+        "release_date" => "optional|len<=>[4,64]",  // Optional, If it is not empty, then the string length must be greater than 4 and less than or equal to 64
+    ]
+];
+
+$config = [];
+// Accepts a custom configuration array, but not necessary
+$validation = new Validation($config);
+
+// Set validation rules and validate data, return true if successful, false if failed
+if ($validation->set_rules($rule)->validate($data)) {
+    // Get the validation result here. There are parameters validated by the rule {$rule}. If successful, modify the field value to true. If failed, modify the field value to error information.
+    // Parameters that have not been validated remain unchanged. For example, age remains unchanged at 18.
+    return $validation->get_result();
+} else {
+    // There are four error message formats to choose from. Default Validation::ERROR_FORMAT_DOTTED_GENERAL
+    return $validation->get_error();
+}
+```
+
+In theory, the tool is meant for validating complex data structures, but if you want to validate a single string, that's also possible, e.g.
+
+```PHP
+$validation->set_rules("required|string")->validate("Hello World!");
+```
+
+- The above only shows a simple example. In fact, no matter how complex the request parameters are, an array of validation rules is supported to complete the validation. Refer to [Appendix 2 - Validation Complete Example](#appendix-2---validation-complete-example)
+- Are the rules too ugly? Refer to [4.10 Customized Configuration](#410-customized-configuration)
+
+## 2. Install
+```BASH
+$ composer require githusband/validation
+```
+
+## 3. Develop
+If you have ideas to optimize the development of this tool, the following will help you:
+
+The document test class `Readme.php` and the unit test class `Unit.php` have been built in the `src/Test` directory.
+- **Document testing class**
+
+Document code: [1.2 An Example](#12-an-example)
+```BASH
+$ php Readme.php test_simple_example
+```
+Document code: [Appendix 2 - Validation Complete Example](#appendix-2---validation-complete-example)
+```BASH
+$ php Readme.php test_full_example
+```
+
+- **Unit testing class**
+
+This contains tests for all functions, only some built-in methods
+In principle, after modifying the code, run the unit test to ensure that the functions are normal.
+If the test reports an error, locate the problem and then solve it.
+
+```BASH
+// Test all examples
+$ php Unit.php run
+// Test a single example, for example, test a regular expression
+$ php Unit.php run test_regular_expression
+```
+
+
+## 4. Features
+
+### 4.1 Methods And Their Symbols
+Generally, a field corresponds to a validation rule, and a rule consists of multiple validation methods (functions).
+In order to facilitate understanding and simplify the rules, some method **symbols** are allowed to represent actual methods (functions).
+
+```PHP
+// The name must not be empty, must be a string, and the length must be greater than 3 and less than or equal to 32
+"name" => "required|string|length_greater_lessequal[3,32]"
+
+// Use method symbols, same as above
+// If you think the method symbols difficult to understand, please just use the full name of the methods.
+"name" => "*|string|len<=>[3,32]"
+```
+
+For example:
+
+Symbol | Method | Desc
+---|---|---
+\* | required | Required, not allowed to be empty
+O | optional | Optional, allowed not to be set or empty
+O! | optional_unset | Optional, allowed not to be set, once set it cannot be empty
+\>[20] | greater_than | Number must be greater than 20
+len<=>[2,16] | length_greater_lessequal | Character length must be greater than 2 and less than or equal to 16
+ip | ip | Must be an ip address
+
+**The complete method and its symbol can be found in** [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
+
+### 4.2 Regular Expression
+Generally starts with `/` and ends with `/`, indicating a regular expression
+The `/` at the end of the regular expression may be followed by a pattern modifier, such as `/i`
+```PHP
+// id is required, and must be a number
+"id" => "required|/^\d+$/",
+```
+Supports multiple regular expressions in a series rule
+
+### 4.3 Method Parameters
+How to pass parameters to the methods in rules written as strings?
+
+1. **Standard parameters**
+Just like the parameters used by PHP functions, the parameters are written in parentheses `()`. Multiple parameters are separated by commas `,`. No extra spaces are allowed before and after `,`
+For example,
+```
+"age" => "equal(@this,20)"
+```
+*Indicates that age must be equal to 20. `@this` represents the value of the current age field.*
+
+2. **Omit the `@this` parameter**
+When the parameters are written inside square brackets `[]`, the first `@this` parameter can be omitted.
+For example, the above example can be shortened to:
+```
+"age" => "equal[20]"
+```
+
+3. **Omit parameters**
+When there is only one method parameter and it is the current field value, you can omit `()` and `[]` and only write the method.
+
+**Parameters List**
+
+Parameter | Desc
+---|---
+Static Value | Indicates that the parameter is a static string and is allowed to be empty. For example `20`
+@this | Indicates that the parameter is the value of the current field
+@parent | Indicates the parameter is the value of the parent of the current field
+@root | Indicates that this parameter is the whole validation data
+@field_name | Indicates that the parameter is the value of a field whose name is `field_name`. e.g. `@age`
+
+### 4.4 Method Extension
+There are some validation methods built in the Validation tool, such as `*`, `>`, `len>=`, `ip` and so on. 
+For details, refer to [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
+
+If the validation rules are complex and the built-in methods cannot meet your needs, you can extend your own methods.
+
+There are three ways to extend your own methods:
+1. **Register new method by**：`add_method`
+
+```PHP
+// Register a new method, check_id
+$validation->add_method('check_id', function ($id) {
+    if ($id == 0) {
+        return false;
+    }
+
+    return true;
+});
+
+// The rule is
+$rule = [
+    // Must not be empty, must be a number and must be not equal to 0
+    "id" => "required|/^\d+$/|check_id",
+];
+```
+
+2. **Extend `Validation` class**
+
+Extend the `Validation` class and override the built-in methods or add new built-in methods. Recommended [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
+ 
+```PHP
+use githusband\Validation;
+
+/**
+ * 1. It is recommended to use traits to extend validation methods
+ * If you need to define method symbols, put them in an attribute. The attribute naming rule is: "method_symbol_of_" + class name (high camel case converted to underline)
+ */
+trait RuleCustome
+{
+    protected $method_symbol_of_rule_custome = [
+        '=1' => 'euqal_to_1',
+    ];
+
+    protected function euqal_to_1($data)
+    {
+        return $data == 1;
+    }
+}
+
+/**
+ * 2. Extend the class and directly add validation methods
+ * If you need to define method symbols, place them in an attribute named method_symbol
+ */
+class MyValidation extends Validation
+{
+    use RuleCustome;
+
+    protected $method_symbol = [
+        ">=1" => "grater_than_or_equal_to_1",
+    ];
+
+    protected function grater_than_or_equal_to_1($data)
+    {
+        return $data >= 1;
+    }
+}
+
+/**
+ * The rule is
+ */
+$rule = [
+    // id must not be empty, and must be greater than or equal to 1
+    // ">=1" is a method symbols, corresponding to the method named "grater_than_or_equal_to_1"
+    "id" => "required|>=1",
+    // parent_id is optional, if not empty, it must be equal to 1
+    "parent_id" => "optional|euqal_to_1",
+];
+```
+
+- 3. **Global function**
+Including the system functions and user-defined global functions.
+
+**The priority of the three way**
+`add_method` > `built-in methods` > `global function`
+
+If the method can not be found from the three way, an error will be reported: Undefined
+
+### 4.5 Series And Parallel Rules
+- Series: Multiple methods in a rule of one field must all be valid, the flag is `|`
+```PHP
+"age" => "required|equal[20]"
+```
+- Parallel: Multiple rules for one field only need to valid one of them. 
+  Two options:
+  - A. `{字段名}` + `[or]`
+  - B. Add a unique subfield under the current field: `[or]`
+
+The symbol of `[or]` is `[||]`, the symbol can be customized, and the usage is the same as `[or]`
+
+```PHP
+// Series: The height_unit is required and must be cm or m
+"height_unit" => "required|(s)[cm,m]",
+// A. Parallel: The rule can be like this, [or] can be replaced by its symbol [||]
+"height[or]" => [
+    // If the height_unit is cm(centimeter), the height must be greater than or equal to 100 and less than or equal to 200
+    "required|=(@height_unit,cm)|<=>=[100,200]",
+    // If the height_unit is m(meter), the height must be greater than or equal to 1 and less than or equal to 2
+    "required|=(@height_unit,m)|<=>=[1,2]",
+]
+// B. Parallel: The rules can also be like this, and the symblo [||] can be replaced by [or]
+"height" => [
+    "[||]" => [
+        "required|=(@height_unit,cm)|<=>=[100,200]",
+        "required|=(@height_unit,m)|<=>=[1,2]",
+    ]
+]
+```
+
+### 4.6 Conditional Rules
+
+The usage of conditional rules is similar to PHP syntax, `if()`
+
+Positive condition: `if()`
+
+1. If the condition is true, continue to validate subsequent methods
+2. If the condition is not true, the field is optional:
+  2.1. If this field is empty, validation success will be returned immediately;
+  2.2. If this field is not empty, continue to validate subsequent methods
+
+```PHP
+$rule = [
+    // The attribute must not be empty, and it must be "height" or "weight"
+    "attribute" => "required|(s)[height,weight]",
+    // If the attribute is height, then the centimeter must not be empty
+    // If the attribute is not height, then the centimeter is optional
+    // However, if the value of the centimeter is not empty, it must be greater than 180
+    "centimeter" => "if(=(@attribute,height))|required|>[180]",
+];
+```
+Negative condition: `!if()`
+
+1. If the condition is not met, continue to validate subsequent methods
+2. If the condition is true, the field is optional:
+  2.1. If this field is empty, validation success will be returned immediately;
+  2.2. If this field is not empty, continue to validate subsequent methods
+
+```PHP
+$rule = [
+    // The attribute must not be empty, and it must be "height" or "weight"
+    "attribute" => "required|(s)[height,weight]",
+    // If the attribute is not weight, then the centimeter must not be empty
+    // If the attribute is weight, then the centimeter is optional
+    // However, if the value of the centimeter is not empty, it must be greater than 180
+    "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
+];
+```
+
+### 4.7 Infinitely Nested Data Structures
+
+Supports infinitely nested data structures, including associative arrays and index arrays
+
+**1. Infinitely nested associative array**
+The rule structures will look the same as data structures.
+
+For example:
+```PHP
+$data = [
+    "id" => 1,
+    "name" => "Johnny",
+    "favourite_fruit" => [
+        "name" => "apple",
+        "color" => "red",
+        "shape" => "circular"
+    ]
+];
+
+// To validate the above $data, the rule can be like this
+$rule = [
+    "id" => "required|/^\d+$/",
+    "name" => "required|len>[3]",
+    "favourite_fruit" => [
+        "name" => "required|len>[3]",
+        "color" => "required|len>[3]",
+        "shape" => "required|len>[3]"
+    ]
+];
+```
+
+**2. Infinitely nested index array**
+Add the flag `.*` after the name of the index array field, 
+or add the unique subelement `*` to the index array field
+```PHP
+$data = [
+    "id" => 1,
+    "name" => "Johnny",
+    "favourite_color" => [
+        "white",
+        "red"
+    ],
+    "favourite_fruits" => [
+        [
+            "name" => "apple",
+            "color" => "red",
+            "shape" => "circular"
+        ],
+        [
+            "name" => "banana",
+            "color" => "yellow",
+            "shape" => "long strip"
+        ],
+    ]
+];
+
+// To validate the above $data, the rule can be like this
+$rule = [
+    "id" => "required|/^\d+$/",
+    "name" => "required|len>[3]",
+    "favourite_color.*" => "required|len>[3]",
+    "favourite_fruits.*" => [
+        "name" => "required|len>[3]",
+        "color" => "required|len>[3]",
+        "shape" => "required|len>[3]"
+    ]
+];
+
+// You can also write it like this
+$rule = [
+    "id" => "required|/^\d+$/",
+    "name" => "required|len>[3]",
+    "favourite_color" => [
+        "*" => "required|len>[3]"
+    ],
+    "favourite_fruits" => [
+        "*" => [
+            "name" => "required|len>[3]",
+            "color" => "required|len>[3]",
+            "shape" => "required|len>[3]"
+        ]
+    ]
+];
+```
+
+### 4.8 Optional Field
+
+1. Generally, for a leaf field (without any subfields), you can directly use the `optional` method to indicate that the field is optional.
+2. Sometimes, arrays are also optional, but once set, the subelements must be validated according to the rules. In this case, just add `[optional]` after the array field name to indicate that the array is optional.
+3. It has the same effect as adding `[optional]` after the field name. Adding a unique sub-element `[optional]` to the field also indicates that the field is optional.
+4. The symbol of `[optional]` is `[O]`, and the two are interchangeable.
+
+For example:
+```PHP
+$rule = [
+    // 1. For leaf fields, use the optional method directly to indicate that the field is optional.
+    "name" => "optional|string",
+    // 2. For any field, add [optional] after the field name to indicate that the field is optional.
+    "favourite_fruit[optional]" => [
+        "name" => "required|string",
+        "color" => "required|string"
+    ],
+    // 3. For any field, add the only sub-element [optional] to indicate that the field is optional
+    "gender" => [ "[optional]" => "string" ],
+    "favourite_food" => [
+        "[optional]" => [
+            "name" => "required|string",
+            "taste" => "required|string"
+        ]
+    ],
+];
+```
+### 4.9 Special Validation Rules
+
+List of special rules:
+
+Full Name | Symbol | Desc
+---|---|---
+[optional] | [O] | Indicates the field is optional. Array supported. See [4.8 Optional Field](#48-optional-field)
+[or] | [\|\|] | Indicates it's a parallel rule, one of the rules validated means the field is valid. See [4.5 Series And Parallel Rules](#45-series-and-parallel-rules)
+ N/A | .* | Indicates the field is an indexed array. See [4.7 Infinitely Nested Data Structures](#47-infinitely-nested-data-structures)
+
+**NOTE**: The usage of the symbol is the same as the full method name, and the symbol allows to be [customized](#410-customized-configuration).
+
+### 4.10 Customized Configuration
+
+The configurations that support customization include:
+
+```PHP
+$config = array(
+    'language' => 'en-us',                                  // Language, default is en-us
+    'lang_path' => '',                                      // Customer Language file path
+    'validation_global' => true,                            // If true, validate all rules; If false, stop validating when one rule was invalid
+    'auto_field' => "data",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
+    'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
+    'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
+    'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
+    'reg_if' => '/^!?if\((.*)\)/',                          // If match this, validate this condition first
+    'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
+    'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
+    'symbol_rule_separator' => '|',                         // Rule reqarator for one field
+    'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
+    'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
+    'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
+    'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
+    'symbol_required' => '*',                               // Symbol of required field, Same as "required"
+    'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
+    'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "optional_unset"
+    'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
+    'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
+    'symbol_index_array' => '.*',                           // Symbol of index array rule
+);
+```
+
+For example, you think the rules I designed are too ugly and not easy to understand at all. <span>&#128545;</span> 
+So you made the following changes:
+
+```PHP
+$custom_config = array(
+    'reg_preg' => '/^Reg:(\/.+\/.*)$/',                     // If match this, using regular expression instead of method
+    'symbol_rule_separator' => '&&',                        // Rule reqarator for one field
+    'symbol_param_this_omitted' => '/^(.*)~(.*)$/',         // If set function by this symbol, will add a @this parameter at first 
+    'symbol_param_standard' => '/^(.*)#(.*)$/',             // If set function by this symbol, will not add a @this parameter at first 
+    'symbol_param_separator' => '+',                        // Parameters separator, such as @this,@field1,@field2
+    'symbol_field_name_separator' => '->',                  // Field name separator, suce as "fruit.apple"
+    'symbol_required' => '!*',                              // Symbol of required field, Same as "required"
+    'symbol_optional' => 'o?',                              // Symbol of optional field, can be unset or empty, Same as "optional"
+);
+
+$validation = new Validation($custom_config);
+```
+
+Then, the rule in [1.2 An Example](#12-an-example) can be written as follows:
+
+```PHP
+$rule = [
+    "id" => "!*&&Reg:/^\d+$/",          // Must not be empty, and must be numbers
+    "name" => "!*&&len<=>~3+32",        // Must not be empty and the string length must be greater than 3 and less than or equal to 32
+    "favorite_animation" => [
+        "name" => "!*&&len<=>~1+64",                // Must not be empty, the string length must be greater than 1 and less than 64
+        "release_date" => "o?&&len<=>#@this+4+64",  // Optional, If it is not empty, then the string length must be greater than 4 and less than or equal to 64
+    ]
+];
+```
+Has it become more beautiful? <span>&#128525;</span> <strong style="font-size: 20px">Come and try it!</strong>
+
+### 4.11 Internationalization
+
+Customize default error message templates for different methods. See [4.13 Error Message Template](#413-error-message-template) - point 2
+
+**Internationalization Lists:**
+
+Language | File Name | Class Name | Alias
+---|---|---|---
+English(Default) | EnUs.php | `EnUs` | `en-us`
+Chinese | ZhCn.php | `ZhCn` | `zh-cn`
+
+- Internationalization file names and class names are named using camel case.
+- Modify the default error message template through [4.10 Customized Configuration](#410-customized-configuration).
+- Modify the default error message template through the `set_language` interface. Supports using class names or alias as parameters.
+
+```PHP
+// Add configuration when instantiating the class
+$validation_conf = [
+    'language' => 'zh-cn',
+];
+$validation = new Validation($validation_conf);
+
+// Or call the interface
+$validation->set_language('zh-cn'); // The ZhCn.php Internationalization file will be loaded
+```
+
+**Add your internationalization files**
+
+1. Create a file `/MyPath/MyLang.php`
+```PHP
+<?php
+
+class MyLang
+{
+    public $error_template = array(
+        // Override error message template for default method =
+        '=' => '@this must be equal to @p1(From MyLang)',
+        // Added error message template for new method check_custom
+        'check_custom' => '@this check_custom error!'
+    );
+}
+```
+
+2. Configure the path to the internationalization file
+```PHP
+$validation->set_config(array('lang_path' => '/MyPath/'))->set_language('MyLang');
+```
+
+**Use internationalization objects directly**
+In fact, the method of internationalizing the file above ultimately calls the `custom_language` interface.
+```PHP
+// Must be an object
+$MyLang = (object)array();
+$MyLang->error_template = array(
+    // Override error message template for default method =
+    '=' => '@this must be equal to @p1(From MyLang)',
+    // Added error message template for new method check_custom
+    'check_custom' => '@this check_custom error!'
+);
+
+$validation->custom_language($MyLang, 'MyLang');
+```
+
+### 4.12 Validate Whole Data
+
+By default, even if a field fails validation, all subsequent data will continue to be validated.
+*You can set it to end the validation of subsequent fields immediately when any field validation fails.*
+```PHP
+// Add configuration when instantiating the class
+$validation_conf = [
+    'validation_global' => false,
+];
+$validation = new Validation($validation_conf);
+
+// Or call the set_validation_global interface
+$validation->set_validation_global(false);
+```
+
+### 4.13 Error Message Template
+
+**When a field fails validation, you may want to**
+- Set an error message template for an entire rule
+- Set an error message template for each method
+
+**Then, you have three ways to set the error message template:**
+1. Set template in rules array
+2. Set template via [Internationalization](#411-internationalization)
+3. Return the template directly in the method
+
+Template **priority** from high to low: `1` > `2` > `3`
+
+**1. Set template in rules array**
+
+1.1 At the end of a rule, add the symbol "` >> `", note that there is a space at the start and end. For custom symbol, see [4.10 Customized Configuration](#410-customized-configuration)
+
+1.1.1. **Common string**：Indicates that no matter whether any method in the rule fails to validate, this error message will be returned.
+```PHP
+// required OR regular expression OR <=>= method，no matter which validation fails, the error is "id is incorrect."
+"id" => 'required|/^\d+$/|<=>=[1,100] >> @this is incorrect.'
+```
+
+1.1.2. **JSON string**：Set an error message template for each method
+
+```PHP
+"id" => 'required|/^\d+$/|<=>=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}'
+```
+When any of the methods fails to validate, the corresponding error message is:
+- `required`: Users define - id is required
+- `/^\d+$/`: Users define - id should be "MATCHED" /^\d+$/
+- `<=>=`: id must be greater than or equal to 1 and less than or equal to 100
+
+1.1.3. ~~Exclusive string (not recommended)~~：Set an error message template for each method，same as JSON
+
+```PHP
+"id" => "required|/^\d+$/|<=>=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg"
+```
+
+1.2. **Error message template array**：Set an error message template for each method，same as JSON
+- Key `0`: The rule
+- Key `error_message`：Error message template array
+
+Any extra key is not allowed.
+
+```PHP
+$rule = [
+    "id" => [
+        'required|/^\d+$/|<=>=[1,100]',
+        'error_message' => [                        
+            'required' => 'Users define - @this is required',
+            'preg' => 'Users define - @this should be \"MATCHED\" @preg',
+        ]
+    ]
+];
+```
+
+2. **Set template via Internationalization**
+Refer to [4.11 Internationalization](#411-internationalization)
+
+3. **Return the template directly in the method**
+
+If and only if the method result `result === true`, it means the validation is successful, otherwise it means the validation fails.
+
+So the method allows three types of error returns:
+- Return `false`
+- Return error message template string
+- Returns an array of error messages template. There are two fields by default, `error_type` and `message`. You can add other extra fields if you need.
+
+```PHP
+function check_animal($animal) {
+    if ($animal == "") {
+        return false;
+    } else if ($animal == "mouse") {
+        return "I don't like mouse";
+    } else if ($animal == "snake") {
+        return array(
+            "error_type" => "server_error",
+            "message" => "I don't like snake",
+            "extra" => "You scared me"
+        );
+    }
+
+    return true;
+}
+```
+
+### 4.14 Error Message Format
+
+There are four different error message formats:
+
+- `ERROR_FORMAT_NESTED_GENERAL`: 'NESTED_GENERAL'
+```JSON
+{
+     "A": {
+         "1": "error_msg_A1",
+         "2": {
+             "a": "error_msg_A2a"
+         }
+     }
+}
+```
+- `ERROR_FORMAT_NESTED_DETAILED`: 'NESTED_DETAILED'
+This format is similar to the above format, except that the error information becomes an array and contains more error information.
+- `ERROR_FORMAT_DOTTED_GENERAL`: 'DOTTED_GENERAL'
+```JSON
+{
+     "A.1": "error_msg_A1",
+     "A.2.a": "error_msg_A2a",
+}
+```
+- `ERROR_FORMAT_DOTTED_DETAILED`: 'DOTTED_DETAILED'
+This format is similar to the above format, except that the error information becomes an array and contains more error information.
+
+For details, see [Appendix 3 -Error Message Format](#Appendix-3---Error Message Format)
+
+
+---
+
+## Appendix 1 - Methods And Symbols
+
+Symbol | Method | Desc
+---|---|---
+/ | `default` | @this validation failed
+`.*` | `index_array` | @this must be a numeric array
+`*` | `required` | @this can not be empty
+`O` | `optional` | @this never go wrong
+`O!` | `optional_unset` | @this must be unset or not empty
+/ | `preg` | @this format is invalid, should be @preg
+/ | `preg_format` | @this method @preg is not a valid regular expression
+/ | `call_method` | @method is undefined
+`=` | `equal` | @this must be equal to @p1
+`!=` | `not_equal` | @this must be not equal to @p1
+`==` | `identically_equal` | @this must be identically equal to @p1
+`!==` | `not_identically_equal` | @this must be not identically equal to @p1
+`>` | `greater_than` | @this must be greater than @p1
+`<` | `less_than` | @this must be less than @p1
+`>=` | `greater_than_equal` | @this must be greater than or equal to @p1
+`<=` | `less_than_equal` | @this must be less than or equal to @p1
+`<>` | `interval` | @this must be greater than @p1 and less than @p2
+`<=>` | `greater_lessequal` | @this must be greater than @p1 and less than or equal to @p2
+`<>=` | `greaterequal_less` | @this must be greater than or equal to @p1 and less than @p2
+`<=>=` | `greaterequal_lessequal` | @this must be greater than or equal to @p1 and less than or equal to @p2
+`(n)` | `in_number` | @this must be numeric and in @p1
+`!(n)` | `not_in_number` | @this must be numeric and can not be in @p1
+`(s)` | `in_string` | @this must be string and in @p1
+`!(s)` | `not_in_string` | @this must be string and can not be in @p1
+`len=` | `length_equal` | @this length must be equal to @p1
+`len!=` | `length_not_equal` | @this length must be not equal to @p1
+`len>` | `length_greater_than` | @this length must be greater than @p1
+`len<` | `length_less_than` | @this length must be less than @p1
+`len>=` | `length_greater_than_equal` | @this length must be greater than or equal to @p1
+`len<=` | `length_less_than_equal` | @this length must be less than or equal to @p1
+`len<>` | `length_interval` | @this length must be greater than @p1 and less than @p2
+`len<=>` | `length_greater_lessequal` | @this length must be greater than @p1 and less than or equal to @p2
+`len<>=` | `length_greaterequal_less` | @this length must be greater than or equal to @p1 and less than @p2
+`len<=>=` | `length_greaterequal_lessequal` | @this length must be greater than or equal to @p1 and less than or equal to @p2
+`int` | `integer` | @this must be integer
+`float` | `float` | @this must be float
+`string` | `string` | @this must be string
+/ | `arr` | @this must be array
+/ | `bool` | @this must be boolean
+`bool=` | `bool` | @this must be boolean @p1
+/ | `bool_str` | @this must be boolean string
+`bool_str=` | `bool_str` | @this must be boolean string @p1
+/ | `email` | @this must be email
+/ | `url` | @this must be url
+/ | `ip` | @this must be IP address
+/ | `mac` | @this must be MAC address
+/ | `dob` | @this must be a valid date
+/ | `file_base64` | @this must be a valid file base64
+/ | `uuid` | @this must be a UUID
+/ | `oauth2_grant_type` | @this is not a valid OAuth2 grant type
+
+---
+
+## Appendix 2 - Validation Complete Example
+
+Imagine that if the user data is as follows, it contains associative arrays and index arrays. How do we set the rules to validate it, and how do we make it simple and intuitive?
+
+```PHP
+$data = [
+    "id" => 1,
+    "name" => "GH",
+    "age" => 18,
+    "favorite_animation" => [
+        "name" => "A Record of A Mortal's Journey to Immortality",
+        "release_date" => "July 25, 2020 (China)",
+        "series_directed_by" => [
+            "",
+            "Yuren Wang",
+            "Zhao Xia"
+        ],
+        "series_cast" => [
+            [
+                "actor" => "Wenqing Qian",
+                "character" => "Han Li",
+            ],
+            [
+                "actor" => "ShiMeng-Li",
+                "character" => "Nan Gong Wan",
+            ],
+        ]
+    ]
+];
+```
+
+```PHP
+// $data - The above data to be validated 
+function validate($data) {
+    // Set validation rules
+    $rule = [
+        "id" => "required|/^\d+$/",         // id must not be empty, and must be numbers
+        "name" => "required|len<=>[3,32]",  // name must not be empty, and the string length must be greater than 3 and less than or equal to 32
+        "favorite_animation" => [
+            // favorite_animation.name must not be empty, and the string length must be greater than 1 and less than or equal to 64
+            "name" => "required|len<=>[1,16]",
+            // favorite_animation.release_date is optional. If not empty, the string length must be greater than 4 and less than or equal to 64
+            "release_date" => "optional|len<=>[4,64]",
+            // "*" indicates favorite_animation.series_directed_by is an index array
+            "series_directed_by" => [
+                // favorite_animation.series_directed_by.* each child field must meet its rules:  cannot be empty and its length must be greater than 3
+                "*" => "required|len>[3]"
+            ],
+            // [optional] indicates favorite_animation.series_cast is optional
+            // ".*"(Same as above “*”) indicates favorite_animation.series_cast is an index array, and each sub-field is an associative array.
+            "series_cast" => [
+                "[optional].*" => [
+                    // favorite_animation.series_cast.*.actor cannot be empty and the length must be greater than 3 and must match the regular expression
+                    "actor" => "required|len>[3]|/^[A-Za-z ]+$/",
+                    // favorite_animation.series_cast.*.character can not be empty and length must be greater than 3
+                    "character" => "required|len>[3]",
+                ]
+            ]
+        ]
+    ];
+    
+    $config = [];
+    // Accepts a custom configuration array, but not necessary
+    $validation = new Validation($config);
+
+    // Set validation rules and validate data, return true if successful, false if failed
+    if ($validation->set_rules($rule)->validate($data)) {
+        // Get the validation result here. There are parameters validated by the rule {$rule}. If successful, modify the field value to true. If failed, modify the field value to error information.
+        // Parameters that have not been validated remain unchanged. For example, age remains unchanged at 18.
+        return $validation->get_result();
+    } else {
+        // There are four error message formats to choose from. Default Validation::ERROR_FORMAT_DOTTED_GENERAL
+        return $validation->get_error();
+    }
+}
+
+// You can find an error message format that you like by changing the parameters of get_error.
+// The $data in the example basically does not satisfy the $rule. You can change the value of $data to check whether the validation rules are correct.
+echo json_encode(validate($data), JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + JSON_UNESCAPED_UNICODE) . "\n";
+```
+
+The result is
+
+```JSON
+{
+    "name": "name length must be greater than 3 and less than or equal to 32",
+    "favorite_animation.name": "favorite_animation.name length must be greater than 1 and less than or equal to 16",
+    "favorite_animation.series_directed_by.0": "favorite_animation.series_directed_by.0 can not be empty",
+    "favorite_animation.series_cast.1.actor": "favorite_animation.series_cast.1.actor format is invalid, should be /^[A-Za-z ]+$/"
+}
+```
+For more error message formats, see [Appendix 3 - Error Message Format](#Appendix-3---Error Message Format)
+
+---
+## Appendix 3 - Error Message Format
+
+### One-dimensional String Structure
+```PHP
+// Default Validation::ERROR_FORMAT_DOTTED_GENERAL
+$validation->get_error();
+```
+
+```JSON
+{
+    "name": "name length must be greater than 3 and less than or equal to 32",
+    "favorite_animation.name": "favorite_animation.name length must be greater than 1 and less than or equal to 16",
+    "favorite_animation.series_directed_by.0": "favorite_animation.series_directed_by.0 can not be empty",
+    "favorite_animation.series_cast.1.actor": "favorite_animation.series_cast.1.actor format is invalid, should be /^[A-Za-z ]+$/"
+}
+```
+
+### One-dimensional Associative Structure
+```PHP
+$validation->get_error(Validation::ERROR_FORMAT_DOTTED_DETAILED);
+```
+
+```JSON
+{
+    "name": {
+        "error_type": "validation",
+        "message": "name length must be greater than 3 and less than or equal to 32"
+    },
+    "favorite_animation.name": {
+        "error_type": "validation",
+        "message": "favorite_animation.name length must be greater than 1 and less than or equal to 16"
+    },
+    "favorite_animation.series_directed_by.0": {
+        "error_type": "required_field",
+        "message": "favorite_animation.series_directed_by.0 can not be empty"
+    },
+    "favorite_animation.series_cast.1.actor": {
+        "error_type": "validation",
+        "message": "favorite_animation.series_cast.1.actor format is invalid, should be /^[A-Za-z ]+$/"
+    }
+}
+```
+
+### Infinitely Nested String Structure
+```PHP
+$validation->get_error(Validation::ERROR_FORMAT_NESTED_GENERAL);
+```
+
+```JSON
+{
+    "name": "name length must be greater than 3 and less than or equal to 32",
+    "favorite_animation": {
+        "name": "favorite_animation.name length must be greater than 1 and less than or equal to 16",
+        "series_directed_by": [
+            "favorite_animation.series_directed_by.0 can not be empty"
+        ],
+        "series_cast": {
+            "1": {
+                "actor": "favorite_animation.series_cast.1.actor format is invalid, should be /^[A-Za-z ]+$/"
+            }
+        }
+    }
+}
+```
+
+### Infinitely Nested Associative Structure
+```PHP
+$validation->get_error(Validation::ERROR_FORMAT_NESTED_DETAILED);
+```
+
+```JSON
+{
+    "name": {
+        "error_type": "validation",
+        "message": "name length must be greater than 3 and less than or equal to 32"
+    },
+    "favorite_animation": {
+        "name": {
+            "error_type": "validation",
+            "message": "favorite_animation.name length must be greater than 1 and less than or equal to 16"
+        },
+        "series_directed_by": [
+            {
+                "error_type": "required_field",
+                "message": "favorite_animation.series_directed_by.0 can not be empty"
+            }
+        ],
+        "series_cast": {
+            "1": {
+                "actor": {
+                    "error_type": "validation",
+                    "message": "favorite_animation.series_cast.1.actor format is invalid, should be /^[A-Za-z ]+$/"
+                }
+            }
+        }
+    }
+}
+```
+
+---

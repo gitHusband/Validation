@@ -218,6 +218,15 @@ class Validation
     }
 
     /**
+     * Get Config
+     * @var array
+     */
+    public function get_config()
+    {
+        return $this->config;
+    }
+
+    /**
      * Reset Config
      */
     public function reset_config()
@@ -359,6 +368,28 @@ class Validation
     public function get_validation_global()
     {
         return $this->validation_global;
+    }
+
+    /**
+     * Get Method Symbol
+     *
+     * @return array
+     */
+    public function get_method_symbol()
+    {
+        return $this->method_symbol;
+    }
+
+    /**
+     * Get error message template
+     *
+     * @param string|null $tag
+     * @return string|array
+     */
+    public function get_error_template($tag = null)
+    {
+        if ($tag === null) return $this->error_template;
+        return ($tag == '' || !isset($this->error_template[$tag])) ? '' : $this->error_template[$tag];
     }
 
     /**
@@ -1462,17 +1493,6 @@ class Validation
                 return true;
             }
         }
-    }
-
-    /**
-     * error template message
-     *
-     * @param string $tag
-     * @return string
-     */
-    public function get_error_template($tag = '')
-    {
-        return ($tag == '' || !isset($this->error_template[$tag])) ? '' : $this->error_template[$tag];
     }
 
     /**
