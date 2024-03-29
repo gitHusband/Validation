@@ -6,17 +6,6 @@ require_once __DIR__ . '/TestCommon.php';
 
 use githusband\Validation;
 
-function check_age($data, $gender, $param)
-{
-    if ($gender == "male") {
-        if ($data > $param) return false;
-    } else {
-        if ($data < $param) return false;
-    }
-
-    return true;
-}
-
 /**
  * 1. 推荐用 trait 拓展验证方法
  * 如果需要定义方法标志，将他们放在属性中，属性命名规则：“method_symbol_of_” + 类名（大驼峰转下划线）
@@ -433,6 +422,46 @@ class Readme extends TestCommon
         }
     }
 
+    public function test_method_return_error_message()
+    {
+        $data = [
+            "animal" => "snake"
+        ];
+
+        // 验证规则数组。规则数组的格式与待验证参数的格式相同。
+        $rule = [
+            "animal" => "check_animal"
+        ];
+
+        $validation = new Validation();
+        $validation->add_method('check_animal', function ($animal) {
+            if ($animal == "") {
+                return false;
+            } else if ($animal == "mouse") {
+                return "I don't like mouse";
+            } else if ($animal == "snake") {
+                return array(
+                    "error_type" => "server_error",
+                    "message" => "I don't like snake",
+                    "extra" => "You scared me"
+                );
+            }
+
+            return true;
+        });
+
+
+        // 设置验证规则并验证数据，成功返回 true，失败返回 false
+        if ($validation->set_rules($rule)->validate($data)) {
+            // 这里获取验证结果，有被规则{$rule}验证到的参数，成功则修改其值为true，失败则修改其值为错误信息，
+            // 没有被验证到的参数，保持原值不变。比如 age 保持 18 不变。
+            return $validation->get_result();
+        } else {
+            // 一共有四种错误信息格式可供选择。默认 Validation::ERROR_FORMAT_DOTTED_GENERAL
+            return $validation->get_error(Validation::ERROR_FORMAT_DOTTED_DETAILED);
+        }
+    }
+
     public function test_full_example()
     {
         $data = [
@@ -501,6 +530,61 @@ class Readme extends TestCommon
             // 一共有四种错误信息格式可供选择。默认 Validation::ERROR_FORMAT_DOTTED_GENERAL
             return $validation->get_error();
         }
+    }
+
+    public function test_get_method_and_symbol()
+    {
+        $language = 'en-us';
+        $config = [
+            'language' => $language
+        ];
+        $validation = new Validation($config);
+
+        $config = $validation->get_config();
+        $method_symbol = $validation->get_method_symbol();
+        $error_template = $validation->get_error_template();
+
+        $built_in_methods = [
+            'default' => '/',
+            'index_array' => 'symbol_index_array',
+            'required' => 'symbol_required',
+            'optional' => 'symbol_optional',
+            'optional_unset' => 'symbol_optional_unset',
+            // 'preg' => 'reg_preg',
+            'preg' => '/',
+            // 'preg_format' => 'reg_preg_strict',
+            'preg_format' => '/',
+            'call_method' => '/',
+        ];
+
+        $header = "";
+        if ($language == 'zh-cn') {
+            $header = "标志 | 方法 | 含义\n";
+        } else if ($language == 'en-us') {
+            $header = "Symbol | Method | Desc\n";
+        }
+        $header .= "---|---|---\n";
+        $method_symbol_table = $header;
+
+        foreach ($error_template as $symbol => $method_error_template) {
+            // $method = $method_symbol[$symbol] ?? $symbol;
+            
+            if (isset($built_in_methods[$symbol])) {
+                $method = $symbol;
+                $symbol = $config[$built_in_methods[$method]] ?? $built_in_methods[$method];
+            } else {
+                if (isset($method_symbol[$symbol])) {
+                    $method = $method_symbol[$symbol];
+                } else {
+                    $method = $symbol;
+                    $symbol = '/';
+                }
+            }
+            if (!empty($symbol) && !in_array($symbol, ['/'])) $symbol = "`{$symbol}`";
+            $method_symbol_table .= "{$symbol} | `{$method}` | {$method_error_template}\n";
+        }
+
+        echo "\n{$method_symbol_table}";
     }
 
     protected function validate($data, $rule, $validation_conf = array())
