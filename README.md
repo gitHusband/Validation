@@ -59,7 +59,7 @@ Validation 用于对数据合法性的检查。
 - 验证方法支持用标志代替，易于理解，简化规则。采用`*`, `>`, `<`, `len>` 等方法标志，比如 `*` 表示必要的
 - 支持正则表达式
 <details>
-    <summary><span>&#128071;</span> 更多特性...</summary>
+    <summary><span>&#128071;</span> 点击查看更多特性...</summary>
     <ul>
         <li>支持方法传参。如 `@this` 代表当前字段值</li>
         <li>支持拓展方法</li>
@@ -238,6 +238,9 @@ Validation 类中内置了一些验证方法，例如 `*`，`>`, `len>=`, `ip` �
 拓展方法有三种方式：
 1. **注册新的方法**：`add_method`
 
+<details>
+  <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
+
 ```PHP
 // 注册一个新的方法，check_id
 $validation->add_method('check_id', function ($id) {
@@ -255,9 +258,14 @@ $rule = [
 ];
 ```
 
+</details>
+
 2. **拓展 `Validation` 类**
 
 拓展 `Validation` 类并重写内置方法或者增加新的内置方法。推荐用 [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
+
+<details>
+  <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
  
 ```PHP
 use githusband\Validation;
@@ -306,6 +314,8 @@ $rule = [
     "parent_id" => "optional|euqal_to_1",
 ];
 ```
+
+</details>
 
 - 3. **全局函数**
 包括系统自带的函数和用户自定义的全局函数。
@@ -415,6 +425,10 @@ $rule = [
 
 **2. 无限嵌套的索引数组**
 索引数组字段的名称后面加上标志 `.*`，或者给索引数组字段加上唯一子元素 `*`
+
+<details>
+  <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
+
 ```PHP
 $data = [
     "id" => 1,
@@ -466,6 +480,8 @@ $rule = [
 ];
 ```
 
+</details>
+
 ### 4.8 可选字段
 
 1. 一般的，对于一个叶子字段（无任何子字段），可以直接使用 `optional` 方法，表示该字段是可选的。
@@ -509,6 +525,9 @@ $rule = [
 
 支持客制化的配置有：
 
+<details>
+  <summary><span>&#128071;</span> <strong>点击查看配置</strong></summary>
+
 ```PHP
 $config = array(
     'language' => 'en-us',                                  // Language, default is en-us
@@ -534,6 +553,8 @@ $config = array(
     'symbol_index_array' => '.*',                           // Symbol of index array rule
 );
 ```
+
+</details>
 
 例如，你觉得我设计的规则太丑了，一点都不好理解。:rage:于是你做了以下的修改:
 
@@ -765,6 +786,9 @@ function check_animal($animal) {
 
 ## 附录 1 - 方法标志及其含义
 
+<details>
+  <summary><span>&#128071;</span> <strong>点击查看 附录 1 - 方法标志及其含义</strong></summary>
+
 标志 | 函数 | 含义
 ---|---|---
 / | `default` | @this 验证错误
@@ -818,6 +842,8 @@ function check_animal($animal) {
 / | `uuid` | @this 必须是 UUID
 / | `oauth2_grant_type` | @this 必须是合法的 OAuth2 授权类型
 
+</details>
+
 ---
 
 ## 附录 2 - 验证完整示例
@@ -850,6 +876,9 @@ $data = [
     ]
 ];
 ```
+
+<details>
+  <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
 
 ```PHP
 // $data - 上述待验证的数据 
@@ -913,6 +942,8 @@ echo json_encode(validate($data), JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + J
 }
 ```
 更多的错误信息格式，见 [附录 3 - 错误信息格式](#附录-3---错误信息格式)
+
+</details>
 
 ---
 ## 附录 3 - 错误信息格式

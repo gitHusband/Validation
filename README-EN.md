@@ -237,6 +237,9 @@ If the validation rules are complex and the built-in methods cannot meet your ne
 There are three ways to extend your own methods:
 1. **Register new method by**：`add_method`
 
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
+
 ```PHP
 // Register a new method, check_id
 $validation->add_method('check_id', function ($id) {
@@ -254,9 +257,14 @@ $rule = [
 ];
 ```
 
+</details>
+
 2. **Extend `Validation` class**
 
 Extend the `Validation` class and override the built-in methods or add new built-in methods. Recommended [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
+
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
  
 ```PHP
 use githusband\Validation;
@@ -306,6 +314,8 @@ $rule = [
     "parent_id" => "optional|euqal_to_1",
 ];
 ```
+
+</details>
 
 - 3. **Global function**
 Including the system functions and user-defined global functions.
@@ -419,6 +429,10 @@ $rule = [
 **2. Infinitely nested index array**
 Add the flag `.*` after the name of the index array field, 
 or add the unique subelement `*` to the index array field
+
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
+
 ```PHP
 $data = [
     "id" => 1,
@@ -470,6 +484,8 @@ $rule = [
 ];
 ```
 
+</details>
+
 ### 4.8 Optional Field
 
 1. Generally, for a leaf field (without any subfields), you can directly use the `optional` method to indicate that the field is optional.
@@ -513,6 +529,9 @@ Full Name | Symbol | Desc
 
 The configurations that support customization include:
 
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view configurations</strong></summary>
+
 ```PHP
 $config = array(
     'language' => 'en-us',                                  // Language, default is en-us
@@ -538,6 +557,8 @@ $config = array(
     'symbol_index_array' => '.*',                           // Symbol of index array rule
 );
 ```
+
+</details>
 
 For example, you think the rules I designed are too ugly and not easy to understand at all. <span>&#128545;</span> 
 So you made the following changes:
@@ -770,6 +791,9 @@ For details, see [Appendix 3 -Error Message Format](#Appendix-3---Error Message 
 
 ## Appendix 1 - Methods And Symbols
 
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view Appendix 1 - Methods And Symbols</strong></summary>
+
 Symbol | Method | Desc
 ---|---|---
 / | `default` | @this validation failed
@@ -823,6 +847,8 @@ Symbol | Method | Desc
 / | `uuid` | @this must be a UUID
 / | `oauth2_grant_type` | @this is not a valid OAuth2 grant type
 
+</details>
+
 ---
 
 ## Appendix 2 - Validation Complete Example
@@ -855,6 +881,8 @@ $data = [
     ]
 ];
 ```
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
 
 ```PHP
 // $data - The above data to be validated 
@@ -916,7 +944,9 @@ The result is
     "favorite_animation.series_cast.1.actor": "favorite_animation.series_cast.1.actor format is invalid, should be /^[A-Za-z ]+$/"
 }
 ```
-For more error message formats, see [Appendix 3 - Error Message Format](#Appendix-3---Error Message Format)
+For more error message formats, see [Appendix 3 - Error Message Format](#appendix-3---error-message-format)
+
+</details>
 
 ---
 ## Appendix 3 - Error Message Format
