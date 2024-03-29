@@ -1,3 +1,5 @@
+> **语言：[English](README-EN.md) / [中文](README.md)(当前的)**
+
 目录
 =================
 
@@ -20,7 +22,7 @@
       * [4.10 客制化配置](#410-客制化配置)
       * [4.11 国际化](#411-国际化)
       * [4.12 验证全部数据](#412-验证全部数据)
-      * [4.13 错误信息](#413-错误信息)
+      * [4.13 错误信息模板](#413-错误信息模板)
       * [4.14 错误信息格式](#414-错误信息格式)
    * [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
    * [附录 2 - 验证完整示例](#附录-2---验证完整示例)
@@ -39,31 +41,40 @@ Validation 用于对数据合法性的检查。
 
 **有任何意见或想法，我们可以一起交流探讨！**
 
-**:raising_hand: 为什么写这个工具？**
-- 1. 对于API的参数，理论上对每个参数都应该进行合法性检查，尤其是那些需要转发给其他API接口或者需要存储到数据库的参数。
-*比如，数据库基本上对数据长度类型等有限制，对于长度的验证可谓是简单繁琐，使用该工具可以大大简化代码。*
-- 2. 如果API参数过多，验证的代码量势必很大，无法直观通过代码明白参数格式。
-- 3. 定制一个验证规则数组，规则数组长啥样，请求参数就长啥样。
-- 4. 方便地多样化地设置验证方法返回的错误信息
-- 5. ~~暂时想不到，想到了再给你们编。~~:dog:
+<details>
+    <summary><span>&#128587;</span> <strong>为什么写这个工具？</strong></summary>
+    <ul>
+        <li>1. 对于API的参数，理论上对每个参数都应该进行合法性检查，尤其是那些需要转发给其他API接口或者需要存储到数据库的参数。
+        <em>比如，数据库基本上对数据长度类型等有限制，对于长度的验证可谓是简单繁琐，使用该工具可以大大简化代码。</em></li>
+        <li>2. 如果API参数过多，验证的代码量势必很大，无法直观通过代码明白参数格式。</li>
+        <li>3. 只需定制一个验证规则数组，规则数组长啥样，请求参数就长啥样。</li>
+        <li>4. 方便地多样化地设置验证方法返回的错误信息</li>
+        <li>5. <del>暂时想不到，想到了再给你们编。</del> <span>&#128054;</span></li>
+    </ul>
+</details>
 
 ## 1. 简介
 ### 1.1 特点
 - 一个字段对应一个验证规则，一个规则由多个验证方法（函数）组成。
 - 验证方法支持用标志代替，易于理解，简化规则。采用`*`, `>`, `<`, `len>` 等方法标志，比如 `*` 表示必要的
 - 支持正则表达式
-- 支持方法传参。如 `@this` 代表当前字段值
-- 支持拓展方法
-- 支持串联验证：一个参数多个方法必须全部满足
-- 支持并联验证：一个参数多个规则满足其一即可
-- 支持条件验证：条件满足则继续验证后续方法，不满足则表明该字段是可选的
-- 支持无限嵌套的数据结构，包括关联数组，索引数组
-- 支持特殊的验证规则
-- 支持客制化配置。比如多个方法的分隔符号默认 `|`，可以改为其他字符，如 `;`
-- 支持国际化。默认英语，支持自定义方法返回错误信息
-- 支持一次性验证全部数据(默认)，也可设置参数验证失败后立即结束验证
-- 支持自定义错误信息，支持多种格式的错误信息，无限嵌套或者一维数组的错误信息格式
-- ~~暂时想不到，想到了再给你们编。~~:dog:
+<details>
+    <summary><span>&#128071;</span> 更多特性...</summary>
+    <ul>
+        <li>支持方法传参。如 `@this` 代表当前字段值</li>
+        <li>支持拓展方法</li>
+        <li>支持串联验证：一个参数多个方法必须全部满足</li>
+        <li>支持并联验证：一个参数多个规则满足其一即可</li>
+        <li>支持条件验证：条件满足则继续验证后续方法，不满足则表明该字段是可选的</li>
+        <li>支持无限嵌套的数据结构，包括关联数组，索引数组</li>
+        <li>支持特殊的验证规则</li>
+        <li>支持客制化配置。比如多个方法的分隔符号默认 `|`，可以改为其他字符，如 `;`</li>
+        <li>支持国际化。默认英语，支持自定义方法返回错误信息</li>
+        <li>支持一次性验证全部数据(默认)，也可设置参数验证失败后立即结束验证</li>
+        <li>支持自定义错误信息，支持多种格式的错误信息，无限嵌套或者一维数组的错误信息格式</li>
+        <li><del>暂时想不到，想到了再给你们编。</del> <span>&#128054;</span></li>
+    </ul>
+</details>
 
 ### 1.2 一个例子
 ```PHP
@@ -309,22 +320,23 @@ $rule = [
 ```PHP
 "age" => "required|equal[20]"
 ```
-- 并联：一个参数的多个规则满足其一即可。使用方法：
-  - `{字段名}` + `[or]`
-  - 当前字段下增加唯一子字段 `[or]`
+- 并联：一个参数的多个规则满足其一即可。
+  两种方法：
+  - A. `{字段名}` + `[or]`
+  - B. 在当前字段下增加唯一子字段 `[or]`
 
 `[or]` 的标志是 `[||]` , 标志支持自定义，使用方法同 `[or]`
 ```PHP
 // 串联，身高单位是必须的，且必须是 cm 或者 m
 "height_unit" => "required|(s)[cm,m]",
-// 1. 并联，规则可以这么写，[or] 可以替换成标志 [||]
+// A. 并联，规则可以这么写，[or] 可以替换成标志 [||]
 "height[or]" => [
     // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
     "required|=(@height_unit,cm)|<=>=[100,200]",
     // 若身高单位是米 m, 则身高必须大于等于1，小于等于2
     "required|=(@height_unit,m)|<=>=[1,2]",
 ]
-// 2. 并联，规则也可以这么写，标志 [||] 可以替换成 [or]
+// B. 并联，规则也可以这么写，标志 [||] 可以替换成 [or]
 "height" => [
     "[||]" => [
         // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
@@ -341,10 +353,10 @@ $rule = [
 
 正条件：`if()`
 
-- 如果条件成立，则继续验证后续方法
-- 如果条件不成立，说明该字段是可选的：
-  1. 若该字段为空，立刻返回验证成功；
-  2. 若该字段不为空，则继续验证后续方法
+1. 如果条件成立，则继续验证后续方法
+2. 如果条件不成立，说明该字段是可选的：
+  2.1. 若该字段为空，立刻返回验证成功；
+  2.2. 若该字段不为空，则继续验证后续方法
 
 ```PHP
 $rule = [
@@ -357,10 +369,10 @@ $rule = [
 ```
 否条件：`!if()`
 
-- 如果条件不成立，则继续验证后续方法
-- 如果条件成立，说明该字段是可选的：
-  1. 若该字段为空，立刻返回验证成功；
-  2. 若该字段不为空，则继续验证后续方法
+1. 如果条件不成立，则继续验证后续方法
+2. 如果条件成立，说明该字段是可选的：
+  2.1. 若该字段为空，立刻返回验证成功；
+  2.2. 若该字段不为空，则继续验证后续方法
 
 ```PHP
 $rule = [
@@ -489,7 +501,7 @@ $rule = [
 ---|---|---
 [optional] | [O] | 表明字段是可选的，支持数组。见 [4.8 可选字段](#48-可选字段)
 [or] | [\|\|] | 表明单个字段是或规则，多个规则满足其一即可。见 [4.5 串联并联规则](#45-串联并联规则)
- (无全称) | .* | 表明字段是可选的，支持数组。见 [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
+ (无全称) | .* | 表明字段是索引数组。见 [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
 
 注意：标志使用方法和全称一样，且标志支持 [客制化](#410-客制化配置)。
 
@@ -552,119 +564,131 @@ $rule = [
     ]
 ];
 ```
-是不是变得更加漂亮了呢？:heart_eyes:快来试试吧！
+是不是变得更加漂亮了呢？<span>&#128525;</span> <strong style="font-size: 20px">快来试试吧！</strong>
 
 
 ### 4.11 国际化
 
-配置文件名和类名都采用大驼峰命名方式。
+为不同的方法定制默认的错误消息模板。见 [4.13 错误信息模板](#413-错误信息模板) - 第 2 点
 
-调用时，支持使用标准的语言代码，如`zh-cn`, `en-us`等。
+**国际化列表**
 
-目前支持的语言有，`zh-cn`, `en-us`，默认语言是`en-us`(英语)。
+语言 | 文件名 | 类名 | 别名
+---|---|---|---
+English(Default) | EnUs.php | `EnUs` | `en-us`
+Chinese | ZhCn.php | `ZhCn` | `zh-cn`
+
+- 国际化文件名和类名都采用大驼峰命名方式。
+- 通过 [4.10 客制化配置](#410-客制化配置) 修改默认错误信息模板。
+- 通过 `set_language` 方法修改默认错误信息模板。支持用类名或者别名作为参数。
 
 ```PHP
-// 调用接口
-$validation->set_language('zh-cn'); //将加载 ZhCn.php 配置文件
-
-// 或者在实例化类的时候加入配置
+// 在实例化类的时候加入配置
 $validation_conf = [
     'language' => 'zh-cn',
 ];
-
 $validation = new Validation($validation_conf);
+
+// 或者调用接口
+$validation->set_language('zh-cn'); // 将加载 ZhCn.php 国际化文件
 ```
 
-**自定义国际化文件**
+**创建你的国际化文件**
 
-如 `/MyPath/MyLang.php`
-
-内容如下：
+1. 创建文件 `/MyPath/MyLang.php`
 ```PHP
 <?php
 
 class MyLang
 {
     public $error_template = array(
-        'check_custom' => '@this error!(CustomLang File)'
+        // 覆盖默认方法 = 的错误信息模板
+        '=' => '@this must be equal to @p1(From MyLang)',
+        // 新增方法 check_custom 的错误信息模板
+        'check_custom' => '@this check_custom error!'
     );
 }
 ```
-修改语言文件路径
 
+2. 配置国际化文件的路径
 ```PHP
-// You should add CustomLang.php in '/MyPath/'
-$validation->set_config(array('lang_path' => /MyPath/'))->set_language('MyLang');
+$validation->set_config(array('lang_path' => '/MyPath/'))->set_language('MyLang');
 ```
 
-实际上，国际化，配置的是每个验证函数返回的错误信息，也可以自由地覆盖增加你的验证函数返回的错误信息。
-
+**直接使用国际化对象**
+实际上，上面国际化文件的方法最终调用的是 `custom_language` 接口。
 ```PHP
 // 必须是对象
-$lang_config = (object)array();
-$lang_config->error_template = array(
-    'check_id' => '@this error!(customed)'
+$MyLang = (object)array();
+$MyLang->error_template = array(
+    // 覆盖默认方法 = 的错误信息模板
+    '=' => '@this must be equal to @p1(From MyLang)',
+    // 新增方法 check_custom 的错误信息模板
+    'check_custom' => '@this check_custom error!'
 );
 
-$validation->custom_language($lang_config, 'MyErrorTemplate');
-```
-以上为错误模版增加了一个check_id, 如果check_id 函数验证错误，则返回信息
-
-```PHP
-'@this error!(customed)'
+$validation->custom_language($MyLang, 'MyLang');
 ```
 
 ### 4.12 验证全部数据
-支持一次性验证全部数据(默认)，也可设置任意参数验证失败后立即结束验证后续字段
-```PHP
-// 调用接口
-$validation->set_validation_global(false);
 
-// 或者在实例化类的时候加入配置
+默认地，即使某个字段验证失败，也会继续验证后续的全部数据。
+*可设置当任意字段验证失败后，立即结束验证后续字段。*
+```PHP
+// 在实例化类的时候加入配置
 $validation_conf = [
     'validation_global' => false,
 ];
-
 $validation = new Validation($validation_conf);
+
+// 或者调用 set_validation_global 接口
+$validation->set_validation_global(false);
 ```
 
-### 4.13 错误信息
+### 4.13 错误信息模板
 
-在一个规则最后，可以设置规则的错误信息。其标志是 "` >> `", 注意前后各有一个空格。
+**当一个字段验证失败，你可能希望**
+- 为一整个规则设置一个错误信息模板
+- 为每一个方法设置一个错误信息模板
 
-例如：
+**那么，你有三个途径可以设置错误信息模板：**
+1. 在规则数组中设置模板
+2. 通过[国际化](#411-国际化)设置模板
+3. 在方法中直接返回模板
 
-1. **字符串：表示无论规则中的任何方法验证失败，都将返回此错误信息**
-`*`或者 正则 或者`<=>=`方法，无论哪一个验证失败都报错 "id is incorrect."
+模板**优先级** 从高到低：`1` > `2` > `3`
+
+**1. 在规则数组中设置模板**
+
+1.1 在一个规则最后，加入标志 "` >> `", 注意前后各有一个空格。自定义标志见 [4.10 客制化配置](#410-客制化配置)
+1.1.1. **普通字符串**：表示无论规则中的任何方法验证失败，都返回此错误信息
 ```PHP
+// required 或者 正则 或者 <=>= 方法，无论哪一个验证失败都报错 "id is incorrect."
 "id" => 'required|/^\d+$/|<=>=[1,100] >> @this is incorrect.'
 ```
 
-2. **JSON 格式错误信息，为每一个方法设置不同的错误信息**
+1.1.2. **JSON 字符串**：为每一个方法设置一个错误信息模板
 
 ```PHP
 "id" => 'required|/^\d+$/|<=>=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}'
-
-# 对应的报错信息为
-# required - Users define - id is required
-# /^\d+$/ - Users define - id should be \"MATCHED\" /^\d+$/
-# <=>= - id must be greater than or equal to 1 and less than or equal to 100
 ```
+当其中任一方法验证错误，对应的报错信息为
+- `required`: Users define - id is required
+- `/^\d+$/`: Users define - id should be "MATCHED" /^\d+$/
+- `<=>=`: id must be greater than or equal to 1 and less than or equal to 100
 
-3. **特殊格式错误信息，为每一个方法设置不同的错误信息，同JSON**
+1.1.3. ~~专属字符串（不推荐）~~：为每一个方法设置一个错误信息模板，同 JSON
 
 ```PHP
 "id" => "required|/^\d+$/|<=>=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg"
-
-# 对应的报错信息为
-# required - Users define - id is required
-# /^\d+$/ - Users define - id should be \"MATCHED\" /^\d+$/
-# <=>= - id must be greater than or equal to 1 and less than or equal to 100
 ```
 
-4. **错误信息数组，格式如下**
+1.2. **错误信息模板数组**：为每一个方法设置一个错误信息模板，同 JSON
 - 键 `0`: 验证规则
-- 键 `error_message`：错误信息数组
+- 键 `error_message`：错误信息模板数组
+
+不允许包含任何其他键。
+
 ```PHP
 $rule = [
     "id" => [
@@ -677,7 +701,10 @@ $rule = [
 ];
 ```
 
-5. **拓展的函数，可通过返回值，设置错误信息, 优先级低于 "` >> `" 和 错误信息数组**
+2. **通过国际化设置模板**
+见 [4.11 国际化](#411-国际化)
+
+3. **在方法中直接返回模板**
 
 当且仅当函数 `返回值 === true` 时，表示验证成功，否则表示验证失败。
 
@@ -687,15 +714,16 @@ $rule = [
 - 返回错误信息数组，默认有两个字段，`error_type` 和 `message`，可自行增加其他字段
 
 ```PHP
-function check_age($data, $gender, $param) {
-    if($gender == "male") {
-        // if($data > $param) return false;
-        if($data > $param) return "@this should be greater than @p1 when gender is male";
-    }else {
-        if($data < $param) return array(
-            'error_type' => 'server_error',
-            'message' => '@this should be less than @p1 when gender is female',
-            "extra" => "extra message"
+function check_animal($animal) {
+    if ($animal == "") {
+        return false;
+    } else if ($animal == "mouse") {
+        return "I don't like mouse";
+    } else if ($animal == "snake") {
+        return array(
+            "error_type" => "server_error",
+            "message" => "I don't like snake",
+            "extra" => "You scared me"
         );
     }
 
@@ -703,10 +731,10 @@ function check_age($data, $gender, $param) {
 }
 ```
 
-6. [国际化](#411-国际化)
-
 ### 4.14 错误信息格式
+
 一共有四种不同的错误信息格式：
+
 - `ERROR_FORMAT_NESTED_GENERAL`: 'NESTED_GENERAL'
 ```JSON
 {
@@ -739,50 +767,56 @@ function check_age($data, $gender, $param) {
 
 标志 | 函数 | 含义
 ---|---|---
-\* | required | 必要的，@this 不能为空
-O | optional | 可选的，允许不设置或为空
-O! | symbol_optional_unset | 可选的，允许不设置，一旦设置则不能为空
-= | equal | @this 必须等于 @p1
-!= | not_equal | @this 必须不等于 @p1
-== | identically_equal | @this 必须全等于 @p1
-!== | not_identically_equal | @this 必须不全等于 @p1
-\> | greater_than | @this 必须大于 @p1
-< | less_than | @this 必须小于 @p1
-\>= | greater_than_equal | @this 必须大于等于 @p1
-<= | less_than_equal | @this 必须小于等于 @p1
-<> | interval | @this 必须大于 @p1 且小于 @p2
-<=> | greater_lessequal | @this 必须大于 @p1 且小于等于 @p2
-<>= | greaterequal_less | @this 必须大于等于 @p1 且小于 @p2
-<=>= | greaterequal_lessequal | @this 必须大于等于 @p1 且小于等于 @p2
-(n) | in_number | @this 必须是数字且在此之内 @p1
-!(n) | not_in_number | @this 必须是数字且不在此之内 @p1
-(s) | in_string | @this 必须是字符串且在此之内 @p1
-!(s) | not_in_string | @this 必须是字符串且不在此之内 @p1
-len= | length_equal | @this 长度必须等于 @p1
-len!= | length_not_equal | @this 长度必须不等于 @p1
-len> | length_greater_than | @this 长度必须大于 @p1
-len< | length_less_than | @this 长度必须小于 @p1
-len>= | length_greater_than_equal | @this 长度必须大于等于 @p1
-len<= | length_less_than_equal | @this 长度必须小于等于 @p1
-len<> | length_interval | @this 长度必须大于 @p1 且小于 @p2
-len<=> | length_greater_lessequal | @this 长度必须大于 @p1 且小于等于 @p2
-len<>= | length_greaterequal_less | @this 长度必须大于等于 @p1 且小于 @p2
-len<=>= | length_greaterequal_lessequal | @this 长度必须大于等于 @p1 且小于等于 @p2
-int | integer | @this 必须是整型
-float | float | @this 必须是小数
-string | string | @this 必须是字符串
-arr | arr | @this 必须是数组,
-bool | bool | @this 必须是布尔型
-bool= | bool | @this 必须是布尔型且等于 @p1
-bool_str | bool_str | @this 必须是布尔型字符串
-bool_str= | bool_str | @this 必须是布尔型字符串且等于 @p1
-email | email | @this 必须是邮箱
-url | url | @this 必须是网址
-ip | ip | @this 必须是IP地址
-mac | mac | @this 必须是MAC地址
-dob | dob | @this 必须是正确的日期
-file_base64 | file_base64 | @this 必须是正确的文件的base64码
-uuid | uuid | @this 必须是 UUID
+/ | `default` | @this 验证错误
+`.*` | `index_array` | @this 必须是索引数组
+`*` | `required` | @this 不能为空
+`O` | `optional` | @this 永远不会出错
+`O!` | `optional_unset` | @this 允许不设置，一旦设置则不能为空
+/ | `preg` | @this 格式错误，必须是 @preg
+/ | `preg_format` | @this 方法 @preg 不是合法的正则表达式
+/ | `call_method` | @method 未定义
+`=` | `equal` | @this 必须等于 @p1
+`!=` | `not_equal` | @this 必须不等于 @p1
+`==` | `identically_equal` | @this 必须全等于 @p1
+`!==` | `not_identically_equal` | @this 必须不全等于 @p1
+`>` | `greater_than` | @this 必须大于 @p1
+`<` | `less_than` | @this 必须小于 @p1
+`>=` | `greater_than_equal` | @this 必须大于等于 @p1
+`<=` | `less_than_equal` | @this 必须小于等于 @p1
+`<>` | `interval` | @this 必须大于 @p1 且小于 @p2
+`<=>` | `greater_lessequal` | @this 必须大于 @p1 且小于等于 @p2
+`<>=` | `greaterequal_less` | @this 必须大于等于 @p1 且小于 @p2
+`<=>=` | `greaterequal_lessequal` | @this 必须大于等于 @p1 且小于等于 @p2
+`(n)` | `in_number` | @this 必须是数字且在此之内 @p1
+`!(n)` | `not_in_number` | @this 必须是数字且不在此之内 @p1
+`(s)` | `in_string` | @this 必须是字符串且在此之内 @p1
+`!(s)` | `not_in_string` | @this 必须是字符串且不在此之内 @p1
+`len=` | `length_equal` | @this 长度必须等于 @p1
+`len!=` | `length_not_equal` | @this 长度必须不等于 @p1
+`len>` | `length_greater_than` | @this 长度必须大于 @p1
+`len<` | `length_less_than` | @this 长度必须小于 @p1
+`len>=` | `length_greater_than_equal` | @this 长度必须大于等于 @p1
+`len<=` | `length_less_than_equal` | @this 长度必须小于等于 @p1
+`len<>` | `length_interval` | @this 长度必须大于 @p1 且小于 @p2
+`len<=>` | `length_greater_lessequal` | @this 长度必须大于 @p1 且小于等于 @p2
+`len<>=` | `length_greaterequal_less` | @this 长度必须大于等于 @p1 且小于 @p2
+`len<=>=` | `length_greaterequal_lessequal` | @this 长度必须大于等于 @p1 且小于等于 @p2
+`int` | `integer` | @this 必须是整型
+`float` | `float` | @this 必须是小数
+`string` | `string` | @this 必须是字符串
+/ | `arr` | @this 必须是数组
+/ | `bool` | @this 必须是布尔型
+`bool=` | `bool` | @this 必须是布尔型且等于 @p1
+/ | `bool_str` | @this 必须是布尔型字符串
+`bool_str=` | `bool_str` | @this 必须是布尔型字符串且等于 @p1
+/ | `email` | @this 必须是邮箱
+/ | `url` | @this 必须是网址
+/ | `ip` | @this 必须是IP地址
+/ | `mac` | @this 必须是MAC地址
+/ | `dob` | @this 必须是正确的日期
+/ | `file_base64` | @this 必须是正确的文件的base64码
+/ | `uuid` | @this 必须是 UUID
+/ | `oauth2_grant_type` | @this 必须是合法的 OAuth2 授权类型
 
 ---
 
@@ -882,6 +916,7 @@ echo json_encode(validate($data), JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + J
 
 ---
 ## 附录 3 - 错误信息格式
+
 ### 一维字符型结构
 ```PHP
 // 默认 Validation::ERROR_FORMAT_DOTTED_GENERAL
@@ -896,9 +931,10 @@ $validation->get_error();
     "favorite_animation.series_cast.1.actor": "favorite_animation.series_cast.1.actor 格式错误，必须是 /^[A-Za-z ]+$/"
 }
 ```
+
 ### 一维关联型结构
 ```PHP
-$validation->get_error();
+$validation->get_error(Validation::ERROR_FORMAT_DOTTED_DETAILED);
 ```
 
 ```JSON
@@ -943,6 +979,7 @@ $validation->get_error(Validation::ERROR_FORMAT_NESTED_GENERAL);
     }
 }
 ```
+
 ### 无限嵌套关联型结构
 ```PHP
 $validation->get_error(Validation::ERROR_FORMAT_NESTED_DETAILED);
