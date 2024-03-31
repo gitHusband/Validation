@@ -1,8 +1,8 @@
 <p align="center"> <a href="README.md">中文</a> | English</p>
 
-<h1 align=center>
-    Validation 
-</h1>
+<p align=center>
+    <strong style="font-size: 35px">Validation</strong>
+</p>
 <p align="center"><b>Simple, intuitive and customizable</b></p>
 <p align="center">
   <a href="https://hits.seeyoufarm.com">
