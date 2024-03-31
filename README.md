@@ -1,9 +1,25 @@
-> **语言：[English](README-EN.md) / [中文](README.md)(当前的)**
+<p align="center"><a href="README-EN.md">English</a> | 中文</p>
+
+<h1 align=center>
+    Validation 
+</h1>
+<p align="center"><b>简单，直观，客制化</b></p>
+<p align="center">
+  <a href="https://hits.seeyoufarm.com">
+     <img src="https://img.shields.io/github/license/gitHusband/Validation"/>
+  </a>
+  <a href="https://hits.seeyoufarm.com">
+     <img src="https://img.shields.io/github/languages/top/gitHusband/Validation"/>
+  </a>
+  <a href="https://hits.seeyoufarm.com">
+     <img src="https://img.shields.io/github/v/release/gitHusband/Validation"/>
+  </a>
+</p>
 
 目录
 =================
 
-* [Validation —— PHP 数据合法性的验证器](#validation--php-数据合法性的验证器)
+* [Validation —— 一款 PHP 直观的数据验证器](#validation--一款-php-直观的数据验证器)
    * [1. 简介](#1-简介)
       * [1.1 特点](#11-特点)
       * [1.2 一个例子](#12-一个例子)
@@ -33,9 +49,10 @@
       * [无限嵌套关联型结构](#无限嵌套关联型结构)
 
 
-# Validation —— PHP 数据合法性的验证器
+# Validation —— 一款 PHP 直观的数据验证器
 
 Validation 用于对数据合法性的检查。
+目标只有 10 个字 - **规则结构即是数据结构**。
 
 > [github 仓库](https://github.com/gitHusband/Validation)
 

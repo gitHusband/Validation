@@ -1,10 +1,26 @@
-> **Language：[中文](README.md) / [English](README-EN.md)(Current)**
+<p align="center"> <a href="README.md">中文</a> | English</p>
+
+<h1 align=center>
+    Validation 
+</h1>
+<p align="center"><b>Simple, intuitive and customizable</b></p>
+<p align="center">
+  <a href="https://hits.seeyoufarm.com">
+     <img src="https://img.shields.io/github/license/gitHusband/Validation"/>
+  </a>
+  <a href="https://hits.seeyoufarm.com">
+     <img src="https://img.shields.io/github/languages/top/gitHusband/Validation"/>
+  </a>
+  <a href="https://hits.seeyoufarm.com">
+     <img src="https://img.shields.io/github/v/release/gitHusband/Validation"/>
+  </a>
+</p>
 
 Table of contents
 =================
 
 * [Table of contents](#table-of-contents)
-* [Validation —— A PHP Validator to validate data](#validation--a-php-validator-to-validate-data)
+* [Validation —— A PHP Intuitive Data Validator](#validation--a-php-intuitive-data-validator)
    * [1. Overview](#1-overview)
       * [1.1 Feature](#11-feature)
       * [1.2 An Example](#12-an-example)
@@ -34,9 +50,10 @@ Table of contents
       * [Infinitely Nested Associative Structure](#infinitely-nested-associative-structure)
 
 
-# Validation —— A PHP Validator to validate data
+# Validation —— A PHP Intuitive Data Validator
 
 Validation is used to check the legality of data.
+Goal is only 5 words - **Rule structure is data structure**。
 
 > [Github Repository](https://github.com/gitHusband/Validation)
 
