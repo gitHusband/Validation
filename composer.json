@@ -20,5 +20,9 @@
         "psr-4": {
             "githusband\\": "src/"
         }
+    },
+    "scripts": {
+        "test": "php src/Test/Test.php Unit run",
+        "readme": "php src/Test/Test.php Readme"
     }
 }

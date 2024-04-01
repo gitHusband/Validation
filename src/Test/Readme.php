@@ -1,44 +1,10 @@
 <?php
 
-// namespace githusband\Test;
-
-require_once __DIR__ . '/TestCommon.php';
+namespace githusband\Test;
 
 use githusband\Validation;
-
-/**
- * 1. 推荐用 trait 拓展验证方法
- * 如果需要定义方法标志，将他们放在属性中，属性命名规则：“method_symbol_of_” + 类名（大驼峰转下划线）
- */
-trait RuleCustome
-{
-    protected $method_symbol_of_rule_custome = [
-        '=1' => 'euqal_to_1',
-    ];
-
-    protected function euqal_to_1($data)
-    {
-        return $data == 1;
-    }
-}
-
-/**
- * 2. 拓展类，直接增加验证方法
- * 如果需要定义方法标志，将他们放在属性 method_symbol 中
- */
-class MyValidation extends Validation
-{
-    use RuleCustome;
-
-    protected $method_symbol = [
-        ">=1" => "grater_than_or_equal_to_1",
-    ];
-
-    protected function grater_than_or_equal_to_1($data)
-    {
-        return $data >= 1;
-    }
-}
+use githusband\Test\TestCommon;
+use githusband\Test\Extend\MyValidation;
 
 class Readme extends TestCommon
 {
@@ -351,7 +317,7 @@ class Readme extends TestCommon
                 "color" => "required|string"
             ],
             // 3. 任意字段，增加唯一子元素 [optional]，表示该字段是可选的
-            "gender" => [ "[optional]" => "string" ],
+            "gender" => ["[optional]" => "string"],
             "favourite_food" => [
                 "[optional]" => [
                     "name" => "required|string",
@@ -462,7 +428,7 @@ class Readme extends TestCommon
         }
     }
 
-    public function test_full_example()
+    public function test_complete_example()
     {
         $data = [
             "id" => 1,
@@ -568,7 +534,7 @@ class Readme extends TestCommon
 
         foreach ($error_template as $symbol => $method_error_template) {
             // $method = $method_symbol[$symbol] ?? $symbol;
-            
+
             if (isset($built_in_methods[$symbol])) {
                 $method = $symbol;
                 $symbol = $config[$built_in_methods[$method]] ?? $built_in_methods[$method];
@@ -598,18 +564,3 @@ class Readme extends TestCommon
         }
     }
 }
-
-$method = isset($argv[1]) ? $argv[1] : "error";
-
-$test = new Readme();
-
-if (method_exists($test, $method)) {
-    $result = call_user_func_array([$test, $method], []);
-} else {
-    echo "Error test method {$method}.\n";
-    die;
-}
-
-echo json_encode($result, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + JSON_UNESCAPED_UNICODE) . "\n";
-die;
-print_r($result);

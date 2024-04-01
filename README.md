@@ -150,32 +150,37 @@ $ composer require githusband/validation
 ## 3. 开发
 如果你有想法优化开发本工具，以下将为你提供帮助：
 
-在 `src/Test` 目录下已经内置了文档测试类 `Readme.php` 和单元测试类 `Unit.php`。
+在 `src/Test` 目录下已经内置了单元测试类 `Unit.php` 和 文档测试类 `Readme.php`
+通过 [Composer Script](https://getcomposer.org/doc/articles/scripts.md) 调用它们。
+
+克隆本项目后，请先生成项目的自动加载文件：
+```BASH
+$ composer dump-autoload
+```
+
+- **单元测试类**
+
+这里包含了所有功能的测试，只包含部分内置函数。
+原则上修改代码后跑一遍单元测试，确保功能正常。
+
+```BASH
+// 测试所有例子
+$ composer run-script test
+// 测试单一例子，例如，测试正则表达式
+$ composer run-script test test_regular_expression
+```
 
 - **文档测试类**
 
 文档代码：[1.2 一个例子](#12-一个例子)
 ```BASH
 // 验证成功测试, 返回测试结果
-$ php Readme.php test_simple_example
+$ composer run-script readme test_simple_example
 ```
 文档代码：[附录 2 - 验证完整示例](#附录-2---验证完整示例)
 ```BASH
 // 验证成功测试，返回错误信息
-$ php Readme.php test_full_example
-```
-
-- **单元测试类**
-
-这里包含了所有功能的测试，只包含部分内置函数
-原则上修改代码后跑一遍单元测试，确保功能正常。
-如果测试报错，定位问题再解决。
-
-```BASH
-// 测试所有例子
-$ php Unit.php run
-// 测试单一例子，例如，测试正则表达式
-$ php Unit.php run test_regular_expression
+$ composer run-script readme test_complete_example
 ```
 
 
@@ -250,7 +255,8 @@ ip | ip | 必须是ip地址
 ### 4.4 方法拓展
 Validation 类中内置了一些验证方法，例如 `*`，`>`, `len>=`, `ip` 等等。详见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
 
-如果验证规则比较复杂，内置方法无法满足你的需求，可以拓展你自己方法
+如果验证规则比较复杂，内置方法无法满足你的需求，可以拓展你自己的方法。
+如果方法中根据不同的判断可能返回不同的错误信息，见 [4.13 错误信息模板 - 3. 在方法中直接返回模板](#413-错误信息模板) 一节。
 
 拓展方法有三种方式：
 1. **注册新的方法**：`add_method`
@@ -573,7 +579,8 @@ $config = array(
 
 </details>
 
-例如，你觉得我设计的规则太丑了，一点都不好理解。:rage:于是你做了以下的修改:
+例如，你觉得我设计的规则太丑了，一点都不好理解。<span>&#128545;</span> 
+于是你做了如下的定制:
 
 ```PHP
 $custom_config = array(

@@ -1,24 +1,13 @@
 <?php
 
-require_once __DIR__ . "/TestCommon.php";
+namespace githusband\Test;
 
 use githusband\Validation;
-
-function check_age($data, $gender, $param)
-{
-    if ($gender == "male") {
-        if ($data > $param) return false;
-    } else {
-        if ($data < $param) return false;
-    }
-
-    return true;
-}
+use githusband\Test\TestCommon;
 
 class Demo extends TestCommon
 {
-
-    public function __construct($config = array())
+    public function __construct()
     {
     }
 
@@ -643,17 +632,3 @@ class Demo extends TestCommon
         }
     }
 }
-
-$method = isset($argv[1]) ? $argv[1] : "error";
-
-$test = new Demo();
-
-if (method_exists($test, $method)) {
-    $result = call_user_func_array([$test, $method], []);
-} else {
-    echo "Error test method {$method}.\n";
-    die;
-}
-
-// echo json_encode($result, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + JSON_UNESCAPED_UNICODE)."\n";die;
-print_r($result);

@@ -2,34 +2,55 @@
 
 namespace githusband\Test\Extend;
 
-require_once __DIR__ . '/../../../vendor/autoload.php';
-
 use githusband\Validation;
-use githusband\Test\Extend\Rule\RuleDate;
+use githusband\Test\Extend\Rule\RuleCustom;
 
+/**
+ * 2. 拓展类，直接增加验证方法
+ * 如果需要定义方法标志，将他们放在属性 method_symbol 中
+ */
 class MyValidation extends Validation
 {
-    use RuleDate;
+    use RuleCustom;
 
     protected $method_symbol = [
-        "date<=>=" => "date_greaterequal_lessequal",
+        ">=1" => "grater_than_or_equal_to_1",
     ];
 
-    protected function date_greaterequal_lessequal($date, $start_date, $end_date)
-    {
-        $is_date = $this->is_date($date);
-        if ($is_date !== true) return $is_date;
+    /**
+     * Don't copy this property to the README document
+     *
+     * @var array
+     */
+    protected $error_template = [
+        "validate_data_limit" => "@this can not be greater than or equal to 1000",
+    ];
 
-        $datetime = strtotime($date);
-        $start_datetime = strtotime($start_date);
-        $end_datetime = strtotime($end_date);
-        $is_between = $datetime >= $start_datetime && $datetime <= $end_datetime;
-        if (!$is_between) return '@this must be greater than or equal to @p1 and less than or equal to @p2';
-        return true;
+    protected function grater_than_or_equal_to_1($data)
+    {
+        return $data >= 1;
     }
 
-    protected function get_self_method_symbol()
+    /**
+     * Don't copy this method to the README document
+     *
+     * @param mixed $data
+     * @return mixed
+     */
+    protected function validate_data_limit($data)
     {
-        return self::$method_symbol;
+        if (!is_integer($data)) {
+            return [
+                "error_type" => "data_type",
+                "message" => "@this must be integer",
+                "extra" => "Data type checks failed"
+            ];
+        } else if ($data >= 10000) {
+            return "@this is out of limited";
+        } else if ($data < 10000 && $data >= 1000) {
+            return false;
+        }
+
+        return true;
     }
 }

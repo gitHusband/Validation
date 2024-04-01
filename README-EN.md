@@ -151,29 +151,36 @@ $ composer require githusband/validation
 ## 3. Develop
 If you have ideas to optimize the development of this tool, the following will help you:
 
-The document test class `Readme.php` and the unit test class `Unit.php` have been built in the `src/Test` directory.
-- **Document testing class**
+The unit test class `Unit.php` and the document test class `Readme.php` have been built in the `src/Test` directory.
 
-Document code: [1.2 An Example](#12-an-example)
+Execute them via [Composer Script](https://getcomposer.org/doc/articles/scripts.md).
+
+After cloning this project, please generate the project's automatic loading file by:
 ```BASH
-$ php Readme.php test_simple_example
-```
-Document code: [Appendix 2 - Validation Complete Example](#appendix-2---validation-complete-example)
-```BASH
-$ php Readme.php test_full_example
+$ composer dump-autoload
 ```
 
 - **Unit testing class**
 
 This contains tests for all functions, only some built-in methods
 In principle, after modifying the code, run the unit test to ensure that the functions are normal.
-If the test reports an error, locate the problem and then solve it.
 
 ```BASH
 // Test all examples
-$ php Unit.php run
+$ composer run-script test
 // Test a single example, for example, test a regular expression
-$ php Unit.php run test_regular_expression
+$ composer run-script test test_regular_expression
+```
+
+- **Document testing class**
+
+Document code: [1.2 An Example](#12-an-example)
+```BASH
+$ composer run-script readme test_simple_example
+```
+Document code: [Appendix 2 - Validation Complete Example](#appendix-2---validation-complete-example)
+```BASH
+$ composer run-script readme test_complete_example
 ```
 
 
@@ -250,6 +257,8 @@ There are some validation methods built in the Validation tool, such as `*`, `>`
 For details, refer to [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
 
 If the validation rules are complex and the built-in methods cannot meet your needs, you can extend your own methods.
+
+If the method may return different error messages based on different judgments, see the section [4.13 Error message template - 3. Return the template directly in the method](#413-error-message-template).
 
 There are three ways to extend your own methods:
 1. **Register new method by**：`add_method`
@@ -578,7 +587,7 @@ $config = array(
 </details>
 
 For example, you think the rules I designed are too ugly and not easy to understand at all. <span>&#128545;</span> 
-So you made the following changes:
+So you made the following customizations:
 
 ```PHP
 $custom_config = array(
