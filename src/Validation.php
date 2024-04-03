@@ -1636,7 +1636,7 @@ class Validation
 
     protected function big_camelize($uncamelcaps, $separator = '_')
     {
-        $uncamelcaps = str_replace($separator, " ", strtolower($uncamelcaps));
+        $uncamelcaps = str_replace($separator, " ", lcfirst($uncamelcaps));
         return str_replace(" ", "", ucwords($uncamelcaps));
     }
 
