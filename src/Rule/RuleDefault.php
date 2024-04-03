@@ -49,11 +49,6 @@ trait RuleDefault
         return $data === 0 || $data === 0.0 || $data === 0.00 || $data === '0' || $data === '0.0' || $data === '0.00' || $data === false || !empty($data);
     }
 
-    protected function empty($data)
-    {
-        return empty($data);
-    }
-
     protected function equal($data, $param)
     {
         return $data == $param;
@@ -306,10 +301,9 @@ trait RuleDefault
     public function dob($date)
     {
         if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $arr)) {
-            $obj = new \DateTime($date);
-            $dob_time = $obj->format("U");
+            $datetime = strtotime($date);
             $now = time();
-            if (checkdate($arr[2], $arr[3], $arr[1]) && $dob_time < $now) {
+            if (checkdate($arr[2], $arr[3], $arr[1]) && $datetime < $now) {
                 return true;
             } else {
                 return false;

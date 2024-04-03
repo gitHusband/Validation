@@ -23,6 +23,7 @@
     },
     "scripts": {
         "test": "php src/Test/Test.php Unit run",
+        "multi-test": "./src/Test/Test.sh",
         "readme": "php src/Test/Test.php Readme"
     }
 }

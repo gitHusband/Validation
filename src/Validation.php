@@ -423,19 +423,28 @@ class Validation
         try {
             $this->execute($data, $this->rules);
         } catch (\Throwable $t) {
-            if ($t instanceof ghException) {
-                throw $t;
-            } else {
-                $current_field_path = $this->get_current_field_path();
-                $current_field_path = empty($current_field_path) ? $this->config['auto_field'] : $current_field_path;
-                $current_rule = $this->get_current_rule();
-                $current_rule = empty($current_rule) ? 'NotSet' : $current_rule;
-                throw (new ghException("@field:{$current_field_path}, @rule:{$current_rule} - " . $t->getMessage(), $t->getCode(), $t))
-                    ->set_recurrence_current($this->get_recurrence_current());
-            }
+            $this->throw_gh_exception($t);
+        }
+        // For the PHP version < 7
+        catch (\Exception $t) {
+            $this->throw_gh_exception($t);
         }
 
         return $this->validation_status;
+    }
+
+    protected function throw_gh_exception($t)
+    {
+        if ($t instanceof ghException) {
+            throw $t;
+        } else {
+            $current_field_path = $this->get_current_field_path();
+            $current_field_path = empty($current_field_path) ? $this->config['auto_field'] : $current_field_path;
+            $current_rule = $this->get_current_rule();
+            $current_rule = empty($current_rule) ? 'NotSet' : $current_rule;
+            throw (new ghException("@field:{$current_field_path}, @rule:{$current_rule} - " . $t->getMessage(), $t->getCode(), $t))
+                ->set_recurrence_current($this->get_recurrence_current());
+        }
     }
 
     /**
@@ -1039,7 +1048,7 @@ class Validation
             if (preg_match("/^(.*?)\s*(\[\s*.*?\s*\]\s*=>\s*.*)?$/", $string, $matches)) {
                 $parse_arr[$key] = $matches[1];
                 // echo "+++ Kye($key) Value is {$parse_arr[$key]}\n";
-                return $this->parse_gh_string_to_array($parse_arr, $matches[2] ?? '', 'key');
+                return $this->parse_gh_string_to_array($parse_arr, (isset($matches[2]) ? $matches[2] : ''), 'key');
             } else {
                 // echo "Can not get value for Key $key\n";
                 return false;
@@ -1226,7 +1235,7 @@ class Validation
                         }
                     }
 
-                    $error_msg = str_replace('@p' . $key, $value ?? "NULL", $error_msg);
+                    $error_msg = str_replace('@p' . $key, (isset($value) ? $value : "NULL"), $error_msg);
                 }
 
                 $message = array(
@@ -1352,6 +1361,11 @@ class Validation
             throw (new ghException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
                 ->set_recurrence_current($this->get_recurrence_current());
         }
+        // For the PHP version < 7
+        catch (\Exception $t) {
+            throw (new ghException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
+                ->set_recurrence_current($this->get_recurrence_current());
+        }
 
         return $result;
     }
@@ -1361,7 +1375,7 @@ class Validation
      *
      * @return void
      */
-    protected function get_recurrence_current()
+    public function get_recurrence_current()
     {
         return $this->recurrence_current;
     }
@@ -1383,7 +1397,7 @@ class Validation
      * 
      * @return string
      */
-    protected function get_current_field_path()
+    public function get_current_field_path()
     {
         return $this->recurrence_current['field_path'];
     }
@@ -1406,7 +1420,7 @@ class Validation
      * 
      * @return string|array
      */
-    protected function get_current_rule()
+    public function get_current_rule()
     {
         return $this->recurrence_current['rule'];
     }

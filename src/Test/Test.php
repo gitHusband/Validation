@@ -43,8 +43,13 @@ $class_method_default_list = [
 
 $arguments = $argv;
 $class_name = isset($arguments[1]) ? $arguments[1] : "";
-if (empty($class_name)) exit("Class not set\n");
-else if (!isset($class_lists[$class_name])) exit("Class not existed: {$class_name}\n");
+if (empty($class_name)) {
+    echo "Class not set\n";
+    exit(1);
+} else if (!isset($class_lists[$class_name])) {
+    echo "Class not existed: {$class_name}\n";
+    exit(1);
+}
 
 $method = isset($arguments[2]) ? $arguments[2] : $class_method_default_list[$class_name];
 unset($arguments[0], $arguments[1], $arguments[2]);
@@ -57,11 +62,17 @@ if (method_exists($class, $method)) {
 } else {
     echo "Method not existed: {$class_lists[$class_name]}::{$method}\n";
     $class->help();
-    exit;
+    exit(1);
 }
+
+if ($result === true) exit(0);
 
 if (is_array($result)) {
     echo json_encode($result, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + JSON_UNESCAPED_UNICODE) . "\n";
 } else {
     print_r($result);
+    echo "\n";
 }
+
+if ($class_name == 'Unit') exit(1);
+else exit(0);

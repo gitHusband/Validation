@@ -172,6 +172,11 @@ $ composer run-script test
 $ composer run-script test test_regular_expression
 ```
 
+If you have installed [Docker](https://www.docker.com/products/docker-desktop/)，then you can test multiple `PHP` versions at once： [PHP v5.6](https://hub.docker.com/layers/library/php/5.6-cli-alpine/images/sha256-5dd6b6ea600342303f987d33524c0fae0347ae13be6ae55691d4acb873c203ea?context=explore), [PHP v7.4.33](https://hub.docker.com/layers/library/php/7.4.33-cli-alpine/images/sha256-1e1b3bb4ee1bcb039f559adb9a3fae391c87205ba239b619cdc239b78b7f2557?context=explore) 和 [PHP 最新版本](https://hub.docker.com/layers/library/php/latest/images/sha256-43b84b891f59311867c9b8e18f1ec646b32cb6376475bcd2d489bab912f4f21f?context=explore)
+```BASH
+$ composer run-script multi-test
+```
+
 - **Document testing class**
 
 Document code: [1.2 An Example](#12-an-example)

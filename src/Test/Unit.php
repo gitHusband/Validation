@@ -72,11 +72,12 @@ class Unit extends TestCommon
     {
         if ($method_name == 'help') return $this->help();
 
-        echo "Start run {$method_name}\n";
-
         if (!empty($method_name)) {
+            echo "Start execute {$method_name}\n*******************************\n";
             $this->execute_tests($method_name);
         } else {
+            echo "PHP v" . PHP_VERSION . "\n";
+            echo "Start execute all the test cases\n*******************************\n";
             $class_methods = get_class_methods($this);
 
             foreach ($class_methods as $method_name) {
@@ -142,7 +143,7 @@ class Unit extends TestCommon
      */
     protected function validate_cases($rule, $cases, $extra)
     {
-        $validation = $extra['validation_class'] ?? $this->validation;
+        $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
         $validation->set_rules($rule);
 
         $result = true;
@@ -213,24 +214,42 @@ class Unit extends TestCommon
             }
             // Check exception cases
             else if (strpos($c_field, "Exception") !== false) {
-                $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be valid.";
-
                 try {
                     if (!$validation->validate($case['data'])) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
-                            "valid_alert" => $valid_alert,
+                            "exception_alert" => "It should throw an exception but it was validated failed",
                             "error_msg" => $validation->get_error($error_format)
+                        ], $rule, $cases);
+                        $result = false;
+                    } else {
+                        $this->set_unit_error($extra['method_name'], $c_field, [
+                            "exception_alert" => "It should throw an exception but it was validated passed",
                         ], $rule, $cases);
                         $result = false;
                     }
                 } catch (\Throwable $t) {
                     $exception_message = $t->getMessage();
-                    $expected_msg = $case["expected_msg"] ?? '';
+                    $expected_msg = isset($case["expected_msg"])? $case["expected_msg"] : '';
 
                     if ($exception_message != $expected_msg) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
-                            "valid_alert" => $valid_alert,
-                            "error_msg" => $exception_message
+                            "exception_alert" => "Can not match the expected exception message.",
+                            "expected_msg" => $expected_msg,
+                            "exception_msg" => $exception_message
+                        ], $rule, $cases);
+                        return $result = false;
+                    }
+                }
+                // For the PHP version < 7
+                catch (\Exception $t) {
+                    $exception_message = $t->getMessage();
+                    $expected_msg = isset($case["expected_msg"])? $case["expected_msg"] : '';
+
+                    if ($exception_message != $expected_msg) {
+                        $this->set_unit_error($extra['method_name'], $c_field, [
+                            "exception_alert" => "Can not match the expected exception message.",
+                            "expected_msg" => $expected_msg,
+                            "exception_msg" => $exception_message
                         ], $rule, $cases);
                         return $result = false;
                     }
@@ -267,7 +286,8 @@ class Unit extends TestCommon
         if ($this->is_error) {
             return $this->error_message;
         } else {
-            return "*******************************\nUnit test success!\n*******************************\n";
+            echo "*******************************\nUnit test success!\n*******************************\n";
+            return true;
         }
     }
 
@@ -1766,11 +1786,11 @@ class Unit extends TestCommon
                     "optional|string",
                 ]
             ],
-            "favourite_fruit" => [
+            "favourite_fruit[optional]" => [
                 "fruit_id" => "optional|php_exception_fruit_id(@root)",
             ],
             "favourite_fruits" => [
-                "*" => [
+                "[optional]*" => [
                     "fruit_id" => "optional|php_exception_fruit_id(@root)",
                 ]
             ]
@@ -1781,7 +1801,7 @@ class Unit extends TestCommon
                 "data" => [
                     "name" => "Devin",
                 ],
-                "expected_msg" => '@field:name, @method:php_exception_name - Undefined constant "UNDEFINED_VAR"'
+                "expected_msg" => '@field:name, @method:php_exception_name - Undefined constant "githusband\\Test\\UNDEFINED_VAR"'
             ],
             "Exception_add_2" => [
                 "data" => [
@@ -1812,24 +1832,15 @@ class Unit extends TestCommon
             ],
         ];
 
-        if (0) $cases = [
-            "Exception_lib_1" => [
+        if (version_compare(PHP_VERSION, '8', '<')) {
+            unset($cases['Exception_add_1']);
+            $cases['Invalid_add_2'] = [
                 "data" => [
-                    "favourite_fruits" => [
-                        [
-                            "fruit_id" => "1",
-                        ],
-                    ]
+                    "name" => "Devin",
                 ],
-                "expected_msg" => '@field:favourite_fruit.fruit_id, @rule:optional|php_exception_fruit_id(@root) - Undefined constant "githusband\UNDEFINED_VAR"'
-            ],
-            "Exception_lib_2" => [
-                "data" => [
-                    "height" => 10
-                ],
-                "expected_msg" => '@field:height, @rule:optional|string - Undefined constant "githusband\UNDEFINED_VAR"'
-            ],
-        ];
+                "expected_msg" => ["name" => "UNDEFINED_VAR"]
+            ];
+        }
 
         $extra = [
             "method_name" => __METHOD__,
@@ -1837,13 +1848,18 @@ class Unit extends TestCommon
 
         $this->validation->add_method("php_warning_id", function ($id) {
             if (false) $fake_id = 0;
-            else echo "Don't worry if you get \"PHP Warning: Undefined variable \$fake_id\". It's a test case which can be ignored.\n";
+            else if (version_compare(PHP_VERSION, '8', '>=')) {
+                echo "Don't worry about it if you get Warning: Undefined variable \$fake_id\". It's a test case which can be ignored.\n";
+            }
             return $fake_id > 1;
         });
 
         $this->validation->add_method("php_exception_name", function ($name) {
             if (false) define('UNDEFINED_VAR', 1);
-            return \UNDEFINED_VAR;
+            else if (version_compare(PHP_VERSION, '8', '<')) {
+                echo "Don't worry about it if you get Warning: Use of undefined constant UNDEFINED_VAR. It's a test case which can be ignored.\n";
+            }
+            return UNDEFINED_VAR;
         });
 
         $this->validation->add_method("php_exception_fruit_id", function ($fruit_id) {
