@@ -4,7 +4,7 @@ namespace githusband\Rule;
 
 trait RuleDefault
 {
-    protected $method_symbol_of_rule_default = array(
+    protected $method_symbol_of_rule_default = [
         '=' => 'equal',
         '!=' => 'not_equal',
         '==' => 'identically_equal',
@@ -36,7 +36,7 @@ trait RuleDefault
         'string' => 'string',
         'bool=' => 'bool',
         'bool_str=' => 'bool_str',
-    );
+    ];
 
     protected function string_length($string)
     {
@@ -358,7 +358,7 @@ trait RuleDefault
 
     public function oauth2_grant_type($data)
     {
-        $oauth2_grant_types = array('authorization_code', 'password', 'client_credentials');
+        $oauth2_grant_types = ['authorization_code', 'password', 'client_credentials'];
 
         if (in_array($data, $oauth2_grant_types)) {
             return true;

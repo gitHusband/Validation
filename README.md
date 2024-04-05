@@ -557,7 +557,7 @@ $rule = [
   <summary><span>&#128071;</span> <strong>点击查看配置</strong></summary>
 
 ```PHP
-$config = array(
+$config = [
     'language' => 'en-us',                                  // Language, default is en-us
     'lang_path' => '',                                      // Customer Language file path
     'validation_global' => true,                            // If true, validate all rules; If false, stop validating when one rule was invalid
@@ -579,7 +579,7 @@ $config = array(
     'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
     'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
     'symbol_index_array' => '.*',                           // Symbol of index array rule
-);
+];
 ```
 
 </details>
@@ -588,7 +588,7 @@ $config = array(
 于是你做了如下的定制:
 
 ```PHP
-$custom_config = array(
+$custom_config = [
     'reg_preg' => '/^Reg:(\/.+\/.*)$/',                     // If match this, using regular expression instead of method
     'symbol_rule_separator' => '&&',                        // Rule reqarator for one field
     'symbol_param_this_omitted' => '/^(.*)~(.*)$/',         // If set function by this symbol, will add a @this parameter at first 
@@ -597,7 +597,7 @@ $custom_config = array(
     'symbol_field_name_separator' => '->',                  // Field name separator, suce as "fruit.apple"
     'symbol_required' => '!*',                              // Symbol of required field, Same as "required"
     'symbol_optional' => 'o?',                              // Symbol of optional field, can be unset or empty, Same as "optional"
-);
+];
 
 $validation = new Validation($custom_config);
 ```
@@ -651,31 +651,31 @@ $validation->set_language('zh-cn'); // 将加载 ZhCn.php 国际化文件
 
 class MyLang
 {
-    public $error_template = array(
+    public $error_template = [
         // 覆盖默认方法 = 的错误信息模板
         '=' => '@this must be equal to @p1(From MyLang)',
         // 新增方法 check_custom 的错误信息模板
         'check_custom' => '@this check_custom error!'
-    );
+    ];
 }
 ```
 
 2. 配置国际化文件的路径
 ```PHP
-$validation->set_config(array('lang_path' => '/MyPath/'))->set_language('MyLang');
+$validation->set_config(['lang_path' => '/MyPath/'])->set_language('MyLang');
 ```
 
 **直接使用国际化对象**
 实际上，上面国际化文件的方法最终调用的是 `custom_language` 接口。
 ```PHP
 // 必须是对象
-$MyLang = (object)array();
-$MyLang->error_template = array(
+$MyLang = (object)[];
+$MyLang->error_template = [
     // 覆盖默认方法 = 的错误信息模板
     '=' => '@this must be equal to @p1(From MyLang)',
     // 新增方法 check_custom 的错误信息模板
     'check_custom' => '@this check_custom error!'
-);
+];
 
 $validation->custom_language($MyLang, 'MyLang');
 ```
@@ -770,11 +770,11 @@ function check_animal($animal) {
     } else if ($animal == "mouse") {
         return "I don't like mouse";
     } else if ($animal == "snake") {
-        return array(
+        return [
             "error_type" => "server_error",
             "message" => "I don't like snake",
             "extra" => "You scared me"
-        );
+        ];
     }
 
     return true;

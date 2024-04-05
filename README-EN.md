@@ -564,7 +564,7 @@ The configurations that support customization include:
   <summary><span>&#128071;</span> <strong>Click to view configurations</strong></summary>
 
 ```PHP
-$config = array(
+$config = [
     'language' => 'en-us',                                  // Language, default is en-us
     'lang_path' => '',                                      // Customer Language file path
     'validation_global' => true,                            // If true, validate all rules; If false, stop validating when one rule was invalid
@@ -586,7 +586,7 @@ $config = array(
     'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
     'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
     'symbol_index_array' => '.*',                           // Symbol of index array rule
-);
+];
 ```
 
 </details>
@@ -595,7 +595,7 @@ For example, you think the rules I designed are too ugly and not easy to underst
 So you made the following customizations:
 
 ```PHP
-$custom_config = array(
+$custom_config = [
     'reg_preg' => '/^Reg:(\/.+\/.*)$/',                     // If match this, using regular expression instead of method
     'symbol_rule_separator' => '&&',                        // Rule reqarator for one field
     'symbol_param_this_omitted' => '/^(.*)~(.*)$/',         // If set function by this symbol, will add a @this parameter at first 
@@ -604,7 +604,7 @@ $custom_config = array(
     'symbol_field_name_separator' => '->',                  // Field name separator, suce as "fruit.apple"
     'symbol_required' => '!*',                              // Symbol of required field, Same as "required"
     'symbol_optional' => 'o?',                              // Symbol of optional field, can be unset or empty, Same as "optional"
-);
+];
 
 $validation = new Validation($custom_config);
 ```
@@ -657,31 +657,31 @@ $validation->set_language('zh-cn'); // The ZhCn.php Internationalization file wi
 
 class MyLang
 {
-    public $error_template = array(
+    public $error_template = [
         // Override error message template for default method =
         '=' => '@this must be equal to @p1(From MyLang)',
         // Added error message template for new method check_custom
         'check_custom' => '@this check_custom error!'
-    );
+    ];
 }
 ```
 
 2. Configure the path to the internationalization file
 ```PHP
-$validation->set_config(array('lang_path' => '/MyPath/'))->set_language('MyLang');
+$validation->set_config(['lang_path' => '/MyPath/'])->set_language('MyLang');
 ```
 
 **Use internationalization objects directly**
 In fact, the method of internationalizing the file above ultimately calls the `custom_language` interface.
 ```PHP
 // Must be an object
-$MyLang = (object)array();
-$MyLang->error_template = array(
+$MyLang = (object)[];
+$MyLang->error_template = [
     // Override error message template for default method =
     '=' => '@this must be equal to @p1(From MyLang)',
     // Added error message template for new method check_custom
     'check_custom' => '@this check_custom error!'
-);
+];
 
 $validation->custom_language($MyLang, 'MyLang');
 ```
@@ -777,11 +777,11 @@ function check_animal($animal) {
     } else if ($animal == "mouse") {
         return "I don't like mouse";
     } else if ($animal == "snake") {
-        return array(
+        return [
             "error_type" => "server_error",
             "message" => "I don't like snake",
             "extra" => "You scared me"
-        );
+        ];
     }
 
     return true;

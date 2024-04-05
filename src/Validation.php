@@ -18,26 +18,26 @@ class Validation
      * Validation rules. Default empty. Should be set before validation.
      * @var array
      */
-    protected $rules = array();
+    protected $rules = [];
 
     /**
      * Add by users using $this->add_method
      * @var array
      */
-    protected $methods = array();
+    protected $methods = [];
 
     /**
      * Back up the original data
      * @var array
      */
-    protected $data = array();
+    protected $data = [];
 
     /**
      * Validation result of rules.
      * format: rule field => true | error message
      * @var array
      */
-    protected $result = array();
+    protected $result = [];
 
     /**
      * Define $result format
@@ -58,10 +58,10 @@ class Validation
      * 
      * @var array
      */
-    protected $dotted_errors = array(
-        'general' => array(),    // only message string
-        'detailed' => array()    // message array, contains error type and error message
-    );
+    protected $dotted_errors = [
+        'general' => [],    // only message string
+        'detailed' => []    // message array, contains error type and error message
+    ];
 
     /**
      * Contains all error messages.
@@ -77,10 +77,10 @@ class Validation
      * }
      * @var array
      */
-    protected $nested_errors = array(
-        'general' => array(),    // only message string
-        'detailed' => array()    // message array, contains error type and error message
-    );
+    protected $nested_errors = [
+        'general' => [],    // only message string
+        'detailed' => []    // message array, contains error type and error message
+    ];
 
     /**
      * Current info of the recurrence validation: field path or its rule, etc.
@@ -98,7 +98,7 @@ class Validation
     protected $symbol_preg = '@preg';
 
     protected $default_config_backup;
-    protected $config = array(
+    protected $config = [
         'language' => 'en-us',                                  // Language, default is en-us
         'lang_path' => '',                                      // Customer Language file path
         'validation_global' => true,                            // If true, validate all rules; If false, stop validating when one rule was invalid
@@ -120,7 +120,7 @@ class Validation
         'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
         'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
         'symbol_index_array' => '.*',                           // Symbol of index array rule
-    );
+    ];
 
     /**
      * See $config array, there are several symbol that are not semantically explicit.
@@ -129,13 +129,13 @@ class Validation
      * The $symbol_full_name can not be customized and they are always meaningful
      * @var array
      */
-    protected $symbol_full_name = array(
+    protected $symbol_full_name = [
         'symbol_required' => 'required',                // Symbol Full Name of required field
         'symbol_optional' => 'optional',                // Symbol Full Name of optional field
         'symbol_optional_unset' => 'optional_unset',    // Symbol Full Name of optional field
         'symbol_or' => '[or]',                          // Symbol Full Name of or rule
         'symbol_array_optional' => '[optional]',        // Symbol Full Name of array optional rule
-    );
+    ];
 
     /**
      * While validating, if one field was invalid, set this to false;
@@ -163,7 +163,7 @@ class Validation
      * @see githusband\Rule\RuleDefault::$method_symbol_of_rule_default
      * @var array
      */
-    protected $method_symbol = array();
+    protected $method_symbol = [];
 
     /**
      * Language file path
@@ -175,7 +175,7 @@ class Validation
      * Languaue
      * @var array
      */
-    protected $language = array();
+    protected $language = [];
 
     /**
      * If user don't set a error messgae, use this.
@@ -183,15 +183,15 @@ class Validation
      * @see githusband\Rule\RuleDefault::$method_symbol_of_rule_default
      * @var array
      */
-    protected $error_template = array();
+    protected $error_template = [];
 
-    public function __construct($config = array())
+    public function __construct($config = [])
     {
         $this->default_config_backup = $this->config;
         $this->initialzation($config);
     }
 
-    protected function initialzation($config = array())
+    protected function initialzation($config = [])
     {
         $this->config = array_merge($this->config, $config);
 
@@ -206,7 +206,7 @@ class Validation
      * Set Config
      * @var array
      */
-    public function set_config($config = array())
+    public function set_config($config = [])
     {
         $this->config = array_merge($this->config, $config);
 
@@ -338,7 +338,7 @@ class Validation
      * @param array $rules
      * @return static
      */
-    public function set_rules($rules = array())
+    public function set_rules($rules = [])
     {
         if (empty($rules)) {
             return $this;
@@ -411,12 +411,12 @@ class Validation
      * @param array $data The data you want to validate
      * @return bool validation result
      */
-    public function validate($data = array())
+    public function validate($data = [])
     {
         $this->data = $data;
         $this->result = $data;
-        $this->dotted_errors = array();
-        $this->nested_errors = array();
+        $this->dotted_errors = [];
+        $this->nested_errors = [];
 
         $this->validation_status = true;
 
@@ -747,10 +747,10 @@ class Validation
         if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
             $error_msg = $this->get_error_template('index_array');
             $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
-            $message = array(
+            $message = [
                 "error_type" => 'validation',
                 "message" => $error_msg,
-            );
+            ];
             $this->set_error($field_path, $message);
             return false;
         } else {
@@ -850,10 +850,10 @@ class Validation
 
         $rules = $this->split_serial_rule_strict($rule);
 
-        $parse_rule = array(
+        $parse_rule = [
             'rules' => $rules,
             'error_msg' => $this->parse_error_message($error_msg)
-        );
+        ];
 
         return $parse_rule;
     }
@@ -881,7 +881,7 @@ class Validation
             $reg_flag = true;
         }
 
-        $rules = empty($rule) ? array() : explode($this->config['symbol_rule_separator'], trim($rule));
+        $rules = empty($rule) ? [] : explode($this->config['symbol_rule_separator'], trim($rule));
 
         if ($reg_flag == true) {
             $i = 0;
@@ -1106,7 +1106,7 @@ class Validation
      * @param bool $is_or_rule Flag of or rule
      * @return bool The result of validation
      */
-    protected function execute_one_rule($data, $field, $rules = array(), $field_path = false, $is_or_rule = false)
+    protected function execute_one_rule($data, $field, $rules = [], $field_path = false, $is_or_rule = false)
     {
         if (empty($rules) || empty($rules['rules'])) {
             return true;
@@ -1122,7 +1122,7 @@ class Validation
             $result = true;
             $error_type = 'validation';
             $if_flag = false;
-            $params = array();
+            $params = [];
 
             // If rule
             if (preg_match($this->config['reg_if'], $rule, $matches)) {
@@ -1238,10 +1238,10 @@ class Validation
                     $error_msg = str_replace('@p' . $key, (isset($value) ? $value : "NULL"), $error_msg);
                 }
 
-                $message = array(
+                $message = [
                     "error_type" => $error_type,
                     "message" => $error_msg,
-                );
+                ];
 
                 // Default fields: error_type, message
                 // Allow user to add extra field in error message.
@@ -1283,7 +1283,7 @@ class Validation
             // If no parameter, will add the field value as the first parameter
         } else {
             $method = $rule;
-            $params = array($this->symbol_this);
+            $params = [$this->symbol_this];
         }
 
         $symbol = $method;
@@ -1316,17 +1316,17 @@ class Validation
         if ($this->is_in_method($symbol)) {
             $field_name = $params[0];
             array_shift($params);
-            $params = array(
+            $params = [
                 $field_name,
                 $params
-            );
+            ];
         }
 
-        $method_rule = array(
+        $method_rule = [
             'method' => $method,
             'symbol' => $symbol,
             'params' => $params
-        );
+        ];
 
         return $method_rule;
     }
@@ -1350,10 +1350,10 @@ class Validation
                 $result = call_user_func_array($method_rule['method'], $params);
             } else {
                 $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_template['call_method']);
-                $message = array(
+                $message = [
                     "error_type" => 'internal_server_error',
                     "message" => $error_msg,
-                );
+                ];
                 $this->set_error($field_path, $message);
                 return "Undefined";
             }
@@ -1449,7 +1449,7 @@ class Validation
                 }
 
                 if ($key !== ($len - 1)) {
-                    $point[$value] = array();
+                    $point[$value] = [];
                     $point = &$point[$value];
                 } else {
                     $point[$value] = 'Extra field';

@@ -47,7 +47,7 @@ class Unit extends TestCommon
     protected $validation;
 
     // Unit Testing error message
-    protected $error_message = array();
+    protected $error_message = [];
     // If true, means unit testing is error
     protected $is_error = false;
 
@@ -229,7 +229,7 @@ class Unit extends TestCommon
                     }
                 } catch (\Throwable $t) {
                     $exception_message = $t->getMessage();
-                    $expected_msg = isset($case["expected_msg"])? $case["expected_msg"] : '';
+                    $expected_msg = isset($case["expected_msg"]) ? $case["expected_msg"] : '';
 
                     if ($exception_message != $expected_msg) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
@@ -243,7 +243,7 @@ class Unit extends TestCommon
                 // For the PHP version < 7
                 catch (\Exception $t) {
                     $exception_message = $t->getMessage();
-                    $expected_msg = isset($case["expected_msg"])? $case["expected_msg"] : '';
+                    $expected_msg = isset($case["expected_msg"]) ? $case["expected_msg"] : '';
 
                     if ($exception_message != $expected_msg) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
@@ -269,7 +269,7 @@ class Unit extends TestCommon
         $this->error_message[$method]["error"][$cases_field] = $error_message;
     }
 
-    protected function parse_error_message($validation, $tag, $field_path, $params = array())
+    protected function parse_error_message($validation, $tag, $field_path, $params = [])
     {
         $error_template = $validation->get_error_template($tag);
         $error_template = str_replace($this->_symbol_me, $field_path, $error_template);
@@ -302,7 +302,7 @@ class Unit extends TestCommon
         }
     }
 
-    protected function get_method_info($rule, $cases, $extra, $error_data = array())
+    protected function get_method_info($rule, $cases, $extra, $error_data = [])
     {
         $method_info = [
             "rule" => $rule,
@@ -2593,7 +2593,7 @@ class Unit extends TestCommon
             return $custom > $num;
         });
         // You should add CustomLang.php in __DIR__.'/Language/'
-        $this->validation->set_config(array('lang_path' => __DIR__ . '/Language/'))->set_language('CustomLang');
+        $this->validation->set_config(['lang_path' => __DIR__ . '/Language/'])->set_language('CustomLang');
         $result = $this->validate_cases($rule, $cases, $extra);
 
         return $result;
@@ -2626,10 +2626,10 @@ class Unit extends TestCommon
 
         if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
 
-        $lang_config = (object)array();
-        $lang_config->error_template = array(
+        $lang_config = (object)[];
+        $lang_config->error_template = [
             'check_id' => '@this error!(customed)'
-        );
+        ];
         $this->validation->custom_language($lang_config);
         $result = $this->validate_cases($rule, $cases, $extra);
 
@@ -2843,7 +2843,7 @@ class Unit extends TestCommon
     // Don't test this function temporarily
     protected function test_user_config_execute($error_data = false)
     {
-        $validation_conf = array(
+        $validation_conf = [
             'language' => 'en-us',                          // Language, default is en-us
             'validation_global' => true,                    // If true, validate all rules; If false, stop validating when one rule was invalid.
             'reg_msg' => '/ >>>(.*)$/',                     // Set special error msg by user 
@@ -2861,7 +2861,7 @@ class Unit extends TestCommon
             'symbol_optional' => 'o',                       // Symbol of optional field
             'symbol_array_optional' => '[o]',               // Symbol of array optional
             'symbol_index_array' => '[N]',                  // Symbol of index array
-        );
+        ];
 
         $rule = [
             "id" => "!*&&int&&Reg:/^\d+$/i",

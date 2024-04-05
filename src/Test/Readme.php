@@ -110,11 +110,11 @@ class Readme extends TestCommon
             if ($id == 0) {
                 return false;
                 // return "@this check_id failed";
-                // return array(
+                // return [
                 //     'error_type' => 'server_error',
                 //     'message' => '@this check_id failed',
                 //     "extra" => "extra message"
-                // );
+                // ];
             }
 
             return true;
@@ -406,11 +406,11 @@ class Readme extends TestCommon
             } else if ($animal == "mouse") {
                 return "I don't like mouse";
             } else if ($animal == "snake") {
-                return array(
+                return [
                     "error_type" => "server_error",
                     "message" => "I don't like snake",
                     "extra" => "You scared me"
-                );
+                ];
             }
 
             return true;
@@ -553,7 +553,7 @@ class Readme extends TestCommon
         echo "\n{$method_symbol_table}";
     }
 
-    protected function validate($data, $rule, $validation_conf = array())
+    protected function validate($data, $rule, $validation_conf = [])
     {
         $validation = new Validation($validation_conf);
 

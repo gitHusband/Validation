@@ -5,7 +5,7 @@
  */
 class EnUs
 {
-    public $error_template = array(
+    public $error_template = [
         'default' => '@this validation failed',
         'index_array' => '@this must be a numeric array',
         'required' => '@this can not be empty',
@@ -56,5 +56,5 @@ class EnUs
         'file_base64' => '@this must be a valid file base64',
         'uuid' => '@this must be a UUID',
         'oauth2_grant_type' => '@this is not a valid OAuth2 grant type'
-    );
+    ];
 }

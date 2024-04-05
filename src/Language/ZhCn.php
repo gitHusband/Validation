@@ -5,7 +5,7 @@
  */
 class ZhCn
 {
-    public $error_template = array(
+    public $error_template = [
         'default' => '@this 验证错误',
         'index_array' => '@this 必须是索引数组',
         'required' => '@this 不能为空',
@@ -56,5 +56,5 @@ class ZhCn
         'file_base64' => '@this 必须是正确的文件的base64码',
         'uuid' => '@this 必须是 UUID',
         'oauth2_grant_type' => '@this 必须是合法的 OAuth2 授权类型'
-    );
+    ];
 }

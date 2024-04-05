@@ -11,7 +11,7 @@ class Demo extends TestCommon
     {
     }
 
-    public function success($data = array())
+    public function success($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -124,7 +124,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function success2($data = array())
+    public function success2($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -245,7 +245,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function error($data = array())
+    public function error($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -368,7 +368,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function error2($data = array())
+    public function error2($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -499,7 +499,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function readme_case($data = array())
+    public function readme_case($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -601,7 +601,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    protected function validate($data, $rule, $validation_conf = array())
+    protected function validate($data, $rule, $validation_conf = [])
     {
         $validation = new Validation($validation_conf);
 
@@ -610,11 +610,11 @@ class Demo extends TestCommon
                 if (!isset($company['postcode']) || $company['postcode'] != "123") {
                     // return false;
                     // return "#### check_postcode method error message(@this)";
-                    return array(
+                    return [
                         'error_type' => 'server_error',
                         'message' => '*** check_postcode method error message(@this)',
                         "extra" => "extra message"
-                    );
+                    ];
                 }
             }
 
