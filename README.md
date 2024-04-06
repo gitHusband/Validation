@@ -12,6 +12,9 @@
      <img src="https://img.shields.io/github/languages/top/gitHusband/Validation"/>
   </a>
   <a href="https://hits.seeyoufarm.com">
+     <img src="https://img.shields.io/github/actions/workflow/status/gitHusband/Validation/unit-tests.yml?label=unit-tests"/>
+  </a>
+  <a href="https://hits.seeyoufarm.com">
      <img src="https://img.shields.io/github/v/release/gitHusband/Validation"/>
   </a>
 </p>
