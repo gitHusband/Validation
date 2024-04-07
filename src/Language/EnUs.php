@@ -9,6 +9,8 @@ class EnUs
         'default' => '@this validation failed',
         'index_array' => '@this must be a numeric array',
         'required' => '@this can not be empty',
+        'required_if' => '@this can not be empty under certain circumstances',
+        'required_if_not' => '@this can not be empty when certain circumstances are not met',
         'optional' => '@this never go wrong',
         'optional_unset' => '@this must be unset or not empty',
         'preg' => '@this format is invalid, should be @preg',

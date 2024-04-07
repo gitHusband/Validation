@@ -187,10 +187,10 @@ class Readme extends TestCommon
         return $this->validate($data, $rule);
     }
 
-    public function test_condition_if_yes()
+    public function test_condition_required_if()
     {
         $data = [
-            "attribute" => "weight",
+            "attribute" => "height",
             "centimeter" => ''
         ];
 
@@ -199,17 +199,17 @@ class Readme extends TestCommon
             "attribute" => "required|(s)[height,weight]",
             // 若属性是 height, 则 centimeter 是必要的，若为 weight，则是可选的。
             // 无论如何，若该值非空，则必须大于 180
-            "centimeter" => "if(=(@attribute,height))|required|>[180]",
+            "centimeter" => "required_if(=(@attribute,height))|required|>[180]",
         ];
 
         return $this->validate($data, $rule);
     }
 
-    public function test_condition_if_no()
+    public function test_condition_required_if_not()
     {
         $data = [
             "attribute" => "weight",
-            "centimeter" => ''
+            "centimeter" => '1'
         ];
 
         $rule = [
@@ -217,6 +217,42 @@ class Readme extends TestCommon
             "attribute" => "required|(s)[height,weight]",
             // 若属性不是 weight, 则 centimeter 是必要的，若为 weight，则是可选的。
             // 无论如何，若该值非空，则必须大于 180
+            "centimeter" => "required_if_not(=(@attribute,weight))|required|>[180]",
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
+    public function test_condition_if()
+    {
+        $data = [
+            "attribute" => "height",
+            "centimeter" => ''
+        ];
+
+        $rule = [
+            // 特征是必要的，且只能是 height(身高) 或 weight(体重)
+            "attribute" => "required|(s)[height,weight]",
+            // 若属性是 height, 则 centimeter 是必要的，且必须大于 180
+            // 若不是 height，则不继续验证后续规则，即 centimeter 为任何值都可以。
+            "centimeter" => "if(=(@attribute,height))|required|>[180]",
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
+    public function test_condition_if_not()
+    {
+        $data = [
+            "attribute" => "weight",
+            "centimeter" => '1'
+        ];
+
+        $rule = [
+            // 特征是必要的，且只能是 height(身高) 或 weight(体重)
+            "attribute" => "required|(s)[height,weight]",
+            // 若属性不是 weight, 则 centimeter 是必要的，且必须大于 180
+            // 若是 weight，则不继续验证后续规则，即 centimeter 为任何值都可以。
             "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
         ];
 

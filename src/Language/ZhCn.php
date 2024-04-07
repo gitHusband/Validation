@@ -9,6 +9,8 @@ class ZhCn
         'default' => '@this 验证错误',
         'index_array' => '@this 必须是索引数组',
         'required' => '@this 不能为空',
+        'required_if' => '@this 在满足某些情况下，不能为空',
+        'required_if_not' => '@this 在不满足某些情况下，不能为空',
         'optional' => '@this 永远不会出错',
         'optional_unset' => '@this 允许不设置，一旦设置则不能为空',
         'preg' => '@this 格式错误，必须是 @preg',

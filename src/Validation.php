@@ -106,17 +106,20 @@ class Validation
         'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
         'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
         'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
-        'reg_if' => '/^!?if\((.*)\)/',                          // If match this, validate this condition first
-        'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
-        'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
+        'reg_ifs' => '/^!?if\((.*)\)/',                         // A regular expression to match both reg_if and reg_if_not
+        'reg_if' => '/^if\((.*)\)/',                            // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+        'reg_if_not' => '/^!if\((.*)\)/',                       // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
         'symbol_rule_separator' => '|',                         // Rule reqarator for one field
         'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
         'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
         'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
         'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
         'symbol_required' => '*',                               // Symbol of required field, Same as "required"
-        'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
-        'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "optional_unset"
+        'symbol_required_ifs' => '/^(!)?\*\?\((.*)\)/',           // A regular expression to match both symbol_required_if and symbol_required_if_not
+        'symbol_required_if' => '/^\*\?\((.*)\)/',              // Symbol of required field which is required only when the condition is true, Same as "required_if"
+        'symbol_required_if_not' => '/^!\*\?\((.*)\)/',         // Symbol of required field which is required only when the condition is not true, Same as "required_if_not"
+        'symbol_optional' => 'O',                               // Symbol of optional field, can be not set or empty, Same as "optional"
+        'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can be not set only, Same as "optional_unset"
         'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
         'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
         'symbol_index_array' => '.*',                           // Symbol of index array rule
@@ -130,11 +133,14 @@ class Validation
      * @var array
      */
     protected $symbol_full_name = [
-        'symbol_required' => 'required',                // Symbol Full Name of required field
-        'symbol_optional' => 'optional',                // Symbol Full Name of optional field
-        'symbol_optional_unset' => 'optional_unset',    // Symbol Full Name of optional field
-        'symbol_or' => '[or]',                          // Symbol Full Name of or rule
-        'symbol_array_optional' => '[optional]',        // Symbol Full Name of array optional rule
+        'symbol_required' => 'required',                            // Symbol Full Name of required field
+        'symbol_required_ifs' => '/^required_if(_not)?\((.*)\)/',   // A regular expression to match both symbol_required_if and symbol_required_if_not
+        'symbol_required_if' => '/^required_if\((.*)\)/',           // Symbol Full Name of required field which is required only when the condition is true
+        'symbol_required_if_not' => '/^required_if_not\((.*)\)/',   // Symbol Full Name of required field which is required only when the condition is not true
+        'symbol_optional' => 'optional',                            // Symbol Full Name of optional field, can be not set or empty
+        'symbol_optional_unset' => 'optional_unset',                // Symbol Full Name of optional field, can be not set only
+        'symbol_or' => '[or]',                                      // Symbol Full Name of or rule
+        'symbol_array_optional' => '[optional]',                    // Symbol Full Name of array optional rule
     ];
 
     /**
@@ -1095,9 +1101,12 @@ class Validation
     /**
      * Execute validation with field and its rule. Contains cases:
      * 1. If rule
-     * 2. required(*) rule
-     * 3. regular expression
-     * 4. method
+     * 2. Required(*) rule
+     * 3. Required If(*?) rule
+     * 4. Optional(O) rule
+     * 5. Optional Unset(O!) rule
+     * 6. Regular Expression
+     * 7. Method
      *
      * @param array $data The parent data of the field which is related to the rule
      * @param string $field The field which is related to the rule
@@ -1124,16 +1133,17 @@ class Validation
             $if_flag = false;
             $params = [];
 
-            // If rule
-            if (preg_match($this->config['reg_if'], $rule, $matches)) {
-                $if_flag = true;
-
-                if (preg_match($this->config['reg_if_true'], $rule)) {
-                    // 'if true' rule
-                    $if_type = true;
+            /**
+             * If rule
+             * If it's a 'If rule' or 'If Not rule' -> Means this field is conditionally optional;
+             * - If the 'If rule' validation result is true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
+             * - If the 'If Not rule' validation result is not true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
+             */
+            if (preg_match($this->config['reg_ifs'], $rule, $matches)) {
+                if (preg_match($this->config['reg_if'], $rule)) {
+                    $if_type = 'if';
                 } else {
-                    // 'if false' rule
-                    $if_type = false;
+                    $if_type = 'if_not';
                 }
 
                 $rule = $matches[1];
@@ -1143,13 +1153,15 @@ class Validation
                 $result = $this->execute_method($method_rule, $field_path);
 
                 if ($result === "Undefined") return false;
-                if (($if_type && $result !== true) || (!$if_type && $result === true)) {
-                    // If it's a 'if true' or 'if false' rule -> means this field is optional;
-                    // If the 'if true' validation result is true, need to validate the other rule
-                    // If the 'if true' validation result is false and this field is set and not empty, need to validate the other rule
-                    // If the 'if true' validation result is false and this field is not set or empty, no need to validate the other rule
-                    if (!$this->required(isset($data[$field]) ? $data[$field] : null)) return true;
+                if (
+                    ($if_type === 'if' && $result !== true)
+                    || ($if_type === 'if_not' && $result === true)
+                ) {
+                    return true;
+                    // if (!$this->required(isset($data[$field]) ? $data[$field] : null)) return true;
                 }
+
+                $result = true;
             }
             // Required(*) rule
             else if ($rule == $this->config['symbol_required'] || $rule == $this->symbol_full_name['symbol_required']) {
@@ -1159,13 +1171,52 @@ class Validation
                     $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_required']);
                 }
             }
+            /**
+             * Required If rule
+             * If it's a 'Required If rule' or 'Required If Not rule' rule -> Means this field is conditionally required;
+             * - If the 'Required If rule' validation result is true and the field is not set or empty, then the field is invalid. Otherwise, continue to validate the subsequnse rule;
+             * - If the 'Required If Not rule' validation result is not true and the field is not set or empty, then the field is invalid. Otherwise, continue to validate the subsequnse rule;
+             */
+            else if (preg_match($this->config['symbol_required_ifs'], $rule, $matches) || preg_match($this->symbol_full_name['symbol_required_ifs'], $rule, $matches)) {
+                if (preg_match($this->config['symbol_required_if'], $rule) || preg_match($this->symbol_full_name['symbol_required_if'], $rule)) {
+                    $required_if_type = 'required_if';
+                } else {
+                    $required_if_type = 'required_if_not';
+                }
+
+                $rule = $matches[2];
+
+                $method_rule = $this->parse_method($rule, $data, $field);
+                $params = $method_rule['params'];
+                $result = $this->execute_method($method_rule, $field_path);
+
+                if ($result === "Undefined") return false;
+                if (
+                    ($required_if_type === 'required_if' && $result === true)
+                    || ($required_if_type === 'required_if_not' && $result !== true)
+                ) {
+                    if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
+                        $result = false;
+                        $error_type = $required_if_type . '_field';
+                        $error_msg = $this->match_error_message($rule_error_msg, $required_if_type);
+                    } else {
+                        $result = true;
+                    }
+                } else {
+                    if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
+                        return true;
+                    } else {
+                        $result = true;
+                    }
+                }
+            }
             // Optional(O) rule
             else if ($rule == $this->config['symbol_optional'] || $rule == $this->symbol_full_name['symbol_optional']) {
                 if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
                     return true;
                 }
             }
-            // Unset(O!) rule
+            // Optional Unset(O!) rule
             else if ($rule == $this->config['symbol_optional_unset'] || $rule == $this->symbol_full_name['symbol_optional_unset']) {
                 if (!isset($data[$field])) {
                     return true;
@@ -1222,7 +1273,7 @@ class Validation
 
             // 1. if it's a 'if' rule -> result is not true, should set error
             // 2. if it's a 'if' rule -> means this field is optional; If result is not true, don't set error
-            if ($result !== true && !$if_flag) {
+            if ($result !== true) {
                 // Replace symbol to field name and parameter value
                 $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
                 foreach ($params as $key => $value) {

@@ -36,6 +36,8 @@ Table of contents
       * [4.4 Method Extension](#44-method-extension)
       * [4.5 Series And Parallel Rules](#45-series-and-parallel-rules)
       * [4.6 Conditional Rules](#46-conditional-rules)
+         * [Conditionally Required Rules](#conditionally-required-rules)
+         * [Standard Conditional Rules](#standard-conditional-rules)
       * [4.7 Infinitely Nested Data Structures](#47-infinitely-nested-data-structures)
       * [4.8 Optional Field](#48-optional-field)
       * [4.9 Special Validation Rules](#49-special-validation-rules)
@@ -392,12 +394,14 @@ The symbol of `[or]` is `[||]`, the symbol can be customized, and the usage is t
 
 ### 4.6 Conditional Rules
 
-The usage of conditional rules is similar to PHP syntax, `if()`
+The usage of conditional rules is similar to PHP syntax, `required_if()` and `if()`
 
-Positive condition: `if()`
+#### Conditionally Required Rules
 
-1. If the condition is true, continue to validate subsequent methods
-2. If the condition is not true, the field is optional:
+**Positive conditionally required rule**: `required_if()`
+
+1. If the condition is met, continue to validate subsequent methods
+2. If the condition is not met, the field is optional:
   2.1. If this field is empty, validation success will be returned immediately;
   2.2. If this field is not empty, continue to validate subsequent methods
 
@@ -408,13 +412,13 @@ $rule = [
     // If the attribute is height, then the centimeter must not be empty
     // If the attribute is not height, then the centimeter is optional
     // However, if the value of the centimeter is not empty, it must be greater than 180
-    "centimeter" => "if(=(@attribute,height))|required|>[180]",
+    "centimeter" => "required_if(=(@attribute,height))|required|>[180]",
 ];
 ```
-Negative condition: `!if()`
+**Negative conditionally required rule**: `required_if_not()`
 
 1. If the condition is not met, continue to validate subsequent methods
-2. If the condition is true, the field is optional:
+2. If the condition is met, the field is optional:
   2.1. If this field is empty, validation success will be returned immediately;
   2.2. If this field is not empty, continue to validate subsequent methods
 
@@ -425,9 +429,42 @@ $rule = [
     // If the attribute is not weight, then the centimeter must not be empty
     // If the attribute is weight, then the centimeter is optional
     // However, if the value of the centimeter is not empty, it must be greater than 180
+    "centimeter" => "required_if_not(=(@attribute,weight))|required|>[180]",
+];
+```
+
+#### Standard Conditional Rules
+
+**Positive standard conditional rule**: `if()`
+
+1. If the condition is met, continue to validate subsequent methods
+2. If the condition is not met, don't continue to validate subsequent methods
+
+```PHP
+$rule = [
+    // The attribute must not be empty, and it must be "height" or "weight"
+    "attribute" => "required|(s)[height,weight]",
+    // If the attribute is height, then the centimeter must not be empty and must be greater than 180
+    // If the attribute is not height，then the subsequent rules will not be validated, that is, the centimeter can be any value.
+    "centimeter" => "if(=(@attribute,height))|required|>[180]",
+];
+```
+**Negative standard conditional rule**: `!if()`
+
+1. If the condition is not met, continue to validate subsequent methods
+2. If the condition is met, don't continue to validate subsequent methods
+
+```PHP
+$rule = [
+    // The attribute must not be empty, and it must be "height" or "weight"
+    "attribute" => "required|(s)[height,weight]",
+    // If the attribute is not weight, then the centimeter must not be empty and must be greater than 180
+    // If the attribute is weight，then the subsequent rules will not be validated, that is, the centimeter can be any value.
     "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
 ];
 ```
+
+Apologize, *Standard Conditional Rules does not currently support `else` and `else if`, it will be supported in subsequent versions.*
 
 ### 4.7 Infinitely Nested Data Structures
 
@@ -575,17 +612,20 @@ $config = [
     'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
     'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
     'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
-    'reg_if' => '/^!?if\((.*)\)/',                          // If match this, validate this condition first
-    'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
-    'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
+    'reg_ifs' => '/^!?if\((.*)\)/',                         // A regular expression to match both reg_if and reg_if_not
+    'reg_if' => '/^if\((.*)\)/',                            // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+    'reg_if_not' => '/^!if\((.*)\)/',                       // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
     'symbol_rule_separator' => '|',                         // Rule reqarator for one field
     'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
     'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
     'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
     'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
     'symbol_required' => '*',                               // Symbol of required field, Same as "required"
-    'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
-    'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "optional_unset"
+    'symbol_required_ifs' => '/^(!)?\*\?\((.*)\)/',           // A regular expression to match both symbol_required_if and symbol_required_if_not
+    'symbol_required_if' => '/^\*\?\((.*)\)/',              // Symbol of required field which is required only when the condition is true, Same as "required_if"
+    'symbol_required_if_not' => '/^!\*\?\((.*)\)/',         // Symbol of required field which is required only when the condition is not true, Same as "required_if_not"
+    'symbol_optional' => 'O',                               // Symbol of optional field, can be not set or empty, Same as "optional"
+    'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can be not set only, Same as "optional_unset"
     'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
     'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
     'symbol_index_array' => '.*',                           // Symbol of index array rule

@@ -707,68 +707,225 @@ class Unit extends TestCommon
     {
         $rule = [
             "id" => "required|<>[0,10]",
-            "name" => "if(<(@id,5))|required|string|/^\d+.*/",
-            "name1" => "if(<(@id,5))|required|string|/^\d+.*/",
-            "name0" => "!if(<(@id,5))|required|string|/^\d+.*/",
+            "name_1" => "if(<(@id,5))|required|string|/^\d+.*/",
+            "name_0" => "!if(<(@id,5))|required|string|/^\d+.*/",
+        ];
+
+        $cases = [
+            "Valid_data_1_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                ]
+            ],
+            "Valid_data_1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_0" => "abc",
+                ]
+            ],
+            "Valid_data_0_1" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC"
+                ]
+            ],
+            "Valid_data_0_2" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "abc",
+                    "name_0" => "123ABC"
+                ]
+            ],
+            "Invalid_data_1_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => ""
+                ],
+                "expected_msg" => ["name_1" => "name_1 can not be empty"]
+            ],
+            "Invalid_data_1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "abc"
+                ],
+                "expected_msg" => ["name_1" => "name_1 format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_data_0_1" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => ""
+                ],
+                "expected_msg" => ["name_0" => "name_0 can not be empty"]
+            ],
+            "Invalid_data_0_2" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "abc"
+                ],
+                "expected_msg" => ["name_0" => "name_0 format is invalid, should be /^\\d+.*/"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_required_if_rule()
+    {
+        $rule = [
+            "id" => "required|<>[0,10]",
+            "name_1" => "required_if(<(@id,5))|string|/^\d+.*/",
+            "name_*_1" => "*?(<(@id,5))|string|/^\d+.*/",
+            "name_0" => "required_if_not(<(@id,5))|string|/^\d+.*/",
+            "name_*_0" => "!*?(<(@id,5))|string|/^\d+.*/",
         ];
 
         $cases = [
             "Valid_data_1" => [
                 "data" => [
                     "id" => 1,
-                    "name" => "123ABC",
-                    "name1" => "123ABC",
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
                 ]
             ],
             "Valid_data_2" => [
                 "data" => [
-                    "id" => 8,
-                    "name" => "",
-                    "name0" => "123ABC"
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    "name_0" => "",
+                    "name_*_0" => "123ABC"
                 ]
             ],
-            "Invalid_data_1" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => ""
-                ],
-                "expected_msg" => ["name" => "name can not be empty"]
-            ],
-            "Invalid_data_2" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "abc"
-                ],
-                "expected_msg" => ["name" => "name format is invalid, should be /^\d+.*/"]
-            ],
-            "Invalid_data_3" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "123ABC",
-                    "name1" => "abc",
-                ],
-                "expected_msg" => ["name1" => "name1 format is invalid, should be /^\d+.*/"]
-            ],
-            "Invalid_data_4" => [
+            "Valid_data_3" => [
                 "data" => [
                     "id" => 8,
-                    "name0" => "abc"
-                ],
-                "expected_msg" => ["name0" => "name0 format is invalid, should be /^\d+.*/"]
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC"
+                ]
             ],
-            "Invalid_data_5" => [
+            "Valid_data_4" => [
                 "data" => [
                     "id" => 8,
-                    "name1" => "abc",
-                    "name0" => "abc"
+                    "name_1" => "123ABC",
+                    "name_*_1" => "",
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC"
+                ]
+            ],
+            "Invalid_data_1_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => ""
                 ],
-                "expected_msg" => ["name1" => "name1 format is invalid, should be /^\d+.*/"]
-            ]
+                "expected_msg" => ["name_1" => "name_1 can not be empty under certain circumstances"]
+            ],
+            "Invalid_data_1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "abc"
+                ],
+                "expected_msg" => ["name_1" => "name_1 format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_data_1_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 can not be empty under certain circumstances"]
+            ],
+            "Invalid_data_1_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "abc",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_data_1_5" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    "name_0" => "abc",
+                ],
+                "expected_msg" => ["name_0" => "name_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_1_6" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    "name_0" => "",
+                    "name_*_0" => "abc",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_1" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => ""
+                ],
+                "expected_msg" => ["name_0" => "name_0 can not be empty when certain circumstances are not met"]
+            ],
+            "Invalid_data_0_2" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "abc"
+                ],
+                "expected_msg" => ["name_0" => "name_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 can not be empty when certain circumstances are not met"]
+            ],
+            "Invalid_data_0_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "abc",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_5" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "abc",
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC",
+                ],
+                "expected_msg" => ["name_1" => "name_1 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_6" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "",
+                    "name_*_1" => "abc",
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 format is invalid, should be /^\\d+.*/"]
+            ],
         ];
 
         $extra = [
             "method_name" => __METHOD__,
-            "field_path" => "name",
+            "field_path" => "name_1",
         ];
 
         return $method_info = [
@@ -2790,7 +2947,7 @@ class Unit extends TestCommon
                     "education" => [
                         "primary_school" => "education.primary_school must be equal to Qiankeng Xiaoxue",
                         "junior_middle_school" => "education.junior_middle_school must be not equal to Foshan Zhongxue",
-                        "high_school" => "education.high_school length must be greater than 10",
+                        // "high_school" => "education.high_school length must be greater than 10",
                         "university" => "education.university length must be greater than 10",
                     ],
                     "company" => [
@@ -2844,23 +3001,30 @@ class Unit extends TestCommon
     protected function test_user_config_execute($error_data = false)
     {
         $validation_conf = [
-            'language' => 'en-us',                          // Language, default is en-us
-            'validation_global' => true,                    // If true, validate all rules; If false, stop validating when one rule was invalid.
-            'reg_msg' => '/ >>>(.*)$/',                     // Set special error msg by user 
-            'reg_preg' => '/^Reg:(\/.+\/.*)$/',             // If match this, using regular expression instead of method
-            'reg_if' => '/^IF[yn]?\?(.*)$/',                     // If match this, validate this condition first
-            'reg_if_true' => '/^IFy?\?/',                   // If match this, validate this condition first, if true, then validate the field
-            'reg_if_true' => '/^IFn\?/',                    // If match this, validate this condition first, if false, then validate the field
-            'symbol_or' => '[or]',                          // Symbol of or rule
-            'symbol_rule_separator' => '&&',                // Rule reqarator for one field
-            'symbol_param_this_omitted' => '/^(.*)~(.*)$/',      // If set function by this symbol, will add a @this parameter at first 
-            'symbol_param_standard' => '/^(.*)~~(.*)$/',       // If set function by this symbol, will not add a @this parameter at first 
-            'symbol_param_separator' => ',',                // Parameters separator, such as @this,@field1,@field2
-            'symbol_field_name_separator' => '->',          // Field name separator, suce as "fruit.apple"
-            'symbol_required' => '!*',                      // Symbol of required field
-            'symbol_optional' => 'o',                       // Symbol of optional field
-            'symbol_array_optional' => '[o]',               // Symbol of array optional
-            'symbol_index_array' => '[N]',                  // Symbol of index array
+            'language' => 'en-us',                                      // Language, default is en-us
+            // 'lang_path' => '',                                          // Customer Language file path
+            'validation_global' => true,                                // If true, validate all rules; If false, stop validating when one rule was invalid
+            // 'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
+            'reg_msg' => '/ >>>(.*)$/',                                 // Set special error msg by user 
+            'reg_preg' => '/^Reg:(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
+            // 'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if the regular expression is valid
+            'reg_ifs' => '/^IF[yn]?\?(.*)$/',                           // A regular expression to match both reg_if and reg_if_not
+            'reg_if' => '/^IFy?\?/',                                    // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+            'reg_if_not' => '/^IFn\?/',                                 // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+            'symbol_rule_separator' => '&&',                            // Rule reqarator for one field
+            'symbol_param_this_omitted' => '/^(.*)~(.*)$/',             // If set function by this symbol, will add a @this parameter at first 
+            'symbol_param_standard' => '/^(.*)~~(.*)$/',                // If set function by this symbol, will not add a @this parameter at first 
+            // 'symbol_param_separator' => ',',                            // Parameters separator, such as @this,@field1,@field2
+            'symbol_field_name_separator' => '->',                      // Field name separator, suce as "fruit.apple"
+            'symbol_required' => '!*',                                  // Symbol of required field, Same as "required"
+            // 'symbol_required_if' => '/^\x\?\((.*)\)/',                  // Symbol of required field which is required only when the condition is true, Same as "required_if"
+            // 'symbol_required_if_not' => '/^\x\?x\((.*)\)/',             // Symbol of required field which is required only when the condition is not true, Same as "required_if_not"
+            // 'symbol_required_ifs' => '/^\x\?x?\((.*)\)/',               // A regular expression to match both symbol_required_if and symbol_required_if_not
+            'symbol_optional' => 'o',                                   // Symbol of optional field, can be not set or empty, Same as "optional"
+            // 'symbol_optional_unset' => 'O!',                            // Symbol of optional field, can be not set only, Same as "optional_unset"
+            'symbol_or' => '[or]',                                      // Symbol of or rule, Same as "[or]"
+            'symbol_array_optional' => '[o]',                           // Symbol of array optional rule, Same as "[optional]"
+            'symbol_index_array' => '[N]',                              // Symbol of index array rule
         ];
 
         $rule = [
@@ -3015,7 +3179,7 @@ class Unit extends TestCommon
                     "education" => [
                         "primary_school" => "education->primary_school must be equal to Qiankeng Xiaoxue",
                         "junior_middle_school" => "education->junior_middle_school must be not equal to Foshan Zhongxue",
-                        "high_school" => "education->high_school length must be greater than 10",
+                        // "high_school" => "education->high_school length must be greater than 10",
                         "university" => "education->university length must be greater than 10",
                     ],
                     "company" => [

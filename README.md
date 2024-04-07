@@ -35,6 +35,8 @@
       * [4.4 方法拓展](#44-方法拓展)
       * [4.5 串联并联规则](#45-串联并联规则)
       * [4.6 条件规则](#46-条件规则)
+         * [有条件的必要规则](#有条件的必要规则)
+         * [标准条件规则](#标准条件规则)
       * [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
       * [4.8 可选字段](#48-可选字段)
       * [4.9 特殊的验证规则](#49-特殊的验证规则)
@@ -390,9 +392,11 @@ $rule = [
 
 ### 4.6 条件规则
 
-条件规则的写法也跟 PHP 语法差不多，`if()`
+条件规则的写法也跟 PHP 语法差不多，`required_if()` 和 `if()`
 
-正条件：`if()`
+#### 有条件的必要规则
+
+**正条件的必要规则**：`required_if()`
 
 1. 如果条件成立，则继续验证后续方法
 2. 如果条件不成立，说明该字段是可选的：
@@ -403,12 +407,13 @@ $rule = [
 $rule = [
     // 特征是必要的，且只能是 height(身高) 或 weight(体重)
     "attribute" => "required|(s)[height,weight]",
-    // 若属性是 height, 则 centimeter 是必要的，若为 weight，则是可选的。
+    // 若属性是 height, 则 centimeter 是必要的，若不是 height，则是可选的。
     // 无论如何，若该值非空，则必须大于 180
-    "centimeter" => "if(=(@attribute,height))|required|>[180]",
+    "centimeter" => "required_if(=(@attribute,height))|>[180]",
 ];
 ```
-否条件：`!if()`
+
+**否条件的必要规则**：`required_if_not()`
 
 1. 如果条件不成立，则继续验证后续方法
 2. 如果条件成立，说明该字段是可选的：
@@ -419,11 +424,44 @@ $rule = [
 $rule = [
     // 特征是必要的，且只能是 height(身高) 或 weight(体重)
     "attribute" => "required|(s)[height,weight]",
-    // 若属性不是 weight, 则 centimeter 是必要的，若为 weight，则是可选的。
+    // 若属性不是 weight, 则 centimeter 是必要的，若是 weight，则是可选的。
     // 无论如何，若该值非空，则必须大于 180
+    "centimeter" => "required_if_not(=(@attribute,weight))|>[180]",
+];
+```
+
+#### 标准条件规则
+
+**标准正条件**：`if()`
+
+1. 如果条件成立，则继续验证后续方法
+2. 如果条件不成立，则不继续验证后续方法
+
+```PHP
+$rule = [
+    // 特征是必要的，且只能是 height(身高) 或 weight(体重)
+    "attribute" => "required|(s)[height,weight]",
+    // 若属性是 height, 则 centimeter 是必要的，且必须大于 180
+    // 若不是 height，则不继续验证后续规则，即 centimeter 为任何值都可以。
+    "centimeter" => "if(=(@attribute,height))|required|>[180]",
+];
+```
+**标准否条件**：`!if()`
+
+1. 如果条件不成立，则继续验证后续方法
+2. 如果条件成立，则不继续验证后续方法
+
+```PHP
+$rule = [
+    // 特征是必要的，且只能是 height(身高) 或 weight(体重)
+    "attribute" => "required|(s)[height,weight]",
+    // 若属性不是 weight, 则 centimeter 是必要的，且必须大于 180
+    // 若是 weight，则不继续验证后续规则，即 centimeter 为任何值都可以。
     "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
 ];
 ```
+
+抱歉，*标准条件规则暂不支持 `else` 和 `else if`，将在后续版本中支持。*
 
 ### 4.7 无限嵌套的数据结构
 
@@ -568,17 +606,20 @@ $config = [
     'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
     'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
     'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
-    'reg_if' => '/^!?if\((.*)\)/',                          // If match this, validate this condition first
-    'reg_if_true' => '/^if\((.*)\)/',                       // If match this, validate this condition first, if true, then validate the field
-    'reg_if_false' => '/^!if\((.*)\)/',                     // If match this, validate this condition first, if false, then validate the field
+    'reg_ifs' => '/^!?if\((.*)\)/',                         // A regular expression to match both reg_if and reg_if_not
+    'reg_if' => '/^if\((.*)\)/',                            // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+    'reg_if_not' => '/^!if\((.*)\)/',                       // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
     'symbol_rule_separator' => '|',                         // Rule reqarator for one field
     'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
     'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
     'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
     'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
     'symbol_required' => '*',                               // Symbol of required field, Same as "required"
-    'symbol_optional' => 'O',                               // Symbol of optional field, can be unset or empty, Same as "optional"
-    'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can only be unset or not empty, Same as "optional_unset"
+    'symbol_required_ifs' => '/^(!)?\*\?\((.*)\)/',           // A regular expression to match both symbol_required_if and symbol_required_if_not
+    'symbol_required_if' => '/^\*\?\((.*)\)/',              // Symbol of required field which is required only when the condition is true, Same as "required_if"
+    'symbol_required_if_not' => '/^!\*\?\((.*)\)/',         // Symbol of required field which is required only when the condition is not true, Same as "required_if_not"
+    'symbol_optional' => 'O',                               // Symbol of optional field, can be not set or empty, Same as "optional"
+    'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can be not set only, Same as "optional_unset"
     'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
     'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
     'symbol_index_array' => '.*',                           // Symbol of index array rule
