@@ -187,7 +187,28 @@ class Readme extends TestCommon
         return $this->validate($data, $rule);
     }
 
-    public function test_condition_required_if()
+    public function test_condition_when()
+    {
+        $data = [
+            "id" => "6",
+            "name" => "Devin",
+            "age" => "ads"
+        ];
+
+        $rule = [
+            "id" => "required|<>[0,10]",
+            // 当 id 小于 5 时，name 只能是数字且长度必须大于 2
+            // 当 id 大于等于 5 时，name 可以是任何字符串且长度必须大于 2
+            "name" => "/^\d+$/:when(<(@id,5))|len>[2]",
+            // 当 id 不小于 5 时，age 必须小于等于 18
+            // 当 id 小于 5 时，age 可以是任何数字
+            "age" => "int|<=[18]:when_not(<(@id,5))",
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
+    public function test_condition_required_when()
     {
         $data = [
             "attribute" => "height",
@@ -197,15 +218,15 @@ class Readme extends TestCommon
         $rule = [
             // 特征是必要的，且只能是 height(身高) 或 weight(体重)
             "attribute" => "required|(s)[height,weight]",
-            // 若属性是 height, 则 centimeter 是必要的，若为 weight，则是可选的。
+            // 若属性是 height, 则 centimeter 是必要的，若不是 height，则是可选的。
             // 无论如何，若该值非空，则必须大于 180
-            "centimeter" => "required_if(=(@attribute,height))|required|>[180]",
+            "centimeter" => "required:when(=(@attribute,height))|required|>[180]",
         ];
 
         return $this->validate($data, $rule);
     }
 
-    public function test_condition_required_if_not()
+    public function test_condition_required_when_not()
     {
         $data = [
             "attribute" => "weight",
@@ -215,9 +236,9 @@ class Readme extends TestCommon
         $rule = [
             // 特征是必要的，且只能是 height(身高) 或 weight(体重)
             "attribute" => "required|(s)[height,weight]",
-            // 若属性不是 weight, 则 centimeter 是必要的，若为 weight，则是可选的。
+            // 若属性不是 weight, 则 centimeter 是必要的，若是 weight，则是可选的。
             // 无论如何，若该值非空，则必须大于 180
-            "centimeter" => "required_if_not(=(@attribute,weight))|required|>[180]",
+            "centimeter" => "required:when_not(=(@attribute,weight))|required|>[180]",
         ];
 
         return $this->validate($data, $rule);
@@ -536,14 +557,15 @@ class Readme extends TestCommon
 
     public function test_get_method_and_symbol()
     {
-        $language = 'en-us';
+        $language = 'en-us';    // en-us, zh-cn
         $config = [
             'language' => $language
         ];
         $validation = new Validation($config);
 
-        $config = $validation->get_config();
+        $validation_config = $validation->get_config();
         $method_symbol = $validation->get_method_symbol();
+        $symbol_full_name = $validation->get_symbol_full_name();
         $error_template = $validation->get_error_template();
 
         $built_in_methods = [
@@ -557,6 +579,8 @@ class Readme extends TestCommon
             // 'preg_format' => 'reg_preg_strict',
             'preg_format' => '/',
             'call_method' => '/',
+            'when' => 'symbol_when',
+            'when_not' => 'symbol_when_not',
         ];
 
         $header = "";
@@ -569,24 +593,50 @@ class Readme extends TestCommon
         $method_symbol_table = $header;
 
         foreach ($error_template as $symbol => $method_error_template) {
-            // $method = $method_symbol[$symbol] ?? $symbol;
+            if (preg_match("/^(.*)({$symbol_full_name['symbol_when']}|{$symbol_full_name['symbol_when_not']})$/", $symbol, $matches)) {
+                $symbol_1 = $matches[1];
+                $method_and_symbol_1 = $this->get_method_and_symbol($symbol_1, $built_in_methods, $validation_config, $method_symbol);
+                $method_1 = $method_and_symbol_1['method'];
+                $symbol_1 = $method_and_symbol_1['symbol'];
 
-            if (isset($built_in_methods[$symbol])) {
+                if ($matches[2] == $symbol_full_name['symbol_when']) $symbol_when_type = 'when';
+                else $symbol_when_type = 'when_not';
+                $method_and_symbol_2 = $this->get_method_and_symbol($symbol_when_type, $built_in_methods, $validation_config, $method_symbol);
+                $method_2 = $method_and_symbol_2['method'];
+                $symbol_2 = $method_and_symbol_2['symbol'];
                 $method = $symbol;
-                $symbol = $config[$built_in_methods[$method]] ?? $built_in_methods[$method];
+                $symbol = "{$symbol_1}{$symbol_2}";
             } else {
-                if (isset($method_symbol[$symbol])) {
-                    $method = $method_symbol[$symbol];
-                } else {
-                    $method = $symbol;
-                    $symbol = '/';
-                }
+                $method_and_symbol = $this->get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbol);
+                $method = $method_and_symbol['method'];
+                $symbol = $method_and_symbol['symbol'];
             }
+            
             if (!empty($symbol) && !in_array($symbol, ['/'])) $symbol = "`{$symbol}`";
             $method_symbol_table .= "{$symbol} | `{$method}` | {$method_error_template}\n";
         }
 
         echo "\n{$method_symbol_table}";
+    }
+
+    protected function get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbol)
+    {
+        if (isset($built_in_methods[$symbol])) {
+            $method = $symbol;
+            $symbol = $validation_config[$built_in_methods[$method]] ?? $built_in_methods[$method];
+        } else {
+            if (isset($method_symbol[$symbol])) {
+                $method = $method_symbol[$symbol];
+            } else {
+                $method = $symbol;
+                $symbol = '/';
+            }
+        }
+
+        return [
+            'method' => $method,
+            'symbol' => $symbol
+        ];
     }
 
     protected function validate($data, $rule, $validation_conf = [])

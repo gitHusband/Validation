@@ -35,7 +35,7 @@
       * [4.4 方法拓展](#44-方法拓展)
       * [4.5 串联并联规则](#45-串联并联规则)
       * [4.6 条件规则](#46-条件规则)
-         * [有条件的必要规则](#有条件的必要规则)
+         * [When 条件规则](#when-条件规则)
          * [标准条件规则](#标准条件规则)
       * [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
       * [4.8 可选字段](#48-可选字段)
@@ -392,13 +392,34 @@ $rule = [
 
 ### 4.6 条件规则
 
-条件规则的写法也跟 PHP 语法差不多，`required_if()` 和 `if()`
+#### When 条件规则
 
-#### 有条件的必要规则
+**When** 条件规则：给任意规则或方法增设条件，一般只有当条件满足时，才验证该方法，否则跳过该方法。
+- 用法：`{任意规则或方法}` + `:` + `when()`
+- 规则或方法包括： `required`, `optional`, `optional_unset`, `正则表达式` 和 `任意方法`（比如方法 `>=`）
+- 两种条件规则：`when()` 和 `when_not()`，条件写在小括号中间，*目前仅支持一个条件*。
+- 条件规则支持自定义，见 [4.10 客制化配置](#410-客制化配置)
 
-**正条件的必要规则**：`required_if()`
+1. 一般地，只有当条件满足时，才验证该方法，否则跳过该方法。例如：
+```PHP
+$rule = [
+    "id" => "required|<>[0,10]",
+    // 当 id 小于 5 时，name 只能是数字且长度必须大于 2
+    // 当 id 大于等于 5 时，name 可以是任何字符串且长度必须大于 2
+    "name" => "/^\d+$/:when(<(@id,5))|len>[2]",
+    // 当 id 不小于 5 时，age 必须小于等于 18
+    // 当 id 小于 5 时，age 可以是任何数字
+    "age" => "int|<=[18]:when_not(<(@id,5))",
+];
+```
 
-1. 如果条件成立，则继续验证后续方法
+2. 特殊地，`required`, `optional`, `optional_unset`，这三个规则，可能需要验证字段是否非空。
+
+下面，我以 `required` 为例，说明 `when()` 和 `when_not()` 的用法。
+
+- **2.1 正条件的必要规则**：`required:when()`
+
+1. 如果条件成立，则验证 `required` 方法
 2. 如果条件不成立，说明该字段是可选的：
   2.1. 若该字段为空，立刻返回验证成功；
   2.2. 若该字段不为空，则继续验证后续方法
@@ -409,13 +430,13 @@ $rule = [
     "attribute" => "required|(s)[height,weight]",
     // 若属性是 height, 则 centimeter 是必要的，若不是 height，则是可选的。
     // 无论如何，若该值非空，则必须大于 180
-    "centimeter" => "required_if(=(@attribute,height))|>[180]",
+    "centimeter" => "required:when(=(@attribute,height))|>[180]",
 ];
 ```
 
-**否条件的必要规则**：`required_if_not()`
+- **2.2 否条件的必要规则**：`required:when_not()`
 
-1. 如果条件不成立，则继续验证后续方法
+1. 如果条件不成立，则验证 `required` 方法
 2. 如果条件成立，说明该字段是可选的：
   2.1. 若该字段为空，立刻返回验证成功；
   2.2. 若该字段不为空，则继续验证后续方法
@@ -426,13 +447,15 @@ $rule = [
     "attribute" => "required|(s)[height,weight]",
     // 若属性不是 weight, 则 centimeter 是必要的，若是 weight，则是可选的。
     // 无论如何，若该值非空，则必须大于 180
-    "centimeter" => "required_if_not(=(@attribute,weight))|>[180]",
+    "centimeter" => "required:when_not(=(@attribute,weight))|>[180]",
 ];
 ```
 
 #### 标准条件规则
 
-**标准正条件**：`if()`
+标准条件规则的写法跟 `PHP` 语法差不多，`if()` 和 `!if()`
+
+- **标准正条件**：`if()`
 
 1. 如果条件成立，则继续验证后续方法
 2. 如果条件不成立，则不继续验证后续方法
@@ -446,7 +469,7 @@ $rule = [
     "centimeter" => "if(=(@attribute,height))|required|>[180]",
 ];
 ```
-**标准否条件**：`!if()`
+- **标准否条件**：`!if()`
 
 1. 如果条件不成立，则继续验证后续方法
 2. 如果条件成立，则不继续验证后续方法
@@ -615,14 +638,16 @@ $config = [
     'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
     'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
     'symbol_required' => '*',                               // Symbol of required field, Same as "required"
-    'symbol_required_ifs' => '/^(!)?\*\?\((.*)\)/',           // A regular expression to match both symbol_required_if and symbol_required_if_not
-    'symbol_required_if' => '/^\*\?\((.*)\)/',              // Symbol of required field which is required only when the condition is true, Same as "required_if"
-    'symbol_required_if_not' => '/^!\*\?\((.*)\)/',         // Symbol of required field which is required only when the condition is not true, Same as "required_if_not"
     'symbol_optional' => 'O',                               // Symbol of optional field, can be not set or empty, Same as "optional"
     'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can be not set only, Same as "optional_unset"
     'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
     'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
     'symbol_index_array' => '.*',                           // Symbol of index array rule
+    'reg_whens' => '/^(.+):(!)?\?\((.*)\)/',                // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
+    'reg_when' => '/^(.+):\?\((.*)\)/',                     // A regular expression to match a field which must be validated by method($1) only when the condition($3) is true
+    'symbol_when' => ':?',                                  // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+    'reg_when_not' => '/^(.+):!\?\((.*)\)/',                // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
+    'symbol_when_not' => ':!?',                             // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
 ];
 ```
 
@@ -866,9 +891,17 @@ function check_animal($animal) {
 ---|---|---
 / | `default` | @this 验证错误
 `.*` | `index_array` | @this 必须是索引数组
+`:?` | `when` | 在特定情况下，
+`:!?` | `when_not` | 在非特定情况下，
 `*` | `required` | @this 不能为空
+`*:?` | `required:when` | 在特定情况下，@this 不能为空
+`*:!?` | `required:when_not` | 在非特定情况下，@this 不能为空
 `O` | `optional` | @this 永远不会出错
-`O!` | `optional_unset` | @this 允许不设置，一旦设置则不能为空
+`O:?` | `optional:when` | 在特定情况下，@this 才能为空
+`O:!?` | `optional:when_not` | 在非特定情况下，@this 才能为空
+`O!` | `optional_unset` | @this 允许不设置，且一旦设置则不能为空
+`O!:?` | `optional_unset:when` | 在特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
+`O!:!?` | `optional_unset:when_not` | 在非特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
 / | `preg` | @this 格式错误，必须是 @preg
 / | `preg_format` | @this 方法 @preg 不是合法的正则表达式
 / | `call_method` | @method 未定义

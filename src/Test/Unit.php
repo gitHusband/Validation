@@ -146,6 +146,7 @@ class Unit extends TestCommon
         $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
         $validation->set_rules($rule);
 
+        $stop_if_failed = true;
         $result = true;
 
         foreach ($cases as $c_field => $case) {
@@ -172,9 +173,9 @@ class Unit extends TestCommon
                     ], $rule, $cases);
                     $result = false;
                 }
-
-                // Check invalid cases
-            } else if (strpos($c_field, "Invalid") !== false) {
+            }
+            // Check invalid cases
+            else if (strpos($c_field, "Invalid") !== false) {
                 $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be invalid.";
 
                 if ($validation->validate($case['data'])) {
@@ -255,6 +256,8 @@ class Unit extends TestCommon
                     }
                 }
             }
+
+            if ($stop_if_failed && !$result) break;
         }
 
         return $result;
@@ -650,7 +653,7 @@ class Unit extends TestCommon
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => ["name" => "name must be unset or not empty"]
+                "expected_msg" => ["name" => "name must be unset or must not be empty if it's set"]
             ]
         ];
 
@@ -686,7 +689,7 @@ class Unit extends TestCommon
                 "data" => [
                     "name" => ""
                 ],
-                "expected_msg" => ["name" => "name must be unset or not empty"]
+                "expected_msg" => ["name" => "name must be unset or must not be empty if it's set"]
             ]
         ];
 
@@ -780,14 +783,14 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_required_if_rule()
+    protected function test_required_when_rule()
     {
         $rule = [
             "id" => "required|<>[0,10]",
-            "name_1" => "required_if(<(@id,5))|string|/^\d+.*/",
-            "name_*_1" => "*?(<(@id,5))|string|/^\d+.*/",
-            "name_0" => "required_if_not(<(@id,5))|string|/^\d+.*/",
-            "name_*_0" => "!*?(<(@id,5))|string|/^\d+.*/",
+            "name_1" => "required:when(<(@id,5))|string|/^\d+.*/",
+            "name_*_1" => "*:?(<(@id,5))|string|/^\d+.*/ >> {\"required:when\": \"@this can not be empty when id < 5\"}",
+            "name_0" => "required:when_not(<(@id,5))|string|/^\d+.*/",
+            "name_*_0" => "*:!?(<(@id,5))|string|/^\d+.*/ >> {\"required:when_not\": \"@this can not be empty when id is not less than 5\"}",
         ];
 
         $cases = [
@@ -828,7 +831,7 @@ class Unit extends TestCommon
                     "id" => 1,
                     "name_1" => ""
                 ],
-                "expected_msg" => ["name_1" => "name_1 can not be empty under certain circumstances"]
+                "expected_msg" => ["name_1" => "Under certain circumstances, name_1 can not be empty"]
             ],
             "Invalid_data_1_2" => [
                 "data" => [
@@ -843,7 +846,7 @@ class Unit extends TestCommon
                     "name_1" => "123ABC",
                     "name_*_1" => "",
                 ],
-                "expected_msg" => ["name_*_1" => "name_*_1 can not be empty under certain circumstances"]
+                "expected_msg" => ["name_*_1" => "name_*_1 can not be empty when id < 5"]
             ],
             "Invalid_data_1_4" => [
                 "data" => [
@@ -877,7 +880,7 @@ class Unit extends TestCommon
                     "id" => 8,
                     "name_0" => ""
                 ],
-                "expected_msg" => ["name_0" => "name_0 can not be empty when certain circumstances are not met"]
+                "expected_msg" => ["name_0" => "When certain circumstances are not met, name_0 can not be empty"]
             ],
             "Invalid_data_0_2" => [
                 "data" => [
@@ -892,7 +895,7 @@ class Unit extends TestCommon
                     "name_0" => "123ABC",
                     "name_*_0" => "",
                 ],
-                "expected_msg" => ["name_*_0" => "name_*_0 can not be empty when certain circumstances are not met"]
+                "expected_msg" => ["name_*_0" => "name_*_0 can not be empty when id is not less than 5"]
             ],
             "Invalid_data_0_4" => [
                 "data" => [
@@ -920,6 +923,599 @@ class Unit extends TestCommon
                     "name_*_0" => "123ABC",
                 ],
                 "expected_msg" => ["name_*_1" => "name_*_1 format is invalid, should be /^\\d+.*/"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name_1",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_optional_when_rule()
+    {
+        $rule = [
+            "id" => "required|<>[0,10]",
+            "name_1" => "optional:when(>(@id,5))|string|/^\d+.*/",
+            "name_*_1" => "O:?(>(@id,5))|string|/^\d+.*/ >> {\"optional:when\": \"@this can be empty when id > 5\"}",
+            "name_0" => "optional:when_not(>(@id,5))|string|/^\d+.*/",
+            "name_*_0" => "O:!?(>(@id,5))|string|/^\d+.*/ >> {\"optional:when_not\": \"@this can not be empty when id is not greater than 5\"}",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    "name_0" => "",
+                    "name_*_0" => "123ABC"
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC"
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "",
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC"
+                ]
+            ],
+            "Invalid_data_1_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => ""
+                ],
+                "expected_msg" => ["name_1" => "name_1 can be empty only when certain circumstances are met"]
+            ],
+            "Invalid_data_1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "abc"
+                ],
+                "expected_msg" => ["name_1" => "name_1 format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_data_1_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 can be empty when id > 5"]
+            ],
+            "Invalid_data_1_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "abc",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_data_1_5" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    "name_0" => "abc",
+                ],
+                "expected_msg" => ["name_0" => "name_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_1_6" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    "name_0" => "",
+                    "name_*_0" => "abc",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_1" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => ""
+                ],
+                "expected_msg" => ["name_0" => "name_0 can be empty only when certain circumstances are not met"]
+            ],
+            "Invalid_data_0_2" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "abc"
+                ],
+                "expected_msg" => ["name_0" => "name_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 can not be empty when id is not greater than 5"]
+            ],
+            "Invalid_data_0_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "abc",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_5" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "abc",
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC",
+                ],
+                "expected_msg" => ["name_1" => "name_1 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_6" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "",
+                    "name_*_1" => "abc",
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 format is invalid, should be /^\\d+.*/"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name_1",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_optional_unset_when_rule()
+    {
+        $rule = [
+            "id" => "required|<>[0,10]",
+            "name_1" => "optional_unset:when(>(@id,5))|string|/^\d+.*/",
+            "name_*_1" => "O!:?(>(@id,5))|string|/^\d+.*/ >> {\"optional_unset:when\": \"@this must be unset or must not be empty if it's set when id > 5. Otherwise it can not be empty\"}",
+            "name_0" => "optional_unset:when_not(>(@id,5))|string|/^\d+.*/",
+            "name_*_0" => "O!:!?(>(@id,5))|string|/^\d+.*/ >> {\"optional_unset:when_not\": \"@this must be unset or must not be empty if it's set when id is not greater than 5. Otherwise it can not be empty\"}",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    "name_0" => null,
+                    "name_*_0" => "123ABC"
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC"
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123ABC",
+                    "name_*_1" => null,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC"
+                ]
+            ],
+            "Invalid_data_1_1" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => ["name_1" => "Under certain circumstances, name_1 must be unset or must not be empty if it's set. Otherwise it can not be empty"]
+            ],
+            "Invalid_data_1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => ""
+                ],
+                "expected_msg" => ["name_1" => "Under certain circumstances, name_1 must be unset or must not be empty if it's set. Otherwise it can not be empty"]
+            ],
+            "Invalid_data_1_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "abc"
+                ],
+                "expected_msg" => ["name_1" => "name_1 format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_data_1_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 must be unset or must not be empty if it's set when id > 5. Otherwise it can not be empty"]
+            ],
+            "Invalid_data_1_5" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 must be unset or must not be empty if it's set when id > 5. Otherwise it can not be empty"]
+            ],
+            "Invalid_data_1_6" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "abc",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_data_1_7" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    "name_0" => "abc",
+                ],
+                "expected_msg" => ["name_0" => "name_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_1_8" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123ABC",
+                    "name_*_1" => "123ABC",
+                    // "name_0" => "",
+                    "name_*_0" => "abc",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_1" => [
+                "data" => [
+                    "id" => 8,
+                ],
+                "expected_msg" => ["name_0" => "When certain circumstances are not met, name_0 must be unset or must not be empty if it's set. Otherwise it can not be empty"]
+            ],
+            "Invalid_data_0_2" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => ""
+                ],
+                "expected_msg" => ["name_0" => "When certain circumstances are not met, name_0 must be unset or must not be empty if it's set. Otherwise it can not be empty"]
+            ],
+            "Invalid_data_0_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "abc"
+                ],
+                "expected_msg" => ["name_0" => "name_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 must be unset or must not be empty if it's set when id is not greater than 5. Otherwise it can not be empty"]
+            ],
+            "Invalid_data_0_5" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 must be unset or must not be empty if it's set when id is not greater than 5. Otherwise it can not be empty"]
+            ],
+            "Invalid_data_0_6" => [
+                "data" => [
+                    "id" => 8,
+                    "name_0" => "123ABC",
+                    "name_*_0" => "abc",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_7" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "abc",
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC",
+                ],
+                "expected_msg" => ["name_1" => "name_1 format is invalid, should be /^\\d+.*/"]
+            ],
+            "Invalid_data_0_8" => [
+                "data" => [
+                    "id" => 8,
+                    "name_*_1" => "abc",
+                    "name_0" => "123ABC",
+                    "name_*_0" => "123ABC",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 format is invalid, should be /^\\d+.*/"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name_1",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_regular_expression_when_rule()
+    {
+        $rule = [
+            "id" => "required|<>[0,10]",
+            "name_1" => "/^\d+$/:when(<(@id,5))|len>[2]",
+            "name_*_1" => "/^\d+$/:?(<(@id,5))|len>[2] >> {\"preg:when\": \"name_*_1 must be @preg when id < 5\"}",
+            "name_0" => "/^\d+$/:when_not(<(@id,5))|len>[2]",
+            "name_*_0" => "/^\d+$/:!?(<(@id,5))|len>[2] >> {\"preg:when_not\": \"@this must be @preg when id is not less than 5\"}",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "123",
+                    "name_*_0" => "123",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "abc",
+                    "name_*_0" => "abc",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "123",
+                    "name_*_0" => "123",
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "abc",
+                    "name_*_1" => "abc",
+                    "name_0" => "123",
+                    "name_*_0" => "123",
+                ]
+            ],
+            "Invalid_data_1_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => ""
+                ],
+                "expected_msg" => ["name_1" => "Under certain circumstances, name_1 format is invalid, should be /^\\d+$/"]
+            ],
+            "Invalid_data_1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "12"
+                ],
+                "expected_msg" => ["name_1" => "name_1 length must be greater than 2"]
+            ],
+            "Invalid_data_1_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123",
+                    "name_*_1" => "abc",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 must be /^\\d+$/ when id < 5"]
+            ],
+            "Invalid_data_1_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123",
+                    "name_*_1" => "12",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 length must be greater than 2"]
+            ],
+            "Invalid_data_0_1" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => ""
+                ],
+                "expected_msg" => ["name_0" => "When certain circumstances are not met, name_0 format is invalid, should be /^\\d+$/"]
+            ],
+            "Invalid_data_0_2" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "abc"
+                ],
+                "expected_msg" => ["name_0" => "When certain circumstances are not met, name_0 format is invalid, should be /^\\d+$/"]
+            ],
+            "Invalid_data_0_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "123",
+                    "name_*_0" => "abc",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 must be /^\\d+$/ when id is not less than 5"]
+            ],
+            "Invalid_data_0_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "123",
+                    "name_*_0" => "12",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 length must be greater than 2"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name_1",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_when_rule()
+    {
+        $rule = [
+            "id" => "required|<>[0,10]",
+            "name_1" => "len<[5]:when(<(@id,5))|len>[2]",
+            "name_*_1" => "len<[5]:?(<(@id,5))|len>[2] >> {\"len<:when\": \"name_*_1 length must be less than @p1 when id < 5\"}",
+            "name_0" => "len<[5]:when_not(<(@id,5))|len>[2]",
+            "name_*_0" => "len<[5]:!?(<(@id,5))|len>[2] >> {\"len<:when_not\": \"@this length must be less than @p1 when id is not less than 5\"}",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "1234",
+                    "name_*_1" => "1234",
+                    "name_0" => "123",
+                    "name_*_0" => "123",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "1234",
+                    "name_*_1" => "1234",
+                    "name_0" => "123456",
+                    "name_*_0" => "123456",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "1234",
+                    "name_*_0" => "1234",
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123456",
+                    "name_*_1" => "123456",
+                    "name_0" => "1234",
+                    "name_*_0" => "1234",
+                ]
+            ],
+            "Invalid_data_1_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => ""
+                ],
+                "expected_msg" => ["name_1" => "name_1 length must be greater than 2"]
+            ],
+            "Invalid_data_1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "12345"
+                ],
+                "expected_msg" => ["name_1" => "Under certain circumstances, name_1 length must be less than 5"]
+            ],
+            "Invalid_data_1_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "1234",
+                    "name_*_1" => "",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 length must be greater than 2"]
+            ],
+            "Invalid_data_1_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name_1" => "123",
+                    "name_*_1" => "12345",
+                ],
+                "expected_msg" => ["name_*_1" => "name_*_1 length must be less than 5 when id < 5"]
+            ],
+            "Invalid_data_0_1" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => ""
+                ],
+                "expected_msg" => ["name_0" => "name_0 length must be greater than 2"]
+            ],
+            "Invalid_data_0_2" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "12345"
+                ],
+                "expected_msg" => ["name_0" => "When certain circumstances are not met, name_0 length must be less than 5"]
+            ],
+            "Invalid_data_0_3" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "123",
+                    "name_*_0" => "",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 length must be greater than 2"]
+            ],
+            "Invalid_data_0_4" => [
+                "data" => [
+                    "id" => 8,
+                    "name_1" => "123",
+                    "name_*_1" => "123",
+                    "name_0" => "123",
+                    "name_*_0" => "12345",
+                ],
+                "expected_msg" => ["name_*_0" => "name_*_0 length must be less than 5 when id is not less than 5"]
             ],
         ];
 
@@ -2141,7 +2737,7 @@ class Unit extends TestCommon
                 ],
                 "expected_msg" => [
                     "id" => [
-                        "error_type" => "required_field",
+                        "error_type" => "required",
                         "message" => "id can not be empty"
                     ],
                     "name" => [
@@ -2197,7 +2793,7 @@ class Unit extends TestCommon
                 ],
                 "expected_msg" => [
                     "id" => [
-                        "error_type" => "required_field",
+                        "error_type" => "required",
                         "message" => "id can not be empty"
                     ],
                     "name" => [

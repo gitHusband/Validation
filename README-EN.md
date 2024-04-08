@@ -36,7 +36,7 @@ Table of contents
       * [4.4 Method Extension](#44-method-extension)
       * [4.5 Series And Parallel Rules](#45-series-and-parallel-rules)
       * [4.6 Conditional Rules](#46-conditional-rules)
-         * [Conditionally Required Rules](#conditionally-required-rules)
+         * [The When Conditional Rules](#the-when-conditional-rules)
          * [Standard Conditional Rules](#standard-conditional-rules)
       * [4.7 Infinitely Nested Data Structures](#47-infinitely-nested-data-structures)
       * [4.8 Optional Field](#48-optional-field)
@@ -394,13 +394,34 @@ The symbol of `[or]` is `[||]`, the symbol can be customized, and the usage is t
 
 ### 4.6 Conditional Rules
 
-The usage of conditional rules is similar to PHP syntax, `required_if()` and `if()`
+#### The When Conditional Rules
 
-#### Conditionally Required Rules
+The **When** conditional rule: Add conditions to any rule or method. Generally, the method will be validated only when the condition is met, otherwise the method will be skipped.
+- Usage：`{any rule or method}` + `:` + `when()`
+- The rule or methods include： `required`, `optional`, `optional_unset`, `regular expression` 和 `any method`（Such as method `>=`）
+- Two conditional rules：`when()` and `when_not()`，condition is written between parentheses. *Currently only one condition is supported*。
+- The When Conditional Rules support customization, see [4.10 Customized Configuration](#410-customized-configuration)
 
-**Positive conditionally required rule**: `required_if()`
+1. Generally, the method will be validated only if the condition is met, otherwise the method will be skipped. For example:
+```PHP
+$rule = [
+    "id" => "required|<>[0,10]",
+    // When the id is less than 5, the name can only be a number and its length must be greater than 2
+    // When the id is greater than or equal to 5, the name can be any string and its length must be greater than 2
+    "name" => "/^\d+$/:when(<(@id,5))|len>[2]",
+    // When the id is not less than 5, the age must be less than or equal to 18
+    // When id is less than 5, age can be any number
+    "age" => "int|<=[18]:when_not(<(@id,5))",
+];
+```
 
-1. If the condition is met, continue to validate subsequent methods
+2. Specifically，`required`, `optional`, `optional_unset`, these three rules may need to validate whether the field is empty or not.
+
+I take the `required` as an example to illustrate the usage of `when()` and `when_not()`.
+
+- **2.1 Positive conditionally required rule**: `required:when()`
+
+1. If the condition is met, the validate the `required` method
 2. If the condition is not met, the field is optional:
   2.1. If this field is empty, validation success will be returned immediately;
   2.2. If this field is not empty, continue to validate subsequent methods
@@ -412,12 +433,12 @@ $rule = [
     // If the attribute is height, then the centimeter must not be empty
     // If the attribute is not height, then the centimeter is optional
     // However, if the value of the centimeter is not empty, it must be greater than 180
-    "centimeter" => "required_if(=(@attribute,height))|required|>[180]",
+    "centimeter" => "required:when(=(@attribute,height))|required|>[180]",
 ];
 ```
-**Negative conditionally required rule**: `required_if_not()`
+- **2.2 Negative conditionally required rule**: `required:when_not()`
 
-1. If the condition is not met, continue to validate subsequent methods
+1. If the condition is not met, the validate the `required` method
 2. If the condition is met, the field is optional:
   2.1. If this field is empty, validation success will be returned immediately;
   2.2. If this field is not empty, continue to validate subsequent methods
@@ -429,13 +450,15 @@ $rule = [
     // If the attribute is not weight, then the centimeter must not be empty
     // If the attribute is weight, then the centimeter is optional
     // However, if the value of the centimeter is not empty, it must be greater than 180
-    "centimeter" => "required_if_not(=(@attribute,weight))|required|>[180]",
+    "centimeter" => "required:when_not(=(@attribute,weight))|required|>[180]",
 ];
 ```
 
 #### Standard Conditional Rules
 
-**Positive standard conditional rule**: `if()`
+The usage of standard conditional rules is similar to PHP syntax, `if()` and `!if()`
+
+- **Positive standard conditional rule**: `if()`
 
 1. If the condition is met, continue to validate subsequent methods
 2. If the condition is not met, don't continue to validate subsequent methods
@@ -449,7 +472,7 @@ $rule = [
     "centimeter" => "if(=(@attribute,height))|required|>[180]",
 ];
 ```
-**Negative standard conditional rule**: `!if()`
+- **Negative standard conditional rule**: `!if()`
 
 1. If the condition is not met, continue to validate subsequent methods
 2. If the condition is met, don't continue to validate subsequent methods
@@ -621,14 +644,16 @@ $config = [
     'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
     'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
     'symbol_required' => '*',                               // Symbol of required field, Same as "required"
-    'symbol_required_ifs' => '/^(!)?\*\?\((.*)\)/',           // A regular expression to match both symbol_required_if and symbol_required_if_not
-    'symbol_required_if' => '/^\*\?\((.*)\)/',              // Symbol of required field which is required only when the condition is true, Same as "required_if"
-    'symbol_required_if_not' => '/^!\*\?\((.*)\)/',         // Symbol of required field which is required only when the condition is not true, Same as "required_if_not"
     'symbol_optional' => 'O',                               // Symbol of optional field, can be not set or empty, Same as "optional"
     'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can be not set only, Same as "optional_unset"
     'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
     'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
     'symbol_index_array' => '.*',                           // Symbol of index array rule
+    'reg_whens' => '/^(.+):(!)?\?\((.*)\)/',                // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
+    'reg_when' => '/^(.+):\?\((.*)\)/',                     // A regular expression to match a field which must be validated by method($1) only when the condition($3) is true
+    'symbol_when' => ':?',                                  // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+    'reg_when_not' => '/^(.+):!\?\((.*)\)/',                // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
+    'symbol_when_not' => ':!?',                             // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
 ];
 ```
 
@@ -872,9 +897,17 @@ Symbol | Method | Desc
 ---|---|---
 / | `default` | @this validation failed
 `.*` | `index_array` | @this must be a numeric array
+`:?` | `when` | Under certain circumstances, 
+`:!?` | `when_not` | When certain circumstances are not met, 
 `*` | `required` | @this can not be empty
+`*:?` | `required:when` | Under certain circumstances, @this can not be empty
+`*:!?` | `required:when_not` | When certain circumstances are not met, @this can not be empty
 `O` | `optional` | @this never go wrong
-`O!` | `optional_unset` | @this must be unset or not empty
+`O:?` | `optional:when` | @this can be empty only when certain circumstances are met
+`O:!?` | `optional:when_not` | @this can be empty only when certain circumstances are not met
+`O!` | `optional_unset` | @this must be unset or must not be empty if it's set
+`O!:?` | `optional_unset:when` | Under certain circumstances, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
+`O!:!?` | `optional_unset:when_not` | When certain circumstances are not met, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
 / | `preg` | @this format is invalid, should be @preg
 / | `preg_format` | @this method @preg is not a valid regular expression
 / | `call_method` | @method is undefined

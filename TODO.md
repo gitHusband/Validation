@@ -13,7 +13,9 @@
   2.2. 若该字段不为空，则继续验证后续方法
 
 但是，它更像是给 required 增加了一个条件，而不是一个纯粹的 if 条件。
-后续将优化成一个方法，比如 `required_if()` 和 `required_if_not()`。
+后续将优化成一个方法，比如 `required:when()` 和 `required:when_not()`。
+
+任意规则或方法都支持 `when` 和 `when_not`
 
 ### 增加真正的 "条件规则"
 

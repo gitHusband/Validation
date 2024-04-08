@@ -115,14 +115,16 @@ class Validation
         'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
         'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
         'symbol_required' => '*',                               // Symbol of required field, Same as "required"
-        'symbol_required_ifs' => '/^(!)?\*\?\((.*)\)/',           // A regular expression to match both symbol_required_if and symbol_required_if_not
-        'symbol_required_if' => '/^\*\?\((.*)\)/',              // Symbol of required field which is required only when the condition is true, Same as "required_if"
-        'symbol_required_if_not' => '/^!\*\?\((.*)\)/',         // Symbol of required field which is required only when the condition is not true, Same as "required_if_not"
         'symbol_optional' => 'O',                               // Symbol of optional field, can be not set or empty, Same as "optional"
         'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can be not set only, Same as "optional_unset"
         'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
         'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
         'symbol_index_array' => '.*',                           // Symbol of index array rule
+        'reg_whens' => '/^(.+):(!)?\?\((.*)\)/',                // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
+        'reg_when' => '/^(.+):\?\((.*)\)/',                     // A regular expression to match a field which must be validated by method($1) only when the condition($3) is true
+        'symbol_when' => ':?',                                  // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+        'reg_when_not' => '/^(.+):!\?\((.*)\)/',                // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
+        'symbol_when_not' => ':!?',                             // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
     ];
 
     /**
@@ -134,13 +136,15 @@ class Validation
      */
     protected $symbol_full_name = [
         'symbol_required' => 'required',                            // Symbol Full Name of required field
-        'symbol_required_ifs' => '/^required_if(_not)?\((.*)\)/',   // A regular expression to match both symbol_required_if and symbol_required_if_not
-        'symbol_required_if' => '/^required_if\((.*)\)/',           // Symbol Full Name of required field which is required only when the condition is true
-        'symbol_required_if_not' => '/^required_if_not\((.*)\)/',   // Symbol Full Name of required field which is required only when the condition is not true
         'symbol_optional' => 'optional',                            // Symbol Full Name of optional field, can be not set or empty
         'symbol_optional_unset' => 'optional_unset',                // Symbol Full Name of optional field, can be not set only
         'symbol_or' => '[or]',                                      // Symbol Full Name of or rule
         'symbol_array_optional' => '[optional]',                    // Symbol Full Name of array optional rule
+        'reg_whens' => '/^(.+):when(_not)?\((.*)\)/',               // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
+        'reg_when' => '/^(.+):when\((.*)\)/',                       // A regular expression of When Rule to match a field which must be validated by method($1) only when the condition($3) is true
+        'symbol_when' => ':when',                                   // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+        'reg_when_not' => '/^(.+):when_not\((.*)\)/',               // A regular expression of When Rule to match a field which must be validated by method($1) only when the condition($3) is not true
+        'symbol_when_not' => ':when_not',                           // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
     ];
 
     /**
@@ -384,6 +388,16 @@ class Validation
     public function get_method_symbol()
     {
         return $this->method_symbol;
+    }
+
+    /**
+     * Get Symbol Full Name List
+     *
+     * @return array
+     */
+    public function get_symbol_full_name()
+    {
+        return $this->symbol_full_name;
     }
 
     /**
@@ -1063,38 +1077,48 @@ class Validation
     }
 
     /**
-     * Match rule error message. 
+     * Match rule error message template. 
+     * 
+     * The error message template priority from high to low:
+     * 1. Set template in rules array
+     * 2. Set template via Internationalization, e.g. en-us
+     * 3. Return the template directly in the method
      *
      * @param array $rule_error_msg Parsed error message array
      * @param string $tag
+     * @param string $when_type
      * @param bool $only_user_err_msg If can not find error message from user error message, will try to find it from error template
      * @return string
      */
-    protected function match_error_message($rule_error_msg, $tag, $only_user_err_msg = false)
+    protected function match_error_message($rule_error_msg, $tag, $when_type = '', $only_user_err_msg = false)
     {
-        // Only one error message was set
+        // 1.1 Only one error message was set
         if (!empty($rule_error_msg) && !empty($rule_error_msg['gb_err_msg_key'])) return $rule_error_msg['gb_err_msg_key'];
 
-        // One rule one error message
+        // 1.2 One rule one error message
+        $when_type_tag = empty($when_type) ? '' : $tag . ':' . $when_type;
+        if (!empty($when_type_tag) && isset($rule_error_msg[$when_type_tag])) return $rule_error_msg[$when_type_tag];
         if (isset($rule_error_msg[$tag])) return $rule_error_msg[$tag];
 
-        switch ($tag) {
-            case 'required':
-                if (isset($rule_error_msg[$this->config['symbol_required']])) return $rule_error_msg[$this->config['symbol_required']];
-                break;
-            case 'optional_unset':
-                if (isset($rule_error_msg[$this->config['symbol_optional_unset']])) return $rule_error_msg[$this->config['symbol_optional_unset']];
-                break;
-            default:
-                break;
-        }
+        $tag_symbol_key = 'symbol_' . $tag;
+        // 1.3 One rule one error message by using the tag of customized config
+        if (isset($this->config[$tag_symbol_key]) && isset($rule_error_msg[$this->config[$tag_symbol_key]])) return $rule_error_msg[$this->config[$tag_symbol_key]];
 
         // Can not match user error message and skip match error template
         if ($only_user_err_msg) return '';
 
-        // Can not match user error message, return default error message
-        $error_msg = $this->get_error_template($tag);
+        // 2. Can not match user error message template, return default error message template
+        if (!empty($when_type_tag)) {
+            $error_msg = $this->get_error_template($when_type_tag);
+            if (empty($error_msg)) {
+                $when_type_msg = $this->get_error_template($when_type);
+            }
+        }
+        if (empty($error_msg)) $error_msg = $this->get_error_template($tag);
         if (empty($error_msg)) $error_msg = $this->get_error_template('default');
+        // Auto inject the If rule message
+        if (!empty($when_type_msg)) $error_msg = $when_type_msg . $error_msg;
+        
         return $error_msg;
     }
 
@@ -1102,9 +1126,9 @@ class Validation
      * Execute validation with field and its rule. Contains cases:
      * 1. If rule
      * 2. Required(*) rule
-     * 3. Required If(*?) rule
-     * 4. Optional(O) rule
-     * 5. Optional Unset(O!) rule
+     * 3. Optional(O) rule
+     * 4. Optional Unset(O!) rule
+     * 5. When rule
      * 6. Regular Expression
      * 7. Method
      *
@@ -1130,8 +1154,50 @@ class Validation
 
             $result = true;
             $error_type = 'validation';
-            $if_flag = false;
             $params = [];
+
+            $has_when_rule = -1;
+            $when_type = '';
+            $is_met_when_rule = false;
+            /**
+             * Most of the system symbols or methods support to be append a When rule.
+             * If the condition of When rule is not met, we don't need to check the methods.
+             * 
+             * The rule is {method} + ":" + "when|when_not"
+             * For example:
+             *  - required:when
+             *  - optional:when_not
+             *  - email:when
+             */
+            if (preg_match($this->config['reg_whens'], $rule, $matches) || preg_match($this->symbol_full_name['reg_whens'], $rule, $matches)) {
+                $target_rule = $matches[1];
+                $if_rule = $matches[3];
+
+                if (preg_match($this->config['reg_when'], $rule) || preg_match($this->symbol_full_name['reg_when'], $rule)) {
+                    $has_when_rule = 1;
+                    $when_type = 'when';
+                } else {
+                    $has_when_rule = 0;
+                    $when_type = 'when_not';
+                }
+
+                $method_rule = $this->parse_method($if_rule, $data, $field);
+                $params = $method_rule['params'];
+                $if_result = $this->execute_method($method_rule, $field_path);
+
+                if ($if_result === "Undefined") return false;
+
+                if (
+                    ($when_type === 'when' && $if_result === true)
+                    || ($when_type === 'when_not' && $if_result !== true)
+                ) {
+                    $is_met_when_rule = true;
+                } else {
+                    $is_met_when_rule = false;
+                }
+
+                $rule = $target_rule;
+            }
 
             /**
              * If rule
@@ -1158,73 +1224,129 @@ class Validation
                     || ($if_type === 'if_not' && $result === true)
                 ) {
                     return true;
-                    // if (!$this->required(isset($data[$field]) ? $data[$field] : null)) return true;
                 }
 
                 $result = true;
             }
-            // Required(*) rule
+            /**
+             * - Required(*) rule
+             * - Required When rule
+             */
             else if ($rule == $this->config['symbol_required'] || $rule == $this->symbol_full_name['symbol_required']) {
                 if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
-                    $result = false;
-                    $error_type = 'required_field';
-                    $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_required']);
+                    /**
+                     * Required(*) rule
+                     */
+                    if ($has_when_rule === -1) {
+                        $result = false;
+                        $error_type = $this->symbol_full_name['symbol_required'];
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_required']);
+                    }
+                    /**
+                     * Required When rule
+                     * If it's a 'Required When rule' or 'Required When Not rule' rule -> Means this field is conditionally required;
+                     * - If the 'Required When rule' validation result is true and the field is not set or empty, then the field is invalid. Otherwise, continue to validate the subsequnse rule;
+                     * - If the 'Required When Not rule' validation result is not true and the field is not set or empty, then the field is invalid. Otherwise, continue to validate the subsequnse rule;
+                     */
+                    else if ($has_when_rule !== -1 && $is_met_when_rule === true) {
+                        $result = false;
+                        $error_type = $this->symbol_full_name['symbol_required'] . ':' . $when_type;
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_required'], $when_type);
+                    }
+                    /**
+                     * Required When rule
+                     * If don't met the When condition, then the field is optional
+                     */
+                    else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
+                        return true;
+                    }
                 }
             }
             /**
-             * Required If rule
-             * If it's a 'Required If rule' or 'Required If Not rule' rule -> Means this field is conditionally required;
-             * - If the 'Required If rule' validation result is true and the field is not set or empty, then the field is invalid. Otherwise, continue to validate the subsequnse rule;
-             * - If the 'Required If Not rule' validation result is not true and the field is not set or empty, then the field is invalid. Otherwise, continue to validate the subsequnse rule;
+             * - Optional(O) rule
+             * - Optional When rule
              */
-            else if (preg_match($this->config['symbol_required_ifs'], $rule, $matches) || preg_match($this->symbol_full_name['symbol_required_ifs'], $rule, $matches)) {
-                if (preg_match($this->config['symbol_required_if'], $rule) || preg_match($this->symbol_full_name['symbol_required_if'], $rule)) {
-                    $required_if_type = 'required_if';
-                } else {
-                    $required_if_type = 'required_if_not';
-                }
-
-                $rule = $matches[2];
-
-                $method_rule = $this->parse_method($rule, $data, $field);
-                $params = $method_rule['params'];
-                $result = $this->execute_method($method_rule, $field_path);
-
-                if ($result === "Undefined") return false;
-                if (
-                    ($required_if_type === 'required_if' && $result === true)
-                    || ($required_if_type === 'required_if_not' && $result !== true)
-                ) {
-                    if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
-                        $result = false;
-                        $error_type = $required_if_type . '_field';
-                        $error_msg = $this->match_error_message($rule_error_msg, $required_if_type);
-                    } else {
-                        $result = true;
-                    }
-                } else {
-                    if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
-                        return true;
-                    } else {
-                        $result = true;
-                    }
-                }
-            }
-            // Optional(O) rule
             else if ($rule == $this->config['symbol_optional'] || $rule == $this->symbol_full_name['symbol_optional']) {
                 if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
-                    return true;
+                    /**
+                     * Optional(O) rule
+                     */
+                    if ($has_when_rule === -1) {
+                        return true;
+                    }
+                    /**
+                     * Optional When rule
+                     * If met the When condition, then the field is optional
+                     */
+                    else if ($has_when_rule !== -1 && $is_met_when_rule === true) {
+                        return true;
+                    }
+                    /**
+                     * Optional When rule
+                     * If don't met the When condition, then the field is required
+                     */
+                    else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
+                        $result = false;
+                        $error_type = $this->symbol_full_name['symbol_optional'] . ':' . $when_type;
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional'], $when_type);
+                    }
                 }
             }
-            // Optional Unset(O!) rule
+            /**
+             * - Optional Unset(O!) rule
+             * - Optional Unset When rule
+             */
             else if ($rule == $this->config['symbol_optional_unset'] || $rule == $this->symbol_full_name['symbol_optional_unset']) {
                 if (!isset($data[$field])) {
-                    return true;
+                    /**
+                     * Optional Unset(O!) rule
+                     */
+                    if ($has_when_rule === -1) {
+                        return true;
+                    }
+                    /**
+                     * Optional Unset When rule
+                     * If met the When condition, then the field is optional_unset
+                     */
+                    else if ($has_when_rule !== -1 && $is_met_when_rule === true) {
+                        return true;
+                    }
+                    /**
+                     * Optional Unset When rule
+                     * If don't met the When condition, then the field is required
+                     */
+                    else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
+                        $result = false;
+                        $error_type = $this->symbol_full_name['symbol_optional_unset'] . ':' . $when_type;
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset'], $when_type);
+                    }
                 } else if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
-                    $result = false;
-                    $error_type = 'optional_unset_field';
-                    $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset']);
+                    /**
+                     * Optional Unset(O!) rule
+                     */
+                    if ($has_when_rule === -1) {
+                        $result = false;
+                        $error_type = $this->symbol_full_name['symbol_optional_unset'];
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset']);
+                    }
+                    /**
+                     * Optional Unset When rule
+                     * - If met the When condition, then the field can not be empty
+                     * - If don't met the When condition, then the field is required
+                     */
+                    else {
+                        $result = false;
+                        $error_type = $this->symbol_full_name['symbol_optional_unset'] . ':' . $when_type;
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset'], $when_type);
+                    }
                 }
+            }
+            /**
+             * Most of the system symbols or methods support to be append a When rule.
+             * If the condition of When rule is not met, we don't need to check the Regular expression and Method below
+             */
+            else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
+                $result = true;
             }
             // Regular expression
             else if (preg_match($this->config['reg_preg'], $rule, $matches)) {
@@ -1237,7 +1359,7 @@ class Validation
                 } else {
                     if (!preg_match($preg, $data[$field], $matches)) {
                         $result = false;
-                        $error_msg = $this->match_error_message($rule_error_msg, 'preg');
+                        $error_msg = $this->match_error_message($rule_error_msg, 'preg', $when_type);
                         $error_msg = str_replace($this->symbol_preg, $preg, $error_msg);
                     }
                 }
@@ -1250,11 +1372,18 @@ class Validation
 
                 if ($result === "Undefined") return false;
 
-                // If method validation is success. should return true.
-                // If retrun anything others which is not equal to true, then means method validation error.
-                // If retrun not a boolean value, will use the result as error message.
+                /**
+                 * If method validation is success. should return true.
+                 * If retrun anything others which is not equal to true, then means method validation failed.
+                 * If retrun not a boolean value, will use the result as the error message template.
+                 * 
+                 * The error message template priority from high to low:
+                 * 1. Set template in rules array
+                 * 2. Set template via Internationalization, e.g. en-us
+                 * 3. Return the template directly in the method
+                 */
                 if ($result !== true) {
-                    $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol'], true);
+                    $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol'], $when_type, true);
 
                     if (is_array($result)) {
                         $error_type = isset($result['error_type']) ? $result['error_type'] : $error_type;
@@ -1263,16 +1392,18 @@ class Validation
                         $error_msg = empty($error_msg) ? $result : $error_msg;
                     }
 
-                    // $result = false;
-
                     if (empty($error_msg)) {
-                        $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol']);
+                        $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol'], $when_type);
                     }
                 }
             }
 
-            // 1. if it's a 'if' rule -> result is not true, should set error
-            // 2. if it's a 'if' rule -> means this field is optional; If result is not true, don't set error
+            /**
+             * Inject variables into error message template
+             * For example:
+             * - @this
+             * - @p1
+             */
             if ($result !== true) {
                 // Replace symbol to field name and parameter value
                 $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
