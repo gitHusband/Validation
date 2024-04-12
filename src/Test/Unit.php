@@ -2,6 +2,8 @@
 
 namespace githusband\Test;
 
+use githusband\Test\Rule\TestRuleDefault;
+
 /**
  * 1. How to add a new unit test case?
  *  To add a new method for Unit class. The method name must be starting with "test_".
@@ -109,6 +111,8 @@ class Unit extends TestCommon
         }
 
         $method_info = $this->{$method_name}();
+
+        if (empty($method_info)) return true;
 
         if ($error_data !== false) return $this->get_method_info($method_info['rule'], $method_info['cases'], $method_info['extra'], $error_data);
 
@@ -3608,8 +3612,8 @@ class Unit extends TestCommon
             'reg_if' => '/^IFy?\?/',                                    // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
             'reg_if_not' => '/^IFn\?/',                                 // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
             'symbol_rule_separator' => '&&',                            // Rule reqarator for one field
-            'symbol_param_this_omitted' => '/^(.*)~(.*)$/',             // If set function by this symbol, will add a @this parameter at first 
-            'symbol_param_standard' => '/^(.*)~~(.*)$/',                // If set function by this symbol, will not add a @this parameter at first 
+            'symbol_method_omit_this' => '/^(.*)~(.*)$/',             // If set function by this symbol, will add a @this parameter at first 
+            'symbol_method_standard' => '/^(.*)~~(.*)$/',                // If set function by this symbol, will not add a @this parameter at first 
             // 'symbol_param_separator' => ',',                            // Parameters separator, such as @this,@field1,@field2
             'symbol_field_name_separator' => '->',                      // Field name separator, suce as "fruit.apple"
             'symbol_required' => '!*',                                  // Symbol of required field, Same as "required"
@@ -3618,7 +3622,7 @@ class Unit extends TestCommon
             // 'symbol_required_ifs' => '/^\x\?x?\((.*)\)/',               // A regular expression to match both symbol_required_if and symbol_required_if_not
             'symbol_optional' => 'o',                                   // Symbol of optional field, can be not set or empty, Same as "optional"
             // 'symbol_optional_unset' => 'O!',                            // Symbol of optional field, can be not set only, Same as "optional_unset"
-            'symbol_or' => '[or]',                                      // Symbol of or rule, Same as "[or]"
+            'symbol_parallel_rule' => '[or]',                                      // Symbol of or rule, Same as "[or]"
             'symbol_array_optional' => '[o]',                           // Symbol of array optional rule, Same as "[optional]"
             'symbol_index_array' => '[N]',                              // Symbol of index array rule
         ];
@@ -3955,53 +3959,5 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_in_method()
-    {
-        $rule = [
-            "id" => "required|(n)[1,2,3]",
-        ];
-
-        $cases = [
-            "Valid_data_1" => [
-                "data" => [
-                    "id" => "1",
-                ]
-            ],
-            "Valid_data_2" => [
-                "data" => [
-                    "id" => "2",
-                ]
-            ],
-            "Invalid_1" => [
-                "data" => [
-                    "id" => "4",
-                ],
-                "parameters" => [
-                    "1,2,3"
-                ],
-                // "expected_msg" => [ "id" => "id must be numeric and in 1,2,3" ]
-            ],
-            "Invalid_2" => [
-                "data" => [
-                    "id" => "12",
-                ],
-                "expected_msg" => ["id" => "id must be numeric and in 1,2,3"]
-            ],
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "error_tag" => "(n)",
-            "field_path" => "id",
-            "parameters" => [
-                "1,2,3"
-            ],
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
+    use TestRuleDefault;
 }

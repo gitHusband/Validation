@@ -17,6 +17,9 @@
 
 任意规则或方法都支持 `when` 和 `when_not`
 
+### 优化 ruleDefault 并为其添加单元测试
+
+
 ### 增加真正的 "条件规则"
 
 例如 `"data" => "if(...) {required|int} elseif(...) {required|int} else {optional|/^[a-zA-Z0-9]+$/}"`

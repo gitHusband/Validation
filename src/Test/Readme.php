@@ -409,27 +409,14 @@ class Readme extends TestCommon
         ];
 
         $custom_config = [
-            // 'language' => 'en-us',                                  // Language, default is en-us
-            // 'lang_path' => '',                                      // Customer Language file path
-            // 'validation_global' => true,                            // If true, validate all rules; If false, stop validating when one rule was invalid
-            // 'auto_field' => "root",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
-            // 'reg_msg' => '/ >>>(.*)$/',                             // Set special error msg by user 
-            'reg_preg' => '/^Reg:(\/.+\/.*)$/',                     // If match this, using regular expression instead of method
-            // 'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
-            // 'reg_if' => '/^IF[yn]?\?(.*)$/',                        // If match this, validate this condition first
-            // 'reg_if_true' => '/^IFy?\?/',                           // If match this, validate this condition first, if true, then validate the field
-            // 'reg_if_false' => '/^IFn\?/',                           // If match this, validate this condition first, if false, then validate the field
-            'symbol_rule_separator' => '&&',                        // Rule reqarator for one field
-            'symbol_param_this_omitted' => '/^(.*)~(.*)$/',         // If set function by this symbol, will add a @this parameter at first 
-            'symbol_param_standard' => '/^(.*)#(.*)$/',             // If set function by this symbol, will not add a @this parameter at first 
-            'symbol_param_separator' => '+',                        // Parameters separator, such as @this,@field1,@field2
-            'symbol_field_name_separator' => '->',                  // Field name separator, suce as "fruit.apple"
-            'symbol_required' => '!*',                              // Symbol of required field, Same as "required"
-            'symbol_optional' => 'o?',                              // Symbol of optional field, can be unset or empty, Same as "optional"
-            // 'symbol_optional_unset' => 'Ox',                        // Symbol of optional field, can only be unset or not empty, Same as "optional_unset"
-            // 'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
-            // 'symbol_array_optional' => '[o]',                       // Symbol of array optional rule, Same as "[optional]"
-            // 'symbol_index_array' => '[N]',                          // Symbol of index array rule
+            'reg_preg' => '/^Reg:(\/.+\/.*)$/',                         // If a rule match reg_preg, indicates it's a regular expression instead of method
+            'symbol_rule_separator' => '&&',                            // Serial rules seqarator to split a rule into multiple methods
+            'symbol_method_standard' => '/^(.*)#(.*)$/',                // Standard method format, e.g. equal(@this,1)
+            'symbol_method_omit_this' => '/^(.*)~(.*)$/',               // @this omitted method format, will add a @this parameter at first. e.g. equal[1]
+            'symbol_parameter_separator' => '+',                        // Parameters separator to split the parameter string of a method into multiple parameters, e.g. equal(@this,1)
+            'symbol_field_name_separator' => '->',                      // Field name separator of error message, e.g. "fruit.apple"
+            'symbol_required' => '!*',                                  // Symbol of required field, Same as the rule "required"
+            'symbol_optional' => 'o?',                                  // Symbol of optional field, can be not set or empty, Same as the rule "optional"
         ];
         // 实例化类，接受一个自定义配置数组，但不必要
         $validation = new Validation($custom_config);

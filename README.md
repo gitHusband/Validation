@@ -622,32 +622,34 @@ $rule = [
 
 ```PHP
 $config = [
-    'language' => 'en-us',                                  // Language, default is en-us
-    'lang_path' => '',                                      // Customer Language file path
-    'validation_global' => true,                            // If true, validate all rules; If false, stop validating when one rule was invalid
-    'auto_field' => "data",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
-    'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
-    'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
-    'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
-    'reg_ifs' => '/^!?if\((.*)\)/',                         // A regular expression to match both reg_if and reg_if_not
-    'reg_if' => '/^if\((.*)\)/',                            // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-    'reg_if_not' => '/^!if\((.*)\)/',                       // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
-    'symbol_rule_separator' => '|',                         // Rule reqarator for one field
-    'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
-    'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
-    'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
-    'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
-    'symbol_required' => '*',                               // Symbol of required field, Same as "required"
-    'symbol_optional' => 'O',                               // Symbol of optional field, can be not set or empty, Same as "optional"
-    'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can be not set only, Same as "optional_unset"
-    'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
-    'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
-    'symbol_index_array' => '.*',                           // Symbol of index array rule
-    'reg_whens' => '/^(.+):(!)?\?\((.*)\)/',                // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
-    'reg_when' => '/^(.+):\?\((.*)\)/',                     // A regular expression to match a field which must be validated by method($1) only when the condition($3) is true
-    'symbol_when' => ':?',                                  // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
-    'reg_when_not' => '/^(.+):!\?\((.*)\)/',                // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
-    'symbol_when_not' => ':!?',                             // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+    'language' => 'en-us',                                      // Language, Default en-us
+    'lang_path' => '',                                          // Customer Language file path
+    'validation_global' => true,                                // 1. true - validate all rules even though previous rule had been failed; 2. false - stop validating when any rule is failed
+    'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field as the root data field name
+    'reg_msg' => '/ >> (.*)$/',                                 // Set the error message format for all the methods after a rule string
+    'reg_preg' => '/^(\/.+\/.*)$/',                             // If a rule match reg_preg, indicates it's a regular expression instead of method
+    'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if a regular expression is valid
+    'reg_ifs' => '/^!?if\((.*)\)/',                             // A regular expression to match both reg_if and reg_if_not
+    'reg_if' => '/^if\((.*)\)/',                                // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+    'reg_if_not' => '/^!if\((.*)\)/',                           // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+    'symbol_rule_separator' => '|',                             // Serial rules seqarator to split a rule into multiple methods
+    'symbol_parallel_rule' => '[||]',                           // Symbol of the parallel rule, Same as "[or]"
+    'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)
+    'symbol_method_omit_this' => '/^([^\\[]*)\\[(.*)\\]$/',     // @this omitted method format, will add a @this parameter at first. e.g. equal[1]
+    'symbol_parameter_separator' => ',',                        // Parameters separator to split the parameter string of a method into multiple parameters, e.g. equal(@this,1)
+    'is_strict_parameter_separator' => false,                   // 1. false - Fast way to parse parameters but not support "," as part of a parameter; 2. true - Slow but support "," and array
+    'is_strict_parameter_type' => false,                        // 1. false - all the parameters type is string; 2. true - Detect the parameters type, e.g. 123 is int, "123" is string
+    'symbol_field_name_separator' => '.',                       // Field name separator of error message, e.g. "fruit.apple"
+    'symbol_required' => '*',                                   // Symbol of required field, Same as the rule "required"
+    'symbol_optional' => 'O',                                   // Symbol of optional field, can be not set or empty, Same as the rule "optional"
+    'symbol_optional_unset' => 'O!',                            // Symbol of optional field, can be not set only, Same as the rule "optional_unset"
+    'symbol_array_optional' => '[O]',                           // Symbol of array optional rule, Same as "[optional]"
+    'symbol_index_array' => '.*',                               // Symbol of index array rule
+    'reg_whens' => '/^(.+):(!)?\?\((.*)\)/',                    // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
+    'reg_when' => '/^(.+):\?\((.*)\)/',                         // A regular expression to match a field which must be validated by method($1) only when the condition($3) is true
+    'symbol_when' => ':?',                                      // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+    'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
+    'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
 ];
 ```
 
@@ -658,14 +660,14 @@ $config = [
 
 ```PHP
 $custom_config = [
-    'reg_preg' => '/^Reg:(\/.+\/.*)$/',                     // If match this, using regular expression instead of method
-    'symbol_rule_separator' => '&&',                        // Rule reqarator for one field
-    'symbol_param_this_omitted' => '/^(.*)~(.*)$/',         // If set function by this symbol, will add a @this parameter at first 
-    'symbol_param_standard' => '/^(.*)#(.*)$/',             // If set function by this symbol, will not add a @this parameter at first 
-    'symbol_param_separator' => '+',                        // Parameters separator, such as @this,@field1,@field2
-    'symbol_field_name_separator' => '->',                  // Field name separator, suce as "fruit.apple"
-    'symbol_required' => '!*',                              // Symbol of required field, Same as "required"
-    'symbol_optional' => 'o?',                              // Symbol of optional field, can be unset or empty, Same as "optional"
+    'reg_preg' => '/^Reg:(\/.+\/.*)$/',                         // If a rule match reg_preg, indicates it's a regular expression instead of method
+    'symbol_rule_separator' => '&&',                            // Serial rules seqarator to split a rule into multiple methods
+    'symbol_method_standard' => '/^(.*)#(.*)$/',                // Standard method format, e.g. equal(@this,1)
+    'symbol_method_omit_this' => '/^(.*)~(.*)$/',               // @this omitted method format, will add a @this parameter at first. e.g. equal[1]
+    'symbol_parameter_separator' => '+',                        // Parameters separator to split the parameter string of a method into multiple parameters, e.g. equal(@this,1)
+    'symbol_field_name_separator' => '->',                      // Field name separator of error message, e.g. "fruit.apple"
+    'symbol_required' => '!*',                                  // Symbol of required field, Same as the rule "required"
+    'symbol_optional' => 'o?',                                  // Symbol of optional field, can be not set or empty, Same as the rule "optional"
 ];
 
 $validation = new Validation($custom_config);
@@ -907,13 +909,13 @@ function check_animal($animal) {
 / | `call_method` | @method 未定义
 `=` | `equal` | @this 必须等于 @p1
 `!=` | `not_equal` | @this 必须不等于 @p1
-`==` | `identically_equal` | @this 必须全等于 @p1
-`!==` | `not_identically_equal` | @this 必须不全等于 @p1
+`==` | `strictly_equal` | @this 必须全等于 @p1
+`!==` | `not_strictly_equal` | @this 必须不全等于 @p1
 `>` | `greater_than` | @this 必须大于 @p1
 `<` | `less_than` | @this 必须小于 @p1
 `>=` | `greater_than_equal` | @this 必须大于等于 @p1
 `<=` | `less_than_equal` | @this 必须小于等于 @p1
-`<>` | `interval` | @this 必须大于 @p1 且小于 @p2
+`<>` | `between` | @this 必须大于 @p1 且小于 @p2
 `<=>` | `greater_lessequal` | @this 必须大于 @p1 且小于等于 @p2
 `<>=` | `greaterequal_less` | @this 必须大于等于 @p1 且小于 @p2
 `<=>=` | `greaterequal_lessequal` | @this 必须大于等于 @p1 且小于等于 @p2
@@ -927,18 +929,18 @@ function check_animal($animal) {
 `len<` | `length_less_than` | @this 长度必须小于 @p1
 `len>=` | `length_greater_than_equal` | @this 长度必须大于等于 @p1
 `len<=` | `length_less_than_equal` | @this 长度必须小于等于 @p1
-`len<>` | `length_interval` | @this 长度必须大于 @p1 且小于 @p2
+`len<>` | `length_between` | @this 长度必须大于 @p1 且小于 @p2
 `len<=>` | `length_greater_lessequal` | @this 长度必须大于 @p1 且小于等于 @p2
 `len<>=` | `length_greaterequal_less` | @this 长度必须大于等于 @p1 且小于 @p2
 `len<=>=` | `length_greaterequal_lessequal` | @this 长度必须大于等于 @p1 且小于等于 @p2
 `int` | `integer` | @this 必须是整型
-`float` | `float` | @this 必须是小数
-`string` | `string` | @this 必须是字符串
-/ | `arr` | @this 必须是数组
+/ | `float` | @this 必须是小数
+/ | `string` | @this 必须是字符串
+`arr` | `is_array` | @this 必须是数组
 / | `bool` | @this 必须是布尔型
-`bool=` | `bool` | @this 必须是布尔型且等于 @p1
+`bool=` | `bool_equal` | @this 必须是布尔型且等于 @p1
 / | `bool_str` | @this 必须是布尔型字符串
-`bool_str=` | `bool_str` | @this 必须是布尔型字符串且等于 @p1
+`bool_str=` | `bool_str_equal` | @this 必须是布尔型字符串且等于 @p1
 / | `email` | @this 必须是邮箱
 / | `url` | @this 必须是网址
 / | `ip` | @this 必须是IP地址

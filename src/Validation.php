@@ -99,32 +99,34 @@ class Validation
 
     protected $default_config_backup;
     protected $config = [
-        'language' => 'en-us',                                  // Language, default is en-us
-        'lang_path' => '',                                      // Customer Language file path
-        'validation_global' => true,                            // If true, validate all rules; If false, stop validating when one rule was invalid
-        'auto_field' => "data",                                 // If root data is string or numberic array, add the auto_field to the root data, can validate these kind of data type.
-        'reg_msg' => '/ >> (.*)$/',                             // Set special error msg by user 
-        'reg_preg' => '/^(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
-        'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',     // Verify if the regular expression is valid
-        'reg_ifs' => '/^!?if\((.*)\)/',                         // A regular expression to match both reg_if and reg_if_not
-        'reg_if' => '/^if\((.*)\)/',                            // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-        'reg_if_not' => '/^!if\((.*)\)/',                       // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
-        'symbol_rule_separator' => '|',                         // Rule reqarator for one field
-        'symbol_param_this_omitted' => '/^(.*)\\[(.*)\\]$/',    // If set function by this symbol, will add a @this parameter at first 
-        'symbol_param_standard' => '/^(.*)\\((.*)\\)$/',        // If set function by this symbol, will not add a @this parameter at first 
-        'symbol_param_separator' => ',',                        // Parameters separator, such as @this,@field1,@field2
-        'symbol_field_name_separator' => '.',                   // Field name separator, suce as "fruit.apple"
-        'symbol_required' => '*',                               // Symbol of required field, Same as "required"
-        'symbol_optional' => 'O',                               // Symbol of optional field, can be not set or empty, Same as "optional"
-        'symbol_optional_unset' => 'O!',                        // Symbol of optional field, can be not set only, Same as "optional_unset"
-        'symbol_or' => '[||]',                                  // Symbol of or rule, Same as "[or]"
-        'symbol_array_optional' => '[O]',                       // Symbol of array optional rule, Same as "[optional]"
-        'symbol_index_array' => '.*',                           // Symbol of index array rule
-        'reg_whens' => '/^(.+):(!)?\?\((.*)\)/',                // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
-        'reg_when' => '/^(.+):\?\((.*)\)/',                     // A regular expression to match a field which must be validated by method($1) only when the condition($3) is true
-        'symbol_when' => ':?',                                  // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
-        'reg_when_not' => '/^(.+):!\?\((.*)\)/',                // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
-        'symbol_when_not' => ':!?',                             // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+        'language' => 'en-us',                                      // Language, Default en-us
+        'lang_path' => '',                                          // Customer Language file path
+        'validation_global' => true,                                // 1. true - validate all rules even though previous rule had been failed; 2. false - stop validating when any rule is failed
+        'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field as the root data field name
+        'reg_msg' => '/ >> (.*)$/',                                 // Set the error message format for all the methods after a rule string
+        'reg_preg' => '/^(\/.+\/.*)$/',                             // If a rule match reg_preg, indicates it's a regular expression instead of method
+        'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if a regular expression is valid
+        'reg_ifs' => '/^!?if\((.*)\)/',                             // A regular expression to match both reg_if and reg_if_not
+        'reg_if' => '/^if\((.*)\)/',                                // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+        'reg_if_not' => '/^!if\((.*)\)/',                           // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+        'symbol_rule_separator' => '|',                             // Serial rules seqarator to split a rule into multiple methods
+        'symbol_parallel_rule' => '[||]',                           // Symbol of the parallel rule, Same as "[or]"
+        'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)
+        'symbol_method_omit_this' => '/^([^\\[]*)\\[(.*)\\]$/',     // @this omitted method format, will add a @this parameter at first. e.g. equal[1]
+        'symbol_parameter_separator' => ',',                        // Parameters separator to split the parameter string of a method into multiple parameters, e.g. equal(@this,1)
+        'is_strict_parameter_separator' => false,                   // 1. false - Fast way to parse parameters but not support "," as part of a parameter; 2. true - Slow but support "," and array
+        'is_strict_parameter_type' => false,                        // 1. false - all the parameters type is string; 2. true - Detect the parameters type, e.g. 123 is int, "123" is string
+        'symbol_field_name_separator' => '.',                       // Field name separator of error message, e.g. "fruit.apple"
+        'symbol_required' => '*',                                   // Symbol of required field, Same as the rule "required"
+        'symbol_optional' => 'O',                                   // Symbol of optional field, can be not set or empty, Same as the rule "optional"
+        'symbol_optional_unset' => 'O!',                            // Symbol of optional field, can be not set only, Same as the rule "optional_unset"
+        'symbol_array_optional' => '[O]',                           // Symbol of array optional rule, Same as "[optional]"
+        'symbol_index_array' => '.*',                               // Symbol of index array rule
+        'reg_whens' => '/^(.+):(!)?\?\((.*)\)/',                    // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
+        'reg_when' => '/^(.+):\?\((.*)\)/',                         // A regular expression to match a field which must be validated by method($1) only when the condition($3) is true
+        'symbol_when' => ':?',                                      // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+        'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
+        'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
     ];
 
     /**
@@ -138,7 +140,7 @@ class Validation
         'symbol_required' => 'required',                            // Symbol Full Name of required field
         'symbol_optional' => 'optional',                            // Symbol Full Name of optional field, can be not set or empty
         'symbol_optional_unset' => 'optional_unset',                // Symbol Full Name of optional field, can be not set only
-        'symbol_or' => '[or]',                                      // Symbol Full Name of or rule
+        'symbol_parallel_rule' => '[or]',                           // Symbol Full Name of parallel rule
         'symbol_array_optional' => '[optional]',                    // Symbol Full Name of array optional rule
         'reg_whens' => '/^(.+):when(_not)?\((.*)\)/',               // A regular expression to match both reg_when and reg_when_not. Most of the methods are allowed to append a if rule, e.g. required:when, optional:when_not
         'reg_when' => '/^(.+):when\((.*)\)/',                       // A regular expression of When Rule to match a field which must be validated by method($1) only when the condition($3) is true
@@ -174,6 +176,13 @@ class Validation
      * @var array
      */
     protected $method_symbol = [];
+    /**
+     * Flip the method symbol
+     * e.g. 'equal' => '='
+     * @see static::method_symbol
+     * @var array
+     */
+    protected $method_symbol_flip = [];
 
     /**
      * Language file path
@@ -280,6 +289,8 @@ class Validation
                 $this->method_symbol = array_merge($this->method_symbol, $this->{$trait_method_symbol});
             }
         }
+
+        $this->method_symbol_flip = array_flip($this->method_symbol);
     }
 
     /**
@@ -503,7 +514,7 @@ class Validation
             if (!empty($rule_system_symbol)) {
                 // Allow array or object to be optional
                 if ($this->has_system_symbol($rule_system_symbol, 'symbol_array_optional')) {
-                    if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
+                    if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                         $this->set_result($field_path_tmp, true);
                         continue;
                     }
@@ -511,7 +522,7 @@ class Validation
 
                 // Validate "or" rules.
                 // If one of "or" rules is valid, then the field is valid.
-                if ($this->has_system_symbol($rule_system_symbol, 'symbol_or')) {
+                if ($this->has_system_symbol($rule_system_symbol, 'symbol_parallel_rule')) {
                     $result = $this->execute_or_rules($data, $field, $field_path_tmp, $rule[$rule_system_symbol]);
                 }
                 // Validate index array
@@ -541,10 +552,10 @@ class Validation
                     $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_array_optional');
 
                     // Delete all other array symbols
-                    $field_tmp = $this->delete_system_symbol($field, 'symbol_or');
+                    $field_tmp = $this->delete_system_symbol($field, 'symbol_parallel_rule');
                     $field_tmp = $this->delete_system_symbol($field_tmp, 'symbol_index_array');
 
-                    if (!$this->required(isset($data[$field_tmp]) ? $data[$field_tmp] : null)) {
+                    if (!static::required(isset($data[$field_tmp]) ? $data[$field_tmp] : null)) {
                         $this->set_result($field_path_tmp, true);
                         continue;
                     }
@@ -552,9 +563,9 @@ class Validation
 
                 // Validate "or" rules.
                 // If one of "or" rules is valid, then the field is valid.
-                if ($this->has_system_symbol($field, 'symbol_or')) {
-                    $field = $this->delete_system_symbol($field, 'symbol_or');
-                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_or');
+                if ($this->has_system_symbol($field, 'symbol_parallel_rule')) {
+                    $field = $this->delete_system_symbol($field, 'symbol_parallel_rule');
+                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_parallel_rule');
 
                     $result = $this->execute_or_rules($data, $field, $field_path_tmp, $rule);
                 }
@@ -611,8 +622,8 @@ class Validation
             $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_array_optional');
         }
 
-        if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_or')) {
-            $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_or');
+        if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_parallel_rule')) {
+            $rule_system_symbol_string_tmp = $this->delete_system_symbol($rule_system_symbol_string_tmp, 'symbol_parallel_rule');
         }
 
         if ($this->has_system_symbol($rule_system_symbol_string, 'symbol_index_array')) {
@@ -648,10 +659,10 @@ class Validation
                     return true;
                 }
                 break;
-            case 'symbol_or':
+            case 'symbol_parallel_rule':
                 if (
-                    strpos($rule_system_symbol_string, $this->config['symbol_or']) !== false
-                    || strpos($rule_system_symbol_string, $this->symbol_full_name['symbol_or']) !== false
+                    strpos($rule_system_symbol_string, $this->config['symbol_parallel_rule']) !== false
+                    || strpos($rule_system_symbol_string, $this->symbol_full_name['symbol_parallel_rule']) !== false
                 ) {
                     return true;
                 }
@@ -692,9 +703,9 @@ class Validation
                 $rule_system_symbol_string = str_replace($this->symbol_full_name['symbol_array_optional'], '', $rule_system_symbol_string);
                 return $rule_system_symbol_string;
                 break;
-            case 'symbol_or':
-                $rule_system_symbol_string = str_replace($this->config['symbol_or'], '', $rule_system_symbol_string);
-                $rule_system_symbol_string = str_replace($this->symbol_full_name['symbol_or'], '', $rule_system_symbol_string);
+            case 'symbol_parallel_rule':
+                $rule_system_symbol_string = str_replace($this->config['symbol_parallel_rule'], '', $rule_system_symbol_string);
+                $rule_system_symbol_string = str_replace($this->symbol_full_name['symbol_parallel_rule'], '', $rule_system_symbol_string);
                 return $rule_system_symbol_string;
                 break;
             case 'symbol_index_array':
@@ -712,8 +723,8 @@ class Validation
     /**
      * Execute validation of "or" rules.
      * There has two ways to add "or" rules:
-     * 1. Add symbol_or in the end of the field. Such as $rule = [ "name[or]" => [ "*|string", "*|int" ] ];
-     * 2. Add symbol_or as the only one child of the field. Such as $rule = [ "name" => [ "[or]" => [ "*|string", "*|int" ] ] ];
+     * 1. Add symbol_parallel_rule in the end of the field. Such as $rule = [ "name[or]" => [ "*|string", "*|int" ] ];
+     * 2. Add symbol_parallel_rule as the only one child of the field. Such as $rule = [ "name" => [ "[or]" => [ "*|string", "*|int" ] ] ];
      * If one of "or" rules is valid, then the field is valid.
      *
      * @param array $data The parent data of the field which is related to the rules
@@ -868,7 +879,7 @@ class Validation
             }
         }
 
-        $rules = $this->split_serial_rule_strict($rule);
+        $rules = $this->parse_serial_rule_strict($rule);
 
         $parse_rule = [
             'rules' => $rules,
@@ -925,7 +936,7 @@ class Validation
      * @param string $rule
      * @return array
      */
-    protected function split_serial_rule_strict($rule)
+    protected function parse_serial_rule_strict($rule)
     {
         $symbol_rule_separator = $this->config['symbol_rule_separator'];
         $symbol_rule_separator_length = strlen($symbol_rule_separator);
@@ -1233,7 +1244,7 @@ class Validation
              * - Required When rule
              */
             else if ($rule == $this->config['symbol_required'] || $rule == $this->symbol_full_name['symbol_required']) {
-                if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
+                if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
                      * Required(*) rule
                      */
@@ -1267,7 +1278,7 @@ class Validation
              * - Optional When rule
              */
             else if ($rule == $this->config['symbol_optional'] || $rule == $this->symbol_full_name['symbol_optional']) {
-                if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
+                if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
                      * Optional(O) rule
                      */
@@ -1320,7 +1331,7 @@ class Validation
                         $error_type = $this->symbol_full_name['symbol_optional_unset'] . ':' . $when_type;
                         $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset'], $when_type);
                     }
-                } else if (!$this->required(isset($data[$field]) ? $data[$field] : null)) {
+                } else if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
                      * Optional Unset(O!) rule
                      */
@@ -1450,15 +1461,15 @@ class Validation
     protected function parse_method($rule, $data, $field)
     {
         // If force parameter, will not add the field value as the first parameter even though no the field parameter
-        if (preg_match($this->config['symbol_param_standard'], $rule, $matches)) {
+        if (preg_match($this->config['symbol_method_standard'], $rule, $matches)) {
             $method = $matches[1];
             $params = $matches[2];
-            $params = explode($this->config['symbol_param_separator'], $params);
+            $params = $this->parse_parameters($params);
             // If classic parameter, will add the field value as the first parameter if no the field parameter
-        } else if (preg_match($this->config['symbol_param_this_omitted'], $rule, $matches)) {
+        } else if (preg_match($this->config['symbol_method_omit_this'], $rule, $matches)) {
             $method = $matches[1];
             $params = $matches[2];
-            $params = explode($this->config['symbol_param_separator'], $params);
+            $params = $this->parse_parameters($params);
             if (!in_array($this->symbol_this, $params)) {
                 array_unshift($params, $this->symbol_this);
             }
@@ -1468,8 +1479,12 @@ class Validation
             $params = [$this->symbol_this];
         }
 
-        $symbol = $method;
-        $method = isset($this->method_symbol[$method]) ? $this->method_symbol[$method] : $method;
+        if (isset($this->method_symbol[$method])) {
+            $symbol = $method;
+            $method = $this->method_symbol[$method];
+        } else {
+            $symbol = isset($this->method_symbol_flip[$method]) ? $this->method_symbol_flip[$method] : $method;
+        }
 
         foreach ($params as &$param) {
             if (is_array($param)) continue;
@@ -1491,6 +1506,10 @@ class Validation
                         if ($param === null) $param = $this->get_field($this->data, $param_field);
                         break;
                 }
+            } else {
+                if (!empty($this->config['is_strict_parameter_type'])) {
+                    $param = static::parse_strict_data_type($param);
+                }
             }
         }
 
@@ -1511,6 +1530,112 @@ class Validation
         ];
 
         return $method_rule;
+    }
+
+    protected function parse_parameters($params)
+    {
+        if (empty($this->config['is_strict_parameter_separator'])) return $this->parse_parameters_simple($params);
+        else return $this->parse_parameters_strict($params);
+    }
+
+    /**
+     * Parse parameters from string to array
+     * The symbol_parameter_separator(e.g. ",") is not allowed in parameter
+     *
+     * @param string $params
+     * @return array
+     */
+    protected function parse_parameters_simple($params)
+    {
+        return $params = explode($this->config['symbol_parameter_separator'], $params);
+    }
+
+    /**
+     * Parse parameters from string to array
+     * - The symbol_parameter_separator(e.g. ",") is allowed in parameter
+     * - Supports One-dimensional Array which look like this [1,2,3],a,b
+     *
+     * @param string $parameter
+     * @return array
+     */
+    protected function parse_parameters_strict($parameter)
+    {
+        $symbol_parameter_separator = $this->config['symbol_parameter_separator'];
+        $symbol_parameter_separator_length = strlen($symbol_parameter_separator);
+
+        $parameters = [];
+        $current_parameter = '';
+        $is_next_parameter_flag = 0;
+        $is_array_flag = 0;
+
+        $parameter_length = strlen($parameter);
+        for ($i = 0; $i < $parameter_length; $i++) {
+            $char = $parameter[$i];
+
+            // 支持自定义配置 symbol_parameter_separator 为多个字符
+            if ($symbol_parameter_separator_length > 1 && $char == $symbol_parameter_separator[0]) {
+                $ii = $i + 1;
+                $is_symbol_parameter_separator = true;
+                for ($j = 1; $j < $symbol_parameter_separator_length; $j++) {
+                    if ($symbol_parameter_separator[$j] != $parameter[$ii]) {
+                        $is_symbol_parameter_separator = false;
+                        break;
+                    }
+                }
+                if ($is_symbol_parameter_separator) {
+                    $i = $i + $symbol_parameter_separator_length - 1;
+                    $char = $symbol_parameter_separator;
+                }
+            }
+
+            // \ 是转义字符，在它之后的任意一个字符，都不能被当做是参数分隔符
+            // 例如：\,
+            if ($char === '\\') {
+                $current_parameter .= $char;
+                $current_parameter .= $parameter[$i + 1];
+                $i++;
+                continue;
+            }
+
+            // 首次数组开头 [，表明接下来是数组。此为 数组阶段 1
+            // 直到匹配到下一个 ]，表明数组即将结束。此为 数组阶段 2
+            if ($char === '[') {
+                if ($is_array_flag == 0) {
+                    $is_array_flag = 1;
+                }
+            }
+            else if ($char === ']') {
+                if ($is_array_flag == 1) {
+                    $is_array_flag = 2;
+                }
+            }
+            // 数组阶段 1，任意字符都是当前参数的一部分
+            else if ($is_array_flag == 1) {
+
+            }
+            // 一般非数组的参数中，不会包含 ","，所以匹配到它则表明接下来是下一个参数
+            // 在数组中，可能包含 ","，所以必须在数组阶段 2 后，匹配到它才表明接下来是下一个参数
+            else if ($char === $symbol_parameter_separator) {
+                if ($is_array_flag == 0) {
+                    $is_next_parameter_flag = 1;
+                } else if ($is_array_flag == 2) {
+                    $is_array_flag = 0;
+                    $is_next_parameter_flag = 1;
+                }
+            }
+
+            if ($is_next_parameter_flag == 0) {
+                $current_parameter .= $char;
+            } else {
+                $is_next_parameter_flag = 0;
+                if (static::required($current_parameter)) $parameters[] = $current_parameter;
+                $current_parameter = '';
+                $is_array_flag = 0;
+            }
+        }
+
+        if (!empty($current_parameter)) $parameters[] = $current_parameter;
+        return $parameters;
     }
 
     /**
