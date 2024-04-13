@@ -909,8 +909,8 @@ function check_animal($animal) {
 / | `call_method` | @method 未定义
 `=` | `equal` | @this 必须等于 @p1
 `!=` | `not_equal` | @this 必须不等于 @p1
-`==` | `strictly_equal` | @this 必须全等于 @p1
-`!==` | `not_strictly_equal` | @this 必须不全等于 @p1
+`==` | `strictly_equal` | @this 必须严格等于 @t1(@p1)
+`!==` | `not_strictly_equal` | @this 必须严格不等于 @t1(@p1)
 `>` | `greater_than` | @this 必须大于 @p1
 `<` | `less_than` | @this 必须小于 @p1
 `>=` | `greater_than_equal` | @this 必须大于等于 @p1

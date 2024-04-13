@@ -915,8 +915,8 @@ Symbol | Method | Desc
 / | `call_method` | @method is undefined
 `=` | `equal` | @this must be equal to @p1
 `!=` | `not_equal` | @this must be not equal to @p1
-`==` | `strictly_equal` | @this must be strictly equal to @p1
-`!==` | `not_strictly_equal` | @this must not be strictly equal to @p1
+`==` | `strictly_equal` | @this must be strictly equal to @t1(@p1)
+`!==` | `not_strictly_equal` | @this must not be strictly equal to @t1(@p1)
 `>` | `greater_than` | @this must be greater than @p1
 `<` | `less_than` | @this must be less than @p1
 `>=` | `greater_than_equal` | @this must be greater than or equal to @p1

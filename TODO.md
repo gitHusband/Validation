@@ -18,7 +18,7 @@
 任意规则或方法都支持 `when` 和 `when_not`
 
 ### 优化 ruleDefault 并为其添加单元测试
-1. 修复当 is_strict_parameter_type = true 时，`strictly_equal` 和 `not_strictly_equal` 等以及以后可能增加的这种验证严格数据格式的方法，由于两次解析数据格式，导致结果不正确的 bug
+1. ~~修复当 is_strict_parameter_type = true 时，`strictly_equal` 和 `not_strictly_equal` 等以及以后可能增加的这种验证严格数据格式的方法，由于两次解析数据格式，导致结果不正确的 bug~~
 2. 修复当 is_strict_parameter_separator = true 并且 is_strict_parameter_type = true 时，`in_number[[1,2]]` 报错的 bug
 
 

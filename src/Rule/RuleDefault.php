@@ -37,28 +37,15 @@ trait RuleDefault
         'bool_str=' => 'bool_str_equal',
     ];
 
+    protected $strict_methods_of_rule_default = [
+        'strictly_equal',
+        'not_strictly_equal'
+    ];
+
     public static function string_length($string)
     {
         if (!static::string($string)) return -1;
         return mb_strlen($string);
-    }
-
-    public static function parse_strict_data_type($data)
-    {
-        if (!is_string($data)) return $data;
-
-        if (preg_match('/^[\'"](.*)[\'"]$/', $data, $matches)) {
-            $data = $matches[1];
-        } else if (preg_match('/^-?\d+$/', $data)) {
-            $data = (int) $data;
-        } else if (preg_match('/^-?\d+\.\d+$/', $data)) {
-            $data = (float) $data;
-        } else if (static::bool_str($data)) {
-            $data = in_array($data, ['true', 'TRUE']);
-        } else if (preg_match('/^[\[\{].*[\]\}]$/', $data)) {
-            $data = json_decode($data);
-        }
-        return $data;
     }
 
     public static function required($data)
@@ -78,13 +65,11 @@ trait RuleDefault
 
     public static function strictly_equal($data, $param)
     {
-        $param = static::parse_strict_data_type($param);
         return $data === $param;
     }
 
     public static function not_strictly_equal($data, $param)
     {
-        $param = static::parse_strict_data_type($param);
         return $data !== $param;
     }
 

@@ -126,97 +126,97 @@ trait TestRuleDefault
                 "data" => [
                     "key_int" => 1.0,
                 ],
-                "expected_msg" => ["key_int" => "key_int must be strictly equal to 1"]
+                "expected_msg" => ["key_int" => "key_int must be strictly equal to int(1)"]
             ],
             "Invalid_key_int_1" => [
                 "data" => [
                     "key_int" => "1",
                 ],
-                "expected_msg" => ["key_int" => "key_int must be strictly equal to 1"]
+                "expected_msg" => ["key_int" => "key_int must be strictly equal to int(1)"]
             ],
             "Invalid_key_int_str" => [
                 "data" => [
                     "key_int_str" => 1,
                 ],
-                "expected_msg" => ["key_int_str" => "key_int_str must be strictly equal to \"1\""]
+                "expected_msg" => ["key_int_str" => "key_int_str must be strictly equal to string(1)"]
             ],
             "Invalid_key_int_str_1" => [
                 "data" => [
                     "key_int_str" => "2",
                 ],
-                "expected_msg" => ["key_int_str" => "key_int_str must be strictly equal to \"1\""]
+                "expected_msg" => ["key_int_str" => "key_int_str must be strictly equal to string(1)"]
             ],
             "Invalid_key_float" => [
                 "data" => [
                     "key_float" => 1.0,
                 ],
-                "expected_msg" => ["key_float" => "key_float must be strictly equal to 1.1"]
+                "expected_msg" => ["key_float" => "key_float must be strictly equal to float(1.1)"]
             ],
             "Invalid_key_float_1" => [
                 "data" => [
                     "key_float" => "1.1",
                 ],
-                "expected_msg" => ["key_float" => "key_float must be strictly equal to 1.1"]
+                "expected_msg" => ["key_float" => "key_float must be strictly equal to float(1.1)"]
             ],
             "Invalid_key_float_str" => [
                 "data" => [
                     "key_float_str" => 1.1,
                 ],
-                "expected_msg" => ["key_float_str" => "key_float_str must be strictly equal to \"1.1\""]
+                "expected_msg" => ["key_float_str" => "key_float_str must be strictly equal to string(1.1)"]
             ],
             "Invalid_key_float_str_1" => [
                 "data" => [
                     "key_float_str" => "1.10",
                 ],
-                "expected_msg" => ["key_float_str" => "key_float_str must be strictly equal to \"1.1\""]
+                "expected_msg" => ["key_float_str" => "key_float_str must be strictly equal to string(1.1)"]
             ],
             "Invalid_key_bool_true" => [
                 "data" => [
                     "key_bool_true" => 1,
                 ],
-                "expected_msg" => ["key_bool_true" => "key_bool_true must be strictly equal to TRUE"]
+                "expected_msg" => ["key_bool_true" => "key_bool_true must be strictly equal to bool(true)"]
             ],
             "Invalid_key_bool_true_1" => [
                 "data" => [
                     "key_bool_true" => "true",
                 ],
-                "expected_msg" => ["key_bool_true" => "key_bool_true must be strictly equal to TRUE"]
+                "expected_msg" => ["key_bool_true" => "key_bool_true must be strictly equal to bool(true)"]
             ],
             "Invalid_key_bool_false" => [
                 "data" => [
                     "key_bool_false" => 0,
                 ],
-                "expected_msg" => ["key_bool_false" => "key_bool_false must be strictly equal to FALSE"]
+                "expected_msg" => ["key_bool_false" => "key_bool_false must be strictly equal to bool(false)"]
             ],
             "Invalid_key_bool_false_1" => [
                 "data" => [
                     "key_bool_false" => "false",
                 ],
-                "expected_msg" => ["key_bool_false" => "key_bool_false must be strictly equal to FALSE"]
+                "expected_msg" => ["key_bool_false" => "key_bool_false must be strictly equal to bool(false)"]
             ],
             "Invalid_key_bool_str_true" => [
                 "data" => [
                     "key_bool_str_true" => true,
                 ],
-                "expected_msg" => ["key_bool_str_true" => "key_bool_str_true must be strictly equal to \"true\""]
+                "expected_msg" => ["key_bool_str_true" => "key_bool_str_true must be strictly equal to string(true)"]
             ],
             "Invalid_key_bool_str_true_1" => [
                 "data" => [
                     "key_bool_str_true" => "TRUE",
                 ],
-                "expected_msg" => ["key_bool_str_true" => "key_bool_str_true must be strictly equal to \"true\""]
+                "expected_msg" => ["key_bool_str_true" => "key_bool_str_true must be strictly equal to string(true)"]
             ],
             "Invalid_key_bool_str_FALSE" => [
                 "data" => [
                     "key_bool_str_FALSE" => false,
                 ],
-                "expected_msg" => ["key_bool_str_FALSE" => "key_bool_str_FALSE must be strictly equal to \"FALSE\""]
+                "expected_msg" => ["key_bool_str_FALSE" => "key_bool_str_FALSE must be strictly equal to string(FALSE)"]
             ],
             "Invalid_key_bool_str_FALSE_1" => [
                 "data" => [
                     "key_bool_str_FALSE" => "false",
                 ],
-                "expected_msg" => ["key_bool_str_FALSE" => "key_bool_str_FALSE must be strictly equal to \"FALSE\""]
+                "expected_msg" => ["key_bool_str_FALSE" => "key_bool_str_FALSE must be strictly equal to string(FALSE)"]
             ],
         ];
 

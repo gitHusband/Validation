@@ -185,6 +185,21 @@ class Validation
     protected $method_symbols_flip = [];
 
     /**
+     * Generally, the method parameters type are string.
+     * But if the config is_strict_parameter_separator = true, the method parameters type will be detected, and forcibly converted to the corresponding type.
+     * These strict_methods always detect their parameters type even though the config is_strict_parameter_separator = false.
+     * For example:
+     * - abc/"abc": string abc
+     * - 123: int 123
+     * - "123": string 123
+     *
+     * @see static::config['is_strict_parameter_separator']
+     * @see static::parse_strict_data_type()
+     * @var array
+     */
+    protected $strict_methods = [];
+
+    /**
      * Language file path
      * @var string
      */
@@ -218,7 +233,7 @@ class Validation
 
         $this->set_language($this->config['language']);
 
-        $this->load_method_symbols();
+        $this->load_trait_data();
     }
 
     /**
@@ -272,10 +287,13 @@ class Validation
     }
 
     /**
-     * Auto load the method symbol from rule traits
+     * Auto load traits data
+     * - method_symbols: @see static::method_symbols
+     * - strict_methods @see static::strict_methods
+     *
      * @return void
      */
-    protected function load_method_symbols()
+    protected function load_trait_data()
     {
         $used_traits = $this->get_all_traits();
 
@@ -284,9 +302,15 @@ class Validation
             if ($slash_pos !== false) $trait_name = substr($trait, strrpos($trait, '\\') + 1);
             else $trait_name = $trait;
             $trait_name_uncamelized = $this->uncamelize($trait_name);
+
             $trait_method_symbols = "method_symbols_of_{$trait_name_uncamelized}";
             if (property_exists($this, $trait_method_symbols)) {
                 $this->method_symbols = array_merge($this->method_symbols, $this->{$trait_method_symbols});
+            }
+
+            $trait_strict_methods = "strict_methods_of_{$trait_name_uncamelized}";
+            if (property_exists($this, $trait_strict_methods)) {
+                $this->strict_methods = array_merge($this->strict_methods, $this->{$trait_strict_methods});
             }
         }
 
@@ -1143,6 +1167,55 @@ class Validation
     }
 
     /**
+     * Inject parameters into the error template
+     *  
+     * @param string $error_template
+     * @param array $parameters
+     * @param array $method_rule
+     * @return string
+     */
+    protected function inject_parameters_to_error_template($error_template, $parameters, $method_rule)
+    {
+        foreach ($parameters as $key => $value) {
+            $error_template = $this->inject_parameter_to_error_template($error_template, $key, $value, $method_rule);
+        }
+        return $error_template;
+    }
+
+    /**
+     * Inject parameter into the error template
+     * For example:
+     * - @p1: The value of the second parameter
+     * - @t1: The type of the second parameter
+     *
+     * @param string $error_msg
+     * @param int $key
+     * @param mixed $value
+     * @param array $method_rule
+     * @return mixed
+     */
+    protected function inject_parameter_to_error_template($error_template, $key, $value, $method_rule)
+    {
+        if (is_array($value)) {
+            if ($this->is_in_method($method_rule['symbol'])) {
+                $value = implode(',', $value);
+            } else {
+                return $error_template;
+            }
+        }
+
+        $p = $value;
+        if (!isset($value)) {
+            $p = "NULL";
+        } else if (is_bool($value)) {
+            $p = $value ? 'true' : 'false';
+        }
+        $error_template = str_replace('@p' . $key, $p, $error_template);
+        $error_template = str_replace('@t' . $key, $this->get_parameter_type($value), $error_template);
+        return $error_template;
+    }
+
+    /**
      * Execute validation with field and its rule. Contains cases:
      * 1. If rule
      * 2. Required(*) rule
@@ -1175,6 +1248,7 @@ class Validation
             $result = true;
             $error_type = 'validation';
             $params = [];
+            $method_rule = [];
 
             $has_when_rule = -1;
             $when_type = '';
@@ -1427,18 +1501,7 @@ class Validation
             if ($result !== true) {
                 // Replace symbol to field name and parameter value
                 $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
-                foreach ($params as $key => $value) {
-                    // if ($key == 0) continue;
-                    if (is_array($value)) {
-                        if ($this->is_in_method($method_rule['symbol'])) {
-                            $value = implode(',', $value);
-                        } else {
-                            continue;
-                        }
-                    }
-
-                    $error_msg = str_replace('@p' . $key, (isset($value) ? $value : "NULL"), $error_msg);
-                }
+                $error_msg = $this->inject_parameters_to_error_template($error_msg, $params, $method_rule);
 
                 $message = [
                     "error_type" => $error_type,
@@ -1517,6 +1580,8 @@ class Validation
                 }
             } else {
                 if (!empty($this->config['is_strict_parameter_type'])) {
+                    $param = static::parse_strict_data_type($param);
+                } else if ($this->is_strict_method($method)) {
                     $param = static::parse_strict_data_type($param);
                 }
             }
@@ -1644,6 +1709,11 @@ class Validation
 
         if (!empty($current_parameter)) $parameters[] = $current_parameter;
         return $parameters;
+    }
+
+    protected function is_strict_method($method)
+    {
+        return in_array($method, $this->strict_methods);
     }
 
     /**
@@ -1956,6 +2026,57 @@ class Validation
     public function get_data()
     {
         return $this->data;
+    }
+
+    /**
+     * Detect the type of parameter and forcibly convert it to the corresponding type
+     * For example:
+     * - abc/"abc": string abc
+     * - 123: int 123
+     * - "123": string 123
+     *
+     * @param mixed $data
+     * @return mixed
+     */
+    public static function parse_strict_data_type($data)
+    {
+        if (!is_string($data)) return $data;
+
+        if (preg_match('/^[\'"](.*)[\'"]$/', $data, $matches)) {
+            $data = $matches[1];
+        } else if (preg_match('/^-?\d+$/', $data)) {
+            $data = (int) $data;
+        } else if (preg_match('/^-?\d+\.\d+$/', $data)) {
+            $data = (float) $data;
+        } else if (static::bool_str($data)) {
+            $data = in_array($data, ['true', 'TRUE']);
+        } else if (preg_match('/^[\[\{].*[\]\}]$/', $data)) {
+            $data = json_decode($data);
+        }
+        return $data;
+    }
+
+    /**
+     * Get the type of parameter
+     *
+     * @param mixed $data
+     * @return string
+     */
+    public function get_parameter_type($parameter)
+    {
+        $parameter_type = gettype($parameter);
+        switch ($parameter_type) {
+            case 'integer':
+                $parameter_type = 'int';
+                break;
+            case 'double':
+                $parameter_type = 'float';
+                break;
+            case 'boolean':
+                $parameter_type = 'bool';
+                break;
+        }
+        return $parameter_type;
     }
 
     protected function uncamelize($camelcaps, $separator = '_')

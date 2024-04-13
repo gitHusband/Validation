@@ -282,7 +282,14 @@ class Unit extends TestCommon
         $error_template = str_replace($this->_symbol_me, $field_path, $error_template);
 
         foreach ($params as $key => $value) {
-            $error_template = str_replace('@p' . ($key + 1), $value, $error_template);
+            $p = $value;
+            if (!isset($value)) {
+                $p = "NULL";
+            } else if (is_bool($value)) {
+                $p = $value ? 'true' : 'false';
+            }
+            $error_template = str_replace('@p' . ($key + 1), $p, $error_template);
+            $error_template = str_replace('@t' . $key, $this->validation->get_parameter_type($value), $error_template);
         }
 
         return $error_template;
