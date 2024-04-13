@@ -5,7 +5,7 @@
  */
 class EnUs
 {
-    public $error_template = [
+    public $error_templates = [
         'default' => '@this validation failed',
         'index_array' => '@this must be a numeric array',
         'when' => 'Under certain circumstances, ',

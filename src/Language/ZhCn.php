@@ -5,7 +5,7 @@
  */
 class ZhCn
 {
-    public $error_template = [
+    public $error_templates = [
         'default' => '@this 验证错误',
         'index_array' => '@this 必须是索引数组',
         'when' => '在特定情况下，',

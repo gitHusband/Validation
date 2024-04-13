@@ -551,9 +551,9 @@ class Readme extends TestCommon
         $validation = new Validation($config);
 
         $validation_config = $validation->get_config();
-        $method_symbol = $validation->get_method_symbol();
-        $symbol_full_name = $validation->get_symbol_full_name();
-        $error_template = $validation->get_error_template();
+        $config_default = $validation->get_config_default();
+        $method_symbols = $validation->get_method_symbols();
+        $error_templates = $validation->get_error_templates();
 
         $built_in_methods = [
             'default' => '/',
@@ -579,22 +579,22 @@ class Readme extends TestCommon
         $header .= "---|---|---\n";
         $method_symbol_table = $header;
 
-        foreach ($error_template as $symbol => $method_error_template) {
-            if (preg_match("/^(.*)({$symbol_full_name['symbol_when']}|{$symbol_full_name['symbol_when_not']})$/", $symbol, $matches)) {
+        foreach ($error_templates as $symbol => $method_error_template) {
+            if (preg_match("/^(.*)({$config_default['symbol_when']}|{$config_default['symbol_when_not']})$/", $symbol, $matches)) {
                 $symbol_1 = $matches[1];
-                $method_and_symbol_1 = $this->get_method_and_symbol($symbol_1, $built_in_methods, $validation_config, $method_symbol);
+                $method_and_symbol_1 = $this->get_method_and_symbol($symbol_1, $built_in_methods, $validation_config, $method_symbols);
                 $method_1 = $method_and_symbol_1['method'];
                 $symbol_1 = $method_and_symbol_1['symbol'];
 
-                if ($matches[2] == $symbol_full_name['symbol_when']) $symbol_when_type = 'when';
+                if ($matches[2] == $config_default['symbol_when']) $symbol_when_type = 'when';
                 else $symbol_when_type = 'when_not';
-                $method_and_symbol_2 = $this->get_method_and_symbol($symbol_when_type, $built_in_methods, $validation_config, $method_symbol);
+                $method_and_symbol_2 = $this->get_method_and_symbol($symbol_when_type, $built_in_methods, $validation_config, $method_symbols);
                 $method_2 = $method_and_symbol_2['method'];
                 $symbol_2 = $method_and_symbol_2['symbol'];
                 $method = $symbol;
                 $symbol = "{$symbol_1}{$symbol_2}";
             } else {
-                $method_and_symbol = $this->get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbol);
+                $method_and_symbol = $this->get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbols);
                 $method = $method_and_symbol['method'];
                 $symbol = $method_and_symbol['symbol'];
             }

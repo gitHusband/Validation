@@ -307,11 +307,11 @@ use githusband\Validation;
 
 /**
  * 1. It is recommended to use traits to extend validation methods
- * If you need to define method symbols, put them in an attribute. The attribute naming rule is: "method_symbol_of_" + class name (high camel case converted to underline)
+ * If you need to define method symbols, put them in an attribute. The attribute naming rule is: "method_symbols_of_" + class name (high camel case converted to underline)
  */
 trait RuleCustome
 {
-    protected $method_symbol_of_rule_custome = [
+    protected $method_symbols_of_rule_custome = [
         '=1' => 'euqal_to_1',
     ];
 
@@ -323,13 +323,13 @@ trait RuleCustome
 
 /**
  * 2. Extend the class and directly add validation methods
- * If you need to define method symbols, place them in an attribute named method_symbol
+ * If you need to define method symbols, place them in an attribute named method_symbols
  */
 class MyValidation extends Validation
 {
     use RuleCustome;
 
-    protected $method_symbol = [
+    protected $method_symbols = [
         ">=1" => "grater_than_or_equal_to_1",
     ];
 
@@ -727,7 +727,7 @@ $validation->set_language('zh-cn'); // The ZhCn.php Internationalization file wi
 
 class MyLang
 {
-    public $error_template = [
+    public $error_templates = [
         // Override error message template for default method =
         '=' => '@this must be equal to @p1(From MyLang)',
         // Added error message template for new method check_custom
@@ -746,7 +746,7 @@ In fact, the method of internationalizing the file above ultimately calls the `c
 ```PHP
 // Must be an object
 $MyLang = (object)[];
-$MyLang->error_template = [
+$MyLang->error_templates = [
     // Override error message template for default method =
     '=' => '@this must be equal to @p1(From MyLang)',
     // Added error message template for new method check_custom

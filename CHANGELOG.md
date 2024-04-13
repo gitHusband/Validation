@@ -69,6 +69,14 @@
   2. true：规则中的 数字，布尔值，数组，JSON型字符串，如果没有被单引号（`'`）或者双引号（`"`）包裹，将被强制转换为对应数据类型。
 比如 `required|(n)[1,"2"]` 规则，1 是 `int`, "2" 则是 `string`.
 
+**更名的属性：**
+- *default_config_backup* -> `config_backup`
+- *symbol_full_name* -> `config_default`
+- *language* -> `languages`
+- **method_symbol** -> `method_symbols`
+- **error_template** -> `error_templates`
+
+
 ### 方法优化
 
 所有内置方法改为公共静态方法： `public static function`

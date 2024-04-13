@@ -4,7 +4,7 @@ namespace githusband\Rule;
 
 trait RuleDefault
 {
-    protected $method_symbol_of_rule_default = [
+    protected $method_symbols_of_rule_default = [
         '=' => 'equal',
         '!=' => 'not_equal',
         '==' => 'strictly_equal',

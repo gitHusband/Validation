@@ -305,11 +305,11 @@ use githusband\Validation;
 
 /**
  * 1. 推荐用 trait 拓展验证方法
- * 如果需要定义方法标志，将他们放在属性中，属性命名规则：“method_symbol_of_” + 类名（大驼峰转下划线）
+ * 如果需要定义方法标志，将他们放在属性中，属性命名规则：“method_symbols_of_” + 类名（大驼峰转下划线）
  */
 trait RuleCustome
 {
-    protected $method_symbol_of_rule_custome = [
+    protected $method_symbols_of_rule_custome = [
         '=1' => 'euqal_to_1',
     ];
 
@@ -321,13 +321,13 @@ trait RuleCustome
 
 /**
  * 2. 拓展类，直接增加验证方法
- * 如果需要定义方法标志，将他们放在属性 method_symbol 中
+ * 如果需要定义方法标志，将他们放在属性 method_symbols 中
  */
 class MyValidation extends Validation
 {
     use RuleCustome;
 
-    protected $method_symbol = [
+    protected $method_symbols = [
         ">=1" => "grater_than_or_equal_to_1",
     ];
 
@@ -722,7 +722,7 @@ $validation->set_language('zh-cn'); // 将加载 ZhCn.php 国际化文件
 
 class MyLang
 {
-    public $error_template = [
+    public $error_templates = [
         // 覆盖默认方法 = 的错误信息模板
         '=' => '@this must be equal to @p1(From MyLang)',
         // 新增方法 check_custom 的错误信息模板
@@ -741,7 +741,7 @@ $validation->set_config(['lang_path' => '/MyPath/'])->set_language('MyLang');
 ```PHP
 // 必须是对象
 $MyLang = (object)[];
-$MyLang->error_template = [
+$MyLang->error_templates = [
     // 覆盖默认方法 = 的错误信息模板
     '=' => '@this must be equal to @p1(From MyLang)',
     // 新增方法 check_custom 的错误信息模板

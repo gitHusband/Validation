@@ -3384,7 +3384,7 @@ class Unit extends TestCommon
         if ($error_data !== false) return $this->get_method_info($rule, $cases, $extra, $error_data);
 
         $lang_config = (object)[];
-        $lang_config->error_template = [
+        $lang_config->error_templates = [
             'check_id' => '@this error!(customed)'
         ];
         $this->validation->custom_language($lang_config);

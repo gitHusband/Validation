@@ -5,7 +5,7 @@
  */
 class CustomLang
 {
-    public $error_template = [
+    public $error_templates = [
         'check_custom' => '@this error!(CustomLang File)'
     ];
 }

@@ -7,13 +7,13 @@ use githusband\Test\Extend\Rule\RuleCustom;
 
 /**
  * 2. 拓展类，直接增加验证方法
- * 如果需要定义方法标志，将他们放在属性 method_symbol 中
+ * 如果需要定义方法标志，将他们放在属性 method_symbols 中
  */
 class MyValidation extends Validation
 {
     use RuleCustom;
 
-    protected $method_symbol = [
+    protected $method_symbols = [
         ">=1" => "grater_than_or_equal_to_1",
     ];
 
@@ -22,7 +22,7 @@ class MyValidation extends Validation
      *
      * @var array
      */
-    protected $error_template = [
+    protected $error_templates = [
         "validate_data_limit" => "@this can not be greater than or equal to 1000",
     ];
 

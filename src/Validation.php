@@ -97,7 +97,7 @@ class Validation
     protected $symbol_parent = '@parent';
     protected $symbol_preg = '@preg';
 
-    protected $default_config_backup;
+    protected $config_backup;
     protected $config = [
         'language' => 'en-us',                                      // Language, Default en-us
         'lang_path' => '',                                          // Customer Language file path
@@ -133,10 +133,10 @@ class Validation
      * See $config array, there are several symbol that are not semantically explicit.
      * So I set up the related full name for them
      *
-     * The $symbol_full_name can not be customized and they are always meaningful
+     * The $config_default can not be customized and they are always meaningful
      * @var array
      */
-    protected $symbol_full_name = [
+    protected $config_default = [
         'symbol_required' => 'required',                            // Symbol Full Name of required field
         'symbol_optional' => 'optional',                            // Symbol Full Name of optional field, can be not set or empty
         'symbol_optional_unset' => 'optional_unset',                // Symbol Full Name of optional field, can be not set only
@@ -172,17 +172,17 @@ class Validation
     /**
      * The method symbol
      * Using symbol mapped to real method. e.g. '=' => 'equal'
-     * @see githusband\Rule\RuleDefault::$method_symbol_of_rule_default
+     * @see githusband\Rule\RuleDefault::$method_symbols_of_rule_default
      * @var array
      */
-    protected $method_symbol = [];
+    protected $method_symbols = [];
     /**
      * Flip the method symbol
      * e.g. 'equal' => '='
-     * @see static::method_symbol
+     * @see static::method_symbols
      * @var array
      */
-    protected $method_symbol_flip = [];
+    protected $method_symbols_flip = [];
 
     /**
      * Language file path
@@ -191,34 +191,34 @@ class Validation
     protected $lang_path = __DIR__ . '/Language/';
 
     /**
-     * Languaue
+     * Error message template of different Languaues
      * @var array
      */
-    protected $language = [];
+    protected $languages = [];
 
     /**
      * If user don't set a error messgae, use this.
      * @see ./Language/EnUs.php
-     * @see githusband\Rule\RuleDefault::$method_symbol_of_rule_default
+     * @see githusband\Rule\RuleDefault::$method_symbols_of_rule_default
      * @var array
      */
-    protected $error_template = [];
+    protected $error_templates = [];
 
     public function __construct($config = [])
     {
-        $this->default_config_backup = $this->config;
         $this->initialzation($config);
     }
 
     protected function initialzation($config = [])
     {
         $this->config = array_merge($this->config, $config);
+        $this->config_backup = $this->config;
+
+        $this->set_validation_global($this->config['validation_global']);
 
         $this->set_language($this->config['language']);
 
-        $this->load_method_symbol();
-
-        $this->set_validation_global($this->config['validation_global']);
+        $this->load_method_symbols();
     }
 
     /**
@@ -250,7 +250,7 @@ class Validation
      */
     public function reset_config()
     {
-        return $this->set_config($this->default_config_backup);
+        return $this->set_config($this->config_backup);
     }
 
     /**
@@ -275,7 +275,7 @@ class Validation
      * Auto load the method symbol from rule traits
      * @return void
      */
-    protected function load_method_symbol()
+    protected function load_method_symbols()
     {
         $used_traits = $this->get_all_traits();
 
@@ -284,13 +284,13 @@ class Validation
             if ($slash_pos !== false) $trait_name = substr($trait, strrpos($trait, '\\') + 1);
             else $trait_name = $trait;
             $trait_name_uncamelized = $this->uncamelize($trait_name);
-            $trait_method_symbol = "method_symbol_of_{$trait_name_uncamelized}";
-            if (property_exists($this, $trait_method_symbol)) {
-                $this->method_symbol = array_merge($this->method_symbol, $this->{$trait_method_symbol});
+            $trait_method_symbols = "method_symbols_of_{$trait_name_uncamelized}";
+            if (property_exists($this, $trait_method_symbols)) {
+                $this->method_symbols = array_merge($this->method_symbols, $this->{$trait_method_symbols});
             }
         }
 
-        $this->method_symbol_flip = array_flip($this->method_symbol);
+        $this->method_symbols_flip = array_flip($this->method_symbols);
     }
 
     /**
@@ -304,8 +304,8 @@ class Validation
     {
         $lang = $this->big_camelize($lang, '-');
 
-        if (!empty($this->language[$lang])) {
-            $this->error_template = $this->language[$lang];
+        if (!empty($this->languages[$lang])) {
+            $this->error_templates = $this->languages[$lang];
         } else {
             $is_laod_file = false;
             // Customer language
@@ -346,8 +346,8 @@ class Validation
     public function custom_language($lang_conf, $lang_name = '')
     {
         if (is_object($lang_conf)) {
-            if (isset($lang_conf->error_template)) $this->error_template = array_merge($this->error_template, $lang_conf->error_template);
-            if (!empty($lang_name)) $this->language[$lang_name] = $this->error_template;
+            if (isset($lang_conf->error_templates)) $this->error_templates = array_merge($this->error_templates, $lang_conf->error_templates);
+            if (!empty($lang_name)) $this->languages[$lang_name] = $this->error_templates;
         }
 
         return $this;
@@ -396,31 +396,40 @@ class Validation
      *
      * @return array
      */
-    public function get_method_symbol()
+    public function get_method_symbols()
     {
-        return $this->method_symbol;
+        return $this->method_symbols;
     }
 
     /**
-     * Get Symbol Full Name List
+     * Get default config
      *
      * @return array
      */
-    public function get_symbol_full_name()
+    public function get_config_default()
     {
-        return $this->symbol_full_name;
+        return $this->config_default;
     }
 
     /**
      * Get error message template
      *
-     * @param string|null $tag
-     * @return string|array
+     * @return array
      */
-    public function get_error_template($tag = null)
+    public function get_error_templates()
     {
-        if ($tag === null) return $this->error_template;
-        return ($tag == '' || !isset($this->error_template[$tag])) ? '' : $this->error_template[$tag];
+        return $this->error_templates;
+    }
+
+    /**
+     * Get error message template of one tag/method
+     *
+     * @param string $tag
+     * @return string
+     */
+    public function get_error_template($tag)
+    {
+        return (!isset($tag) || $tag == '' || !isset($this->error_templates[$tag])) ? '' : $this->error_templates[$tag];
     }
 
     /**
@@ -654,7 +663,7 @@ class Validation
             case 'symbol_array_optional':
                 if (
                     strpos($rule_system_symbol_string, $this->config['symbol_array_optional']) !== false
-                    || strpos($rule_system_symbol_string, $this->symbol_full_name['symbol_array_optional']) !== false
+                    || strpos($rule_system_symbol_string, $this->config_default['symbol_array_optional']) !== false
                 ) {
                     return true;
                 }
@@ -662,7 +671,7 @@ class Validation
             case 'symbol_parallel_rule':
                 if (
                     strpos($rule_system_symbol_string, $this->config['symbol_parallel_rule']) !== false
-                    || strpos($rule_system_symbol_string, $this->symbol_full_name['symbol_parallel_rule']) !== false
+                    || strpos($rule_system_symbol_string, $this->config_default['symbol_parallel_rule']) !== false
                 ) {
                     return true;
                 }
@@ -700,12 +709,12 @@ class Validation
         switch ($symbol_name) {
             case 'symbol_array_optional':
                 $rule_system_symbol_string = str_replace($this->config['symbol_array_optional'], '', $rule_system_symbol_string);
-                $rule_system_symbol_string = str_replace($this->symbol_full_name['symbol_array_optional'], '', $rule_system_symbol_string);
+                $rule_system_symbol_string = str_replace($this->config_default['symbol_array_optional'], '', $rule_system_symbol_string);
                 return $rule_system_symbol_string;
                 break;
             case 'symbol_parallel_rule':
                 $rule_system_symbol_string = str_replace($this->config['symbol_parallel_rule'], '', $rule_system_symbol_string);
-                $rule_system_symbol_string = str_replace($this->symbol_full_name['symbol_parallel_rule'], '', $rule_system_symbol_string);
+                $rule_system_symbol_string = str_replace($this->config_default['symbol_parallel_rule'], '', $rule_system_symbol_string);
                 return $rule_system_symbol_string;
                 break;
             case 'symbol_index_array':
@@ -1129,7 +1138,7 @@ class Validation
         if (empty($error_msg)) $error_msg = $this->get_error_template('default');
         // Auto inject the If rule message
         if (!empty($when_type_msg)) $error_msg = $when_type_msg . $error_msg;
-        
+
         return $error_msg;
     }
 
@@ -1180,11 +1189,11 @@ class Validation
              *  - optional:when_not
              *  - email:when
              */
-            if (preg_match($this->config['reg_whens'], $rule, $matches) || preg_match($this->symbol_full_name['reg_whens'], $rule, $matches)) {
+            if (preg_match($this->config['reg_whens'], $rule, $matches) || preg_match($this->config_default['reg_whens'], $rule, $matches)) {
                 $target_rule = $matches[1];
                 $if_rule = $matches[3];
 
-                if (preg_match($this->config['reg_when'], $rule) || preg_match($this->symbol_full_name['reg_when'], $rule)) {
+                if (preg_match($this->config['reg_when'], $rule) || preg_match($this->config_default['reg_when'], $rule)) {
                     $has_when_rule = 1;
                     $when_type = 'when';
                 } else {
@@ -1243,15 +1252,15 @@ class Validation
              * - Required(*) rule
              * - Required When rule
              */
-            else if ($rule == $this->config['symbol_required'] || $rule == $this->symbol_full_name['symbol_required']) {
+            else if ($rule == $this->config['symbol_required'] || $rule == $this->config_default['symbol_required']) {
                 if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
                      * Required(*) rule
                      */
                     if ($has_when_rule === -1) {
                         $result = false;
-                        $error_type = $this->symbol_full_name['symbol_required'];
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_required']);
+                        $error_type = $this->config_default['symbol_required'];
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_required']);
                     }
                     /**
                      * Required When rule
@@ -1261,8 +1270,8 @@ class Validation
                      */
                     else if ($has_when_rule !== -1 && $is_met_when_rule === true) {
                         $result = false;
-                        $error_type = $this->symbol_full_name['symbol_required'] . ':' . $when_type;
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_required'], $when_type);
+                        $error_type = $this->config_default['symbol_required'] . ':' . $when_type;
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_required'], $when_type);
                     }
                     /**
                      * Required When rule
@@ -1277,7 +1286,7 @@ class Validation
              * - Optional(O) rule
              * - Optional When rule
              */
-            else if ($rule == $this->config['symbol_optional'] || $rule == $this->symbol_full_name['symbol_optional']) {
+            else if ($rule == $this->config['symbol_optional'] || $rule == $this->config_default['symbol_optional']) {
                 if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
                      * Optional(O) rule
@@ -1298,8 +1307,8 @@ class Validation
                      */
                     else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
                         $result = false;
-                        $error_type = $this->symbol_full_name['symbol_optional'] . ':' . $when_type;
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional'], $when_type);
+                        $error_type = $this->config_default['symbol_optional'] . ':' . $when_type;
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_optional'], $when_type);
                     }
                 }
             }
@@ -1307,7 +1316,7 @@ class Validation
              * - Optional Unset(O!) rule
              * - Optional Unset When rule
              */
-            else if ($rule == $this->config['symbol_optional_unset'] || $rule == $this->symbol_full_name['symbol_optional_unset']) {
+            else if ($rule == $this->config['symbol_optional_unset'] || $rule == $this->config_default['symbol_optional_unset']) {
                 if (!isset($data[$field])) {
                     /**
                      * Optional Unset(O!) rule
@@ -1328,8 +1337,8 @@ class Validation
                      */
                     else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
                         $result = false;
-                        $error_type = $this->symbol_full_name['symbol_optional_unset'] . ':' . $when_type;
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset'], $when_type);
+                        $error_type = $this->config_default['symbol_optional_unset'] . ':' . $when_type;
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_optional_unset'], $when_type);
                     }
                 } else if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
@@ -1337,8 +1346,8 @@ class Validation
                      */
                     if ($has_when_rule === -1) {
                         $result = false;
-                        $error_type = $this->symbol_full_name['symbol_optional_unset'];
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset']);
+                        $error_type = $this->config_default['symbol_optional_unset'];
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_optional_unset']);
                     }
                     /**
                      * Optional Unset When rule
@@ -1347,8 +1356,8 @@ class Validation
                      */
                     else {
                         $result = false;
-                        $error_type = $this->symbol_full_name['symbol_optional_unset'] . ':' . $when_type;
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->symbol_full_name['symbol_optional_unset'], $when_type);
+                        $error_type = $this->config_default['symbol_optional_unset'] . ':' . $when_type;
+                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_optional_unset'], $when_type);
                     }
                 }
             }
@@ -1479,11 +1488,11 @@ class Validation
             $params = [$this->symbol_this];
         }
 
-        if (isset($this->method_symbol[$method])) {
+        if (isset($this->method_symbols[$method])) {
             $symbol = $method;
-            $method = $this->method_symbol[$method];
+            $method = $this->method_symbols[$method];
         } else {
-            $symbol = isset($this->method_symbol_flip[$method]) ? $this->method_symbol_flip[$method] : $method;
+            $symbol = isset($this->method_symbols_flip[$method]) ? $this->method_symbols_flip[$method] : $method;
         }
 
         foreach ($params as &$param) {
@@ -1598,12 +1607,12 @@ class Validation
             }
 
             // 首次数组开头 [，表明接下来是数组。此为 数组阶段 1
-            // 直到匹配到下一个 ]，表明数组即将结束。此为 数组阶段 2
             if ($char === '[') {
                 if ($is_array_flag == 0) {
                     $is_array_flag = 1;
                 }
             }
+            // 直到匹配到下一个 ]，表明数组即将结束。此为 数组阶段 2
             else if ($char === ']') {
                 if ($is_array_flag == 1) {
                     $is_array_flag = 2;
@@ -1611,7 +1620,6 @@ class Validation
             }
             // 数组阶段 1，任意字符都是当前参数的一部分
             else if ($is_array_flag == 1) {
-
             }
             // 一般非数组的参数中，不会包含 ","，所以匹配到它则表明接下来是下一个参数
             // 在数组中，可能包含 ","，所以必须在数组阶段 2 后，匹配到它才表明接下来是下一个参数
@@ -1656,7 +1664,7 @@ class Validation
             } else if (function_exists($method_rule['method'])) {
                 $result = call_user_func_array($method_rule['method'], $params);
             } else {
-                $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_template['call_method']);
+                $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_templates['call_method']);
                 $message = [
                     "error_type" => 'internal_server_error',
                     "message" => $error_msg,
