@@ -18,11 +18,30 @@
 任意规则或方法都支持 `when` 和 `when_not`
 
 ### 优化 ruleDefault 并为其添加单元测试
+1. 修复当 is_strict_parameter_type = true 时，`strictly_equal` 和 `not_strictly_equal` 等以及以后可能增加的这种验证严格数据格式的方法，由于两次解析数据格式，导致结果不正确的 bug
+2. 修复当 is_strict_parameter_separator = true 并且 is_strict_parameter_type = true 时，`in_number[[1,2]]` 报错的 bug
 
 
 ### 增加真正的 "条件规则"
 
 例如 `"data" => "if(...) {required|int} elseif(...) {required|int} else {optional|/^[a-zA-Z0-9]+$/}"`
+
+## 优化方法的标志
+希望所有标志能够达到既简洁又明了的效果。明了应该是第一要义。
+
+比如，`len=`, `arr`, `(n)` 等标志可能过于精简，导致不能够清晰地表达出其含义。
+考虑优化成:
+- `len=` -> `length=`
+- `arr` -> `array`
+- `(n)` -> `(number)[1,2,3]` 或者 `in:number[1,2,3]`
+
+**如果要加入更多的方法呢？**
+1. 严格验证数据格式的规则：
+- 等于其中之一，且必须是 int: `(int)` 显然是不够的，因为 `1` 和 `"1"` 都能通过验证。
+  那么 `(int:strict)` 或者 `(int):strict` 或者 `in:int:strict` 或者 `int:strict:in` 或者 `in_int_strict`
+
+**这将是一个破坏性的更新。**
+如何支持旧的标志，又增加新的标志呢？
 
 ## 增加更多的验证方法
 
