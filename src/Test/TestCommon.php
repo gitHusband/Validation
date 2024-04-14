@@ -21,4 +21,10 @@ class TestCommon
             echo "  - {$value}\n";
         }
     }
+
+    public function __call($name, $arguments)
+    {
+        echo "Method not existed: {$name}.\nPease call \"help\" method for all the available methods.";
+        // $this->help();
+    }
 }

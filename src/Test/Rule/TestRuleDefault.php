@@ -553,7 +553,7 @@ trait TestRuleDefault
         ];
     }
 
-    protected function test_method_greater_lessequal()
+    protected function _test_method_greater_lessequal()
     {
     }
 

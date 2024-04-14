@@ -50,9 +50,17 @@ class Unit extends TestCommon
      */
     protected $validation;
 
-    // Unit Testing error message
-    protected $error_message = [];
-    // If true, means unit testing is error
+    /**
+     * Unit Testing error message
+     *
+     * @var array
+     */
+    protected $error_message;
+    /**
+     * If true, means unit testing is error
+     *
+     * @var bool
+     */
     protected $is_error = false;
 
     private $_symbol_me = "@this";
@@ -76,13 +84,15 @@ class Unit extends TestCommon
     {
         if ($method_name == 'help') return $this->help();
 
-        $this->run_method($method_name);
+        $result = $this->run_method($method_name);
 
-        echo "===================================\n= Re-run for strict parameter type\n===================================\n";
-        $this->validation->set_config([
-            "is_strict_parameter_type" => true
-        ]);
-        $this->run_method($method_name);
+        if ($result) {
+            echo "===================================\n= Re-run for strict parameter type\n===================================\n";
+            $this->validation->set_config([
+                "is_strict_parameter_type" => true
+            ]);
+            $this->run_method($method_name);
+        }
 
         return $this->get_unit_result();
     }
@@ -92,7 +102,7 @@ class Unit extends TestCommon
         echo "# Test PHP v" . PHP_VERSION . "\n";
         if (!empty($method_name)) {
             echo "Start execute test case of method {$method_name}:\n";
-            $this->execute_tests($method_name);
+            $result = $this->execute_tests($method_name);
         } else {
             echo "Start execute all the test cases:\n";
             $class_methods = get_class_methods($this);
@@ -104,6 +114,8 @@ class Unit extends TestCommon
                 }
             }
         }
+
+        return $result;
     }
 
     /**
@@ -125,7 +137,10 @@ class Unit extends TestCommon
 
         $method_info = $this->{$method_name}();
 
-        if (empty($method_info)) return true;
+        if ($method_info === null) {
+            $this->is_error = true;
+            return false;
+        }
 
         if ($error_data !== false) return $this->get_method_info($method_info['rule'], $method_info['cases'], $method_info['extra'], $error_data);
 
