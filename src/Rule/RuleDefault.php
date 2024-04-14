@@ -232,16 +232,16 @@ trait RuleDefault
     {
         $bool = strtolower($bool);
         if ($data === true || $data === false) {
-            if ($bool === '') return TRUE;
+            if ($bool === '') return true;
             if ($data === true && $bool === 'true') {
-                return TRUE;
+                return true;
             } else if ($data === false && $bool === 'false') {
-                return TRUE;
+                return true;
             } else {
-                return FALSE;
+                return false;
             }
         } else {
-            return FALSE;
+            return false;
         }
     }
 
@@ -252,16 +252,17 @@ trait RuleDefault
 
     public static function bool_str($data, $bool = '')
     {
+        if (!is_string($data)) return false;
         $data = strtolower($data);
         if ($data === "true" || $data === "false") {
-            if ($bool === '') return TRUE;
+            if ($bool === '') return true;
             if ($data === $bool) {
-                return TRUE;
+                return true;
             } else {
-                return FALSE;
+                return false;
             }
         } else {
-            return FALSE;
+            return false;
         }
     }
 
@@ -272,43 +273,48 @@ trait RuleDefault
 
     public static function email($data)
     {
-        if (!empty($data) && !preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/', $data)) {
-            return FALSE;
+        if (empty($data)) return false;
+        if (!preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/', $data)) {
+            return false;
         } else {
-            return TRUE;
+            return true;
         }
     }
 
     public static function url($data)
     {
-        if (!empty($data) && !preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,8}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)) {
-            return FALSE;
+        if (empty($data)) return false;
+        if (!preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,8}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)) {
+            return false;
         } else {
-            return TRUE;
+            return true;
         }
     }
 
     public static function ip($data)
     {
-        if (!empty($data) && !preg_match('/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/', $data)) {
-            return FALSE;
+        if (empty($data) || !is_string($data)) return false;
+        if (filter_var($data, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return true;
         } else {
-            return TRUE;
+            return false;
         }
     }
 
     public static function mac($data)
     {
-        if (!empty($data) && !preg_match('/^((([a-f0-9]{2}:){5})|(([a-f0-9]{2}-){5})|(([a-f0-9]{2} ){5}))[a-f0-9]{2}$/i', $data)) {
-            return FALSE;
+        if (empty($data) || !is_string($data)) return false;
+        if (filter_var($data, FILTER_VALIDATE_MAC)) {
+            return true;
         } else {
-            return TRUE;
+            return false;
         }
     }
 
     // date of birth
     public static function dob($date)
     {
+        if (empty($date) || !is_string($date)) return false;
         if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $arr)) {
             $datetime = strtotime($date);
             $now = time();
@@ -334,15 +340,25 @@ trait RuleDefault
         return $file_size;
     }
 
-    public static function file_base64($file_base64, $mime = false, $max_size = false)
+    /**
+     * Check if the data is a file base64 string
+     * e.g. data:image/jpeg;base64,{base64}
+     *
+     * @param string $file_base64
+     * @param string $mime
+     * @param int|string $max_size File size, its unit is kb
+     * @return void
+     */
+    public static function file_base64($file_base64, $mime = '', $max_size = null)
     {
+        if (empty($file_base64) || !is_string($file_base64)) return false;
         if (preg_match('/^(data:\s*(\w+\/\w+);base64,)/', $file_base64, $matches)) {
             $file_mime = $matches[2];
-            if ($mime !== false && $mime != $file_mime) {
+            if (!empty($mime) && $mime != $file_mime) {
                 return false;
             }
 
-            if ($max_size !== false) {
+            if (!empty($max_size)) {
                 $file_base64 = str_replace($matches[1], '', $file_base64);
                 $file_size = static::file_base64_size($file_base64);
                 if ($file_size > $max_size) {
@@ -358,7 +374,8 @@ trait RuleDefault
 
     public static function uuid($data)
     {
-        if (!empty($data) && preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/', $data)) {
+        if (empty($data) || !is_string($data)) return false;
+        if (preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/', $data)) {
             return true;
         } else {
             return false;
@@ -367,8 +384,9 @@ trait RuleDefault
 
     public static function oauth2_grant_type($data)
     {
-        $oauth2_grant_types = ['authorization_code', 'password', 'client_credentials'];
+        if (empty($data) || !is_string($data)) return false;
 
+        $oauth2_grant_types = ['authorization_code', 'password', 'client_credentials'];
         if (in_array($data, $oauth2_grant_types)) {
             return true;
         } else {
