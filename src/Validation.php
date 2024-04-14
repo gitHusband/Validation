@@ -1583,6 +1583,8 @@ class Validation
                     $param = static::parse_strict_data_type($param);
                 } else if ($this->is_strict_method($method)) {
                     $param = static::parse_strict_data_type($param);
+                } else {
+                    $param = static::parse_strict_data_type($param, true);
                 }
             }
         }
@@ -2036,23 +2038,27 @@ class Validation
      * - "123": string 123
      *
      * @param mixed $data
+     * @param bool $is_trim_quotes_only If true, only trim quotes
      * @return mixed
      */
-    public static function parse_strict_data_type($data)
+    public static function parse_strict_data_type($data, $is_trim_quotes_only = false)
     {
         if (!is_string($data)) return $data;
 
         if (preg_match('/^[\'"](.*)[\'"]$/', $data, $matches)) {
             $data = $matches[1];
-        } else if (preg_match('/^-?\d+$/', $data)) {
-            $data = (int) $data;
-        } else if (preg_match('/^-?\d+\.\d+$/', $data)) {
-            $data = (float) $data;
-        } else if (static::bool_str($data)) {
-            $data = in_array($data, ['true', 'TRUE']);
-        } else if (preg_match('/^[\[\{].*[\]\}]$/', $data)) {
-            $data = json_decode($data);
+        } else if (!$is_trim_quotes_only) {
+            if (preg_match('/^-?\d+$/', $data)) {
+                $data = (int) $data;
+            } else if (preg_match('/^-?\d+\.\d+$/', $data)) {
+                $data = (float) $data;
+            } else if (static::bool_str($data)) {
+                $data = in_array($data, ['true', 'TRUE']);
+            } else if (preg_match('/^[\[\{].*[\]\}]$/', $data)) {
+                $data = json_decode($data);
+            }
         }
+        
         return $data;
     }
 

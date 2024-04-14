@@ -45,7 +45,9 @@ use githusband\Test\Extend\MyValidation;
 
 class Unit extends TestCommon
 {
-    // Validation Instance
+    /**
+     * @var Validation
+     */
     protected $validation;
 
     // Unit Testing error message
@@ -74,12 +76,25 @@ class Unit extends TestCommon
     {
         if ($method_name == 'help') return $this->help();
 
+        $this->run_method($method_name);
+
+        echo "===================================\n= Re-run for strict parameter type\n===================================\n";
+        $this->validation->set_config([
+            "is_strict_parameter_type" => true
+        ]);
+        $this->run_method($method_name);
+
+        return $this->get_unit_result();
+    }
+
+    protected function run_method($method_name = '')
+    {
+        echo "# Test PHP v" . PHP_VERSION . "\n";
         if (!empty($method_name)) {
-            echo "Start execute {$method_name}\n*******************************\n";
+            echo "Start execute test case of method {$method_name}:\n";
             $this->execute_tests($method_name);
         } else {
-            echo "PHP v" . PHP_VERSION . "\n";
-            echo "Start execute all the test cases\n*******************************\n";
+            echo "Start execute all the test cases:\n";
             $class_methods = get_class_methods($this);
 
             foreach ($class_methods as $method_name) {
@@ -89,8 +104,6 @@ class Unit extends TestCommon
                 }
             }
         }
-
-        return $this->get_unit_result();
     }
 
     /**
@@ -104,7 +117,7 @@ class Unit extends TestCommon
      */
     protected function execute_tests($method_name, $error_data = false)
     {
-        echo "Testing method - {$method_name}\n";
+        echo " - {$method_name}\n";
 
         if (preg_match('/^.*_execute$/', $method_name)) {
             return $this->{$method_name}($error_data);
@@ -300,7 +313,8 @@ class Unit extends TestCommon
         if ($this->is_error) {
             return $this->error_message;
         } else {
-            echo "*******************************\nUnit test success!\n*******************************\n";
+            $php_data = "Test PHP v" . PHP_VERSION . " -";
+            echo "***************************************\n* {$php_data} Unit test success!\n***************************************\n\n";
             return true;
         }
     }
@@ -2531,6 +2545,75 @@ class Unit extends TestCommon
 
             return false;
         });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_strict_parameter()
+    {
+        $rule = [
+            "id" => "optional|(n)[1,\"10\",'100']",
+            "color" => "optional|(s)[red,\"white\",'black']"
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "red"
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "id" => "1",
+                    "name" => "red"
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "id" => 10,
+                    "name" => "white"
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "id" => "10",
+                    "name" => "white"
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "id" => 100,
+                    "name" => "black"
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "id" => "100",
+                    "name" => "black"
+                ]
+            ],
+            "Invalid_1" => [
+                "data" => [
+                    "id" => "4",
+                ],
+                "expected_msg" => ["id" => "id must be numeric and in 1,10,100"]
+            ],
+            "Invalid_2" => [
+                "data" => [
+                    "color" => "green",
+                ],
+                "expected_msg" => ["color" => "color must be string and in red,white,black"]
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
 
         return $method_info = [
             "rule" => $rule,
