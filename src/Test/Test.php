@@ -57,9 +57,7 @@ unset($arguments[0], $arguments[1], $arguments[2]);
 /**
  * Skip the Warning: xxx: It is not safe to rely on the system's timezone settings for testing PHP 5
  */
-if (version_compare(PHP_VERSION, '7', '<')) {
-    date_default_timezone_set('Asia/Shanghai');
-}
+date_default_timezone_set('Asia/Shanghai');
 
 /** @var githusband\Test\TestCommon */
 $class = new $class_lists[$class_name]();

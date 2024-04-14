@@ -9,6 +9,7 @@ class Demo extends TestCommon
 {
     public function __construct()
     {
+        parent::__construct();
     }
 
     public function success($data = [])

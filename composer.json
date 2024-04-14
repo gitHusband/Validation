@@ -23,7 +23,9 @@
     },
     "scripts": {
         "test": "php src/Test/Test.php Unit run",
-        "multi-test": "./src/Test/Test.sh",
+        "multi-test": "./src/Test/Test.sh run",
+        "performance": "php src/Test/Test.php Unit performance",
+        "multi-performance": "./src/Test/Test.sh performance",
         "readme": "php src/Test/Test.php Readme"
     }
 }

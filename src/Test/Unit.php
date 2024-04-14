@@ -67,6 +67,8 @@ class Unit extends TestCommon
 
     public function __construct()
     {
+        parent::__construct();
+
         $validation_conf = [
             "validation_global" => false,
         ];
@@ -78,16 +80,18 @@ class Unit extends TestCommon
      * If any of unit testing case is failed, stop continuing to test other cases and return an error message immediatelly
      *
      * @param string $method_name
+     * @param string $sub_method_name
      * @return array|string
      */
     public function run($method_name = '')
     {
         if ($method_name == 'help') return $this->help();
+        if ($method_name == 'performance') return $this->performance();
 
         $result = $this->run_method($method_name);
 
         if ($result) {
-            echo "===================================\n= Re-run for strict parameter type\n===================================\n";
+            $this->write_log(static::LOG_LEVEL_INFO, "===================================\n= Re-run for strict parameter mode\n===================================\n");
             $this->validation->set_config([
                 "is_strict_parameter_type" => true
             ]);
@@ -97,18 +101,20 @@ class Unit extends TestCommon
         return $this->get_unit_result();
     }
 
-    protected function run_method($method_name = '')
+    protected function run_method($method_name = '', $is_performance = false)
     {
-        echo "# Test PHP v" . PHP_VERSION . "\n";
+        $this->write_log(static::LOG_LEVEL_INFO, "# Test PHP v" . PHP_VERSION . "\n");
         if (!empty($method_name)) {
-            echo "Start execute test case of method {$method_name}:\n";
+            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute test case of method {$method_name}:\n");
             $result = $this->execute_tests($method_name);
         } else {
-            echo "Start execute all the test cases:\n";
+            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute all the test cases:\n");
             $class_methods = get_class_methods($this);
 
             foreach ($class_methods as $method_name) {
                 if (preg_match('/^test_.*/', $method_name)) {
+                    if ($is_performance && $method_name == 'test_exception') continue;
+
                     $result = $this->execute_tests($method_name);
                     if (!$result) break;
                 }
@@ -116,6 +122,73 @@ class Unit extends TestCommon
         }
 
         return $result;
+    }
+
+    /**
+     * Performance testing
+     *
+     * @param int $times
+     * @param string $method_name
+     * @return void
+     */
+    public function performance($times = 500, $method_name = '')
+    {
+        if (!is_numeric($times)) {
+            $method_name = $times;
+            $times = 500;
+        }
+
+        $log_level = getenv('COMPOSER_LOG_LEVEL_OPTION');
+        if (empty($log_level) || !is_numeric($log_level)) $this->set_log_level(static::LOG_LEVEL_WARN);
+
+        $this->validation->set_config([
+            'is_strict_parameter_separator' => false,                   // 1. false - Fast way to parse parameters but not support "," as part of a parameter; 2. true - Slow but support "," and array
+            'is_strict_parameter_type' => false,                        // 1. false - all the parameters type is string; 2. true - Detect the parameters type, e.g. 123 is int, "123" is string
+        ]);
+        $step_1_spent_time = $this->run_performance("1 Easy mode -", $times, $method_name);
+        if ($step_1_spent_time == false) return false;
+
+        $this->validation->set_config([
+            'is_strict_parameter_separator' => true,                    // 1. false - Fast way to parse parameters but not support "," as part of a parameter; 2. true - Slow but support "," and array
+            'is_strict_parameter_type' => true,                         // 1. false - all the parameters type is string; 2. true - Detect the parameters type, e.g. 123 is int, "123" is string
+        ]);
+        $step_2_spent_time = $this->run_performance("2 Strict mode -", $times, $method_name);
+        if ($step_2_spent_time == false) return false;
+
+        if ($step_2_spent_time > $step_1_spent_time) {
+            $big_time = $step_2_spent_time;
+            $small_time = $step_1_spent_time;
+            $this->write_log(static::LOG_LEVEL_WARN, "#DIFF Strict mode(2) costed more time. ");
+        } else {
+            $big_time = $step_1_spent_time;
+            $small_time = $step_2_spent_time;
+            $this->write_log(static::LOG_LEVEL_WARN, "#DIFF Easy mode(1) costed more time. ");
+        }
+        $diff_time = $big_time - $small_time;
+        $diff_human_time = $this->seconds_to_human_time($diff_time);
+        $this->write_log(static::LOG_LEVEL_WARN, "Total time diff: {$diff_time} Seconds({$diff_human_time})\n");
+
+        return $this->get_unit_result();
+    }
+
+    protected function run_performance($step, $times = 100, $method_name = '') {
+        $start_time = (int) (microtime(true) * 1000);
+        $start_datetime = date('Y-m-d H:i:s', floor($start_time / 1000));
+        $this->write_log(static::LOG_LEVEL_WARN, "#{$step} Start performance testing at {$start_datetime}\n");
+
+        $i = 0;
+        for ($i = 0; $i < $times; $i++) {
+            $result = $this->run_method($method_name, true);
+            if ($this->is_error) return $this->get_unit_result();
+        }
+
+        $end_time = (int) (microtime(true) * 1000);
+        $end_datetime = date('Y-m-d H:i:s', floor($end_time / 1000));
+        $spent_time = ($end_time - $start_time) / 1000;
+        $spent_human_time = $this->seconds_to_human_time($spent_time);
+        $this->write_log(static::LOG_LEVEL_WARN, "#{$step} End performance testing at {$end_datetime}. Total time spent: {$spent_time} Seconds({$spent_human_time})\n");
+
+        return $spent_time;
     }
 
     /**
@@ -129,7 +202,7 @@ class Unit extends TestCommon
      */
     protected function execute_tests($method_name, $error_data = false)
     {
-        echo " - {$method_name}\n";
+        $this->write_log(static::LOG_LEVEL_DEBUG, " - {$method_name}\n");
 
         if (preg_match('/^.*_execute$/', $method_name)) {
             return $this->{$method_name}($error_data);
@@ -326,10 +399,13 @@ class Unit extends TestCommon
     protected function get_unit_result()
     {
         if ($this->is_error) {
-            return $this->error_message;
+            $this->write_log(static::LOG_LEVEL_ERROR, "***************************************\nTest failed: " . "\n");
+            $this->write_log(static::LOG_LEVEL_ERROR, json_encode($this->error_message, JSON_PRETTY_PRINT + JSON_UNESCAPED_SLASHES + JSON_UNESCAPED_UNICODE) . "\n");
+            $this->write_log(static::LOG_LEVEL_ERROR, "***************************************\n");
+            return false;
         } else {
             $php_data = "Test PHP v" . PHP_VERSION . " -";
-            echo "***************************************\n* {$php_data} Unit test success!\n***************************************\n\n";
+            $this->write_log(static::LOG_LEVEL_INFO, "***************************************\n* {$php_data} Unit test success!\n***************************************\n\n");
             return true;
         }
     }
@@ -408,7 +484,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_require()
+    protected function test_required()
     {
         $rule = [
             "name" => "required"
@@ -2708,19 +2784,19 @@ class Unit extends TestCommon
             "method_name" => __METHOD__,
         ];
 
+        if (version_compare(PHP_VERSION, '8', '>=')) {
+            $this->write_log(static::LOG_LEVEL_WARN, "Don't worry about it if you get Warning: Undefined variable \$fake_id\". It's a test case which can be ignored.\n");
+        }
         $this->validation->add_method("php_warning_id", function ($id) {
             if (false) $fake_id = 0;
-            else if (version_compare(PHP_VERSION, '8', '>=')) {
-                echo "Don't worry about it if you get Warning: Undefined variable \$fake_id\". It's a test case which can be ignored.\n";
-            }
             return $fake_id > 1;
         });
 
+        if (version_compare(PHP_VERSION, '8', '<') && version_compare(PHP_VERSION, '7', '>')) {
+            $this->write_log(static::LOG_LEVEL_WARN, "Don't worry about it if you get Warning: Use of undefined constant UNDEFINED_VAR. It's a test case which can be ignored.\n");
+        }
         $this->validation->add_method("php_exception_name", function ($name) {
             if (false) define('UNDEFINED_VAR', 1);
-            else if (version_compare(PHP_VERSION, '8', '<')) {
-                echo "Don't worry about it if you get Warning: Use of undefined constant UNDEFINED_VAR. It's a test case which can be ignored.\n";
-            }
             return UNDEFINED_VAR;
         });
 

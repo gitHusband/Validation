@@ -11,6 +11,7 @@ class Readme extends TestCommon
 
     public function __construct()
     {
+        parent::__construct();
     }
 
     public function test_simple_example()
@@ -603,7 +604,7 @@ class Readme extends TestCommon
             $method_symbol_table .= "{$symbol} | `{$method}` | {$method_error_template}\n";
         }
 
-        echo "\n{$method_symbol_table}";
+        $this->write_log(static::LOG_LEVEL_INFO, "\n{$method_symbol_table}");
     }
 
     protected function get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbol)
