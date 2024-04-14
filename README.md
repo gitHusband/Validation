@@ -61,7 +61,7 @@ Validation 用于对数据合法性的检查。
 
 > [github 仓库](https://github.com/gitHusband/Validation)
 
-**有任何意见或想法，我们可以一起交流探讨！**
+**期待任何形式的贡献，让我们一起开发或优化 Validation！谢谢！**
 
 <details>
     <summary><span>&#128587;</span> <strong>为什么写这个工具？</strong></summary>
@@ -213,12 +213,11 @@ $ composer run-script readme test_complete_example
 
 标志 | 方法 | 含义
 ---|---|---
-\* | required | 必要的，不允许为空
-O | optional | 可选的，允许不设置或为空
-O! | optional_unset | 可选的，允许不设置，一旦设置则不能为空
-\>[20] | greater_than | 数字必须大于20
-len<=>[2,16] | length_greater_lessequal | 字符长度必须大于2且小于等于16
-ip | ip | 必须是ip地址
+`*` | `required` | 必要的，不允许为空
+`O` | `optional` | 可选的，允许不设置或为空
+`>[20]` | `greater_than` | 数字必须大于20
+`len<=>[2,16]` | `length_greater_lessequal` | 字符长度必须大于2且小于等于16
+`ip` | `ip` | 必须是ip地址
 
 **完整的方法及其标志见** [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
 
@@ -252,15 +251,51 @@ ip | ip | 必须是ip地址
 3. **省略参数**
 当函数参数只有一个且为当前字段值时，可省略 `()` 和 `[]` ，只写方法。
 
-**参数类型表**
+**参数变量表**
 
-参数 | 含义
+参数 | 描述
 ---|---
 静态值 | 代表参数是静态字符串，允许为空。例如 20
-@this | 代表参数是当前字段的值
-@parent | 代表参数是当前字段的父元素的值
-@root | 代表参数是整个原始验证数据
-@field_name | 代表参数是整个验证数据中的字段名是 field_name 的字段
+`@this` | 代表参数是当前字段的值
+`@parent` | 代表参数是当前字段的父元素的值
+`@root` | 代表参数是整个原始验证数据
+`@{field_name}` | 代表参数是整个验证数据中的字段名是 `field_name` 的字段的值。例如 `@id`
+
+**参数分隔符：**
+- `symbol_parameter_separator`: `,`
+  将参数字符串分割为多个参数的符号。 例如：`equal(@this,1)`
+- `is_strict_parameter_separator`: false
+  1. false - 快速地分割多个参数，不支持参数的值中包含分隔符 `,`
+  2. true - 分割多个参数, 不支持参数的值中包含分隔符 `,` 和 `array`.
+    例如：`my_method[[1,2,3],100]`: 这里有两个参数，并且参数值都是字符串： `[1,2,3]` 和 `100`
+
+**参数类型：**
+- `is_strict_parameter_type`: false
+  1. false - 所有参数的类型都是字符串
+  2. true - 探测参数的类型并强制转换为对应类型。字符串能不能被转换取决于是否被双引号（`"`）或单引号（`'`）包含。
+    e.g. `my_method[[1,"2",'3'],100,false,"true"]`:
+        - `[1,"2",'3']` 将被转换为 `array([1,"2","3"])`
+        - `100` 将被转换为 `int(100)`
+        - `false` 将被转换为 `bool(false)`
+        - `"true"` 将被转换为 `string(true)`
+
+自定义参数分隔符和参数类型，见 [4.10 客制化配置](#410-客制化配置)
+
+### 4.4 串联验证
+串联验证：一个参数多个方法必须全部满足。
+
+例如，
+```PHP
+"age" => "required|greater_than[18]|less_than[60]"
+```
+
+### 4.5 并联验证
+并联验证：一个参数多个规则满足其一即可。
+
+例如，
+```PHP
+    
+`
 
 ### 4.4 方法拓展
 Validation 类中内置了一些验证方法，例如 `*`，`>`, `len>=`, `ip` 等等。详见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
@@ -779,6 +814,14 @@ $validation->set_validation_global(false);
 
 模板**优先级** 从高到低：`1` > `2` > `3`
 
+**模板变量**
+变量 | 描述 | 例子
+---|---|---
+`@this` | 当前字段 | `id` 或者 `favorite_animation.name`
+`@p{x}` | 当前字段的第 x 个参数 | `@p1` 代表第 1 个参数的值。比如 `100`
+`@t{x}` | 当前字段的第 x 个参数的类型 | `@t1` 代表第 1 个参数的类型。比如 `int`
+
+
 **1. 在规则数组中设置模板**
 
 1.1 在一个规则最后，加入标志 "` >> `", 注意前后各有一个空格。自定义标志见 [4.10 客制化配置](#410-客制化配置)
@@ -889,7 +932,7 @@ function check_animal($animal) {
 <details>
   <summary><span>&#128071;</span> <strong>点击查看 附录 1 - 方法标志及其含义</strong></summary>
 
-标志 | 函数 | 含义
+标志 | 函数 | 错误消息模板
 ---|---|---
 / | `default` | @this 验证错误
 `.*` | `index_array` | @this 必须是索引数组

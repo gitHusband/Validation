@@ -572,9 +572,9 @@ class Readme extends TestCommon
 
         $header = "";
         if ($language == 'zh-cn') {
-            $header = "标志 | 方法 | 含义\n";
+            $header = "标志 | 方法 | 错误消息模板\n";
         } else if ($language == 'en-us') {
-            $header = "Symbol | Method | Desc\n";
+            $header = "Symbol | Method | Error Message Template\n";
         }
         $header .= "---|---|---\n";
         $method_symbol_table = $header;

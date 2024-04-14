@@ -60,19 +60,20 @@ Table of contents
 Validation is used to check the legality of data.
 Goal is only 5 words - **Rule structure is data structure**。
 
+**Looking forward to your contribution to develop or optimize Validation. Thank you!**
+
 > [Github Repository](https://github.com/gitHusband/Validation)
 
 <details>
     <summary><span>&#128587;</span> Why write this tool?</summary>
-    <ul>
-        <li>1. For API parameters, every parameter should theoretically be checked for legitimacy, especially those that need to be forwarded to other API interfaces or stored in a database.
-        <em>For example, the database is basically limited to the data length type, but the verification of the length is simple and cumbersome, and the use of this tool can greatly simplify the code.</em>
-        </li>
-        <li>2. If there are too many API parameters, the amount of verification code is bound to be large, and the parameter format cannot be intuitively understood through the code.</li>
-        <li>3. Customize an array of validation rules, and the request parameters format will look the same as rules format.</li>
-        <li>4. Easily vary the error messages returned by validation methods</li>
-        <li>5. <del>I'll make it up when I get another Lofty rhetoric<del> <span>&#128054;</span></li>
-    </ul>
+
+1. For API parameters, every parameter should theoretically be checked for legitimacy, especially those that need to be forwarded to other API interfaces or stored in a database.
+*For example, the database is basically limited to the data length type, but the verification of the length is simple and cumbersome, and the use of this tool can greatly simplify the code.*
+2. If there are too many API parameters, the amount of verification code is bound to be large, and the parameter format cannot be intuitively understood through the code.
+3. Customize an array of validation rules, and the request parameters format will look the same as rules format.
+4. Easily vary the error messages returned by validation methods
+5. ~~I'll make it up when I get another Lofty rhetoric~~ <span>&#128054;</span>
+
 </details>
 
 ## 1. Overview
@@ -83,20 +84,20 @@ Goal is only 5 words - **Rule structure is data structure**。
 
 <details>
     <summary><span>&#128071;</span> Read more...</summary>
-    <ul>
-        <li>Supports method parameter passing. For example, <code>@this</code> represents the value of current field</li>
-        <li>Supports to extend method</li>
-        <li>Supports series validation: multiple methods for one parameter must all be valid</li>
-        <li>Supports parallel validation: one of the multiple rules for a parameter is valid</li>
-        <li>Supports conditional validation: If the condition are met, the subsequent methods continue to be validated. If the conditions are not met, the field is optional</li>
-        <li>Supports infinite nested data structures, including associative arrays, indexed arrays</li>
-        <li>Supports for special validation rules</li>
-        <li>Supports customized configuration. For example, the separator for multiple methods defaults to <code>|</code> and can be changed to other characters, such as <code>;</code></li>
-        <li>Support internationalization. The default is English. User-defined methods are supported to return error messages</li>
-        <li>You can validate the whole data at once (by default). You can also set the parameter validation to end immediately after the parameter validation fails</li>
-        <li>Supports custom error messages, support multiple formats of error messages, infinite nested or dotted array of error message formats</li>
-        <li><del>I'll make it up when I get another Lofty Rhetoric</del> <span>&#128054;</span></li>
-    </ul>
+
+- Supports method parameter passing. For example, `@this` represents the value of current field
+- Supports to extend method
+- Supports series validation: multiple methods for one parameter must all be valid
+- Supports parallel validation: one of the multiple rules for a parameter is valid
+- Supports conditional validation: If the condition are met, the subsequent methods continue to be validated. If the conditions are not met, the field is optional
+- Supports infinite nested data structures, including associative arrays, indexed arrays
+- Supports for special validation rules
+- Supports customized configuration. For example, the separator for multiple methods defaults to `|` and can be changed to other characters, such as `;`
+- Support internationalization. The default is English. User-defined methods are supported to return error messages
+- You can validate the whole data at once (by default). You can also set the parameter validation to end immediately after the parameter validation fails
+- Supports custom error messages, support multiple formats of error messages, infinite nested or dotted array of error message formats
+- ~~I'll make it up when I get another Lofty Rhetoric~~ <span>&#128054;</span>
+
 </details>
 
 ### 1.2 An Example
@@ -213,12 +214,11 @@ For example:
 
 Symbol | Method | Desc
 ---|---|---
-\* | required | Required, not allowed to be empty
-O | optional | Optional, allowed not to be set or empty
-O! | optional_unset | Optional, allowed not to be set, once set it cannot be empty
-\>[20] | greater_than | Number must be greater than 20
-len<=>[2,16] | length_greater_lessequal | Character length must be greater than 2 and less than or equal to 16
-ip | ip | Must be an ip address
+`*` | `required` | Required, not allowed to be empty
+`O` | `optional` | Optional, allowed not to be set or empty
+`>[20]` | `greater_than` | Number must be greater than 20
+`len<=>[2,16]` | `length_greater_lessequal` | Character length must be greater than 2 and less than or equal to 16
+`/` | `ip` | Must be an ip address
 
 **The complete method and its symbol can be found in** [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
 
@@ -261,6 +261,26 @@ Static Value | Indicates that the parameter is a static string and is allowed to
 @parent | Indicates the parameter is the value of the parent of the current field
 @root | Indicates that this parameter is the whole validation data
 @field_name | Indicates that the parameter is the value of a field whose name is `field_name`. e.g. `@age`
+
+**Parameter separator:**
+- `symbol_parameter_separator`: `,`
+  Parameters separator to split the parameter string of a method into multiple parameters; e.g. `equal(@this,1)`
+- `is_strict_parameter_separator`: false
+  1. false - Fast way to parse parameters but not support `,` as part of a parameter;
+  2. true - Slow but support `,` and `array`.
+    e.g. `my_method[[1,2,3],100]`: Two parameters and both of them are string: `[1,2,3]` and `100`
+
+**Parameter Type:**
+- `is_strict_parameter_type`: false
+  1. false - All the parameters type is string;
+  2. true - Detect the parameters type and forcibly convert to the corresponding type. Whether a string can be converted depends on whether it is enclosed in double quotes (`"`) or single quotes (`''`).
+    e.g. `my_method[[1,"2",'3'],100,false,"true"]`:
+        - `[1,"2",'3']` will be converted to `array([1,"2","3"])`
+        - `100` will be converted to `int(100)`
+        - `false` will be converted to `bool(false)`
+        - `"true"` will be converted to `string(true)`
+
+For custom parameter separator and parameter type, see [4.10 Customized Configuration](#410-customized-configuration)
 
 ### 4.4 Method Extension
 There are some validation methods built in the Validation tool, such as `*`, `>`, `len>=`, `ip` and so on. 
@@ -784,6 +804,13 @@ $validation->set_validation_global(false);
 
 Template **priority** from high to low: `1` > `2` > `3`
 
+**Template variables**
+Variable | Describe | Example
+---|---|---
+`@this` | current field | `id` or `favorite_animation.name`
+`@p{x}` | The xth parameter of the current field | `@p1` represents the value of the first parameter. e.g. `100`
+`@t{x}` | The type of the xth parameter of the current field | `@t1` represents the type of the first parameter. e.g. `int`
+
 **1. Set template in rules array**
 
 1.1 At the end of a rule, add the symbol "` >> `", note that there is a space at the start and end. For custom symbol, see [4.10 Customized Configuration](#410-customized-configuration)
@@ -895,7 +922,7 @@ For details, see [Appendix 3 -Error Message Format](#Appendix-3---Error Message 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view Appendix 1 - Methods And Symbols</strong></summary>
 
-Symbol | Method | Desc
+Symbol | Method | Error Message Template
 ---|---|---
 / | `default` | @this validation failed
 `.*` | `index_array` | @this must be a numeric array
