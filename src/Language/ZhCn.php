@@ -30,32 +30,53 @@ class ZhCn
         '<' => '@this 必须小于 @p1',
         '>=' => '@this 必须大于等于 @p1',
         '<=' => '@this 必须小于等于 @p1',
-        '<>' => '@this 必须大于 @p1 且小于 @p2',
-        '<=>' => '@this 必须大于 @p1 且小于等于 @p2',
-        '<>=' => '@this 必须大于等于 @p1 且小于 @p2',
-        '<=>=' => '@this 必须大于等于 @p1 且小于等于 @p2',
-        '(n)' => '@this 必须是数字且在此之内 @p1',
-        '!(n)' => '@this 必须是数字且不在此之内 @p1',
-        '(s)' => '@this 必须是字符串且在此之内 @p1',
-        '!(s)' => '@this 必须是字符串且不在此之内 @p1',
-        'len=' => '@this 长度必须等于 @p1',
-        'len!=' => '@this 长度必须不等于 @p1',
-        'len>' => '@this 长度必须大于 @p1',
-        'len<' => '@this 长度必须小于 @p1',
-        'len>=' => '@this 长度必须大于等于 @p1',
-        'len<=' => '@this 长度必须小于等于 @p1',
-        'len<>' => '@this 长度必须大于 @p1 且小于 @p2',
-        'len<=>' => '@this 长度必须大于 @p1 且小于等于 @p2',
-        'len<>=' => '@this 长度必须大于等于 @p1 且小于 @p2',
-        'len<=>=' => '@this 长度必须大于等于 @p1 且小于等于 @p2',
+        '<>' => '@this 必须大于 @p1 且小于 @p2', // @deprecated 2.3.0
+        '><' => '@this 必须大于 @p1 且小于 @p2',
+        '<=>' => '@this 必须大于 @p1 且小于等于 @p2', // @deprecated 2.3.0
+        '><=' => '@this 必须大于 @p1 且小于等于 @p2',
+        '<>=' => '@this 必须大于等于 @p1 且小于 @p2', // @deprecated 2.3.0
+        '>=<' => '@this 必须大于等于 @p1 且小于 @p2',
+        '<=>=' => '@this 必须大于等于 @p1 且小于等于 @p2', // @deprecated 2.3.0
+        '>=<=' => '@this 必须大于等于 @p1 且小于等于 @p2',
+        '(n)' => '@this 必须是数字且在此之内 @p1', // @deprecated 2.3.0
+        '<number>' => '@this 必须是数字且在此之内 @p1',
+        '!(n)' => '@this 必须是数字且不在此之内 @p1', // @deprecated 2.3.0
+        '!<number>' => '@this 必须是数字且不在此之内 @p1',
+        '(s)' => '@this 必须是字符串且在此之内 @p1', // @deprecated 2.3.0
+        '<string>' => '@this 必须是字符串且在此之内 @p1',
+        '!(s)' => '@this 必须是字符串且不在此之内 @p1', // @deprecated 2.3.0
+        '!<string>' => '@this 必须是字符串且不在此之内 @p1',
+        'len=' => '@this 长度必须等于 @p1', // @deprecated 2.3.0
+        'length=' => '@this 长度必须等于 @p1',
+        'len!=' => '@this 长度必须不等于 @p1', // @deprecated 2.3.0
+        'length!=' => '@this 长度必须不等于 @p1',
+        'len>' => '@this 长度必须大于 @p1', // @deprecated 2.3.0
+        'length>' => '@this 长度必须大于 @p1',
+        'len<' => '@this 长度必须小于 @p1', // @deprecated 2.3.0
+        'length<' => '@this 长度必须小于 @p1',
+        'len>=' => '@this 长度必须大于等于 @p1', // @deprecated 2.3.0
+        'length>=' => '@this 长度必须大于等于 @p1',
+        'len<=' => '@this 长度必须小于等于 @p1', // @deprecated 2.3.0
+        'length<=' => '@this 长度必须小于等于 @p1',
+        'len<>' => '@this 长度必须大于 @p1 且小于 @p2', // @deprecated 2.3.0
+        'length><' => '@this 长度必须大于 @p1 且小于 @p2',
+        'len<=>' => '@this 长度必须大于 @p1 且小于等于 @p2', // @deprecated 2.3.0
+        'length><=' => '@this 长度必须大于 @p1 且小于等于 @p2',
+        'len<>=' => '@this 长度必须大于等于 @p1 且小于 @p2', // @deprecated 2.3.0
+        'length>=<' => '@this 长度必须大于等于 @p1 且小于 @p2',
+        'len<=>=' => '@this 长度必须大于等于 @p1 且小于等于 @p2', // @deprecated 2.3.0
+        'length>=<=' => '@this 长度必须大于等于 @p1 且小于等于 @p2',
         'int' => '@this 必须是整型',
         'float' => '@this 必须是小数',
         'string' => '@this 必须是字符串',
-        'arr' => '@this 必须是数组',
+        'arr' => '@this 必须是数组', // @deprecated 2.3.0
+        'array' => '@this 必须是数组',
         'bool' => '@this 必须是布尔型',
         'bool=' => '@this 必须是布尔型且等于 @p1',
-        'bool_str' => '@this 必须是布尔型字符串',
-        'bool_str=' => '@this 必须是布尔型字符串且等于 @p1',
+        'bool_str' => '@this 必须是布尔型字符串', // @deprecated 2.3.0
+        'bool_string' => '@this 必须是布尔型字符串',
+        'bool_str=' => '@this 必须是布尔型字符串且等于 @p1', // @deprecated 2.3.0
+        'bool_string=' => '@this 必须是布尔型字符串且等于 @p1',
         'email' => '@this 必须是邮箱',
         'url' => '@this 必须是网址',
         'ip' => '@this 必须是IP地址',

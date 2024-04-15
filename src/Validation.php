@@ -303,6 +303,11 @@ class Validation
             else $trait_name = $trait;
             $trait_name_uncamelized = $this->uncamelize($trait_name);
 
+            $deprecated_trait_method_symbols = "deprecated_method_symbols_of_{$trait_name_uncamelized}";
+            if (property_exists($this, $deprecated_trait_method_symbols)) {
+                $this->method_symbols = array_merge($this->method_symbols, $this->{$deprecated_trait_method_symbols});
+            }
+
             $trait_method_symbols = "method_symbols_of_{$trait_name_uncamelized}";
             if (property_exists($this, $trait_method_symbols)) {
                 $this->method_symbols = array_merge($this->method_symbols, $this->{$trait_method_symbols});
@@ -2109,6 +2114,6 @@ class Validation
 
     protected function is_in_method($method)
     {
-        return preg_match('/\(.*\)/', $method, $matches);
+        return preg_match('/^!?[\<\(][a-zA-Z0-9_\*]+[\>\)]$/', $method, $matches);
     }
 }

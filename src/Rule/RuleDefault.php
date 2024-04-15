@@ -4,6 +4,11 @@ namespace githusband\Rule;
 
 trait RuleDefault
 {
+    /**
+     * The method symbols of rule default.
+     *
+     * @var array
+     */
     protected $method_symbols_of_rule_default = [
         '=' => 'equal',
         '!=' => 'not_equal',
@@ -13,14 +18,53 @@ trait RuleDefault
         '<' => 'less_than',
         '>=' => 'greater_than_equal',
         '<=' => 'less_than_equal',
+        '><' => 'between',
+        '><=' => 'greater_lessequal',
+        '>=<' => 'greaterequal_less',
+        '>=<=' => 'greaterequal_lessequal',
+        '<number>' => 'in_number_array',
+        '!<number>' => 'not_in_number_array',
+        '<string>' => 'in_string_array',
+        '!<string>' => 'not_in_string_array',
+        'length=' => 'length_equal',
+        'length!=' => 'length_not_equal',
+        'length>' => 'length_greater_than',
+        'length<' => 'length_less_than',
+        'length>=' => 'length_greater_than_equal',
+        'length<=' => 'length_less_than_equal',
+        'length><' => 'length_between',
+        'length><=' => 'length_greater_lessequal',
+        'length>=<' => 'length_greaterequal_less',
+        'length>=<=' => 'length_greaterequal_lessequal',
+        'int' => 'integer',
+        'array' => 'is_array',    // native function
+        'bool=' => 'bool_equal',
+        'bool_string=' => 'bool_string_equal',
+    ];
+
+    /**
+     * The old method symbols of rule default that are deprecated.
+     * 
+     * @deprecated 2.3.0
+     * @var array
+     */
+    protected $deprecated_method_symbols_of_rule_default = [
+        // '=' => 'equal',
+        // '!=' => 'not_equal',
+        // '==' => 'strictly_equal',
+        // '!==' => 'not_strictly_equal',
+        // '>' => 'greater_than',
+        // '<' => 'less_than',
+        // '>=' => 'greater_than_equal',
+        // '<=' => 'less_than_equal',
         '<>' => 'between',
         '<=>' => 'greater_lessequal',
         '<>=' => 'greaterequal_less',
         '<=>=' => 'greaterequal_lessequal',
-        '(n)' => 'in_number',
-        '!(n)' => 'not_in_number',
-        '(s)' => 'in_string',
-        '!(s)' => 'not_in_string',
+        '(n)' => 'in_number_array',
+        '!(n)' => 'not_in_number_array',
+        '(s)' => 'in_string_array',
+        '!(s)' => 'not_in_string_array',
         'len=' => 'length_equal',
         'len!=' => 'length_not_equal',
         'len>' => 'length_greater_than',
@@ -31,10 +75,10 @@ trait RuleDefault
         'len<=>' => 'length_greater_lessequal',
         'len<>=' => 'length_greaterequal_less',
         'len<=>=' => 'length_greaterequal_lessequal',
-        'int' => 'integer',
+        // 'int' => 'integer',
         'arr' => 'is_array',    // native function
-        'bool=' => 'bool_equal',
-        'bool_str=' => 'bool_str_equal',
+        // 'bool=' => 'bool_equal',
+        'bool_str=' => 'bool_string_equal',
     ];
 
     protected $strict_methods_of_rule_default = [
@@ -113,22 +157,22 @@ trait RuleDefault
         return is_numeric($data) && $data >= $param1 && $data <= $param2;
     }
 
-    public static function in_number($data, $param)
+    public static function in_number_array($data, $param)
     {
         return is_numeric($data) && in_array($data, $param);
     }
 
-    public static function not_in_number($data, $param)
+    public static function not_in_number_array($data, $param)
     {
         return is_numeric($data) && !in_array($data, $param);
     }
 
-    public static function in_string($data, $param)
+    public static function in_string_array($data, $param)
     {
         return is_string($data) && in_array($data, $param);
     }
 
-    public static function not_in_string($data, $param)
+    public static function not_in_string_array($data, $param)
     {
         return is_string($data) && !in_array($data, $param);
     }
@@ -250,7 +294,20 @@ trait RuleDefault
         return static::bool($data, $bool);
     }
 
+    /**
+     * Check if it's a bool string
+     * 
+     * @deprecated 2.3.0
+     * @param mixed $data
+     * @param string $bool
+     * @return bool
+     */
     public static function bool_str($data, $bool = '')
+    {
+        return static::bool_string($data, $bool);
+    }
+
+    public static function bool_string($data, $bool = '')
     {
         if (!is_string($data)) return false;
         $data = strtolower($data);
@@ -266,9 +323,9 @@ trait RuleDefault
         }
     }
 
-    public static function bool_str_equal($data, $bool)
+    public static function bool_string_equal($data, $bool)
     {
-        return static::bool_str($data, $bool);
+        return static::bool_string($data, $bool);
     }
 
     public static function email($data)

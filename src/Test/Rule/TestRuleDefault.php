@@ -751,10 +751,10 @@ trait TestRuleDefault
         ];
     }
 
-    protected function test_method_in_number()
+    protected function test_method_in_number_array()
     {
         $rule = [
-            "id" => "(n)[1,2,3]|in_number[1,2]",
+            "id" => "(n)[1,2,3]|in_number_array[1,2]",
         ];
 
         $cases = [
@@ -823,10 +823,10 @@ trait TestRuleDefault
         ];
     }
 
-    protected function test_method_not_in_number()
+    protected function test_method_not_in_number_array()
     {
         $rule = [
-            "id" => "!(n)[1,2]|not_in_number[1,2,3]",
+            "id" => "!(n)[1,2]|not_in_number_array[1,2,3]",
         ];
 
         $cases = [
@@ -908,10 +908,10 @@ trait TestRuleDefault
         ];
     }
 
-    protected function test_method_in_string()
+    protected function test_method_in_string_array()
     {
         $rule = [
-            "id" => "(s)[1,2,3]|in_string[1,2]",
+            "id" => "(s)[1,2,3]|in_string_array[1,2]",
         ];
 
         $cases = [
@@ -967,10 +967,10 @@ trait TestRuleDefault
         ];
     }
 
-    protected function test_method_not_in_string()
+    protected function test_method_not_in_string_array()
     {
         $rule = [
-            "id" => "!(s)[1,2]|not_in_string[1,2,3]",
+            "id" => "!(s)[1,2]|not_in_string_array[1,2,3]",
         ];
 
         $cases = [
