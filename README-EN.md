@@ -172,8 +172,8 @@ This contains tests for all functions, only some built-in methods
 In principle, after modifying the code, run the unit test to ensure that the functions are normal.
 
 ```BASH
-// Test all examples
-$ composer run-script test
+// Test all examples, and print debug information.
+$ VALIDATION_LOG_LEVEL=1 composer run-script test
 // Test a single example, for example, test a regular expression
 $ composer run-script test test_regular_expression
 ```

@@ -15,7 +15,7 @@ class TestCommon
 
     public function __construct()
     {
-        $log_level = getenv('COMPOSER_LOG_LEVEL_OPTION');
+        $log_level = getenv('VALIDATION_LOG_LEVEL');
         if (!empty($log_level) && is_numeric($log_level)) $this->set_log_level($log_level);
     }
 

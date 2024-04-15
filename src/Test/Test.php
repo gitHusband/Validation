@@ -3,8 +3,12 @@
 /**
  * Run script:
  *  - php Test.php Unit run [method_name]
+ *  - php Test.php Unit run [method_name]
  *  - php Test.php Readme test_simple_example
  *  - php Test.php Demo success
+ * 
+ * If you need more debug info, run started with `VALIDATION_LOG_LEVEL=1`
+ *  - VALIDATION_LOG_LEVEL=1 php Test.php Unit run
  */
 
 require_once __DIR__ . '/../../vendor/autoload.php';

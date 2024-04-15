@@ -158,7 +158,7 @@ $ composer require githusband/validation
 在 `src/Test` 目录下已经内置了单元测试类 `Unit.php` 和 文档测试类 `Readme.php`
 通过 [Composer Script](https://getcomposer.org/doc/articles/scripts.md) 调用它们。
 
-克隆本项目后，请先生成项目的自动加载文件：
+克隆本项目后，请先加载项目的自动加载文件：
 ```BASH
 $ composer dump-autoload
 ```
@@ -169,8 +169,8 @@ $ composer dump-autoload
 原则上修改代码后跑一遍单元测试，确保功能正常。
 
 ```BASH
-// 测试所有例子
-$ composer run-script test
+// 测试所有例子，并打印 debug 信息。
+$ VALIDATION_LOG_LEVEL=1 composer run-script test
 // 测试单一例子，例如，测试正则表达式
 $ composer run-script test test_regular_expression
 ```
@@ -280,22 +280,6 @@ $ composer run-script readme test_complete_example
         - `"true"` 将被转换为 `string(true)`
 
 自定义参数分隔符和参数类型，见 [4.10 客制化配置](#410-客制化配置)
-
-### 4.4 串联验证
-串联验证：一个参数多个方法必须全部满足。
-
-例如，
-```PHP
-"age" => "required|greater_than[18]|less_than[60]"
-```
-
-### 4.5 并联验证
-并联验证：一个参数多个规则满足其一即可。
-
-例如，
-```PHP
-    
-`
 
 ### 4.4 方法拓展
 Validation 类中内置了一些验证方法，例如 `*`，`>`, `len>=`, `ip` 等等。详见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
