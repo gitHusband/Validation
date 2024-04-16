@@ -2,7 +2,7 @@
 
 namespace githusband\Test;
 
-use githusband\Test\Rule\TestRuleDefault;
+use githusband\Test\Rule\TestRuleDefaultDeprecated;
 
 /**
  * 1. How to add a new unit test case?
@@ -43,7 +43,10 @@ use githusband\Validation;
 use githusband\Test\TestCommon;
 use githusband\Test\Extend\MyValidation;
 
-class Unit extends TestCommon
+/**
+ * @deprecated 2.3.1
+ */
+class UnitDeprecated extends TestCommon
 {
     /**
      * @var Validation
@@ -4144,5 +4147,5 @@ class Unit extends TestCommon
         ];
     }
 
-    use TestRuleDefault;
+    use TestRuleDefaultDeprecated;
 }

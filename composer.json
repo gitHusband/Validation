@@ -22,10 +22,22 @@
         }
     },
     "scripts": {
-        "test": "php src/Test/Test.php Unit run",
-        "multi-test": "./src/Test/Test.sh run",
-        "performance": "php src/Test/Test.php Unit performance",
-        "multi-performance": "./src/Test/Test.sh performance",
+        "test": [
+            "php src/Test/Test.php UnitDeprecated run",
+            "php src/Test/Test.php Unit run"
+        ],
+        "multi-test": [
+            "./src/Test/Test.sh UnitDeprecated run",
+            "./src/Test/Test.sh Unit run"
+        ],
+        "performance": [
+            "php src/Test/Test.php UnitDeprecated performance",
+            "php src/Test/Test.php Unit performance"
+        ],
+        "multi-performance": [
+            "./src/Test/Test.sh UnitDeprecated performance",
+            "./src/Test/Test.sh Unit performance"
+        ],
         "readme": "php src/Test/Test.php Readme"
     }
 }

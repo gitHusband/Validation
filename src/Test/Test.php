@@ -14,6 +14,7 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use githusband\Test\Unit;
+use githusband\Test\UnitDeprecated;
 use githusband\Test\Readme;
 use githusband\Test\Demo;
 
@@ -35,6 +36,7 @@ function check_age($data, $gender, $param)
 
 $class_lists = [
     'Unit' => Unit::class,
+    'UnitDeprecated' => UnitDeprecated::class,
     'Readme' => Readme::class,
     'Demo' => Demo::class,
 ];

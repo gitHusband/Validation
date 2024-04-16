@@ -14,16 +14,17 @@ else
    env_log_level=""
 fi
 
-method=$1;
-sub_method_1=$2;
-sub_method_2=$3;
+class=$1;
+method=$2;
+sub_method_1=$3;
+sub_method_2=$4;
 
 scriptPath=$(readlink -f "$0")
 scriptDirectory=$(dirname "$scriptPath")
 
 echo ">> Test in docker container: php-5.6-cli-alpine";
 # docker run -i --rm --name php-5.6-cli-alpine -v "$PWD":/validation -w /validation/src/Test php:5.6-cli-alpine php Test.php Unit run
-docker run -i --rm $env_log_level --name php-5.6-cli-alpine -v "$scriptDirectory"/../../:/validation -w /validation/src/Test php:5.6-cli-alpine php Test.php Unit "$method" "$sub_method_1" "$sub_method_2"
+docker run -i --rm $env_log_level --name php-5.6-cli-alpine -v "$scriptDirectory"/../../:/validation -w /validation/src/Test php:5.6-cli-alpine php Test.php "$class" "$method" "$sub_method_1" "$sub_method_2"
 returnValue=$?
 if [ $returnValue -ne 0 ]; then
     exit 1
@@ -33,7 +34,7 @@ echo "";
 
 echo ">> Test in docker container: php-7.4.33-cli-alpine";
 # docker run -i --rm --name php-7.4.33-cli-alpine -v "$PWD":/validation -w /validation/src/Test php:7.4.33-cli-alpine php Test.php Unit run
-docker run -i --rm $env_log_level --name php-7.4.33-cli-alpine -v "$scriptDirectory"/../../:/validation -w /validation/src/Test php:7.4.33-cli-alpine php Test.php Unit "$method" "$sub_method_1" "$sub_method_2"
+docker run -i --rm $env_log_level --name php-7.4.33-cli-alpine -v "$scriptDirectory"/../../:/validation -w /validation/src/Test php:7.4.33-cli-alpine php Test.php "$class" "$method" "$sub_method_1" "$sub_method_2"
 returnValue=$?
 if [ $returnValue -ne 0 ]; then
     exit 1
@@ -42,7 +43,7 @@ echo "";
 
 echo ">> Test in docker container: php-latest";
 # docker run -i --rm --name php-latest -v "$PWD":/validation -w /validation/src/Test php:latest php Test.php Unit run
-docker run -i --rm $env_log_level --name php-latest -v "$scriptDirectory"/../../:/validation -w /validation/src/Test php:latest php Test.php Unit "$method" "$sub_method_1" "$sub_method_2"
+docker run -i --rm $env_log_level --name php-latest -v "$scriptDirectory"/../../:/validation -w /validation/src/Test php:latest php Test.php "$class" "$method" "$sub_method_1" "$sub_method_2"
 returnValue=$?
 if [ $returnValue -ne 0 ]; then
     exit 1
