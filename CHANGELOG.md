@@ -110,3 +110,48 @@
 
 1. 修复方法名无法匹配其标志的 bug
 2. 去除参数中首次成对的单/双引号：为了保证，无论参数 strict 与否，都能正常验证规则
+
+## v2.3.1
+
+### 优化方法及其标志
+
+**更名的标志(*):**
+- `len=` -> `length=`,
+- `len!=` -> `length!=`,
+- `len<=>=` -> `length>=<=`,
+- `len<>=` -> `length>=<`,
+- `len<=>` -> `length><=`,
+- `len>=` -> `length>=`,
+- `len<=` -> `length<=`,
+- `len<>` -> `length><`,
+- `len>` -> `length>`,
+- `len<` -> `length<`,
+- `<=>=` -> `>=<=`
+- `<=>` -> `><=`
+- `<>=` -> `>=<`
+- `<>` -> `><`
+- `(n)` -> `<number>`
+- `!(n)` -> `!<number>`
+- `(s)` -> `<string>`
+- `!(s)` -> `!<string>`
+- `arr` -> `array`
+- `bool_str` -> `bool_string`
+- `bool_str_equal` -> `bool_string_equal`
+- `bool_str=` -> `bool_string=`
+
+搜索替换规则：按上述顺序依次替换。
+特殊的:
+- `([|"'])arr` => `$1array`
+
+**更名的方法(*):**
+- `in_number` -> `in_number_array`
+- `not_in_number` -> `not_in_number_array`
+- `in_string` -> `in_string_array`
+- `not_in_string` -> `not_in_string_array`
+- `bool_str` -> `bool_string`
+- `bool_str_equal` -> `bool_string_equal`
+
+搜索替换规则：按上述顺序依次替换。
+特殊的:
+- `in_number(?!_array)` => `in_number_array`
+- `in_string(?!_array)` => `in_string_array`

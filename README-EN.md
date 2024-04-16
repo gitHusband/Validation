@@ -79,7 +79,7 @@ Goal is only 5 words - **Rule structure is data structure**。
 ## 1. Overview
 ### 1.1 Feature
 - One field corresponds to one validation rule, and a rule consists of multiple validation methods (functions).
-- The validation method supports the substitution of symbol, which is easy to understand and simplifies the rules. e.g. `*`, `>`, `<`, `len>`
+- The validation method supports the substitution of symbol, which is easy to understand and simplifies the rules. e.g. `*`, `>`, `<`, `length>`
 - Supports regular expressions
 
 <details>
@@ -118,10 +118,10 @@ $data = [
 // The array of validation rules. The format of the rule array is the same as the format of the parameters to be validated.
 $rule = [
     "id" => "required|/^\d+$/",         // Must not be empty, and must be numbers
-    "name" => "required|len<=>[3,32]",  // Must not be empty and the string length must be greater than 3 and less than or equal to 32
+    "name" => "required|length><=[3,32]",  // Must not be empty and the string length must be greater than 3 and less than or equal to 32
     "favorite_animation" => [
-        "name" => "required|len<=>[1,64]",          // Must not be empty, the string length must be greater than 1 and less than 64
-        "release_date" => "optional|len<=>[4,64]",  // Optional, If it is not empty, then the string length must be greater than 4 and less than or equal to 64
+        "name" => "required|length><=[1,64]",          // Must not be empty, the string length must be greater than 1 and less than 64
+        "release_date" => "optional|length><=[4,64]",  // Optional, If it is not empty, then the string length must be greater than 4 and less than or equal to 64
     ]
 ];
 
@@ -207,7 +207,7 @@ In order to facilitate understanding and simplify the rules, some method **symbo
 
 // Use method symbols, same as above
 // If you think the method symbols difficult to understand, please just use the full name of the methods.
-"name" => "*|string|len<=>[3,32]"
+"name" => "*|string|length><=[3,32]"
 ```
 
 For example:
@@ -217,7 +217,7 @@ Symbol | Method | Desc
 `*` | `required` | Required, not allowed to be empty
 `O` | `optional` | Optional, allowed not to be set or empty
 `>[20]` | `greater_than` | Number must be greater than 20
-`len<=>[2,16]` | `length_greater_lessequal` | Character length must be greater than 2 and less than or equal to 16
+`length><=[2,16]` | `length_greater_lessequal` | Character length must be greater than 2 and less than or equal to 16
 `/` | `ip` | Must be an ip address
 
 **The complete method and its symbol can be found in** [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
@@ -283,7 +283,7 @@ Static Value | Indicates that the parameter is a static string and is allowed to
 For custom parameter separator and parameter type, see [4.10 Customized Configuration](#410-customized-configuration)
 
 ### 4.4 Method Extension
-There are some validation methods built in the Validation tool, such as `*`, `>`, `len>=`, `ip` and so on. 
+There are some validation methods built in the Validation tool, such as `*`, `>`, `length>=`, `ip` and so on. 
 For details, refer to [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
 
 If the validation rules are complex and the built-in methods cannot meet your needs, you can extend your own methods.
@@ -395,19 +395,19 @@ The symbol of `[or]` is `[||]`, the symbol can be customized, and the usage is t
 
 ```PHP
 // Series: The height_unit is required and must be cm or m
-"height_unit" => "required|(s)[cm,m]",
+"height_unit" => "required|<string>[cm,m]",
 // A. Parallel: The rule can be like this, [or] can be replaced by its symbol [||]
 "height[or]" => [
     // If the height_unit is cm(centimeter), the height must be greater than or equal to 100 and less than or equal to 200
-    "required|=(@height_unit,cm)|<=>=[100,200]",
+    "required|=(@height_unit,cm)|>=<=[100,200]",
     // If the height_unit is m(meter), the height must be greater than or equal to 1 and less than or equal to 2
-    "required|=(@height_unit,m)|<=>=[1,2]",
+    "required|=(@height_unit,m)|>=<=[1,2]",
 ]
 // B. Parallel: The rules can also be like this, and the symblo [||] can be replaced by [or]
 "height" => [
     "[||]" => [
-        "required|=(@height_unit,cm)|<=>=[100,200]",
-        "required|=(@height_unit,m)|<=>=[1,2]",
+        "required|=(@height_unit,cm)|>=<=[100,200]",
+        "required|=(@height_unit,m)|>=<=[1,2]",
     ]
 ]
 ```
@@ -425,10 +425,10 @@ The **When** conditional rule: Add conditions to any rule or method. Generally, 
 1. Generally, the method will be validated only if the condition is met, otherwise the method will be skipped. For example:
 ```PHP
 $rule = [
-    "id" => "required|<>[0,10]",
+    "id" => "required|><[0,10]",
     // When the id is less than 5, the name can only be a number and its length must be greater than 2
     // When the id is greater than or equal to 5, the name can be any string and its length must be greater than 2
-    "name" => "/^\d+$/:when(<(@id,5))|len>[2]",
+    "name" => "/^\d+$/:when(<(@id,5))|length>[2]",
     // When the id is not less than 5, the age must be less than or equal to 18
     // When id is less than 5, age can be any number
     "age" => "int|<=[18]:when_not(<(@id,5))",
@@ -449,7 +449,7 @@ I take the `required` as an example to illustrate the usage of `when()` and `whe
 ```PHP
 $rule = [
     // The attribute must not be empty, and it must be "height" or "weight"
-    "attribute" => "required|(s)[height,weight]",
+    "attribute" => "required|<string>[height,weight]",
     // If the attribute is height, then the centimeter must not be empty
     // If the attribute is not height, then the centimeter is optional
     // However, if the value of the centimeter is not empty, it must be greater than 180
@@ -466,7 +466,7 @@ $rule = [
 ```PHP
 $rule = [
     // The attribute must not be empty, and it must be "height" or "weight"
-    "attribute" => "required|(s)[height,weight]",
+    "attribute" => "required|<string>[height,weight]",
     // If the attribute is not weight, then the centimeter must not be empty
     // If the attribute is weight, then the centimeter is optional
     // However, if the value of the centimeter is not empty, it must be greater than 180
@@ -486,7 +486,7 @@ The usage of standard conditional rules is similar to PHP syntax, `if()` and `!i
 ```PHP
 $rule = [
     // The attribute must not be empty, and it must be "height" or "weight"
-    "attribute" => "required|(s)[height,weight]",
+    "attribute" => "required|<string>[height,weight]",
     // If the attribute is height, then the centimeter must not be empty and must be greater than 180
     // If the attribute is not height，then the subsequent rules will not be validated, that is, the centimeter can be any value.
     "centimeter" => "if(=(@attribute,height))|required|>[180]",
@@ -500,7 +500,7 @@ $rule = [
 ```PHP
 $rule = [
     // The attribute must not be empty, and it must be "height" or "weight"
-    "attribute" => "required|(s)[height,weight]",
+    "attribute" => "required|<string>[height,weight]",
     // If the attribute is not weight, then the centimeter must not be empty and must be greater than 180
     // If the attribute is weight，then the subsequent rules will not be validated, that is, the centimeter can be any value.
     "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
@@ -531,11 +531,11 @@ $data = [
 // To validate the above $data, the rule can be like this
 $rule = [
     "id" => "required|/^\d+$/",
-    "name" => "required|len>[3]",
+    "name" => "required|length>[3]",
     "favourite_fruit" => [
-        "name" => "required|len>[3]",
-        "color" => "required|len>[3]",
-        "shape" => "required|len>[3]"
+        "name" => "required|length>[3]",
+        "color" => "required|length>[3]",
+        "shape" => "required|length>[3]"
     ]
 ];
 ```
@@ -572,27 +572,27 @@ $data = [
 // To validate the above $data, the rule can be like this
 $rule = [
     "id" => "required|/^\d+$/",
-    "name" => "required|len>[3]",
-    "favourite_color.*" => "required|len>[3]",
+    "name" => "required|length>[3]",
+    "favourite_color.*" => "required|length>[3]",
     "favourite_fruits.*" => [
-        "name" => "required|len>[3]",
-        "color" => "required|len>[3]",
-        "shape" => "required|len>[3]"
+        "name" => "required|length>[3]",
+        "color" => "required|length>[3]",
+        "shape" => "required|length>[3]"
     ]
 ];
 
 // You can also write it like this
 $rule = [
     "id" => "required|/^\d+$/",
-    "name" => "required|len>[3]",
+    "name" => "required|length>[3]",
     "favourite_color" => [
-        "*" => "required|len>[3]"
+        "*" => "required|length>[3]"
     ],
     "favourite_fruits" => [
         "*" => [
-            "name" => "required|len>[3]",
-            "color" => "required|len>[3]",
-            "shape" => "required|len>[3]"
+            "name" => "required|length>[3]",
+            "color" => "required|length>[3]",
+            "shape" => "required|length>[3]"
         ]
     ]
 ];
@@ -704,10 +704,10 @@ Then, the rule in [1.2 An Example](#12-an-example) can be written as follows:
 ```PHP
 $rule = [
     "id" => "!*&&Reg:/^\d+$/",          // Must not be empty, and must be numbers
-    "name" => "!*&&len<=>~3+32",        // Must not be empty and the string length must be greater than 3 and less than or equal to 32
+    "name" => "!*&&length><=~3+32",        // Must not be empty and the string length must be greater than 3 and less than or equal to 32
     "favorite_animation" => [
-        "name" => "!*&&len<=>~1+64",                // Must not be empty, the string length must be greater than 1 and less than 64
-        "release_date" => "o?&&len<=>#@this+4+64",  // Optional, If it is not empty, then the string length must be greater than 4 and less than or equal to 64
+        "name" => "!*&&length><=~1+64",                // Must not be empty, the string length must be greater than 1 and less than 64
+        "release_date" => "o?&&length><=#@this+4+64",  // Optional, If it is not empty, then the string length must be greater than 4 and less than or equal to 64
     ]
 ];
 ```
@@ -817,24 +817,24 @@ Variable | Describe | Example
 
 1.1.1. **Common string**：Indicates that no matter whether any method in the rule fails to validate, this error message will be returned.
 ```PHP
-// required OR regular expression OR <=>= method，no matter which validation fails, the error is "id is incorrect."
-"id" => 'required|/^\d+$/|<=>=[1,100] >> @this is incorrect.'
+// required OR regular expression OR >=<= method，no matter which validation fails, the error is "id is incorrect."
+"id" => 'required|/^\d+$/|>=<=[1,100] >> @this is incorrect.'
 ```
 
 1.1.2. **JSON string**：Set an error message template for each method
 
 ```PHP
-"id" => 'required|/^\d+$/|<=>=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}'
+"id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}'
 ```
 When any of the methods fails to validate, the corresponding error message is:
 - `required`: Users define - id is required
 - `/^\d+$/`: Users define - id should be "MATCHED" /^\d+$/
-- `<=>=`: id must be greater than or equal to 1 and less than or equal to 100
+- `>=<=`: id must be greater than or equal to 1 and less than or equal to 100
 
 1.1.3. ~~Exclusive string (not recommended)~~：Set an error message template for each method，same as JSON
 
 ```PHP
-"id" => "required|/^\d+$/|<=>=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg"
+"id" => "required|/^\d+$/|>=<=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg"
 ```
 
 1.2. **Error message template array**：Set an error message template for each method，same as JSON
@@ -846,7 +846,7 @@ Any extra key is not allowed.
 ```PHP
 $rule = [
     "id" => [
-        'required|/^\d+$/|<=>=[1,100]',
+        'required|/^\d+$/|>=<=[1,100]',
         'error_message' => [                        
             'required' => 'Users define - @this is required',
             'preg' => 'Users define - @this should be \"MATCHED\" @preg',
@@ -948,32 +948,32 @@ Symbol | Method | Error Message Template
 `<` | `less_than` | @this must be less than @p1
 `>=` | `greater_than_equal` | @this must be greater than or equal to @p1
 `<=` | `less_than_equal` | @this must be less than or equal to @p1
-`<>` | `between` | @this must be greater than @p1 and less than @p2
-`<=>` | `greater_lessequal` | @this must be greater than @p1 and less than or equal to @p2
-`<>=` | `greaterequal_less` | @this must be greater than or equal to @p1 and less than @p2
-`<=>=` | `greaterequal_lessequal` | @this must be greater than or equal to @p1 and less than or equal to @p2
-`(n)` | `in_number` | @this must be numeric and in @p1
-`!(n)` | `not_in_number` | @this must be numeric and can not be in @p1
-`(s)` | `in_string` | @this must be string and in @p1
-`!(s)` | `not_in_string` | @this must be string and can not be in @p1
-`len=` | `length_equal` | @this length must be equal to @p1
-`len!=` | `length_not_equal` | @this length must be not equal to @p1
-`len>` | `length_greater_than` | @this length must be greater than @p1
-`len<` | `length_less_than` | @this length must be less than @p1
-`len>=` | `length_greater_than_equal` | @this length must be greater than or equal to @p1
-`len<=` | `length_less_than_equal` | @this length must be less than or equal to @p1
-`len<>` | `length_between` | @this length must be greater than @p1 and less than @p2
-`len<=>` | `length_greater_lessequal` | @this length must be greater than @p1 and less than or equal to @p2
-`len<>=` | `length_greaterequal_less` | @this length must be greater than or equal to @p1 and less than @p2
-`len<=>=` | `length_greaterequal_lessequal` | @this length must be greater than or equal to @p1 and less than or equal to @p2
+`><` | `between` | @this must be greater than @p1 and less than @p2
+`><=` | `greater_lessequal` | @this must be greater than @p1 and less than or equal to @p2
+`>=<` | `greaterequal_less` | @this must be greater than or equal to @p1 and less than @p2
+`>=<=` | `greaterequal_lessequal` | @this must be greater than or equal to @p1 and less than or equal to @p2
+`<number>` | `in_number_array` | @this must be numeric and in @p1
+`!<number>` | `not_in_number_array` | @this must be numeric and can not be in @p1
+`<string>` | `in_string_array` | @this must be string and in @p1
+`!<string>` | `not_in_string_array` | @this must be string and can not be in @p1
+`length=` | `length_equal` | @this length must be equal to @p1
+`length!=` | `length_not_equal` | @this length must be not equal to @p1
+`length>` | `length_greater_than` | @this length must be greater than @p1
+`length<` | `length_less_than` | @this length must be less than @p1
+`length>=` | `length_greater_than_equal` | @this length must be greater than or equal to @p1
+`length<=` | `length_less_than_equal` | @this length must be less than or equal to @p1
+`length><` | `length_between` | @this length must be greater than @p1 and less than @p2
+`length><=` | `length_greater_lessequal` | @this length must be greater than @p1 and less than or equal to @p2
+`length>=<` | `length_greaterequal_less` | @this length must be greater than or equal to @p1 and less than @p2
+`length>=<=` | `length_greaterequal_lessequal` | @this length must be greater than or equal to @p1 and less than or equal to @p2
 `int` | `integer` | @this must be integer
 / | `float` | @this must be float
 / | `string` | @this must be string
 `arr` | `is_array` | @this must be array
 / | `bool` | @this must be boolean
 `bool=` | `bool_equal` | @this must be boolean @p1
-/ | `bool_str` | @this must be boolean string
-`bool_str=` | `bool_str_equal` | @this must be boolean string @p1
+/ | `bool_string` | @this must be boolean string
+`bool_string=` | `bool_string_equal` | @this must be boolean string @p1
 / | `email` | @this must be email
 / | `url` | @this must be url
 / | `ip` | @this must be IP address
@@ -1026,25 +1026,25 @@ function validate($data) {
     // Set validation rules
     $rule = [
         "id" => "required|/^\d+$/",         // id must not be empty, and must be numbers
-        "name" => "required|len<=>[3,32]",  // name must not be empty, and the string length must be greater than 3 and less than or equal to 32
+        "name" => "required|length><=[3,32]",  // name must not be empty, and the string length must be greater than 3 and less than or equal to 32
         "favorite_animation" => [
             // favorite_animation.name must not be empty, and the string length must be greater than 1 and less than or equal to 64
-            "name" => "required|len<=>[1,16]",
+            "name" => "required|length><=[1,16]",
             // favorite_animation.release_date is optional. If not empty, the string length must be greater than 4 and less than or equal to 64
-            "release_date" => "optional|len<=>[4,64]",
+            "release_date" => "optional|length><=[4,64]",
             // "*" indicates favorite_animation.series_directed_by is an index array
             "series_directed_by" => [
                 // favorite_animation.series_directed_by.* each child field must meet its rules:  cannot be empty and its length must be greater than 3
-                "*" => "required|len>[3]"
+                "*" => "required|length>[3]"
             ],
             // [optional] indicates favorite_animation.series_cast is optional
             // ".*"(Same as above “*”) indicates favorite_animation.series_cast is an index array, and each sub-field is an associative array.
             "series_cast" => [
                 "[optional].*" => [
                     // favorite_animation.series_cast.*.actor cannot be empty and the length must be greater than 3 and must match the regular expression
-                    "actor" => "required|len>[3]|/^[A-Za-z ]+$/",
+                    "actor" => "required|length>[3]|/^[A-Za-z ]+$/",
                     // favorite_animation.series_cast.*.character can not be empty and length must be greater than 3
-                    "character" => "required|len>[3]",
+                    "character" => "required|length>[3]",
                 ]
             ]
         ]

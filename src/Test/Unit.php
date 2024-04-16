@@ -829,7 +829,7 @@ class Unit extends TestCommon
     protected function test_if_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             "name_1" => "if(<(@id,5))|required|string|/^\d+.*/",
             "name_0" => "!if(<(@id,5))|required|string|/^\d+.*/",
         ];
@@ -906,7 +906,7 @@ class Unit extends TestCommon
     protected function test_required_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             "name_1" => "required:when(<(@id,5))|string|/^\d+.*/",
             "name_*_1" => "*:?(<(@id,5))|string|/^\d+.*/ >> {\"required:when\": \"@this can not be empty when id < 5\"}",
             "name_0" => "required:when_not(<(@id,5))|string|/^\d+.*/",
@@ -1061,7 +1061,7 @@ class Unit extends TestCommon
     protected function test_optional_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             "name_1" => "optional:when(>(@id,5))|string|/^\d+.*/",
             "name_*_1" => "O:?(>(@id,5))|string|/^\d+.*/ >> {\"optional:when\": \"@this can be empty when id > 5\"}",
             "name_0" => "optional:when_not(>(@id,5))|string|/^\d+.*/",
@@ -1216,7 +1216,7 @@ class Unit extends TestCommon
     protected function test_optional_unset_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             "name_1" => "optional_unset:when(>(@id,5))|string|/^\d+.*/",
             "name_*_1" => "O!:?(>(@id,5))|string|/^\d+.*/ >> {\"optional_unset:when\": \"@this must be unset or must not be empty if it's set when id > 5. Otherwise it can not be empty\"}",
             "name_0" => "optional_unset:when_not(>(@id,5))|string|/^\d+.*/",
@@ -1396,11 +1396,11 @@ class Unit extends TestCommon
     protected function test_regular_expression_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
-            "name_1" => "/^\d+$/:when(<(@id,5))|len>[2]",
-            "name_*_1" => "/^\d+$/:?(<(@id,5))|len>[2] >> {\"preg:when\": \"name_*_1 must be @preg when id < 5\"}",
-            "name_0" => "/^\d+$/:when_not(<(@id,5))|len>[2]",
-            "name_*_0" => "/^\d+$/:!?(<(@id,5))|len>[2] >> {\"preg:when_not\": \"@this must be @preg when id is not less than 5\"}",
+            "id" => "required|><[0,10]",
+            "name_1" => "/^\d+$/:when(<(@id,5))|length>[2]",
+            "name_*_1" => "/^\d+$/:?(<(@id,5))|length>[2] >> {\"preg:when\": \"name_*_1 must be @preg when id < 5\"}",
+            "name_0" => "/^\d+$/:when_not(<(@id,5))|length>[2]",
+            "name_*_0" => "/^\d+$/:!?(<(@id,5))|length>[2] >> {\"preg:when_not\": \"@this must be @preg when id is not less than 5\"}",
         ];
 
         $cases = [
@@ -1525,11 +1525,11 @@ class Unit extends TestCommon
     protected function test_method_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
-            "name_1" => "len<[5]:when(<(@id,5))|len>[2]",
-            "name_*_1" => "len<[5]:?(<(@id,5))|len>[2] >> {\"len<:when\": \"name_*_1 length must be less than @p1 when id < 5\"}",
-            "name_0" => "len<[5]:when_not(<(@id,5))|len>[2]",
-            "name_*_0" => "len<[5]:!?(<(@id,5))|len>[2] >> {\"len<:when_not\": \"@this length must be less than @p1 when id is not less than 5\"}",
+            "id" => "required|><[0,10]",
+            "name_1" => "length<[5]:when(<(@id,5))|length>[2]",
+            "name_*_1" => "length<[5]:?(<(@id,5))|length>[2] >> {\"length<:when\": \"name_*_1 length must be less than @p1 when id < 5\"}",
+            "name_0" => "length<[5]:when_not(<(@id,5))|length>[2]",
+            "name_*_0" => "length<[5]:!?(<(@id,5))|length>[2] >> {\"length<:when_not\": \"@this length must be less than @p1 when id is not less than 5\"}",
         ];
 
         $cases = [
@@ -1656,7 +1656,7 @@ class Unit extends TestCommon
         $rule = [
             "name[or]" => [
                 "required|bool",
-                "required|bool_str",
+                "required|bool_string",
             ],
             "height" => [
                 "[or]" => [
@@ -1717,7 +1717,7 @@ class Unit extends TestCommon
         $rule = [
             "name[||]" => [
                 "required|bool",
-                "required|bool_str",
+                "required|bool_string",
             ],
             "height" => [
                 "[||]" => [
@@ -2473,7 +2473,7 @@ class Unit extends TestCommon
     protected function test_dynamic_err_msg_general()
     {
         $rule = [
-            "id" => "required|<=>=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
+            "id" => "required|>=<=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
             "name" => "required|string >> Users define - @this should not be empty and must be string",
         ];
 
@@ -2651,8 +2651,8 @@ class Unit extends TestCommon
     protected function test_strict_parameter()
     {
         $rule = [
-            "id" => "optional|(n)[1,\"10\",'100']",
-            "color" => "optional|(s)[red,\"white\",'black']"
+            "id" => "optional|<number>[1,\"10\",'100']",
+            "color" => "optional|<string>[red,\"white\",'black']"
         ];
 
         $cases = [
@@ -3173,9 +3173,9 @@ class Unit extends TestCommon
     protected function test_dynamic_err_msg_user_json()
     {
         $rule = [
-            "id" => 'required|/^\d+$/|<=>=[1,100]| >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
+            "id" => 'required|/^\d+$/|>=<=[1,100]| >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
             "name" => 'optional_unset|string >> { "optional_unset": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
-            "age" => 'optional|<=>=[1,60]|check_err_field >> { "<=>=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
+            "age" => 'optional|>=<=[1,60]|check_err_field >> { ">=<=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
         ];
 
         $cases = [
@@ -3265,9 +3265,9 @@ class Unit extends TestCommon
     protected function test_dynamic_err_msg_user_gh_string()
     {
         $rule = [
-            "id" => "required|/^\d+$/|<=>=[1,100]| >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
+            "id" => "required|/^\d+$/|>=<=[1,100]| >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
             "name" => "optional_unset|string >> [optional_unset] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
-            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
+            "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
         ];
 
         $cases = [
@@ -3358,7 +3358,7 @@ class Unit extends TestCommon
     {
         $rule = [
             "id" => [
-                "required|/^\d+$/|<=>=[1,100]",
+                "required|/^\d+$/|>=<=[1,100]",
                 "error_message" => [
                     "required" => "Users define - @this is required",
                     "preg" => "Users define - @this should be \"MATCHED\" @preg"
@@ -3371,11 +3371,11 @@ class Unit extends TestCommon
                     "string" => "Users define - Note! @this should be string"
                 ]
             ],
-            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
+            "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
             "age" => [
-                "optional|<=>=[1,60]|check_err_field",
+                "optional|>=<=[1,60]|check_err_field",
                 "error_message" => [
-                    "<=>=" => "Users define - @this is not allowed.",
+                    ">=<=" => "Users define - @this is not allowed.",
                     "check_err_field" => "Users define - @this is not passed."
                 ]
             ],
@@ -3582,33 +3582,33 @@ class Unit extends TestCommon
     {
         $rule = [
             "id" => "required|int|/^\d+$/",
-            "name" => "required|string|len<=>[8,32]",
-            "gender" => "required|(s)[male,female]",
+            "name" => "required|string|length><=[8,32]",
+            "gender" => "required|<string>[male,female]",
             "dob" => "required|dob",
             "age" => "required|check_age[@gender,30] >> @this is wrong",
-            "height_unit" => "required|(s)[cm,m]",
+            "height_unit" => "required|<string>[cm,m]",
             "height[or]" => [
-                "required|=(@height_unit,cm)|<=>=[100,200] >> @this should be in [100,200] when height_unit is cm",
-                "required|=(@height_unit,m)|<=>=[1,2] >> @this should be in [1,2] when height_unit is m",
+                "required|=(@height_unit,cm)|>=<=[100,200] >> @this should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|>=<=[1,2] >> @this should be in [1,2] when height_unit is m",
             ],
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[10]",
-                "university" => "!if(=(@junior_middle_school,Qiankeng Zhongxue))|required|len>[10]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[10]",
+                "university" => "!if(=(@junior_middle_school,Qiankeng Zhongxue))|required|length>[10]",
             ],
             "company" => [
-                "name" => "required|len<=>[8,64]",
-                "country" => "optional|len>=[3]",
-                "addr" => "required|len>[16]",
+                "name" => "required|length><=[8,64]",
+                "country" => "optional|length>=[3]",
+                "addr" => "required|length>[16]",
                 "colleagues.*" => [
-                    "name" => "required|string|len<=>[3,32]",
-                    "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
+                    "name" => "required|string|length><=[3,32]",
+                    "position" => "required|<string>[Reception,Financial,PHP,JAVA]"
                 ],
                 "boss" => [
                     "required|=[Mike]",
-                    "required|(s)[Johnny,David]",
-                    "optional|(s)[Johnny,David]"
+                    "required|<string>[Johnny,David]",
+                    "optional|<string>[Johnny,David]"
                 ]
             ],
             "favourite_food[optional].*" => [
@@ -3814,33 +3814,33 @@ class Unit extends TestCommon
 
         $rule = [
             "id" => "!*&&int&&Reg:/^\d+$/i",
-            "name" => "!*&&string&&len<=>~8,32",
-            "gender" => "!*&&(s)~male,female",
+            "name" => "!*&&string&&length><=~8,32",
+            "gender" => "!*&&<string>~male,female",
             "dob" => "!*&&dob",
             "age" => "!*&&check_age~@gender,30 >>>@this is wrong",
-            "height_unit" => "!*&&(s)~cm,m",
+            "height_unit" => "!*&&<string>~cm,m",
             "height[or]" => [
-                "!*&&=~~@height_unit,cm&&<=>=~100,200 >>>@this should be in [100,200] when height_unit is cm",
-                "!*&&=~~@height_unit,m&&<=>=~1,2 >>>@this should be in [1,2] when height_unit is m",
+                "!*&&=~~@height_unit,cm&&>=<=~100,200 >>>@this should be in [100,200] when height_unit is cm",
+                "!*&&=~~@height_unit,m&&>=<=~1,2 >>>@this should be in [1,2] when height_unit is m",
             ],
             "education" => [
                 "primary_school" => "!*&&=~Qiankeng Xiaoxue",
                 "junior_middle_school" => "!*&&!=~Foshan Zhongxue",
-                "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&len>~10",
-                "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&len>~10",
+                "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&length>~10",
+                "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&length>~10",
             ],
             "company" => [
-                "name" => "!*&&len<=>~8,64",
-                "country" => "o&&len>=~3",
-                "addr" => "!*&&len>~16",
+                "name" => "!*&&length><=~8,64",
+                "country" => "o&&length>=~3",
+                "addr" => "!*&&length>~16",
                 "colleagues[N]" => [
-                    "name" => "!*&&string&&len<=>~3,32",
-                    "position" => "!*&&(s)~Reception,Financial,PHP,JAVA"
+                    "name" => "!*&&string&&length><=~3,32",
+                    "position" => "!*&&<string>~Reception,Financial,PHP,JAVA"
                 ],
                 "boss" => [
                     "!*&&=~Mike",
-                    "!*&&(s)~Johnny,David",
-                    "o&&(s)~Johnny,David"
+                    "!*&&<string>~Johnny,David",
+                    "o&&<string>~Johnny,David"
                 ]
             ],
             "favourite_food[o][N]" => [

@@ -30,10 +30,10 @@ class Readme extends TestCommon
         // 验证规则数组。规则数组的格式与待验证参数的格式相同。
         $rule = [
             "id" => "required|/^\d+$/",         // 必要的，且只能是数字
-            "name" => "required|len<=>[3,32]",  // 必要的，且字符串长度必须大于3，小于等于32
+            "name" => "required|length><=[3,32]",  // 必要的，且字符串长度必须大于3，小于等于32
             "favorite_animation" => [
-                "name" => "required|len<=>[1,64]",          // 必要的，且字符串长度必须大于1，小于等于64
-                "release_date" => "optional|len<=>[4,64]",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
+                "name" => "required|length><=[1,64]",          // 必要的，且字符串长度必须大于1，小于等于64
+                "release_date" => "optional|length><=[4,64]",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
             ]
         ];
 
@@ -160,27 +160,27 @@ class Readme extends TestCommon
         // 规则可以这么写，[or] 可以替换成标志 [||]
         $rule = [
             // 串联，身高单位是必须的，且必须是 cm 或者 m
-            "height_unit" => "required|(s)[cm,m]",
+            "height_unit" => "required|<string>[cm,m]",
             // 并联
             "height[or]" => [
                 // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
-                "required|=(@height_unit,cm)|<=>=[100,200]",
+                "required|=(@height_unit,cm)|>=<=[100,200]",
                 // 若身高单位是米 m, 则身高必须大于等于1，小于等于2
-                "required|=(@height_unit,m)|<=>=[1,2]",
+                "required|=(@height_unit,m)|>=<=[1,2]",
             ]
         ];
 
         // 也可以这么写，标志 [||] 可以替换成 [or]
         $rule = [
             // 串联，身高单位是必须的，且必须是 cm 或者 m
-            "height_unit" => "required|(s)[cm,m]",
+            "height_unit" => "required|<string>[cm,m]",
             // 并联
             "height" => [
                 "[||]" => [
                     // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
-                    "required|=(@height_unit,cm)|<=>=[100,200]",
+                    "required|=(@height_unit,cm)|>=<=[100,200]",
                     // 若身高单位是米 m, 则身高必须大于等于1，小于等于2
-                    "required|=(@height_unit,m)|<=>=[1,2]",
+                    "required|=(@height_unit,m)|>=<=[1,2]",
                 ]
             ]
         ];
@@ -197,10 +197,10 @@ class Readme extends TestCommon
         ];
 
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             // 当 id 小于 5 时，name 只能是数字且长度必须大于 2
             // 当 id 大于等于 5 时，name 可以是任何字符串且长度必须大于 2
-            "name" => "/^\d+$/:when(<(@id,5))|len>[2]",
+            "name" => "/^\d+$/:when(<(@id,5))|length>[2]",
             // 当 id 不小于 5 时，age 必须小于等于 18
             // 当 id 小于 5 时，age 可以是任何数字
             "age" => "int|<=[18]:when_not(<(@id,5))",
@@ -218,7 +218,7 @@ class Readme extends TestCommon
 
         $rule = [
             // 特征是必要的，且只能是 height(身高) 或 weight(体重)
-            "attribute" => "required|(s)[height,weight]",
+            "attribute" => "required|<string>[height,weight]",
             // 若属性是 height, 则 centimeter 是必要的，若不是 height，则是可选的。
             // 无论如何，若该值非空，则必须大于 180
             "centimeter" => "required:when(=(@attribute,height))|required|>[180]",
@@ -236,7 +236,7 @@ class Readme extends TestCommon
 
         $rule = [
             // 特征是必要的，且只能是 height(身高) 或 weight(体重)
-            "attribute" => "required|(s)[height,weight]",
+            "attribute" => "required|<string>[height,weight]",
             // 若属性不是 weight, 则 centimeter 是必要的，若是 weight，则是可选的。
             // 无论如何，若该值非空，则必须大于 180
             "centimeter" => "required:when_not(=(@attribute,weight))|required|>[180]",
@@ -254,7 +254,7 @@ class Readme extends TestCommon
 
         $rule = [
             // 特征是必要的，且只能是 height(身高) 或 weight(体重)
-            "attribute" => "required|(s)[height,weight]",
+            "attribute" => "required|<string>[height,weight]",
             // 若属性是 height, 则 centimeter 是必要的，且必须大于 180
             // 若不是 height，则不继续验证后续规则，即 centimeter 为任何值都可以。
             "centimeter" => "if(=(@attribute,height))|required|>[180]",
@@ -272,7 +272,7 @@ class Readme extends TestCommon
 
         $rule = [
             // 特征是必要的，且只能是 height(身高) 或 weight(体重)
-            "attribute" => "required|(s)[height,weight]",
+            "attribute" => "required|<string>[height,weight]",
             // 若属性不是 weight, 则 centimeter 是必要的，且必须大于 180
             // 若是 weight，则不继续验证后续规则，即 centimeter 为任何值都可以。
             "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
@@ -296,11 +296,11 @@ class Readme extends TestCommon
         // 若要验证上述 $data，规则可以这么写
         $rule = [
             "id" => "required|/^\d+$/",
-            "name" => "required|len>[3]",
+            "name" => "required|length>[3]",
             "favourite_fruit" => [
-                "name" => "required|len>[3]",
-                "color" => "required|len>[3]",
-                "shape" => "required|len>[3]"
+                "name" => "required|length>[3]",
+                "color" => "required|length>[3]",
+                "shape" => "required|length>[3]"
             ]
         ];
 
@@ -333,27 +333,27 @@ class Readme extends TestCommon
         // 若要验证上述 $data，规则可以这么写
         $rule = [
             "id" => "required|/^\d+$/",
-            "name" => "required|len>[3]",
-            "favourite_color.*" => "required|len>[3]",
+            "name" => "required|length>[3]",
+            "favourite_color.*" => "required|length>[3]",
             "favourite_fruits.*" => [
-                "name" => "required|len>[3]",
-                "color" => "required|len>[3]",
-                "shape" => "required|len>[3]"
+                "name" => "required|length>[3]",
+                "color" => "required|length>[3]",
+                "shape" => "required|length>[3]"
             ]
         ];
 
         // 若要验证上述 $data，规则也可以这么写
         $rule = [
             "id" => "required|/^\d+$/",
-            "name" => "required|len>[3]",
+            "name" => "required|length>[3]",
             "favourite_color" => [
-                "*" => "required|len>[3]"
+                "*" => "required|length>[3]"
             ],
             "favourite_fruits" => [
                 "*" => [
-                    "name" => "required|len>[3]",
-                    "color" => "required|len>[3]",
-                    "shape" => "required|len>[3]"
+                    "name" => "required|length>[3]",
+                    "color" => "required|length>[3]",
+                    "shape" => "required|length>[3]"
                 ]
             ]
         ];
@@ -402,10 +402,10 @@ class Readme extends TestCommon
         // 验证规则数组。规则数组的格式与待验证参数的格式相同。
         $rule = [
             "id" => "!*&&Reg:/^\d+$/",          // 必要的，且只能是数字
-            "name" => "!*&&len<=>~3+32",        // 必要的，且字符串长度必须大于3，小于等于32
+            "name" => "!*&&length><=~3+32",        // 必要的，且字符串长度必须大于3，小于等于32
             "favorite_animation" => [
-                "name" => "!*&&len<=>~1+64",                // 必要的，且字符串长度必须大于1，小于等于64
-                "release_date" => "o?&&len<=>#@this+4+64",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
+                "name" => "!*&&length><=~1+64",                // 必要的，且字符串长度必须大于1，小于等于64
+                "release_date" => "o?&&length><=#@this+4+64",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
             ]
         ];
 
@@ -502,25 +502,25 @@ class Readme extends TestCommon
 
         $rule = [
             "id" => "required|/^\d+$/",         // id 是必要的，且只能是数字
-            "name" => "required|len<=>[3,32]",  // name 是必要的，且字符串长度必须大于3，小于等于32
+            "name" => "required|length><=[3,32]",  // name 是必要的，且字符串长度必须大于3，小于等于32
             "favorite_animation" => [
                 // favorite_animation.name 是必要的，且字符串长度必须大于1，小于等于64
-                "name" => "required|len<=>[1,16]",
+                "name" => "required|length><=[1,16]",
                 // favorite_animation.release_date 是可选的，如果不为空，那么字符串长度必须大于4，小于等于64
-                "release_date" => "optional|len<=>[4,64]",
+                "release_date" => "optional|length><=[4,64]",
                 // "*" 表示 favorite_animation.series_directed_by 是一个索引数组
                 "series_directed_by" => [
                     // favorite_animation.series_directed_by.* 每一个子元素必须满足其规则：不能为空且长度必须大于 3
-                    "*" => "required|len>[3]"
+                    "*" => "required|length>[3]"
                 ],
                 // [optional] 表示 favorite_animation.series_cast 是可选的
                 // ".*"(同上面的“*”) 表示 favorite_animation.series_cast 是一个索引数组，每一个子元素又都是关联数组。
                 "series_cast" => [
                     "[optional].*" => [
                         // favorite_animation.series_cast.*.actor 不能为空且长度必须大于 3且必须满足正则
-                        "actor" => "required|len>[3]|/^[A-Za-z ]+$/",
+                        "actor" => "required|length>[3]|/^[A-Za-z ]+$/",
                         // favorite_animation.series_cast.*.character 不能为空且长度必须大于 3
-                        "character" => "required|len>[3]",
+                        "character" => "required|length>[3]",
                     ]
                 ]
             ]

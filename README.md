@@ -78,7 +78,7 @@ Validation 用于对数据合法性的检查。
 ## 1. 简介
 ### 1.1 特点
 - 一个字段对应一个验证规则，一个规则由多个验证方法（函数）组成。
-- 验证方法支持用标志代替，易于理解，简化规则。采用`*`, `>`, `<`, `len>` 等方法标志，比如 `*` 表示必要的
+- 验证方法支持用标志代替，易于理解，简化规则。采用`*`, `>`, `<`, `length>` 等方法标志，比如 `*` 表示必要的
 - 支持正则表达式
 <details>
     <summary><span>&#128071;</span> 点击查看更多特性...</summary>
@@ -116,10 +116,10 @@ $data = [
 // 验证规则数组。规则数组的格式与待验证参数的格式相同。
 $rule = [
     "id" => "required|/^\d+$/",         // 必要的，且只能是数字
-    "name" => "required|len<=>[3,32]",  // 必要的，且字符串长度必须大于3，小于等于32
+    "name" => "required|length><=[3,32]",  // 必要的，且字符串长度必须大于3，小于等于32
     "favorite_animation" => [
-        "name" => "required|len<=>[1,64]",          // 必要的，且字符串长度必须大于1，小于等于64
-        "release_date" => "optional|len<=>[4,64]",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
+        "name" => "required|length><=[1,64]",          // 必要的，且字符串长度必须大于1，小于等于64
+        "release_date" => "optional|length><=[4,64]",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
     ]
 ];
 
@@ -206,7 +206,7 @@ $ composer run-script readme test_complete_example
 
 // 采用函数标志，同上
 // 若是觉得函数标志难以理解，请直接使用函数全称即可
-"name" => "*|string|len<=>[3,32]"
+"name" => "*|string|length><=[3,32]"
 ```
 
 例如:
@@ -216,7 +216,7 @@ $ composer run-script readme test_complete_example
 `*` | `required` | 必要的，不允许为空
 `O` | `optional` | 可选的，允许不设置或为空
 `>[20]` | `greater_than` | 数字必须大于20
-`len<=>[2,16]` | `length_greater_lessequal` | 字符长度必须大于2且小于等于16
+`length><=[2,16]` | `length_greater_lessequal` | 字符长度必须大于2且小于等于16
 `ip` | `ip` | 必须是ip地址
 
 **完整的方法及其标志见** [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
@@ -282,7 +282,7 @@ $ composer run-script readme test_complete_example
 自定义参数分隔符和参数类型，见 [4.10 客制化配置](#410-客制化配置)
 
 ### 4.4 方法拓展
-Validation 类中内置了一些验证方法，例如 `*`，`>`, `len>=`, `ip` 等等。详见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
+Validation 类中内置了一些验证方法，例如 `*`，`>`, `length>=`, `ip` 等等。详见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
 
 如果验证规则比较复杂，内置方法无法满足你的需求，可以拓展你自己的方法。
 如果方法中根据不同的判断可能返回不同的错误信息，见 [4.13 错误信息模板 - 3. 在方法中直接返回模板](#413-错误信息模板) 一节。
@@ -390,21 +390,21 @@ $rule = [
 `[or]` 的标志是 `[||]` , 标志支持自定义，使用方法同 `[or]`
 ```PHP
 // 串联，身高单位是必须的，且必须是 cm 或者 m
-"height_unit" => "required|(s)[cm,m]",
+"height_unit" => "required|<string>[cm,m]",
 // A. 并联，规则可以这么写，[or] 可以替换成标志 [||]
 "height[or]" => [
     // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
-    "required|=(@height_unit,cm)|<=>=[100,200]",
+    "required|=(@height_unit,cm)|>=<=[100,200]",
     // 若身高单位是米 m, 则身高必须大于等于1，小于等于2
-    "required|=(@height_unit,m)|<=>=[1,2]",
+    "required|=(@height_unit,m)|>=<=[1,2]",
 ]
 // B. 并联，规则也可以这么写，标志 [||] 可以替换成 [or]
 "height" => [
     "[||]" => [
         // 若身高单位是厘米 cm, 则身高必须大于等于100，小于等于200 
-        "required|=(@height_unit,cm)|<=>=[100,200]",
+        "required|=(@height_unit,cm)|>=<=[100,200]",
         // 若身高单位是米 m, 则身高必须大于等于1，小于等于2
-        "required|=(@height_unit,m)|<=>=[1,2]",
+        "required|=(@height_unit,m)|>=<=[1,2]",
     ]
 ]
 ```
@@ -422,10 +422,10 @@ $rule = [
 1. 一般地，只有当条件满足时，才验证该方法，否则跳过该方法。例如：
 ```PHP
 $rule = [
-    "id" => "required|<>[0,10]",
+    "id" => "required|><[0,10]",
     // 当 id 小于 5 时，name 只能是数字且长度必须大于 2
     // 当 id 大于等于 5 时，name 可以是任何字符串且长度必须大于 2
-    "name" => "/^\d+$/:when(<(@id,5))|len>[2]",
+    "name" => "/^\d+$/:when(<(@id,5))|length>[2]",
     // 当 id 不小于 5 时，age 必须小于等于 18
     // 当 id 小于 5 时，age 可以是任何数字
     "age" => "int|<=[18]:when_not(<(@id,5))",
@@ -446,7 +446,7 @@ $rule = [
 ```PHP
 $rule = [
     // 特征是必要的，且只能是 height(身高) 或 weight(体重)
-    "attribute" => "required|(s)[height,weight]",
+    "attribute" => "required|<string>[height,weight]",
     // 若属性是 height, 则 centimeter 是必要的，若不是 height，则是可选的。
     // 无论如何，若该值非空，则必须大于 180
     "centimeter" => "required:when(=(@attribute,height))|>[180]",
@@ -463,7 +463,7 @@ $rule = [
 ```PHP
 $rule = [
     // 特征是必要的，且只能是 height(身高) 或 weight(体重)
-    "attribute" => "required|(s)[height,weight]",
+    "attribute" => "required|<string>[height,weight]",
     // 若属性不是 weight, 则 centimeter 是必要的，若是 weight，则是可选的。
     // 无论如何，若该值非空，则必须大于 180
     "centimeter" => "required:when_not(=(@attribute,weight))|>[180]",
@@ -482,7 +482,7 @@ $rule = [
 ```PHP
 $rule = [
     // 特征是必要的，且只能是 height(身高) 或 weight(体重)
-    "attribute" => "required|(s)[height,weight]",
+    "attribute" => "required|<string>[height,weight]",
     // 若属性是 height, 则 centimeter 是必要的，且必须大于 180
     // 若不是 height，则不继续验证后续规则，即 centimeter 为任何值都可以。
     "centimeter" => "if(=(@attribute,height))|required|>[180]",
@@ -496,7 +496,7 @@ $rule = [
 ```PHP
 $rule = [
     // 特征是必要的，且只能是 height(身高) 或 weight(体重)
-    "attribute" => "required|(s)[height,weight]",
+    "attribute" => "required|<string>[height,weight]",
     // 若属性不是 weight, 则 centimeter 是必要的，且必须大于 180
     // 若是 weight，则不继续验证后续规则，即 centimeter 为任何值都可以。
     "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
@@ -525,11 +525,11 @@ $data = [
 // 若要验证上述 $data，规则可以这么写
 $rule = [
     "id" => "required|/^\d+$/",
-    "name" => "required|len>[3]",
+    "name" => "required|length>[3]",
     "favourite_fruit" => [
-        "name" => "required|len>[3]",
-        "color" => "required|len>[3]",
-        "shape" => "required|len>[3]"
+        "name" => "required|length>[3]",
+        "color" => "required|length>[3]",
+        "shape" => "required|length>[3]"
     ]
 ];
 ```
@@ -565,27 +565,27 @@ $data = [
 // 若要验证上述 $data，规则可以这么写
 $rule = [
     "id" => "required|/^\d+$/",
-    "name" => "required|len>[3]",
-    "favourite_color.*" => "required|len>[3]",
+    "name" => "required|length>[3]",
+    "favourite_color.*" => "required|length>[3]",
     "favourite_fruits.*" => [
-        "name" => "required|len>[3]",
-        "color" => "required|len>[3]",
-        "shape" => "required|len>[3]"
+        "name" => "required|length>[3]",
+        "color" => "required|length>[3]",
+        "shape" => "required|length>[3]"
     ]
 ];
 
 // 也可以这么写
 $rule = [
     "id" => "required|/^\d+$/",
-    "name" => "required|len>[3]",
+    "name" => "required|length>[3]",
     "favourite_color" => [
-        "*" => "required|len>[3]"
+        "*" => "required|length>[3]"
     ],
     "favourite_fruits" => [
         "*" => [
-            "name" => "required|len>[3]",
-            "color" => "required|len>[3]",
-            "shape" => "required|len>[3]"
+            "name" => "required|length>[3]",
+            "color" => "required|length>[3]",
+            "shape" => "required|length>[3]"
         ]
     ]
 ];
@@ -697,10 +697,10 @@ $validation = new Validation($custom_config);
 ```PHP
 $rule = [
     "id" => "!*&&Reg:/^\d+$/",          // 必要的，且只能是数字
-    "name" => "!*&&len<=>~3+32",        // 必要的，且字符串长度必须大于3，小于等于32
+    "name" => "!*&&length><=~3+32",        // 必要的，且字符串长度必须大于3，小于等于32
     "favorite_animation" => [
-        "name" => "!*&&len<=>~1+64",                // 必要的，且字符串长度必须大于1，小于等于64
-        "release_date" => "o?&&len<=>#@this+4+64",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
+        "name" => "!*&&length><=~1+64",                // 必要的，且字符串长度必须大于1，小于等于64
+        "release_date" => "o?&&length><=#@this+4+64",  // 可选的，如果不为空，那么字符串长度必须大于4，小于等于64
     ]
 ];
 ```
@@ -811,24 +811,24 @@ $validation->set_validation_global(false);
 1.1 在一个规则最后，加入标志 "` >> `", 注意前后各有一个空格。自定义标志见 [4.10 客制化配置](#410-客制化配置)
 1.1.1. **普通字符串**：表示无论规则中的任何方法验证失败，都返回此错误信息
 ```PHP
-// required 或者 正则 或者 <=>= 方法，无论哪一个验证失败都报错 "id is incorrect."
-"id" => 'required|/^\d+$/|<=>=[1,100] >> @this is incorrect.'
+// required 或者 正则 或者 >=<= 方法，无论哪一个验证失败都报错 "id is incorrect."
+"id" => 'required|/^\d+$/|>=<=[1,100] >> @this is incorrect.'
 ```
 
 1.1.2. **JSON 字符串**：为每一个方法设置一个错误信息模板
 
 ```PHP
-"id" => 'required|/^\d+$/|<=>=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}'
+"id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}'
 ```
 当其中任一方法验证错误，对应的报错信息为
 - `required`: Users define - id is required
 - `/^\d+$/`: Users define - id should be "MATCHED" /^\d+$/
-- `<=>=`: id must be greater than or equal to 1 and less than or equal to 100
+- `>=<=`: id must be greater than or equal to 1 and less than or equal to 100
 
 1.1.3. ~~专属字符串（不推荐）~~：为每一个方法设置一个错误信息模板，同 JSON
 
 ```PHP
-"id" => "required|/^\d+$/|<=>=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg"
+"id" => "required|/^\d+$/|>=<=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg"
 ```
 
 1.2. **错误信息模板数组**：为每一个方法设置一个错误信息模板，同 JSON
@@ -840,7 +840,7 @@ $validation->set_validation_global(false);
 ```PHP
 $rule = [
     "id" => [
-        'required|/^\d+$/|<=>=[1,100]',
+        'required|/^\d+$/|>=<=[1,100]',
         'error_message' => [                        
             'required' => 'Users define - @this is required',
             'preg' => 'Users define - @this should be \"MATCHED\" @preg',
@@ -942,32 +942,32 @@ function check_animal($animal) {
 `<` | `less_than` | @this 必须小于 @p1
 `>=` | `greater_than_equal` | @this 必须大于等于 @p1
 `<=` | `less_than_equal` | @this 必须小于等于 @p1
-`<>` | `between` | @this 必须大于 @p1 且小于 @p2
-`<=>` | `greater_lessequal` | @this 必须大于 @p1 且小于等于 @p2
-`<>=` | `greaterequal_less` | @this 必须大于等于 @p1 且小于 @p2
-`<=>=` | `greaterequal_lessequal` | @this 必须大于等于 @p1 且小于等于 @p2
-`(n)` | `in_number` | @this 必须是数字且在此之内 @p1
-`!(n)` | `not_in_number` | @this 必须是数字且不在此之内 @p1
-`(s)` | `in_string` | @this 必须是字符串且在此之内 @p1
-`!(s)` | `not_in_string` | @this 必须是字符串且不在此之内 @p1
-`len=` | `length_equal` | @this 长度必须等于 @p1
-`len!=` | `length_not_equal` | @this 长度必须不等于 @p1
-`len>` | `length_greater_than` | @this 长度必须大于 @p1
-`len<` | `length_less_than` | @this 长度必须小于 @p1
-`len>=` | `length_greater_than_equal` | @this 长度必须大于等于 @p1
-`len<=` | `length_less_than_equal` | @this 长度必须小于等于 @p1
-`len<>` | `length_between` | @this 长度必须大于 @p1 且小于 @p2
-`len<=>` | `length_greater_lessequal` | @this 长度必须大于 @p1 且小于等于 @p2
-`len<>=` | `length_greaterequal_less` | @this 长度必须大于等于 @p1 且小于 @p2
-`len<=>=` | `length_greaterequal_lessequal` | @this 长度必须大于等于 @p1 且小于等于 @p2
+`><` | `between` | @this 必须大于 @p1 且小于 @p2
+`><=` | `greater_lessequal` | @this 必须大于 @p1 且小于等于 @p2
+`>=<` | `greaterequal_less` | @this 必须大于等于 @p1 且小于 @p2
+`>=<=` | `greaterequal_lessequal` | @this 必须大于等于 @p1 且小于等于 @p2
+`<number>` | `in_number_array` | @this 必须是数字且在此之内 @p1
+`!<number>` | `not_in_number_array` | @this 必须是数字且不在此之内 @p1
+`<string>` | `in_string_array` | @this 必须是字符串且在此之内 @p1
+`!<string>` | `not_in_string_array` | @this 必须是字符串且不在此之内 @p1
+`length=` | `length_equal` | @this 长度必须等于 @p1
+`length!=` | `length_not_equal` | @this 长度必须不等于 @p1
+`length>` | `length_greater_than` | @this 长度必须大于 @p1
+`length<` | `length_less_than` | @this 长度必须小于 @p1
+`length>=` | `length_greater_than_equal` | @this 长度必须大于等于 @p1
+`length<=` | `length_less_than_equal` | @this 长度必须小于等于 @p1
+`length><` | `length_between` | @this 长度必须大于 @p1 且小于 @p2
+`length><=` | `length_greater_lessequal` | @this 长度必须大于 @p1 且小于等于 @p2
+`length>=<` | `length_greaterequal_less` | @this 长度必须大于等于 @p1 且小于 @p2
+`length>=<=` | `length_greaterequal_lessequal` | @this 长度必须大于等于 @p1 且小于等于 @p2
 `int` | `integer` | @this 必须是整型
 / | `float` | @this 必须是小数
 / | `string` | @this 必须是字符串
 `arr` | `is_array` | @this 必须是数组
 / | `bool` | @this 必须是布尔型
 `bool=` | `bool_equal` | @this 必须是布尔型且等于 @p1
-/ | `bool_str` | @this 必须是布尔型字符串
-`bool_str=` | `bool_str_equal` | @this 必须是布尔型字符串且等于 @p1
+/ | `bool_string` | @this 必须是布尔型字符串
+`bool_string=` | `bool_string_equal` | @this 必须是布尔型字符串且等于 @p1
 / | `email` | @this 必须是邮箱
 / | `url` | @this 必须是网址
 / | `ip` | @this 必须是IP地址
@@ -1021,25 +1021,25 @@ function validate($data) {
     // 设置验证规则
     $rule = [
         "id" => "required|/^\d+$/",         // id 是必要的，且只能是数字
-        "name" => "required|len<=>[3,32]",  // name 是必要的，且字符串长度必须大于3，小于等于32
+        "name" => "required|length><=[3,32]",  // name 是必要的，且字符串长度必须大于3，小于等于32
         "favorite_animation" => [
             // favorite_animation.name 是必要的，且字符串长度必须大于1，小于等于64
-            "name" => "required|len<=>[1,16]",
+            "name" => "required|length><=[1,16]",
             // favorite_animation.release_date 是可选的，如果不为空，那么字符串长度必须大于4，小于等于64
-            "release_date" => "optional|len<=>[4,64]",
+            "release_date" => "optional|length><=[4,64]",
             // "*" 表示 favorite_animation.series_directed_by 是一个索引数组
             "series_directed_by" => [
                 // favorite_animation.series_directed_by.* 每一个子元素必须满足其规则：不能为空且长度必须大于 3
-                "*" => "required|len>[3]"
+                "*" => "required|length>[3]"
             ],
             // [optional] 表示 favorite_animation.series_cast 是可选的
             // ".*"(同上面的“*”) 表示 favorite_animation.series_cast 是一个索引数组，每一个子元素又都是关联数组。
             "series_cast" => [
                 "[optional].*" => [
                     // favorite_animation.series_cast.*.actor 不能为空且长度必须大于 3且必须满足正则
-                    "actor" => "required|len>[3]|/^[A-Za-z ]+$/",
+                    "actor" => "required|length>[3]|/^[A-Za-z ]+$/",
                     // favorite_animation.series_cast.*.character 不能为空且长度必须大于 3
-                    "character" => "required|len>[3]",
+                    "character" => "required|length>[3]",
                 ]
             ]
         ]
