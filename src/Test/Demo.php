@@ -12,7 +12,7 @@ class Demo extends TestCommon
         parent::__construct();
     }
 
-    public function success($data = [])
+    public function test_success($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -125,7 +125,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function success2($data = [])
+    public function test_success_2($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -246,7 +246,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function error($data = [])
+    public function test_error($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -369,7 +369,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function error2($data = [])
+    public function test_error_2($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -500,7 +500,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function readme_case($data = [])
+    public function test_readme_case($data = [])
     {
         if (empty($data)) {
             $data = [

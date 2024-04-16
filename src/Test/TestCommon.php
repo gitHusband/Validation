@@ -32,6 +32,7 @@ class TestCommon
     public function help()
     {
         $help_data = [];
+        $help_data['test_methods'] = [];
 
         $class_methods = get_class_methods($this);
 
@@ -42,6 +43,7 @@ class TestCommon
         }
 
         $this->write_log(static::LOG_LEVEL_INFO, "Available test methods: \n");
+        if (empty($help_data['test_methods'])) $this->write_log(static::LOG_LEVEL_INFO, "  - NOT FOUND\n");
         foreach ($help_data['test_methods'] as $key => $value) {
             $this->write_log(static::LOG_LEVEL_INFO, "  - {$value}\n");
         }
