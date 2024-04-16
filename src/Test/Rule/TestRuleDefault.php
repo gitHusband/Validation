@@ -1094,24 +1094,349 @@ trait TestRuleDefault
         ];
     }
 
-    protected function _test_method_length_not_equal()
+    protected function test_method_length_not_equal()
     {
+        $rule = [
+            "text" => "len!=[3]|length_not_equal[3]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "a",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => 1.0,
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "你好吗?",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "好",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "你好吗",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => "no好",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "len!=",
+            "field_path" => "text",
+            "parameters" => [
+                "3"
+            ],
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
     }
 
-    protected function _test_method_length_greater_than()
+    protected function test_method_length_greater_than()
     {
+        $rule = [
+            "text" => "len>[3]|length_greater_than[3]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "abcd",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "    ",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => 1.01,
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "你好吗?",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "no好!",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => false,
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => 0.100,
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "len>",
+            "field_path" => "text",
+            "parameters" => [
+                "3"
+            ],
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
     }
 
-    protected function _test_method_length_less_than()
+    protected function test_method_length_less_than()
     {
+        $rule = [
+            "text" => "len<[3]|length_less_than[3]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "a",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => 1.00,
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "你好",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "好a",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "abc",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => 0.1,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => "false",
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => "0.100",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "len<",
+            "field_path" => "text",
+            "parameters" => [
+                "3"
+            ],
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
     }
 
-    protected function _test_method_length_greater_than_equal()
+    protected function test_method_length_greater_than_equal()
     {
+        $rule = [
+            "text" => "len>=[3]|length_greater_than_equal[3]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "abc",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "   ",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => 0.1,
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "你好吗",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "no好",
+                ]
+            ],
+            "Valid_data_6" => [
+                "data" => [
+                    "text" => "abcd",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => false,
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => 0,
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "len>=",
+            "field_path" => "text",
+            "parameters" => [
+                "3"
+            ],
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
     }
 
-    protected function _test_method_length_less_than_equal()
+    protected function test_method_length_less_than_equal()
     {
+        $rule = [
+            "text" => "len<=[3]|length_less_than_equal[3]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "ab",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => 1.00,
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "你好吗",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "好a",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "abcd",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => 1.01,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => "false",
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => "0.100",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "len<=",
+            "field_path" => "text",
+            "parameters" => [
+                "3"
+            ],
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
     }
 
     protected function test_method_length_between()
@@ -1153,30 +1478,40 @@ trait TestRuleDefault
             ],
             "Invalid_data_1" => [
                 "data" => [
-                    "text" => 0,
+                    "text" => "",
                 ]
             ],
             "Invalid_data_2" => [
                 "data" => [
-                    "text" => "",
+                    "text" => null,
                 ]
             ],
             "Invalid_data_3" => [
                 "data" => [
-                    "text" => 1234567890,
+                    "text" => 0,
                 ]
             ],
             "Invalid_data_4" => [
                 "data" => [
-                    "text" => "0123456789",
+                    "text" => "1",
                 ]
             ],
             "Invalid_data_5" => [
                 "data" => [
-                    "text" => "一二三四五六七八九十",
+                    "text" => 1234567890,
                 ]
             ],
             "Invalid_data_6" => [
+                "data" => [
+                    "text" => "0123456789",
+                ]
+            ],
+            "Invalid_data_7" => [
+                "data" => [
+                    "text" => "一二三四五六七八九十",
+                ]
+            ],
+            "Invalid_data_8" => [
                 "data" => [
                     "text" => "1234五六七八九十",
                 ]
@@ -1200,16 +1535,297 @@ trait TestRuleDefault
         ];
     }
 
-    protected function _test_method_length_greater_lessequal()
+    protected function test_method_length_greater_lessequal()
     {
+        $rule = [
+            "text" => "len<=>[1,10]|length_greater_lessequal[1,10]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "12",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => 123456789,
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => "1.12345678",
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "一二",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "一二三四五六七八九十",
+                ]
+            ],
+            "Valid_data_6" => [
+                "data" => [
+                    "text" => 0.1,
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ]
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => 0,
+                ]
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => "1",
+                ]
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => 12345678901,
+                ]
+            ],
+            "Invalid_data_6" => [
+                "data" => [
+                    "text" => "01234567891",
+                ]
+            ],
+            "Invalid_data_7" => [
+                "data" => [
+                    "text" => "一二三四五六七八九十1",
+                ]
+            ],
+            "Invalid_data_8" => [
+                "data" => [
+                    "text" => "1234五六七八九十1",
+                ]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "len<=>",
+            "field_path" => "text",
+            "parameters" => [
+                "1",
+                "10",
+            ],
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
     }
 
-    protected function _test_method_length_greaterequal_less()
+    protected function test_method_length_greaterequal_less()
     {
+        $rule = [
+            "text" => "len<>=[1,10]|length_greaterequal_less[1,10]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "1",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => 123456789,
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => "1.1234567",
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "一",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "一二三四五六七八九",
+                ]
+            ],
+            "Valid_data_6" => [
+                "data" => [
+                    "text" => 0.1,
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ]
+            ],
+            // "Invalid_data_3" => [
+            //     "data" => [
+            //         "text" => 0,
+            //     ]
+            // ],
+            // "Invalid_data_4" => [
+            //     "data" => [
+            //         "text" => "1",
+            //     ]
+            // ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => 1234567890,
+                ]
+            ],
+            "Invalid_data_6" => [
+                "data" => [
+                    "text" => "0123456789",
+                ]
+            ],
+            "Invalid_data_7" => [
+                "data" => [
+                    "text" => "一二三四五六七八九十",
+                ]
+            ],
+            "Invalid_data_8" => [
+                "data" => [
+                    "text" => "1234五六七八九十",
+                ]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "len<>=",
+            "field_path" => "text",
+            "parameters" => [
+                "1",
+                "10",
+            ],
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
     }
 
-    protected function _test_method_length_greaterequal_lessequal()
+    protected function test_method_length_greaterequal_lessequal()
     {
+        $rule = [
+            "text" => "len<=>=[1,10]|length_greaterequal_lessequal[1,10]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "1",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => 1234567890,
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => "1.12345678",
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "一",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "一二三四五六七八九十",
+                ]
+            ],
+            "Valid_data_6" => [
+                "data" => [
+                    "text" => 0.1,
+                ]
+            ],
+            "Valid_data_7" => [
+                "data" => [
+                    "text" => "abc",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ]
+            ],
+            // "Invalid_data_3" => [
+            //     "data" => [
+            //         "text" => 0,
+            //     ]
+            // ],
+            // "Invalid_data_4" => [
+            //     "data" => [
+            //         "text" => "1",
+            //     ]
+            // ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => 12345678901,
+                ]
+            ],
+            "Invalid_data_6" => [
+                "data" => [
+                    "text" => "01234567891",
+                ]
+            ],
+            "Invalid_data_7" => [
+                "data" => [
+                    "text" => "一二三四五六七八九十1",
+                ]
+            ],
+            "Invalid_data_8" => [
+                "data" => [
+                    "text" => "1234五六七八九十1",
+                ]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "len<=>=",
+            "field_path" => "text",
+            "parameters" => [
+                "1",
+                "10",
+            ],
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
     }
 
     protected function test_method_integer()
