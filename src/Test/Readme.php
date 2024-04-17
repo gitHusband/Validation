@@ -543,9 +543,12 @@ class Readme extends TestCommon
         }
     }
 
-    public function test_get_method_and_symbol()
+    public function test_get_method_and_symbol($language = 'en-us', $skip_deprecated = 1)
     {
-        $language = 'en-us';    // en-us, zh-cn
+        if (is_numeric($language)) {
+            $skip_deprecated = $language;
+            $language = 'zh-cn';    // en-us, zh-cn
+        }
         $config = [
             'language' => $language
         ];
@@ -554,8 +557,15 @@ class Readme extends TestCommon
         $validation_config = $validation->get_config();
         $config_default = $validation->get_config_default();
         $method_symbols = $validation->get_method_symbols();
+        $deprecated_method_symbols = $validation->get_deprecated_method_symbols();
         $error_templates = $validation->get_error_templates();
 
+        /**
+         * Some symbols are allowed to be customized.
+         * So their symbol should be got from Validation::config
+         * Here is the map:
+         * - Error Template Symbol -> Validation Config Field
+         */
         $built_in_methods = [
             'default' => '/',
             'index_array' => 'symbol_index_array',
@@ -581,16 +591,24 @@ class Readme extends TestCommon
         $method_symbol_table = $header;
 
         foreach ($error_templates as $symbol => $method_error_template) {
+            $is_deprecated = isset($deprecated_method_symbols[$symbol]);
+            if ($is_deprecated && $skip_deprecated) continue;
+            /**
+             * Every method supports "when" or "when not" rule.
+             * The default symbol of "when" or "when not" rule is ":when" or ":when_not", and they can be customized, default ":?" and ":!?"
+             * We use the default symbol in the error templates, such as "required:when" instead of "required:?"
+             * So we should convert the default symbol into customized symbol for README.
+             */
             if (preg_match("/^(.*)({$config_default['symbol_when']}|{$config_default['symbol_when_not']})$/", $symbol, $matches)) {
                 $symbol_1 = $matches[1];
                 $method_and_symbol_1 = $this->get_method_and_symbol($symbol_1, $built_in_methods, $validation_config, $method_symbols);
-                $method_1 = $method_and_symbol_1['method'];
+                // $method_1 = $method_and_symbol_1['method'];
                 $symbol_1 = $method_and_symbol_1['symbol'];
 
                 if ($matches[2] == $config_default['symbol_when']) $symbol_when_type = 'when';
                 else $symbol_when_type = 'when_not';
                 $method_and_symbol_2 = $this->get_method_and_symbol($symbol_when_type, $built_in_methods, $validation_config, $method_symbols);
-                $method_2 = $method_and_symbol_2['method'];
+                // $method_2 = $method_and_symbol_2['method'];
                 $symbol_2 = $method_and_symbol_2['symbol'];
                 $method = $symbol;
                 $symbol = "{$symbol_1}{$symbol_2}";
@@ -600,7 +618,11 @@ class Readme extends TestCommon
                 $symbol = $method_and_symbol['symbol'];
             }
             
-            if (!empty($symbol) && !in_array($symbol, ['/'])) $symbol = "`{$symbol}`";
+            if ($is_deprecated) {
+                $symbol = "~~{$symbol}~~";
+            } else if (!empty($symbol) && !in_array($symbol, ['/'])) {
+                $symbol = "`{$symbol}`";
+            }
             $method_symbol_table .= "{$symbol} | `{$method}` | {$method_error_template}\n";
         }
 

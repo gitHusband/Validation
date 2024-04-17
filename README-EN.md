@@ -969,9 +969,10 @@ Symbol | Method | Error Message Template
 `int` | `integer` | @this must be integer
 / | `float` | @this must be float
 / | `string` | @this must be string
-`arr` | `is_array` | @this must be array
+`array` | `is_array` | @this must be array
 / | `bool` | @this must be boolean
 `bool=` | `bool_equal` | @this must be boolean @p1
+/ | `bool_str` | @this must be boolean string
 / | `bool_string` | @this must be boolean string
 `bool_string=` | `bool_string_equal` | @this must be boolean string @p1
 / | `email` | @this must be email

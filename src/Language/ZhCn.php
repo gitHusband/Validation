@@ -5,6 +5,16 @@
  */
 class ZhCn
 {
+    /**
+     * The error message templates for the system rules and method symbols.
+     * - Symbols rules: Such as "index_array" or "when"
+     *   Some of the system rules can be customized. Such as ":when" -> ":?"
+     *   Please use their default value here, use "required:when" instead of "required:?"
+     * - Method symbols: The method name or its symbol, such as "=" or "length>"
+     *   Suggest using symbols instead of method names here.
+     *
+     * @var array
+     */
     public $error_templates = [
         'default' => '@this 验证错误',
         'index_array' => '@this 必须是索引数组',

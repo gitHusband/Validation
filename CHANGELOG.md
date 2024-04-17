@@ -116,16 +116,16 @@
 ### 优化方法及其标志
 
 **更名的标志(*):**
-- `len=` -> `length=`,
-- `len!=` -> `length!=`,
-- `len<=>=` -> `length>=<=`,
-- `len<>=` -> `length>=<`,
-- `len<=>` -> `length><=`,
-- `len>=` -> `length>=`,
-- `len<=` -> `length<=`,
-- `len<>` -> `length><`,
-- `len>` -> `length>`,
-- `len<` -> `length<`,
+- `len=` -> `length=`
+- `len!=` -> `length!=`
+- `len<=>=` -> `length>=<=`
+- `len<>=` -> `length>=<`
+- `len<=>` -> `length><=`
+- `len>=` -> `length>=`
+- `len<=` -> `length<=`
+- `len<>` -> `length><`
+- `len>` -> `length>`
+- `len<` -> `length<`
 - `<=>=` -> `>=<=`
 - `<=>` -> `><=`
 - `<>=` -> `>=<`

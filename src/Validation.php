@@ -176,6 +176,7 @@ class Validation
      * @var array
      */
     protected $method_symbols = [];
+    protected $deprecated_method_symbols = [];
     /**
      * Flip the method symbol
      * e.g. 'equal' => '='
@@ -306,6 +307,7 @@ class Validation
             $deprecated_trait_method_symbols = "deprecated_method_symbols_of_{$trait_name_uncamelized}";
             if (property_exists($this, $deprecated_trait_method_symbols)) {
                 $this->method_symbols = array_merge($this->method_symbols, $this->{$deprecated_trait_method_symbols});
+                $this->deprecated_method_symbols = array_merge($this->deprecated_method_symbols, $this->{$deprecated_trait_method_symbols});
             }
 
             $trait_method_symbols = "method_symbols_of_{$trait_name_uncamelized}";
@@ -428,6 +430,16 @@ class Validation
     public function get_method_symbols()
     {
         return $this->method_symbols;
+    }
+
+    /**
+     * Get Method Symbol that are deprecated
+     *
+     * @return array
+     */
+    public function get_deprecated_method_symbols()
+    {
+        return $this->deprecated_method_symbols;
     }
 
     /**

@@ -916,7 +916,7 @@ function check_animal($animal) {
 <details>
   <summary><span>&#128071;</span> <strong>点击查看 附录 1 - 方法标志及其含义</strong></summary>
 
-标志 | 函数 | 错误消息模板
+标志 | 方法 | 错误消息模板
 ---|---|---
 / | `default` | @this 验证错误
 `.*` | `index_array` | @this 必须是索引数组
@@ -963,9 +963,10 @@ function check_animal($animal) {
 `int` | `integer` | @this 必须是整型
 / | `float` | @this 必须是小数
 / | `string` | @this 必须是字符串
-`arr` | `is_array` | @this 必须是数组
+`array` | `is_array` | @this 必须是数组
 / | `bool` | @this 必须是布尔型
 `bool=` | `bool_equal` | @this 必须是布尔型且等于 @p1
+/ | `bool_str` | @this 必须是布尔型字符串
 / | `bool_string` | @this 必须是布尔型字符串
 `bool_string=` | `bool_string_equal` | @this 必须是布尔型字符串且等于 @p1
 / | `email` | @this 必须是邮箱
