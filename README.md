@@ -264,22 +264,28 @@ $ composer run-script readme test_complete_example
 **参数分隔符：**
 - `symbol_parameter_separator`: `,`
   将参数字符串分割为多个参数的符号。 例如：`equal(@this,1)`
-- `is_strict_parameter_separator`: false
-  1. false - 快速地分割多个参数，不支持参数的值中包含分隔符 `,`
-  2. true - 分割多个参数, 不支持参数的值中包含分隔符 `,` 和 `array`.
-    例如：`my_method[[1,2,3],100]`: 这里有两个参数，并且参数值都是字符串： `[1,2,3]` 和 `100`
+  以下特殊的情况，`,` 不会被视为参数分隔符：
+  - `\,`
+  - 被 `[]` 包裹起来的。例如：`my_method[[1,2,3],100]` 表示这里有两个参数，数组 `[1,2,3]` 和 整形 `100`
+  - 被 `{}` 包裹起来的。
+- 自定义参数分隔符，见 [4.10 客制化配置](#410-客制化配置)
+
 
 **参数类型：**
-- `is_strict_parameter_type`: false
-  1. false - 所有参数的类型都是字符串
-  2. true - 探测参数的类型并强制转换为对应类型。字符串能不能被转换取决于是否被双引号（`"`）或单引号（`'`）包含。
-    e.g. `my_method[[1,"2",'3'],100,false,"true"]`:
-        - `[1,"2",'3']` 将被转换为 `array([1,"2","3"])`
-        - `100` 将被转换为 `int(100)`
-        - `false` 将被转换为 `bool(false)`
-        - `"true"` 将被转换为 `string(true)`
-
-自定义参数分隔符和参数类型，见 [4.10 客制化配置](#410-客制化配置)
+自动探测参数的类型并强制转换为对应类型。
+1. 被双引号（`"`）或单引号（`'`）包含的内容即被视为字符串。否则将探测并强制转换类型。
+  - 例如 `"abc"`, `'abc'` 或者 `abc` 都被视为字符串 `abc`
+2. 支持转换的类型有：
+  - `int`：例如 `123` 为整形，`"123"` 为字符串 
+  - `float`: 例如 `123.0`
+  - `bool`: 例如 `false` 或者 `TRUE`
+  - `array`: 例如 `[1,2,3]`
+  - `object`: 例如 `{"a": "A", "b": "B"}`
+  - 例如： `my_method[[1,"2",'3'],100,false,"true"]`
+    - `[1,"2",'3']` 将被转换为 `array([1,"2","3"])`
+    - `100` 将被转换为 `int(100)`
+    - `false` 将被转换为 `bool(false)`
+    - `"true"` 将被转换为 `string(true)`
 
 ### 4.4 方法拓展
 Validation 类中内置了一些验证方法，例如 `*`，`>`, `length>=`, `ip` 等等。详见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
@@ -656,8 +662,6 @@ $config = [
     'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)
     'symbol_method_omit_this' => '/^([^\\[]*)\\[(.*)\\]$/',     // @this omitted method format, will add a @this parameter at first. e.g. equal[1]
     'symbol_parameter_separator' => ',',                        // Parameters separator to split the parameter string of a method into multiple parameters, e.g. equal(@this,1)
-    'is_strict_parameter_separator' => false,                   // 1. false - Fast way to parse parameters but not support "," as part of a parameter; 2. true - Slow but support "," and array
-    'is_strict_parameter_type' => false,                        // 1. false - all the parameters type is string; 2. true - Detect the parameters type, e.g. 123 is int, "123" is string
     'symbol_field_name_separator' => '.',                       // Field name separator of error message, e.g. "fruit.apple"
     'symbol_required' => '*',                                   // Symbol of required field, Same as the rule "required"
     'symbol_optional' => 'O',                                   // Symbol of optional field, can be not set or empty, Same as the rule "optional"

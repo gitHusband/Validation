@@ -265,20 +265,27 @@ Static Value | Indicates that the parameter is a static string and is allowed to
 **Parameter separator:**
 - `symbol_parameter_separator`: `,`
   Parameters separator to split the parameter string of a method into multiple parameters; e.g. `equal(@this,1)`
-- `is_strict_parameter_separator`: false
-  1. false - Fast way to parse parameters but not support `,` as part of a parameter;
-  2. true - Slow but support `,` and `array`.
-    e.g. `my_method[[1,2,3],100]`: Two parameters and both of them are string: `[1,2,3]` and `100`
+  In the following special cases, `,` will not be treated as a parameter separator:
+  - `\,`
+  - Wrapped by `[]`. For example: `my_method[[1,2,3],100]` means there are two parameters, array `[1,2,3]` and integer `100`
+  - Wrapped by `{}`.
+- For custom parameter separator, see [4.10 Customized Configuration](#410-customized-configuration)
 
 **Parameter Type:**
-- `is_strict_parameter_type`: false
-  1. false - All the parameters type is string;
-  2. true - Detect the parameters type and forcibly convert to the corresponding type. Whether a string can be converted depends on whether it is enclosed in double quotes (`"`) or single quotes (`''`).
-    e.g. `my_method[[1,"2",'3'],100,false,"true"]`:
-        - `[1,"2",'3']` will be converted to `array([1,"2","3"])`
-        - `100` will be converted to `int(100)`
-        - `false` will be converted to `bool(false)`
-        - `"true"` will be converted to `string(true)`
+Automatically detect the type of the parameter and forcibly convert it to the corresponding type.
+1. Text quoted with double quotes (`"`) or single quotes (`''`) is treated as a string. Otherwise the type is detected and forcibly converted.
+  - For example, `"abc"`, `'abc'` or `abc` are treated as string `abc`
+2. Types that support conversion are:
+  - `int`：For example, `123` is an integer and `"123"` is a string
+  - `float`: For example, `123.0`
+  - `bool`: For example, `false` or `TRUE`
+  - `array`: For example, `[1,2,3]`
+  - `object`: For example, `{"a": "A", "b": "B"}`
+  - For example, `my_method[[1,"2",'3'],100,false,"true"]`:
+    - `[1,"2",'3']` will be converted to `array([1,"2","3"])`
+    - `100` will be converted to `int(100)`
+    - `false` will be converted to `bool(false)`
+    - `"true"` will be converted to `string(true)`
 
 For custom parameter separator and parameter type, see [4.10 Customized Configuration](#410-customized-configuration)
 
@@ -663,8 +670,6 @@ $config = [
     'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)
     'symbol_method_omit_this' => '/^([^\\[]*)\\[(.*)\\]$/',     // @this omitted method format, will add a @this parameter at first. e.g. equal[1]
     'symbol_parameter_separator' => ',',                        // Parameters separator to split the parameter string of a method into multiple parameters, e.g. equal(@this,1)
-    'is_strict_parameter_separator' => false,                   // 1. false - Fast way to parse parameters but not support "," as part of a parameter; 2. true - Slow but support "," and array
-    'is_strict_parameter_type' => false,                        // 1. false - all the parameters type is string; 2. true - Detect the parameters type, e.g. 123 is int, "123" is string
     'symbol_field_name_separator' => '.',                       // Field name separator of error message, e.g. "fruit.apple"
     'symbol_required' => '*',                                   // Symbol of required field, Same as the rule "required"
     'symbol_optional' => 'O',                                   // Symbol of optional field, can be not set or empty, Same as the rule "optional"

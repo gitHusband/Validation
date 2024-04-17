@@ -114,8 +114,8 @@ class Validation
         'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)
         'symbol_method_omit_this' => '/^([^\\[]*)\\[(.*)\\]$/',     // @this omitted method format, will add a @this parameter at first. e.g. equal[1]
         'symbol_parameter_separator' => ',',                        // Parameters separator to split the parameter string of a method into multiple parameters, e.g. equal(@this,1)
-        'is_strict_parameter_separator' => false,                   // 1. false - Fast way to parse parameters but not support "," as part of a parameter; 2. true - Slow but support "," and array
-        'is_strict_parameter_type' => false,                        // 1. false - all the parameters type is string; 2. true - Detect the parameters type, e.g. 123 is int, "123" is string
+        'is_strict_parameter_separator' => true,                    // @deprecated 2.4.0. 1. true - Parse multiple parameters, support "," and array; 2. false - Simple way to parse parameters but not support "," as part of a parameter;
+        'is_strict_parameter_type' => true,                         // @deprecated 2.4.0. 1. true - Detect the parameters type, e.g. 123 is int, "123" is string; 2. false - All the parameters type is string;
         'symbol_field_name_separator' => '.',                       // Field name separator of error message, e.g. "fruit.apple"
         'symbol_required' => '*',                                   // Symbol of required field, Same as the rule "required"
         'symbol_optional' => 'O',                                   // Symbol of optional field, can be not set or empty, Same as the rule "optional"
@@ -194,6 +194,7 @@ class Validation
      * - 123: int 123
      * - "123": string 123
      *
+     * @deprecated 2.4.0
      * @see static::config['is_strict_parameter_separator']
      * @see static::parse_strict_data_type()
      * @var array
