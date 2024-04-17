@@ -111,7 +111,7 @@
 1. 修复方法名无法匹配其标志的 bug
 2. 去除参数中首次成对的单/双引号：为了保证，无论参数 strict 与否，都能正常验证规则
 
-## v2.3.1
+## v2.4.0
 
 ### 优化方法及其标志
 
@@ -155,3 +155,8 @@
 特殊的:
 - `in_number(?!_array)` => `in_number_array`
 - `in_string(?!_array)` => `in_string_array`
+
+### 优化配置
+默认为严格参数格式
+- `is_strict_parameter_separator` 改为默认 true，并在后续版本中弃用该配置，请勿将其改为 false
+- `is_strict_parameter_type` 改为默认 true，并在后续版本中弃用该配置，请勿将其改为 false
