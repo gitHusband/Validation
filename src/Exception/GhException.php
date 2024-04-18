@@ -2,7 +2,7 @@
 
 namespace githusband\Exception;
 
-class ghException extends \Exception
+class GhException extends \Exception
 {
     /**
      * Current info of the recurrence validation: field path or its rule, etc.

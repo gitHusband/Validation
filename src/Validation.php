@@ -3,7 +3,7 @@
 namespace githusband;
 
 use githusband\Rule\RuleDefault;
-use githusband\Exception\ghException;
+use githusband\Exception\GhException;
 
 class Validation
 {
@@ -517,14 +517,14 @@ class Validation
 
     protected function throw_gh_exception($t)
     {
-        if ($t instanceof ghException) {
+        if ($t instanceof GhException) {
             throw $t;
         } else {
             $current_field_path = $this->get_current_field_path();
             $current_field_path = empty($current_field_path) ? $this->config['auto_field'] : $current_field_path;
             $current_rule = $this->get_current_rule();
             $current_rule = empty($current_rule) ? 'NotSet' : $current_rule;
-            throw (new ghException("@field:{$current_field_path}, @rule:{$current_rule} - " . $t->getMessage(), $t->getCode(), $t))
+            throw (new GhException("@field:{$current_field_path}, @rule:{$current_rule} - " . $t->getMessage(), $t->getCode(), $t))
                 ->set_recurrence_current($this->get_recurrence_current());
         }
     }
@@ -1763,12 +1763,12 @@ class Validation
                 return "Undefined";
             }
         } catch (\Throwable $t) {
-            throw (new ghException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
+            throw (new GhException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
                 ->set_recurrence_current($this->get_recurrence_current());
         }
         // For the PHP version < 7
         catch (\Exception $t) {
-            throw (new ghException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
+            throw (new GhException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
                 ->set_recurrence_current($this->get_recurrence_current());
         }
 
