@@ -2654,7 +2654,8 @@ class Unit extends TestCommon
     {
         $rule = [
             "id" => "optional|<number>[1,\"10\",'100']",
-            "color" => "optional|<string>[red,\"white\",'black']"
+            "color" => "optional|<string>[red,\"white\",'black']",
+            "text" => "optional|my_strict_method[100,'1',[1,2,3,{\"a\": \"A\", \"b\": \"B\"}],{\"a\": \"A\", \"b\": [1,3,5]},false,'false']",
         ];
 
         $cases = [
@@ -2688,10 +2689,40 @@ class Unit extends TestCommon
                     "name" => "black"
                 ]
             ],
-            "Valid_data_3" => [
+            "Valid_data_6" => [
                 "data" => [
                     "id" => "100",
                     "name" => "black"
+                ]
+            ],
+            "Valid_data_7" => [
+                "data" => [
+                    "text" => "int"
+                ]
+            ],
+            "Valid_data_8" => [
+                "data" => [
+                    "text" => "string"
+                ]
+            ],
+            "Valid_data_9" => [
+                "data" => [
+                    "text" => "array"
+                ]
+            ],
+            "Valid_data_10" => [
+                "data" => [
+                    "text" => "object"
+                ]
+            ],
+            "Valid_data_11" => [
+                "data" => [
+                    "text" => "bool"
+                ]
+            ],
+            "Valid_data_12" => [
+                "data" => [
+                    "text" => "bool_string"
                 ]
             ],
             "Invalid_1" => [
@@ -2705,12 +2736,36 @@ class Unit extends TestCommon
                     "color" => "green",
                 ],
                 "expected_msg" => ["color" => "color must be string and in red,white,black"]
+            ],
+            "Invalid_3" => [
+                "data" => [
+                    "text" => "xxx",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
             ]
         ];
 
         $extra = [
             "method_name" => __METHOD__,
         ];
+
+        $this->validation->add_method("my_strict_method", function ($text, $data_int, $data_string, $data_array, $data_object, $data_bool, $data_bool_string) {
+            if ($text == 'int') {
+                return is_int($data_int);
+            } else if ($text == 'string') {
+                return is_string($data_string);
+            } else if ($text == 'array') {
+                return is_array($data_array);
+            } else if ($text == 'object') {
+                return is_object($data_object);
+            } else if ($text == 'bool') {
+                return is_bool($data_bool);
+            } else if ($text == 'bool_string') {
+                return in_array($data_bool_string, ["true", "false"]);
+            } else {
+                return false;
+            }
+        });
 
         return $method_info = [
             "rule" => $rule,

@@ -4,6 +4,7 @@ namespace githusband;
 
 use githusband\Rule\RuleDefault;
 use githusband\Exception\GhException;
+use githusband\Exception\RuleException;
 
 class Validation
 {
@@ -85,11 +86,22 @@ class Validation
     /**
      * Current info of the recurrence validation: field path or its rule, etc.
      * If something get wrong, we can easily know which field or rule get wrong.
-     * @var array
+     * @var array{
+     *   field_path: string,
+     *   field_rule_set: string,
+     *   rule: string,
+     *   method: array{
+     *       method: string,
+     *       symbol: string,
+     *       params: array
+     *   },
+     * }
      */
     protected $recurrence_current = [
         'field_path' => '',
+        'field_rule_set' => '',
         'rule' => '',
+        'method' => [],
     ];
 
     protected $symbol_this = '@this';
@@ -520,12 +532,7 @@ class Validation
         if ($t instanceof GhException) {
             throw $t;
         } else {
-            $current_field_path = $this->get_current_field_path();
-            $current_field_path = empty($current_field_path) ? $this->config['auto_field'] : $current_field_path;
-            $current_rule = $this->get_current_rule();
-            $current_rule = empty($current_rule) ? 'NotSet' : $current_rule;
-            throw (new GhException("@field:{$current_field_path}, @rule:{$current_rule} - " . $t->getMessage(), $t->getCode(), $t))
-                ->set_recurrence_current($this->get_recurrence_current());
+            throw GhException::extend_privious($t, $this->get_recurrence_current(), $this->config['auto_field']);
         }
     }
 
@@ -557,7 +564,7 @@ class Validation
             if ($field_path === false) $field_path_tmp = $field;
             else $field_path_tmp = $field_path . $this->config['symbol_field_name_separator'] . $field;
             $this->set_current_field_path($field_path_tmp)
-                ->set_current_rule($rule);
+                ->set_current_field_rule_set($rule);
 
             // if ($field == 'fruit_id') $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_1
 
@@ -587,7 +594,7 @@ class Validation
                         $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule[$rule_system_symbol], $field_path_tmp, $is_array_loop);
                     } else {
                         $this->set_current_field_path($field_path_tmp)
-                            ->set_current_rule($rule);
+                            ->set_current_field_rule_set($rule);
                         $rule = $this->parse_one_rule($rule[$rule_system_symbol]);
                         $result = $this->execute_one_rule($data, $field, $rule, $field_path_tmp);
                         $this->set_result($field_path_tmp, $result);
@@ -632,7 +639,7 @@ class Validation
                     $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule, $field_path_tmp, $is_array_loop);
                 } else {
                     $this->set_current_field_path($field_path_tmp)
-                        ->set_current_rule($rule);
+                        ->set_current_field_rule_set($rule);
                     $rule = $this->parse_one_rule($rule);
                     $result = $this->execute_one_rule($data, $field, $rule, $field_path_tmp);
 
@@ -788,7 +795,7 @@ class Validation
     {
         $or_len = count($rules);
         foreach ($rules as $key => $rule_or) {
-            $this->set_current_rule($rule_or);
+            $this->set_current_field_rule_set($rule_or);
 
             // if ($key == 1) $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_2
 
@@ -851,7 +858,7 @@ class Validation
                 // Validate numberic array, all the rule are the same, only use $rules[0]
                 else {
                     $this->set_current_field_path($field_path_tmp)
-                        ->set_current_rule($rules);
+                        ->set_current_field_rule_set($rules);
                     $parsed_rules = $this->parse_one_rule($rules);
                     $result = $this->execute_one_rule($data[$field], $key, $parsed_rules, $field_path_tmp);
                     $this->set_result($field_path_tmp, $result);
@@ -1214,7 +1221,7 @@ class Validation
      */
     protected function inject_parameter_to_error_template($error_template, $key, $value, $method_rule)
     {
-        if (is_array($value)) {
+        if (is_array($value) || is_object($value)) {
             if ($this->is_in_method($method_rule['symbol'])) {
                 $value = implode(',', $value);
             } else {
@@ -1262,6 +1269,8 @@ class Validation
             if (empty($rule)) {
                 continue;
             }
+
+            $this->set_current_rule($rule);
 
             $result = true;
             $error_type = 'validation';
@@ -1623,6 +1632,8 @@ class Validation
             'params' => $params
         ];
 
+        $this->set_current_method($method_rule);
+
         return $method_rule;
     }
 
@@ -1661,6 +1672,7 @@ class Validation
         $current_parameter = '';
         $is_next_parameter_flag = 0;
         $is_array_flag = 0;
+        $array_flags = [];
 
         $parameter_length = strlen($parameter);
         for ($i = 0; $i < $parameter_length; $i++) {
@@ -1691,42 +1703,41 @@ class Validation
                 continue;
             }
 
-            // 首次数组开头 [，表明接下来是数组。此为 数组阶段 1
-            if ($char === '[') {
-                if ($is_array_flag == 0) {
-                    $is_array_flag = 1;
-                }
+            /**
+             * 首次数组开头 [ 或者 {，表明接下来是数组。
+             */
+            if ($char == '[' || $char == '{') {
+                $is_array_flag++;
+                $array_flags[$is_array_flag] = $char;
             }
-            // 直到匹配到下一个 ]，表明数组即将结束。此为 数组阶段 2
-            else if ($char === ']') {
-                if ($is_array_flag == 1) {
-                    $is_array_flag = 2;
+            // 数组阶段中，任意字符都是当前参数的一部分
+            // 直到匹配到下一个 ] 或者 }，表明数组结束。
+            else if ($is_array_flag > 0) {
+                if (
+                    ($char == ']' && $array_flags[$is_array_flag] == '[')
+                    || ($char == '}' && $array_flags[$is_array_flag] == '{')
+                ) {
+                    unset($array_flags[$is_array_flag]);
+                    $is_array_flag--;
                 }
-            }
-            // 数组阶段 1，任意字符都是当前参数的一部分
-            else if ($is_array_flag == 1) {
             }
             // 一般非数组的参数中，不会包含 ","，所以匹配到它则表明接下来是下一个参数
-            // 在数组中，可能包含 ","，所以必须在数组阶段 2 后，匹配到它才表明接下来是下一个参数
+            // 在数组中，可能包含 ","，所以必须在数组结束后，匹配到它才表明接下来是下一个参数
             else if ($char === $symbol_parameter_separator) {
-                if ($is_array_flag == 0) {
-                    $is_next_parameter_flag = 1;
-                } else if ($is_array_flag == 2) {
-                    $is_array_flag = 0;
-                    $is_next_parameter_flag = 1;
-                }
+                $is_next_parameter_flag = 1;
             }
 
             if ($is_next_parameter_flag == 0) {
                 $current_parameter .= $char;
             } else {
                 $is_next_parameter_flag = 0;
-                if (static::required($current_parameter)) $parameters[] = $current_parameter;
+                $parameters[] = $current_parameter;
                 $current_parameter = '';
                 $is_array_flag = 0;
             }
         }
 
+        if ($is_array_flag > 0) throw RuleException::rule_set('Invalid rule set', $this->get_recurrence_current(), $this->config['auto_field']);
         if (!empty($current_parameter)) $parameters[] = $current_parameter;
         return $parameters;
     }
@@ -1763,13 +1774,11 @@ class Validation
                 return "Undefined";
             }
         } catch (\Throwable $t) {
-            throw (new GhException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
-                ->set_recurrence_current($this->get_recurrence_current());
+            throw GhException::extend_privious($t, $this->get_recurrence_current(), $this->config['auto_field']);
         }
         // For the PHP version < 7
         catch (\Exception $t) {
-            throw (new GhException("@field:{$field_path}, @method:{$method_rule['method']} - " . $t->getMessage(), $t->getCode(), $t))
-                ->set_recurrence_current($this->get_recurrence_current());
+            throw GhException::extend_privious($t, $this->get_recurrence_current(), $this->config['auto_field']);
         }
 
         return $result;
@@ -1808,26 +1817,73 @@ class Validation
     }
 
     /**
-     * Set the rule of current field path
+     * Set the rule set of current field
      * 
      * @param string|array $rule
      * @return static
      */
-    protected function set_current_rule($rule)
+    protected function set_current_field_rule_set($field_rule_set)
     {
-        if (is_array($rule)) $rule = json_encode($rule, JSON_UNESCAPED_SLASHES);
-        $this->recurrence_current['rule'] = $rule;
+        if (is_array($field_rule_set)) $field_rule_set = json_encode($field_rule_set, JSON_UNESCAPED_SLASHES);
+        $this->recurrence_current['field_rule_set'] = $field_rule_set;
+        $this->recurrence_current['rule'] = '';
+        $this->recurrence_current['method'] = [];
         return $this;
     }
 
     /**
-     * Get the rule of current field path
+     * Get the rule set of current field
      * 
      * @return string|array
+     */
+    public function get_current_field_rule_set()
+    {
+        return $this->recurrence_current['field_rule_set'];
+    }
+
+    /**
+     * Set the current rule of the currect rule set
+     *
+     * @param string $rule
+     * @return static
+     */
+    protected function set_current_rule($rule)
+    {
+        $this->recurrence_current['rule'] = $rule;
+        $this->recurrence_current['method'] = [];
+        return $this;
+    }
+
+    /**
+     * Get the current rule of the currect rule set
+     * 
+     * @return string
      */
     public function get_current_rule()
     {
         return $this->recurrence_current['rule'];
+    }
+
+    /**
+     * Set the current method of the currect rule
+     * 
+     * @param array $method
+     * @return static
+     */
+    protected function set_current_method($method)
+    {
+        $this->recurrence_current['method'] = $method;
+        return $this;
+    }
+
+    /**
+     * Get the current method of the currect rule
+     * 
+     * @return string
+     */
+    public function get_current_method()
+    {
+        return $this->recurrence_current['method'];
     }
 
     /**
