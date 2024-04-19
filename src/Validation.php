@@ -534,11 +534,11 @@ class Validation
      *
      * @param array $data The data you want to validate
      * @param array $rules The rules you set
-     * @param bool $field_path The current field path, suce as fruit.apple
+     * @param null|string $field_path The current field path, suce as fruit.apple
      * @param bool $is_array_loop If the execute method is called in array loop, $is_array_loop should be true
      * @return bool
      */
-    protected function execute($data, $rules, $field_path = false, $is_array_loop = false)
+    protected function execute($data, $rules, $field_path = null, $is_array_loop = false)
     {
         $rules_system_symbol = $this->get_rule_set_system_symbol($rules);
         // If The root rules has rule_system_symbol
@@ -553,10 +553,10 @@ class Validation
         }
 
         foreach ($rules as $field => $rule_set) {
-            $field_path_tmp = '';
-            if ($field_path === false) $field_path_tmp = $field;
-            else $field_path_tmp = $field_path . $this->config['symbol_field_name_separator'] . $field;
-            $this->set_current_field_path($field_path_tmp);
+            $current_field_path = '';
+            if ($field_path === null) $current_field_path = $field;
+            else $current_field_path = $field_path . $this->config['symbol_field_name_separator'] . $field;
+            $this->set_current_field_path($current_field_path);
 
             // if ($field == 'fruit_id') $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_1
 
@@ -565,7 +565,7 @@ class Validation
                 // Allow array or object to be optional
                 if ($this->has_system_symbol($rule_set_system_symbol, 'symbol_array_optional')) {
                     if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
-                        $this->set_result($field_path_tmp, true);
+                        $this->set_result($current_field_path, true);
                         continue;
                     }
                 }
@@ -573,20 +573,20 @@ class Validation
                 // Validate parallel rules.
                 // If one of parallel rules is valid, then the field is valid.
                 if ($this->has_system_symbol($rule_set_system_symbol, 'symbol_parallel_rule')) {
-                    $result = $this->execute_parallel_rules($data, $field, $field_path_tmp, $rule_set[$rule_set_system_symbol]);
+                    $result = $this->execute_parallel_rules($data, $field, $current_field_path, $rule_set[$rule_set_system_symbol]);
                 }
                 // Validate index array
                 else if ($this->has_system_symbol($rule_set_system_symbol, 'symbol_index_array', true)) {
-                    $result = $this->execute_index_array_rules($data, $field, $field_path_tmp, $rule_set[$rule_set_system_symbol], $is_array_loop);
+                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $rule_set[$rule_set_system_symbol], $is_array_loop);
                 }
                 // Validate association array
                 else {
                     // Validate association array
                     if ($this->is_association_array_rule($rule_set[$rule_set_system_symbol])) {
-                        $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule_set[$rule_set_system_symbol], $field_path_tmp, $is_array_loop);
+                        $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule_set[$rule_set_system_symbol], $current_field_path, $is_array_loop);
                     } else {
-                        $result = $this->execute_rule_set($data, $field, $rule_set[$rule_set_system_symbol], $field_path_tmp);
-                        $this->set_result($field_path_tmp, $result);
+                        $result = $this->execute_rule_set($data, $field, $rule_set[$rule_set_system_symbol], $current_field_path);
+                        $this->set_result($current_field_path, $result);
                     }
                 }
 
@@ -596,14 +596,14 @@ class Validation
                 // Allow array or object to be optional
                 if ($this->has_system_symbol($field, 'symbol_array_optional')) {
                     $field = $this->delete_system_symbol($field, 'symbol_array_optional');
-                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_array_optional');
+                    $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_array_optional');
 
                     // Delete all other array symbols
                     $field_tmp = $this->delete_system_symbol($field, 'symbol_parallel_rule');
                     $field_tmp = $this->delete_system_symbol($field_tmp, 'symbol_index_array');
 
                     if (!static::required(isset($data[$field_tmp]) ? $data[$field_tmp] : null)) {
-                        $this->set_result($field_path_tmp, true);
+                        $this->set_result($current_field_path, true);
                         continue;
                     }
                 }
@@ -612,24 +612,24 @@ class Validation
                 // If one of parallel rules is valid, then the field is valid.
                 if ($this->has_system_symbol($field, 'symbol_parallel_rule')) {
                     $field = $this->delete_system_symbol($field, 'symbol_parallel_rule');
-                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_parallel_rule');
+                    $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_parallel_rule');
 
-                    $result = $this->execute_parallel_rules($data, $field, $field_path_tmp, $rule_set);
+                    $result = $this->execute_parallel_rules($data, $field, $current_field_path, $rule_set);
                 }
                 // Validate index array
                 else if ($this->has_system_symbol($field, 'symbol_index_array')) {
                     $field = $this->delete_system_symbol($field, 'symbol_index_array');
-                    $field_path_tmp = $this->delete_system_symbol($field_path_tmp, 'symbol_index_array');
+                    $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_index_array');
 
-                    $result = $this->execute_index_array_rules($data, $field, $field_path_tmp, $rule_set);
+                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $rule_set);
                 }
                 // Validate association array
                 else if ($this->is_association_array_rule($rule_set)) {
-                    $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule_set, $field_path_tmp, $is_array_loop);
+                    $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule_set, $current_field_path, $is_array_loop);
                 } else {
-                    $result = $this->execute_rule_set($data, $field, $rule_set, $field_path_tmp);
+                    $result = $this->execute_rule_set($data, $field, $rule_set, $current_field_path);
 
-                    $this->set_result($field_path_tmp, $result);
+                    $this->set_result($current_field_path, $result);
                 }
 
                 // If the config validation_global is set to false, stop validating when one rule was invalid.
@@ -831,20 +831,20 @@ class Validation
         } else {
             $is_all_valid = true;
             foreach ($data[$field] as $key => $value) {
-                $field_path_tmp = $field_path .  $this->config['symbol_field_name_separator'] . $key;
+                $current_field_path = $field_path .  $this->config['symbol_field_name_separator'] . $key;
 
                 $rule_system_symbol = $this->get_rule_set_system_symbol($rule_set);
                 if (!empty($rule_system_symbol)) {
                     // $is_array_loop is true, means parent data is numberic arrya, too
-                    $cur_field_path = $is_array_loop ? $field_path : $field_path_tmp;
-                    $result = $this->execute($data[$field], [$key => $rule_set], $cur_field_path, true);
+                    $current_field_path = $is_array_loop ? $field_path : $current_field_path;
+                    $result = $this->execute($data[$field], [$key => $rule_set], $current_field_path, true);
                 } else if ($this->is_association_array_rule($rule_set)) {
-                    $result = $this->execute($data[$field][$key], $rule_set, $field_path_tmp, true);
+                    $result = $this->execute($data[$field][$key], $rule_set, $current_field_path, true);
                 }
                 // Validate numberic array, all the rule are the same, only use $rule_set[0]
                 else {
-                    $result = $this->execute_rule_set($data[$field], $key, $rule_set, $field_path_tmp);
-                    $this->set_result($field_path_tmp, $result);
+                    $result = $this->execute_rule_set($data[$field], $key, $rule_set, $current_field_path);
+                    $this->set_result($current_field_path, $result);
                 }
 
                 $is_all_valid = $is_all_valid && $result;
