@@ -869,28 +869,34 @@ class Validation
     /**
      * A rule set of one field allows users to set error message template in an object.
      * So that users don't have to set the rule and error message in a string.
+     * The object must in a special format which only contains two sub-fields: 0 and "error_message"
+     * For example:
+     * $rule_leaf_object_template = [
+     *      'required|int',             // Rule set
+     *      'error_message' => [        // Error message template
+     *          'required' => 'It is request field',
+     *          'int' => 'Must be integer',
+     *      ]
+     * ];
      *
      * @param array $rule
      * @return bool
      */
     protected function is_rule_leaf_object($rule)
     {
-        // Here is an rule_leaf_object example
-        $rule_leaf_object_template = [
-            'required|int',             // rule
-            'error_message' => [        // error message template
-                'required' => 'It is request field',
-                'int' => 'Must be integer',
-            ]
-        ];
-
-        // $diff1 = array_diff_key($rule_leaf_object_template, $rule);
-        // $diff2 = array_diff_key($rule, $rule_leaf_object_template);
-        if (!array_diff_key($rule_leaf_object_template, $rule) && !array_diff_key($rule, $rule_leaf_object_template)) {
-            return true;
-        } else {
-            return false;
+        $key_count = 0;
+        foreach ($rule as $key => $value) {
+            if (
+                $key !== 0
+                && $key !== "error_message"
+            ) {
+                return false;
+            }
+            $key_count++;
         }
+        if ($key_count !== 2) return false;
+
+        return true;
     }
 
     /**
@@ -2148,7 +2154,7 @@ class Validation
                 $data = json_decode($data);
             }
         }
-        
+
         return $data;
     }
 
