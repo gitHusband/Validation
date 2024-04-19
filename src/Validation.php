@@ -556,8 +556,7 @@ class Validation
             $field_path_tmp = '';
             if ($field_path === false) $field_path_tmp = $field;
             else $field_path_tmp = $field_path . $this->config['symbol_field_name_separator'] . $field;
-            $this->set_current_field_path($field_path_tmp)
-                ->set_current_field_rule_set($rule_set);
+            $this->set_current_field_path($field_path_tmp);
 
             // if ($field == 'fruit_id') $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_1
 
@@ -586,8 +585,6 @@ class Validation
                     if ($this->is_association_array_rule($rule_set[$rule_set_system_symbol])) {
                         $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule_set[$rule_set_system_symbol], $field_path_tmp, $is_array_loop);
                     } else {
-                        $this->set_current_field_path($field_path_tmp)
-                            ->set_current_field_rule_set($rule_set);
                         $result = $this->execute_rule_set($data, $field, $rule_set[$rule_set_system_symbol], $field_path_tmp);
                         $this->set_result($field_path_tmp, $result);
                     }
@@ -630,8 +627,6 @@ class Validation
                 else if ($this->is_association_array_rule($rule_set)) {
                     $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule_set, $field_path_tmp, $is_array_loop);
                 } else {
-                    $this->set_current_field_path($field_path_tmp)
-                        ->set_current_field_rule_set($rule_set);
                     $result = $this->execute_rule_set($data, $field, $rule_set, $field_path_tmp);
 
                     $this->set_result($field_path_tmp, $result);
@@ -789,9 +784,7 @@ class Validation
     {
         $or_len = count($rule_set);
         foreach ($rule_set as $key => $rule_or) {
-            $this->set_current_field_rule_set($rule_or);
-
-            // if ($key == 1) $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_2
+            // if ($key == 0) $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_2
 
             $result = $this->execute_rule_set($data, $field, $rule_or, $field_path, true);
             $this->set_result($field_path, $result);
@@ -850,8 +843,6 @@ class Validation
                 }
                 // Validate numberic array, all the rule are the same, only use $rule_set[0]
                 else {
-                    $this->set_current_field_path($field_path_tmp)
-                        ->set_current_field_rule_set($rule_set);
                     $result = $this->execute_rule_set($data[$field], $key, $rule_set, $field_path_tmp);
                     $this->set_result($field_path_tmp, $result);
                 }
@@ -1253,6 +1244,9 @@ class Validation
      */
     protected function execute_rule_set($data, $field, $rule_set, $field_path = false, $is_parallel_rule = false)
     {
+        $this->set_current_field_path($field_path)
+            ->set_current_field_rule_set($rule_set);
+            
         $rule_set = $this->parse_rule_set($rule_set);
 
         if (empty($rule_set) || empty($rule_set['rules'])) {
@@ -1815,6 +1809,9 @@ class Validation
     protected function set_current_field_path($field_path)
     {
         $this->recurrence_current['field_path'] = $field_path;
+        $this->recurrence_current['field_rule_set'] = '';
+        $this->recurrence_current['rule'] = '';
+        $this->recurrence_current['method'] = [];
         return $this;
     }
 
@@ -1836,7 +1833,13 @@ class Validation
      */
     protected function set_current_field_rule_set($field_rule_set)
     {
-        if (is_array($field_rule_set)) $field_rule_set = json_encode($field_rule_set, JSON_UNESCAPED_SLASHES);
+        if (is_array($field_rule_set)) {
+            /**
+             * The 0 is the rule set key.
+             * @see static::is_rule_leaf_object()
+             */
+            $field_rule_set = isset($field_rule_set[0]) ? $field_rule_set[0] : '';
+        }
         $this->recurrence_current['field_rule_set'] = $field_rule_set;
         $this->recurrence_current['rule'] = '';
         $this->recurrence_current['method'] = [];
