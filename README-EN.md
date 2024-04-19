@@ -78,7 +78,7 @@ Goal is only 5 words - **Rule structure is data structure**。
 
 ## 1. Overview
 ### 1.1 Feature
-- One field corresponds to one validation rule, and a rule consists of multiple validation methods (functions).
+- One field corresponds to one validation rule set, and a rule set consists of multiple validation rules or methods (functions).
 - The validation method supports the substitution of symbol, which is easy to understand and simplifies the rules. e.g. `*`, `>`, `<`, `length>`
 - Supports regular expressions
 
@@ -198,7 +198,7 @@ $ composer run-script readme test_complete_example
 ## 4. Features
 
 ### 4.1 Methods And Their Symbols
-Generally, a field corresponds to a validation rule, and a rule consists of multiple validation methods (functions).
+One field corresponds to one validation rule set, and a rule set consists of multiple validation **rules**, **methods (functions)** and *error message templates(optional)*.
 In order to facilitate understanding and simplify the rules, some method **symbols** are allowed to represent actual methods (functions).
 
 ```PHP
