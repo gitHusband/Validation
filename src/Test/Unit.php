@@ -111,9 +111,14 @@ class Unit extends TestCommon
             $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute all the test cases:\n");
             $class_methods = get_class_methods($this);
 
+            $performance_exclude_methods = [
+                'test_exception',
+                'test_strict_parameter',
+            ];
+
             foreach ($class_methods as $method_name) {
                 if (preg_match('/^test_.*/', $method_name)) {
-                    if ($is_performance && $method_name == 'test_exception') continue;
+                    if ($is_performance && in_array($method_name, $performance_exclude_methods)) continue;
 
                     $result = $this->execute_tests($method_name);
                     if (!$result) break;
