@@ -101,34 +101,6 @@ class Unit extends TestCommon
         return $this->get_unit_result();
     }
 
-    protected function run_method($method_name = '', $is_performance = false)
-    {
-        $this->write_log(static::LOG_LEVEL_INFO, "# Test PHP v" . PHP_VERSION . "\n");
-        if (!empty($method_name)) {
-            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute test case of method {$method_name}:\n");
-            $result = $this->execute_tests($method_name);
-        } else {
-            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute all the test cases:\n");
-            $class_methods = get_class_methods($this);
-
-            $performance_exclude_methods = [
-                'test_exception',
-                'test_strict_parameter',
-            ];
-
-            foreach ($class_methods as $method_name) {
-                if (preg_match('/^test_.*/', $method_name)) {
-                    if ($is_performance && in_array($method_name, $performance_exclude_methods)) continue;
-
-                    $result = $this->execute_tests($method_name);
-                    if (!$result) break;
-                }
-            }
-        }
-
-        return $result;
-    }
-
     /**
      * Performance testing
      *
@@ -178,6 +150,29 @@ class Unit extends TestCommon
         return $this->get_unit_result();
     }
 
+    protected function run_method($method_name = '', $is_performance = false)
+    {
+        $this->write_log(static::LOG_LEVEL_INFO, "# Test PHP v" . PHP_VERSION . "\n");
+        if (!empty($method_name)) {
+            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute test case of method {$method_name}:\n");
+            $result = $this->execute_tests($method_name);
+        } else {
+            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute all the test cases:\n");
+            $class_methods = get_class_methods($this);
+
+            foreach ($class_methods as $method_name) {
+                if (preg_match('/^test_.*/', $method_name)) {
+                    if (!$this->check_test_method($method_name, $is_performance)) continue;
+
+                    $result = $this->execute_tests($method_name);
+                    if (!$result) break;
+                }
+            }
+        }
+
+        return $result;
+    }
+
     protected function run_performance($step, $times = 100, $method_name = '') {
         $start_time = (int) (microtime(true) * 1000);
         $start_datetime = date('Y-m-d H:i:s', floor($start_time / 1000));
@@ -196,6 +191,24 @@ class Unit extends TestCommon
         $this->write_log(static::LOG_LEVEL_WARN, "#{$step} End performance testing at {$end_datetime}. Total time spent: {$spent_time} Seconds({$spent_human_time})\n");
 
         return $spent_time;
+    }
+
+    protected function check_test_method($method_name, $is_performance)
+    {
+        /**
+         * When running performance test, we can not run test_exception and test_strict
+         * Because the non-strict mode can not parse the parameters.
+         * After we remove the non-strict mode, we will remove its performance testing and remove this checking
+         */
+        if ($is_performance) {
+            if (
+                strpos($method_name, 'test_exception') === 0
+                || strpos($method_name, 'test_strict') === 0
+            ) {
+                return false;
+            }
+        }
+         return true;
     }
 
     /**
@@ -2660,7 +2673,8 @@ class Unit extends TestCommon
         $rule = [
             "id" => "optional|<number>[1,\"10\",'100']",
             "color" => "optional|<string>[red,\"white\",'black']",
-            "text" => "optional|my_strict_method[100,'1',[1,2,3,{\"a\": \"A\", \"b\": \"B\"}],{\"a\": \"A\", \"b\": [1,3,5]},false,'false']",
+            "fruit" => "optional|<string>[ apple, \"orange\" ,  'cherry'  , grape ]",
+            "text" => "optional|my_strict_method[100,'1',[1,2,3,{\"a\": \"A\", \"b\": \"B\"}],{\"a\": \"A\", \"b\": [1,3,5]},false,'false','',null,NULL]",
         ];
 
         $cases = [
@@ -2700,34 +2714,64 @@ class Unit extends TestCommon
                     "name" => "black"
                 ]
             ],
-            "Valid_data_7" => [
+            "Valid_data_fruit_1" => [
+                "data" => [
+                    "fruit" => "apple"
+                ]
+            ],
+            "Valid_data_fruit_2" => [
+                "data" => [
+                    "fruit" => "orange"
+                ]
+            ],
+            "Valid_data_fruit_3" => [
+                "data" => [
+                    "fruit" => "cherry"
+                ]
+            ],
+            "Valid_data_fruit_4" => [
+                "data" => [
+                    "fruit" => "grape"
+                ]
+            ],
+            "Valid_data_text_1" => [
                 "data" => [
                     "text" => "int"
                 ]
             ],
-            "Valid_data_8" => [
+            "Valid_data_text_2" => [
                 "data" => [
                     "text" => "string"
                 ]
             ],
-            "Valid_data_9" => [
+            "Valid_data_text_3" => [
                 "data" => [
                     "text" => "array"
                 ]
             ],
-            "Valid_data_10" => [
+            "Valid_data_text_4" => [
                 "data" => [
                     "text" => "object"
                 ]
             ],
-            "Valid_data_11" => [
+            "Valid_data_text_5" => [
                 "data" => [
                     "text" => "bool"
                 ]
             ],
-            "Valid_data_12" => [
+            "Valid_data_text_6" => [
                 "data" => [
                     "text" => "bool_string"
+                ]
+            ],
+            "Valid_data_text_7" => [
+                "data" => [
+                    "text" => "empty_string"
+                ]
+            ],
+            "Valid_data_text_8" => [
+                "data" => [
+                    "text" => "null"
                 ]
             ],
             "Invalid_1" => [
@@ -2754,7 +2798,7 @@ class Unit extends TestCommon
             "method_name" => __METHOD__,
         ];
 
-        $this->validation->add_method("my_strict_method", function ($text, $data_int, $data_string, $data_array, $data_object, $data_bool, $data_bool_string) {
+        $this->validation->add_method("my_strict_method", function ($text, $data_int, $data_string, $data_array, $data_object, $data_bool, $data_bool_string, $data_empty_string, $data_null, $data_NULL) {
             if ($text == 'int') {
                 return is_int($data_int);
             } else if ($text == 'string') {
@@ -2767,6 +2811,10 @@ class Unit extends TestCommon
                 return is_bool($data_bool);
             } else if ($text == 'bool_string') {
                 return in_array($data_bool_string, ["true", "false"]);
+            } else if ($text == 'empty_string') {
+                return $data_empty_string === '';
+            } else if ($text == 'null') {
+                return $data_null === null && $data_NULL === null;
             } else {
                 return false;
             }
@@ -2869,6 +2917,256 @@ class Unit extends TestCommon
         $this->validation->add_method("php_exception_fruit_id", function ($fruit_id) {
             throw new \Exception("fruit id is not valid");
         });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_rule_set_1()
+    {
+        $rule = [
+            "id" => "optional||int",
+        ];
+
+        $cases = [
+            "Exception_ruleset_1" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @rule_set:optional||int - Invalid Rule Set: Contiguous separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_rule_set_2()
+    {
+        $rule = [
+            "id" => "optional| |int",
+        ];
+
+        $cases = [
+            "Exception_ruleset_2" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @rule_set:optional| |int - Invalid Rule Set: Contiguous separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_rule_set_3()
+    {
+        $rule = [
+            "id" => "optional|int|",
+        ];
+
+        $cases = [
+            "Exception_ruleset_3" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @rule_set:optional|int| - Invalid Rule Set: Endding separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_rule_set_4()
+    {
+        $rule = [
+            "id" => "optional|int|  ",
+        ];
+
+        $cases = [
+            "Exception_ruleset_4" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @rule_set:optional|int|   - Invalid Rule Set: Endding separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_rule_set_5()
+    {
+        $rule = [
+            "id" => "optional|/^[a-z|\|\/]+$/ | ",
+        ];
+
+        $cases = [
+            "Exception_ruleset_5" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @rule_set:optional|/^[a-z|\\|\\/]+$/ |  - Invalid Rule Set: Endding separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_rule_set_6()
+    {
+        $rule = [
+            "id" => "",
+        ];
+
+        $cases = [
+            "Exception_ruleset_6" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @rule_set:NotSet - Invalid Rule Set: Empty'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_rule_set_7()
+    {
+        $rule = [
+            "id" => "   ",
+        ];
+
+        $cases = [
+            "Exception_ruleset_7" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @rule_set:    - Invalid Rule Set: Empty'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter()
+    {
+        $rule = [
+            "parameter_1" => "optional|my_method[1, 2,,3]",
+            "parameter_2" => "optional|my_method[1, 2, ,3]",
+            "parameter_3" => "optional|my_method[1, 2, 3,]",
+            "parameter_4" => "optional|my_method[]",
+            "parameter_5" => "optional|=['']",
+            "parameter_type_json_1" => "optional|my_method[1, [1,2,[,3]",
+            "parameter_type_json_2" => "optional|my_method[1, {\"a\": {\"A\"}]",
+        ];
+
+        $cases = [
+            "Exception_parameter_1" => [
+                "data" => [
+                    "parameter_1" => 1,
+                ],
+                "expected_msg" => '@field:parameter_1, @rule:my_method[1, 2,,3] - Invalid Parameter: Contiguous separator'
+            ],
+            "Exception_parameter_2" => [
+                "data" => [
+                    "parameter_2" => 1,
+                ],
+                "expected_msg" => '@field:parameter_2, @rule:my_method[1, 2, ,3] - Invalid Parameter: Contiguous separator'
+            ],
+            "Exception_parameter_3" => [
+                "data" => [
+                    "parameter_3" => 1,
+                ],
+                "expected_msg" => '@field:parameter_3, @rule:my_method[1, 2, 3,] - Invalid Parameter: Endding separator'
+            ],
+            "Exception_parameter_4" => [
+                "data" => [
+                    "parameter_4" => 1,
+                ],
+                "expected_msg" => '@field:parameter_4, @rule:my_method[] - Invalid Parameter: Empty'
+            ],
+            "Invalid_parameter_5" => [
+                "data" => [
+                    "parameter_5" => 1,
+                ],
+                "expected_msg" => ["parameter_5" => "parameter_5 must be equal to "]
+            ],
+            "Exception_parameter_type_json_1" => [
+                "data" => [
+                    "parameter_type_json_1" => 1,
+                ],
+                "expected_msg" => '@field:parameter_type_json_1, @rule:my_method[1, [1,2,[,3] - Invalid Parameter: Unclosed [ or {'
+            ],
+            "Exception_parameter_type_json_2" => [
+                "data" => [
+                    "parameter_type_json_2" => 1,
+                ],
+                "expected_msg" => '@field:parameter_type_json_2, @rule:my_method[1, {"a": {"A"}] - Invalid Parameter: Unclosed [ or {'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
 
         return $method_info = [
             "rule" => $rule,
@@ -3235,7 +3533,7 @@ class Unit extends TestCommon
     protected function test_dynamic_err_msg_user_json()
     {
         $rule = [
-            "id" => 'required|/^\d+$/|>=<=[1,100]| >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
+            "id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
             "name" => 'optional_unset|string >> { "optional_unset": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
             "age" => 'optional|>=<=[1,60]|check_err_field >> { ">=<=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
         ];
@@ -3327,7 +3625,7 @@ class Unit extends TestCommon
     protected function test_dynamic_err_msg_user_gh_string()
     {
         $rule = [
-            "id" => "required|/^\d+$/|>=<=[1,100]| >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
+            "id" => "required|/^\d+$/|>=<=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
             "name" => "optional_unset|string >> [optional_unset] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
             "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
         ];

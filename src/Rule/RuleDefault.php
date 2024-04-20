@@ -335,6 +335,12 @@ trait RuleDefault
         return static::bool_string($data, $bool);
     }
 
+    public static function null_string($data)
+    {
+        if (!is_string($data)) return false;
+        return in_array($data, ['null', 'NULL']);
+    }
+
     public static function email($data)
     {
         if (empty($data)) return false;

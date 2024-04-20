@@ -3178,7 +3178,7 @@ class UnitDeprecated extends TestCommon
     protected function test_dynamic_err_msg_user_json()
     {
         $rule = [
-            "id" => 'required|/^\d+$/|<=>=[1,100]| >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
+            "id" => 'required|/^\d+$/|<=>=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
             "name" => 'optional_unset|string >> { "optional_unset": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
             "age" => 'optional|<=>=[1,60]|check_err_field >> { "<=>=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
         ];
@@ -3270,7 +3270,7 @@ class UnitDeprecated extends TestCommon
     protected function test_dynamic_err_msg_user_gh_string()
     {
         $rule = [
-            "id" => "required|/^\d+$/|<=>=[1,100]| >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
+            "id" => "required|/^\d+$/|<=>=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
             "name" => "optional_unset|string >> [optional_unset] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
             "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
         ];

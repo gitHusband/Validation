@@ -5,6 +5,8 @@ namespace githusband;
 use githusband\Rule\RuleDefault;
 use githusband\Exception\GhException;
 use githusband\Exception\RuleException;
+use Exception;
+use Throwable;
 
 class Validation
 {
@@ -509,11 +511,11 @@ class Validation
 
         try {
             $this->execute($data, $this->rules);
-        } catch (\Throwable $t) {
+        } catch (Throwable $t) {
             $this->throw_gh_exception($t);
         }
         // For the PHP version < 7
-        catch (\Exception $t) {
+        catch (Exception $t) {
             $this->throw_gh_exception($t);
         }
 
@@ -986,7 +988,7 @@ class Validation
         $symbol_rule_separator_length = strlen($symbol_rule_separator);
 
         $rules = [];
-        $current_method = '';
+        $current_rule = '';
         $is_next_method_flag = 0;
         $is_reg_flag = 0;
 
@@ -1013,8 +1015,8 @@ class Validation
             // \ 是转义字符，在它之后的任意一个字符，都是正则表达式的一部分。
             // 例如：\/, \| 
             if ($char === '\\') {
-                $current_method .= $char;
-                $current_method .= $rule_set[$i + 1];
+                $current_rule .= $char;
+                $current_rule .= $rule_set[$i + 1];
                 $i++;
                 continue;
             }
@@ -1041,16 +1043,27 @@ class Validation
             }
 
             if ($is_next_method_flag == 0) {
-                $current_method .= $char;
+                $current_rule .= $char;
             } else {
                 $is_next_method_flag = 0;
-                if (!empty($current_method)) $rules[] = $current_method;
-                $current_method = '';
+                // Remove the whitespace on the left and right
+                $current_rule = trim($current_rule, ' ');
+                if ($current_rule === '') throw RuleException::rule_set('Contiguous separator', $this->get_recurrence_current(), $this->config['auto_field']);
+                if (!empty($current_rule)) $rules[] = $current_rule;
+                $current_rule = '';
                 $is_reg_flag = 0;
             }
         }
 
-        if (!empty($current_method)) $rules[] = $current_method;
+        $current_rule = trim($current_rule, ' ');
+        if ($current_rule === '') {
+            if (empty($rules)) {
+                throw RuleException::rule_set('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
+            } else {
+                throw RuleException::rule_set('Endding separator', $this->get_recurrence_current(), $this->config['auto_field']);
+            }
+        }
+        if (!empty($current_rule)) $rules[] = $current_rule;
         return $rules;
     }
 
@@ -1729,13 +1742,25 @@ class Validation
                 $current_parameter .= $char;
             } else {
                 $is_next_parameter_flag = 0;
+                // Remove the whitespace on the left and right
+                $current_parameter = trim($current_parameter, ' ');
+                if ($current_parameter === '') throw RuleException::parameter('Contiguous separator', $this->get_recurrence_current(), $this->config['auto_field']);
                 $parameters[] = $current_parameter;
                 $current_parameter = '';
                 $is_array_flag = 0;
             }
         }
 
-        if ($is_array_flag > 0) throw RuleException::rule_set('Invalid rule set', $this->get_recurrence_current(), $this->config['auto_field']);
+        if ($is_array_flag > 0) throw RuleException::parameter('Unclosed [ or {', $this->get_recurrence_current(), $this->config['auto_field']);
+        // Remove the whitespace on the left and right
+        $current_parameter = trim($current_parameter, ' ');
+        if ($current_parameter === '') {
+            if (empty($parameters)) {
+                throw RuleException::parameter('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
+            } else {
+                throw RuleException::parameter('Endding separator', $this->get_recurrence_current(), $this->config['auto_field']);
+            }
+        }
         if (!empty($current_parameter)) $parameters[] = $current_parameter;
         return $parameters;
     }
@@ -1779,11 +1804,11 @@ class Validation
                 $this->set_error($field_path, $message);
                 return "Undefined";
             }
-        } catch (\Throwable $t) {
+        } catch (Throwable $t) {
             throw GhException::extend_privious($t, $this->get_recurrence_current(), $this->config['auto_field']);
         }
         // For the PHP version < 7
-        catch (\Exception $t) {
+        catch (Exception $t) {
             throw GhException::extend_privious($t, $this->get_recurrence_current(), $this->config['auto_field']);
         }
 
@@ -2151,10 +2176,13 @@ class Validation
                 $data = (int) $data;
             } else if (preg_match('/^-?\d+\.\d+$/', $data)) {
                 $data = (float) $data;
-            } else if (static::bool_str($data)) {
+            } else if (static::bool_string($data)) {
                 $data = in_array($data, ['true', 'TRUE']);
+            } else if (static::null_string($data)) {
+                $data = null;
             } else if (preg_match('/^[\[\{].*[\]\}]$/', $data)) {
                 $data = json_decode($data);
+                if ($data === null) throw new Exception(RuleException::make_parameter_type_message("JSON"), RuleException::CODE_PARAMETER_TYPE);
             }
         }
 
