@@ -134,52 +134,25 @@ class UnitDeprecated extends TestCommon
      * @param string $method_name
      * @return void
      */
-    public function performance($times = 500, $method_name = '')
+    public function performance($times = 100, $method_name = '')
     {
         if (!is_numeric($times)) {
             $method_name = $times;
-            $times = 500;
+            $times = 100;
         }
 
         $log_level = getenv('COMPOSER_LOG_LEVEL_OPTION');
         if (empty($log_level) || !is_numeric($log_level)) $this->set_log_level(static::LOG_LEVEL_WARN);
 
-        $this->validation->set_config([
-            'is_strict_parameter_separator' => true,                    // @deprecated 2.4.0. 1. true - Parse multiple parameters, support "," and array; 2. false - Simple way to parse parameters but not support "," as part of a parameter;
-            'is_strict_parameter_type' => true,                         // @deprecated 2.4.0. 1. true - Detect the parameters type, e.g. 123 is int, "123" is string; 2. false - All the parameters type is string;
-        ]);
-        $step_1_spent_time = $this->run_performance("1 Strict mode -", $times, $method_name);
-        if ($step_1_spent_time == false) return false;
-
-        $this->validation->set_config([
-            'is_strict_parameter_separator' => false,                   // @deprecated 2.4.0. 1. true - Parse multiple parameters, support "," and array; 2. false - Simple way to parse parameters but not support "," as part of a parameter;
-            'is_strict_parameter_type' => false,                        // @deprecated 2.4.0. 1. true - Detect the parameters type, e.g. 123 is int, "123" is string; 2. false - All the parameters type is string;
-        ]);
-        $step_2_spent_time = $this->run_performance("2 Simple mode -", $times, $method_name);
-        if ($step_2_spent_time == false) return false;
-
-        $this->write_log(static::LOG_LEVEL_WARN, "#######################################################\n");
-        if ($step_2_spent_time > $step_1_spent_time) {
-            $big_time = $step_2_spent_time;
-            $small_time = $step_1_spent_time;
-            $this->write_log(static::LOG_LEVEL_WARN, "# Simple mode(2) costed more time.\n");
-        } else {
-            $big_time = $step_1_spent_time;
-            $small_time = $step_2_spent_time;
-            $this->write_log(static::LOG_LEVEL_WARN, "# Strict mode(1) costed more time.\n");
-        }
-        $diff_time = $big_time - $small_time;
-        $diff_human_time = $this->seconds_to_human_time($diff_time);
-        $this->write_log(static::LOG_LEVEL_WARN, "# Total time diff: {$diff_time} Seconds({$diff_human_time})\n");
-        $this->write_log(static::LOG_LEVEL_WARN, "#######################################################\n");
+        $this->run_performance($times, $method_name);
 
         return $this->get_unit_result();
     }
 
-    protected function run_performance($step, $times = 100, $method_name = '') {
+    protected function run_performance($times = 100, $method_name = '') {
         $start_time = (int) (microtime(true) * 1000);
         $start_datetime = date('Y-m-d H:i:s', floor($start_time / 1000));
-        $this->write_log(static::LOG_LEVEL_WARN, "#{$step} Start performance testing at {$start_datetime}\n");
+        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Start performance testing at {$start_datetime}\n");
 
         $i = 0;
         for ($i = 0; $i < $times; $i++) {
@@ -191,7 +164,9 @@ class UnitDeprecated extends TestCommon
         $end_datetime = date('Y-m-d H:i:s', floor($end_time / 1000));
         $spent_time = ($end_time - $start_time) / 1000;
         $spent_human_time = $this->seconds_to_human_time($spent_time);
-        $this->write_log(static::LOG_LEVEL_WARN, "#{$step} End performance testing at {$end_datetime}. Total time spent: {$spent_time} Seconds({$spent_human_time})\n");
+        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} End performance testing at {$end_datetime}.\n");
+        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Total time spent: {$spent_time} Seconds({$spent_human_time})\n");
+        $this->write_log(static::LOG_LEVEL_WARN, "#######################################################\n");
 
         return $spent_time;
     }

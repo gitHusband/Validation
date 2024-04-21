@@ -128,8 +128,6 @@ class Validation
         'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)
         'symbol_method_omit_this' => '/^([^\\[]*)\\[(.*)\\]$/',     // @this omitted method format, will add a @this parameter at first. e.g. equal[1]
         'symbol_parameter_separator' => ',',                        // Parameters separator to split the parameter string of a method into multiple parameters, e.g. equal(@this,1)
-        'is_strict_parameter_separator' => true,                    // {@deprecated 2.4.0} 1. true - Parse multiple parameters, support "," and array; 2. false - Simple way to parse parameters but not support "," as part of a parameter;
-        'is_strict_parameter_type' => true,                         // {@deprecated 2.4.0} 1. true - Detect the parameters type, e.g. 123 is int, "123" is string; 2. false - All the parameters type is string;
         'symbol_field_name_separator' => '.',                       // Field name separator of error message, e.g. "fruit.apple"
         'symbol_required' => '*',                                   // Symbol of required field, Same as the rule "required"
         'symbol_optional' => 'O',                                   // Symbol of optional field, can be not set or empty, Same as the rule "optional"
@@ -191,22 +189,6 @@ class Validation
      * @var array
      */
     protected $method_symbols_flip = [];
-
-    /**
-     * Generally, the method parameters type are string.
-     * But if the config is_strict_parameter_separator = true, the method parameters type will be detected, and forcibly converted to the corresponding type.
-     * These strict_methods always detect their parameters type even though the config is_strict_parameter_separator = false.
-     * For example:
-     * - abc/"abc": string abc
-     * - 123: int 123
-     * - "123": string 123
-     *
-     * @deprecated 2.4.0
-     * @see static::$config['is_strict_parameter_separator']
-     * @see static::parse_strict_data_type()
-     * @var array
-     */
-    protected $strict_methods = [];
 
     /**
      * Language file path
@@ -298,7 +280,6 @@ class Validation
     /**
      * Auto load traits data
      * - method_symbols: @see static::$method_symbols
-     * - strict_methods @see static::$strict_methods
      *
      * @return void
      */
@@ -321,11 +302,6 @@ class Validation
             $trait_method_symbols = "method_symbols_of_{$trait_name_uncamelized}";
             if (property_exists($this, $trait_method_symbols)) {
                 $this->method_symbols = array_merge($this->method_symbols, $this->{$trait_method_symbols});
-            }
-
-            $trait_strict_methods = "strict_methods_of_{$trait_name_uncamelized}";
-            if (property_exists($this, $trait_strict_methods)) {
-                $this->strict_methods = array_merge($this->strict_methods, $this->{$trait_strict_methods});
             }
         }
 
@@ -935,45 +911,6 @@ class Validation
     }
 
     /**
-     * Split a serial rule into multiple methods or regular expression by using the separator |
-     * NOTE: 
-     * - The regular expression may cantain the character(|) which is the same as rule separator(|)
-     * - Only one regular expression is allowed in one serial rule
-     *
-     * @deprecated 2.4.0
-     * @param string $rule
-     * @return array
-     */
-    protected function split_serial_rule($rule)
-    {
-        // In consideration of the case that the regular expression cantains the character(|) which is the same as rule separator(|)
-        // Using the way to handle regular expression
-        // Only one regular expression is allowed in one serial rule
-        $reg_flag = false;
-        $reg_mark = "@reg_mark";
-        // $reg_preg = '/\/.+?(?<!\\\)\//';
-        $reg_preg = '/\/.+\|+.+?(?<!\\\)\//';
-        if (preg_match_all($reg_preg, $rule, $matches)) {
-            $rule = preg_replace($reg_preg, $reg_mark, $rule);
-            $reg_flag = true;
-        }
-
-        $rules = empty($rule) ? [] : explode($this->config['symbol_rule_separator'], trim($rule));
-
-        if ($reg_flag == true) {
-            $i = 0;
-            foreach ($rules as &$value) {
-                if (strpos($value, $reg_mark) !== false) {
-                    $value = str_replace($reg_mark, $matches[0][$i], $value);
-                    $i++;
-                }
-            }
-        }
-
-        return $rules;
-    }
-
-    /**
      * Split a serial rule set into multiple rules(methods or regular expression) by using the separator |
      * NOTE: 
      * - The regular expression may cantain the character(|) which is the same as rule separator(|)
@@ -1566,12 +1503,12 @@ class Validation
         if (preg_match($this->config['symbol_method_standard'], $rule, $matches)) {
             $method = $matches[1];
             $params = $matches[2];
-            $params = $this->parse_parameters($params);
+            $params = $this->parse_parameters_strict($params);
             // If classic parameter, will add the field value as the first parameter if no the field parameter
         } else if (preg_match($this->config['symbol_method_omit_this'], $rule, $matches)) {
             $method = $matches[1];
             $params = $matches[2];
-            $params = $this->parse_parameters($params);
+            $params = $this->parse_parameters_strict($params);
             if (!in_array($this->symbol_this, $params)) {
                 array_unshift($params, $this->symbol_this);
             }
@@ -1609,13 +1546,7 @@ class Validation
                         break;
                 }
             } else {
-                if (!empty($this->config['is_strict_parameter_type'])) {
-                    $param = static::parse_strict_data_type($param);
-                } else if ($this->is_strict_method($method)) {
-                    $param = static::parse_strict_data_type($param);
-                } else {
-                    $param = static::parse_strict_data_type($param, true);
-                }
+                $param = static::parse_strict_data_type($param);
             }
         }
 
@@ -1638,32 +1569,6 @@ class Validation
         $this->set_current_method($method_rule);
 
         return $method_rule;
-    }
-
-    /**
-     * Parse parameters from string to array
-     *
-     * @deprecated 2.4.0
-     * @param string $params
-     * @return array
-     */
-    protected function parse_parameters($params)
-    {
-        if (empty($this->config['is_strict_parameter_separator'])) return $this->parse_parameters_simple($params);
-        else return $this->parse_parameters_strict($params);
-    }
-
-    /**
-     * Parse parameters from string to array
-     * The symbol_parameter_separator(e.g. ",") is not allowed in parameter
-     *
-     * @deprecated 2.4.0
-     * @param string $params
-     * @return array
-     */
-    protected function parse_parameters_simple($params)
-    {
-        return $params = explode($this->config['symbol_parameter_separator'], $params);
     }
 
     /**
@@ -1763,19 +1668,6 @@ class Validation
         }
         if (!empty($current_parameter)) $parameters[] = $current_parameter;
         return $parameters;
-    }
-
-    /**
-     * Check if it's a strict_method
-     * The strict_methods always detect their parameters type even though the config is_strict_parameter_separator = false.
-     * 
-     * @deprecated 2.4.0
-     * @param string $method
-     * @return bool
-     */
-    protected function is_strict_method($method)
-    {
-        return in_array($method, $this->strict_methods);
     }
 
     /**

@@ -82,18 +82,6 @@ trait RuleDefault
     ];
 
     /**
-     * When is_strict_parameter_type = false, and the methods require strict parameters type
-     * 
-     * @deprecated 2.4.0
-     * @see static::config['is_strict_parameter_type']
-     * @var array
-     */
-    protected $strict_methods_of_rule_default = [
-        'strictly_equal',
-        'not_strictly_equal'
-    ];
-
-    /**
      * Get the string length
      *
      * @param mixed $string
