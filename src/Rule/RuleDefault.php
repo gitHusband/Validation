@@ -93,97 +93,232 @@ trait RuleDefault
         'not_strictly_equal'
     ];
 
+    /**
+     * Get the string length
+     *
+     * @param mixed $string
+     * @return string
+     */
     public static function string_length($string)
     {
         if (!static::string($string)) return -1;
         return mb_strlen($string);
     }
 
+    /**
+     * The field must be present and its data must not be empty string
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function required($data)
     {
         return $data === 0 || $data === 0.0 || $data === 0.00 || $data === '0' || $data === '0.0' || $data === '0.00' || $data === false || !empty($data);
     }
 
+    /**
+     * The field data must be equal to a given value
+     *
+     * @param mixed $data
+     * @param mixed $param
+     * @return bool
+     */
     public static function equal($data, $param)
     {
         return $data == $param;
     }
 
+    /**
+     * The field data must not be equal to a given value
+     *
+     * @param string $data
+     * @param string $param
+     * @return bool
+     */
     public static function not_equal($data, $param)
     {
         return $data != $param;
     }
 
+    /**
+     * The field data must be strictly equal to a given value
+     *
+     * @param mixed $data
+     * @param mixed $param
+     * @return bool
+     */
     public static function strictly_equal($data, $param)
     {
         return $data === $param;
     }
 
+    /**
+     * The field data must not be strictly equal to a given value
+     *
+     * @param mixed $data
+     * @param mixed $param
+     * @return bool
+     */
     public static function not_strictly_equal($data, $param)
     {
         return $data !== $param;
     }
 
+    /**
+     * The field data must be greater than a given value
+     *
+     * @param mixed $data
+     * @param int|float $param
+     * @return bool
+     */
     public static function greater_than($data, $param)
     {
         return is_numeric($data) && $data > $param;
     }
 
+    /**
+     * The field data must be less than a given value
+     *
+     * @param mixed $data
+     * @param int|float $param
+     * @return bool
+     */
     public static function less_than($data, $param)
     {
         return is_numeric($data) && $data < $param;
     }
 
+    /**
+     * The field data must be greater than or equal to a given value
+     *
+     * @param mixed $data
+     * @param int|float $param
+     * @return bool
+     */
     public static function greater_than_equal($data, $param)
     {
         return is_numeric($data) && $data >= $param;
     }
 
+    /**
+     * The field data must be less than or equal to a given value
+     *
+     * @param mixed $data
+     * @param int|float $param
+     * @return bool
+     */
     public static function less_than_equal($data, $param)
     {
         return is_numeric($data) && $data <= $param;
     }
 
+    /**
+     * The field data must be greater than the first given value and less than the second given value
+     *
+     * @param mixed $data
+     * @param int|float $param1
+     * @param int|float $param2
+     * @return bool
+     */
     public static function between($data, $param1, $param2)
     {
         return is_numeric($data) && $data > $param1 && $data < $param2;
     }
 
+    /**
+     * The field data must be greater than the first given value and less than or equal to the second given value
+     *
+     * @param mixed $data
+     * @param int|float $param1
+     * @param int|float $param2
+     * @return bool
+     */
     public static function greater_lessequal($data, $param1, $param2)
     {
         return is_numeric($data) && $data > $param1 && $data <= $param2;
     }
 
+    /**
+     * The field data must be greater than or equal to the first given value and less than the second given value
+     *
+     * @param mixed $data
+     * @param int|float $param1
+     * @param int|float $param2
+     * @return bool
+     */
     public static function greaterequal_less($data, $param1, $param2)
     {
         return is_numeric($data) && $data >= $param1 && $data < $param2;
     }
 
+    /**
+     * The field data must be greater than or equal to the first given value and less than or equal to the second given value
+     *
+     * @param mixed $data
+     * @param int|float $param1
+     * @param int|float $param2
+     * @return bool
+     */
     public static function greaterequal_lessequal($data, $param1, $param2)
     {
         return is_numeric($data) && $data >= $param1 && $data <= $param2;
     }
 
+    /**
+     * The field data must be numberic and in a given array
+     *
+     * @param mixed $data
+     * @param array $param
+     * @return bool
+     */
     public static function in_number_array($data, $param)
     {
         return is_numeric($data) && in_array($data, $param);
     }
 
+    /**
+     * The field data must be numberic and not in a given array
+     *
+     * @param mixed $data
+     * @param array $param
+     * @return bool
+     */
     public static function not_in_number_array($data, $param)
     {
         return is_numeric($data) && !in_array($data, $param);
     }
 
+    /**
+     * The field data must be string and in a given array
+     *
+     * @param mixed $data
+     * @param array $param
+     * @return bool
+     */
     public static function in_string_array($data, $param)
     {
         return is_string($data) && in_array($data, $param);
     }
 
+    /**
+     * The field data must be string and not in a given array
+     *
+     * @param mixed $data
+     * @param array $param
+     * @return bool
+     */
     public static function not_in_string_array($data, $param)
     {
         return is_string($data) && !in_array($data, $param);
     }
 
+    /**
+     * The length of the field data must be equal to a given value
+     *
+     * @param mixed $data
+     * @param int $param
+     * @return bool
+     */
     public static function length_equal($data, $param)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -192,6 +327,13 @@ trait RuleDefault
         return $data_len == $param;
     }
 
+    /**
+     * The length of the field data must not be equal to a given value
+     *
+     * @param mixed $data
+     * @param int $param
+     * @return bool
+     */
     public static function length_not_equal($data, $param)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -200,6 +342,13 @@ trait RuleDefault
         return $data_len != $param;
     }
 
+    /**
+     * The length of the field data must be greater than a given value
+     *
+     * @param mixed $data
+     * @param int $param
+     * @return bool
+     */
     public static function length_greater_than($data, $param)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -208,6 +357,13 @@ trait RuleDefault
         return $data_len > $param;
     }
 
+    /**
+     * The length of the field data must be less than a given value
+     *
+     * @param mixed $data
+     * @param int $param
+     * @return bool
+     */
     public static function length_less_than($data, $param)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -216,6 +372,13 @@ trait RuleDefault
         return $data_len < $param;
     }
 
+    /**
+     * The length of the field data must be greater than or equal to a given value
+     *
+     * @param mixed $data
+     * @param int $param
+     * @return bool
+     */
     public static function length_greater_than_equal($data, $param)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -224,6 +387,13 @@ trait RuleDefault
         return $data_len >= $param;
     }
 
+    /**
+     * The length of the field data must be less than or equal to a given value
+     *
+     * @param mixed $data
+     * @param int $param
+     * @return bool
+     */
     public static function length_less_than_equal($data, $param)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -232,6 +402,14 @@ trait RuleDefault
         return $data_len <= $param;
     }
 
+    /**
+     * The length of the field data must be greater than the first given value and less than the second given value
+     *
+     * @param mixed $data
+     * @param int $param1
+     * @param int $param2
+     * @return bool
+     */
     public static function length_between($data, $param1, $param2)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -240,6 +418,14 @@ trait RuleDefault
         return $data_len > $param1 && $data_len < $param2;
     }
 
+    /**
+     * The length of the field data must be greater than the first given value and less than or equal to the second given value
+     *
+     * @param mixed $data
+     * @param int $param1
+     * @param int $param2
+     * @return bool
+     */
     public static function length_greater_lessequal($data, $param1, $param2)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -248,6 +434,14 @@ trait RuleDefault
         return $data_len > $param1 && $data_len <= $param2;
     }
 
+    /**
+     * The length of the field data must be greater than or equal to the first given value and less than the second given value
+     *
+     * @param mixed $data
+     * @param int $param1
+     * @param int $param2
+     * @return bool
+     */
     public static function length_greaterequal_less($data, $param1, $param2)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -256,6 +450,14 @@ trait RuleDefault
         return $data_len >= $param1 && $data_len < $param2;
     }
 
+    /**
+     * The length of the field data must be greater than or equal to the first given value and less than or equal to the second given value
+     *
+     * @param mixed $data
+     * @param int $param1
+     * @param int $param2
+     * @return bool
+     */
     public static function length_greaterequal_lessequal($data, $param1, $param2)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
@@ -264,83 +466,131 @@ trait RuleDefault
         return $data_len >= $param1 && $data_len <= $param2;
     }
 
+    /**
+     * The field data must be an integer
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function integer($data)
     {
         return is_int($data);
     }
 
+    /**
+     * The field data must be a float
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function float($data)
     {
         return is_float($data);
     }
 
+    /**
+     * The field data must be a string
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function string($data)
     {
         return is_string($data);
     }
 
-    public static function bool($data, $bool = '')
-    {
-        $bool = strtolower($bool);
-        if ($data === true || $data === false) {
-            if ($bool === '') return true;
-            if ($data === true && $bool === 'true') {
-                return true;
-            } else if ($data === false && $bool === 'false') {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            return false;
-        }
-    }
-
-    public static function bool_equal($data, $bool = '')
-    {
-        return static::bool($data, $bool);
-    }
-
     /**
-     * Check if it's a bool string
-     * 
-     * @deprecated 2.3.0
+     * The field data must be a boolean
+     *
      * @param mixed $data
      * @param string $bool
      * @return bool
      */
-    public static function bool_str($data, $bool = '')
+    public static function bool($data)
     {
-        return static::bool_string($data, $bool);
+        return is_bool($data);
     }
 
-    public static function bool_string($data, $bool = '')
+    /**
+     * The field data must be a boolean and equal to a given value
+     *
+     * @param mixed $data
+     * @param string $param
+     * @return bool
+     */
+    public static function bool_equal($data, $param)
     {
-        if (!is_string($data)) return false;
-        $data = strtolower($data);
-        if ($data === "true" || $data === "false") {
-            if ($bool === '') return true;
-            if ($data === $bool) {
-                return true;
-            } else {
-                return false;
-            }
+        $is_bool = static::bool($data);
+        if (!$is_bool) return false;
+
+        if (is_bool($param)) return $data === $param;
+
+        $param = strtolower($param);
+        if ($data === true && $param === 'true') {
+            return true;
+        } else if ($data === false && $param === 'false') {
+            return true;
         } else {
             return false;
         }
     }
 
-    public static function bool_string_equal($data, $bool)
+    /**
+     * The field data must be a boolean string
+     * 
+     * @deprecated 2.3.0
+     * @param mixed $data
+     * @return bool
+     */
+    public static function bool_str($data)
     {
-        return static::bool_string($data, $bool);
+        return static::bool_string($data);
     }
 
+    /**
+     * The field data must be a boolean string
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function bool_string($data)
+    {
+        if (!is_string($data)) return false;
+        return in_array($data, ['true', 'TRUE', 'false', 'FALSE']);
+    }
+
+    /**
+     * The field data must be a boolean string and equal to a given value
+     *
+     * @param mixed $data
+     * @param string $param
+     * @return bool
+     */
+    public static function bool_string_equal($data, $param)
+    {
+        $is_bool_string = static::bool_string($data, $param);
+        if (!$is_bool_string) return false;
+        return strtolower($data) === strtolower($param);
+    }
+
+    /**
+     * The field data must be a null string
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function null_string($data)
     {
         if (!is_string($data)) return false;
         return in_array($data, ['null', 'NULL']);
     }
 
+    /**
+     * The field data must be an email address
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function email($data)
     {
         if (empty($data)) return false;
@@ -351,6 +601,12 @@ trait RuleDefault
         }
     }
 
+    /**
+     * The field data must be a url
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function url($data)
     {
         if (empty($data)) return false;
@@ -361,6 +617,12 @@ trait RuleDefault
         }
     }
 
+    /**
+     * The field data must be an ip address
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function ip($data)
     {
         if (empty($data) || !is_string($data)) return false;
@@ -371,6 +633,12 @@ trait RuleDefault
         }
     }
 
+    /**
+     * The field data must be a mac address
+     *
+     * @param mixed $data
+     * @return bool
+     */
     public static function mac($data)
     {
         if (empty($data) || !is_string($data)) return false;
@@ -381,12 +649,17 @@ trait RuleDefault
         }
     }
 
-    // date of birth
-    public static function dob($date)
+    /**
+     * The field data must be date of birth which is a past date
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function dob($data)
     {
-        if (empty($date) || !is_string($date)) return false;
-        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $date, $arr)) {
-            $datetime = strtotime($date);
+        if (empty($data) || !is_string($data)) return false;
+        if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $data, $arr)) {
+            $datetime = strtotime($data);
             $now = time();
             if (checkdate($arr[2], $arr[3], $arr[1]) && $datetime < $now) {
                 return true;
@@ -398,7 +671,13 @@ trait RuleDefault
         }
     }
 
-    public static function file_base64_size($file_base64)
+    /**
+     * Get a file size from a base64 encoded string
+     *
+     * @param string $file_base64
+     * @return float
+     */
+    public static function get_file_base64_size($file_base64)
     {
         $file_base64 = preg_replace('/^(data:\s*(\w+\/\w+);base64,)/', '', $file_base64);
         $file_base64 = str_replace('=', '', $file_base64);
@@ -411,13 +690,14 @@ trait RuleDefault
     }
 
     /**
-     * Check if the data is a file base64 string
+     * The field data must be a valid base64 encoded file
+     * 
      * e.g. data:image/jpeg;base64,{base64}
      *
      * @param string $file_base64
      * @param string $mime
      * @param int|string $max_size File size, its unit is kb
-     * @return void
+     * @return bool
      */
     public static function file_base64($file_base64, $mime = '', $max_size = null)
     {
@@ -430,7 +710,7 @@ trait RuleDefault
 
             if (!empty($max_size)) {
                 $file_base64 = str_replace($matches[1], '', $file_base64);
-                $file_size = static::file_base64_size($file_base64);
+                $file_size = static::get_file_base64_size($file_base64);
                 if ($file_size > $max_size) {
                     return false;
                 }
@@ -442,6 +722,12 @@ trait RuleDefault
         return true;
     }
 
+    /**
+     * The field data must be a UUID
+     *
+     * @param string $data
+     * @return bool
+     */
     public static function uuid($data)
     {
         if (empty($data) || !is_string($data)) return false;
@@ -452,6 +738,12 @@ trait RuleDefault
         }
     }
 
+    /**
+     * The field data must be one of the grant types of OAuth2
+     *
+     * @param string $data
+     * @return bool
+     */
     public static function oauth2_grant_type($data)
     {
         if (empty($data) || !is_string($data)) return false;
