@@ -93,6 +93,8 @@ class ZhCn
         'mac' => '@this 必须是MAC地址',
         'dob' => '@this 必须是正确的日期',
         'file_base64' => '@this 必须是正确的文件的base64码',
+        'file_base64:mime' => '@this 文件类型必须是 @p1',
+        'file_base64:size' => '@this 文件尺寸必须小于 @p2kb',
         'uuid' => '@this 必须是 UUID',
         'oauth2_grant_type' => '@this 必须是合法的 OAuth2 授权类型'
     ];

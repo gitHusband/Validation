@@ -93,6 +93,8 @@ class EnUs
         'mac' => '@this must be MAC address',
         'dob' => '@this must be a valid date',
         'file_base64' => '@this must be a valid file base64',
+        'file_base64:mime' => '@this file mine must be euqal to @p1',
+        'file_base64:size' => '@this file size must be less than @p2kb',
         'uuid' => '@this must be a UUID',
         'oauth2_grant_type' => '@this is not a valid OAuth2 grant type'
     ];

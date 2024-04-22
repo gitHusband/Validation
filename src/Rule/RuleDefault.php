@@ -693,14 +693,14 @@ trait RuleDefault
         if (preg_match('/^(data:\s*(\w+\/\w+);base64,)/', $file_base64, $matches)) {
             $file_mime = $matches[2];
             if (!empty($mime) && $mime != $file_mime) {
-                return false;
+                return "TAG:file_base64:mime";
             }
 
             if (!empty($max_size)) {
                 $file_base64 = str_replace($matches[1], '', $file_base64);
                 $file_size = static::get_file_base64_size($file_base64);
                 if ($file_size > $max_size) {
-                    return false;
+                    return "TAG:file_base64:size";
                 }
             }
         } else {

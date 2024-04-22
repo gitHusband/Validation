@@ -2465,40 +2465,6 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_dynamic_err_msg_general()
-    {
-        $rule = [
-            "id" => "required|>=<=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
-            "name" => "required|string >> Users define - @this should not be empty and must be string",
-        ];
-
-        $cases = [
-            "Invalid_empty" => [
-                "data" => [
-                    "id" => 101
-                ],
-                "expected_msg" => ["id" => "Users define - id should not be >= 1 and <= 100"]
-            ],
-            "Invalid_unset" => [
-                "data" => [
-                    "id" => 1,
-                ],
-                "expected_msg" => ["name" => "Users define - name should not be empty and must be string"]
-            ]
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "field_path" => "name",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
     protected function test_method_and_parameter()
     {
         $rule = [
@@ -2507,7 +2473,7 @@ class Unit extends TestCommon
             "favourite_fruit" => [
                 "fruit_id" => "optional|check_fruit_id(@root)",
                 "fruit_name" => "optional|check_fruit_name(@parent)",
-                "fruit_color" => "optional|check_fruit_color[@fruit_name,@this] >> fruit name(@p0) and color(@p1) is not matched",
+                "fruit_color" => "optional|check_fruit_color[@fruit_name,@this]",
             ]
         ];
 
@@ -2579,7 +2545,7 @@ class Unit extends TestCommon
                         "fruit_color" => "yellow",
                     ]
                 ],
-                "expected_msg" => ["favourite_fruit.fruit_color" => "fruit name(apple) and color(yellow) is not matched"]
+                "expected_msg" => ["favourite_fruit.fruit_color" => "favourite_fruit.fruit_color validation failed"]
             ],
         ];
 
@@ -2794,6 +2760,46 @@ class Unit extends TestCommon
                 return false;
             }
         });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_undefined()
+    {
+        $rule = [
+            "id" => "my_method_xxx",
+        ];
+
+        $cases = [
+            "Invalid_method_1" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => ["id" => "my_method_xxx is undefined"]
+            ],
+            "Invalid_method_2" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => [
+                    "id" => [
+                        "error_type" => "undefined_method",
+                        "message" => "my_method_xxx is undefined"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_DOTTED_DETAILED,
+                ]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
 
         return $method_info = [
             "rule" => $rule,
@@ -3356,7 +3362,536 @@ class Unit extends TestCommon
         return $result;
     }
 
-    protected function test_dynamic_err_msg_complex()
+    protected function test_temporary_err_msg_rule_set()
+    {
+        $rule = [
+            "id" => "required|>=<=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
+            "name" => "required|string >> Users define - @this should not be empty and must be string",
+        ];
+
+        $cases = [
+            "Invalid_empty" => [
+                "data" => [
+                    "id" => 101
+                ],
+                "expected_msg" => ["id" => "Users define - id should not be >= 1 and <= 100"]
+            ],
+            "Invalid_unset" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => ["name" => "Users define - name should not be empty and must be string"]
+            ]
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_temporary_err_msg_user_json()
+    {
+        $rule = [
+            "id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
+            "name" => 'optional_unset|string >> { "optional_unset": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
+            "age" => 'optional|>=<=[1,60]|check_err_field >> { ">=<=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
+            "key" => 'optional|>=<=[1,60]|check_err_field >> @this is not correct',
+        ];
+
+        $cases = [
+            "Invalid_id_empty" => [
+                "data" => [
+                    "name" => "devin"
+                ],
+                "expected_msg" => ["id" => "Users define - id is required"]
+            ],
+            "Invalid_id_preg" => [
+                "data" => [
+                    "id" => "devin"
+                ],
+                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
+            ],
+            "Invalid_id_not_in" => [
+                "data" => [
+                    "id" => 101
+                ],
+                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
+            ],
+            "Invalid_name_unset" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => ''
+                ],
+                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
+            ],
+            "Invalid_name_unset_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => 123
+                ],
+                "expected_msg" => ["name" => "Users define - Note! name should be string"]
+            ],
+            "Invalid_age_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 9,
+                ],
+                "expected_msg" => ["age" => "Users define - age is not passed."]
+            ],
+            "Invalid_age_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 19,
+                ],
+                "expected_msg" => ["age" => "id: check_err_field error. [10, 20]"]
+            ],
+            "Invalid_age_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 29,
+                ],
+                "expected_msg" => ["age" => "age: check_err_field error. [20, 30]"]
+            ],
+            "Invalid_age_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 39,
+                ],
+                "expected_msg" => ["age" => "age: check_err_field error. [30, 40]"]
+            ],
+            "Invalid_age_5" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 61,
+                ],
+                "expected_msg" => ["age" => "Users define - age is not allowed."]
+            ],
+            "Invalid_key_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 9,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 19,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 29,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 39,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_5" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 61,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        $this->validation->add_method("check_err_field", function ($data) {
+            if ($data < 10) {
+                return false;
+            } else if ($data < 20) {
+                return "id: check_err_field error. [10, 20]";
+            } else if ($data < 30) {
+                return [
+                    "error_type" => "3",
+                    "message" => "@this: check_err_field error. [20, 30]",
+                ];
+            } else if ($data <= 40) {
+                return [
+                    "error_type" => "4",
+                    "message" => "@this: check_err_field error. [30, 40]",
+                    "extra" => "It should be greater than 40"
+                ];
+            }
+
+            return true;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_temporary_err_msg_user_gh_string()
+    {
+        $rule = [
+            "id" => "required|/^\d+$/|>=<=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
+            "name" => "optional_unset|string >> [optional_unset] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
+            "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
+            "key" => 'optional|>=<=[1,60]|check_err_field >> @this is not correct',
+        ];
+
+        $cases = [
+            "Invalid_id_empty" => [
+                "data" => [
+                    "name" => "devin"
+                ],
+                "expected_msg" => ["id" => "Users define - id is required"]
+            ],
+            "Invalid_id_preg" => [
+                "data" => [
+                    "id" => "devin"
+                ],
+                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
+            ],
+            "Invalid_id_not_in" => [
+                "data" => [
+                    "id" => 101
+                ],
+                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
+            ],
+            "Invalid_name_unset" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => ''
+                ],
+                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
+            ],
+            "Invalid_name_unset_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => 123
+                ],
+                "expected_msg" => ["name" => "Users define - Note! name should be string"]
+            ],
+            "Invalid_age" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 61,
+                ],
+                "expected_msg" => ["age" => "Users define - age is not allowed."]
+            ],
+            "Invalid_age_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 9,
+                ],
+                "expected_msg" => ["age" => "Users define - age is not passed."]
+            ],
+            "Invalid_age_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 19,
+                ],
+                "expected_msg" => ["age" => "id: check_err_field error. [10, 20]"]
+            ],
+            "Invalid_age_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 29,
+                ],
+                "expected_msg" => ["age" => "age: check_err_field error. [20, 30]"]
+            ],
+            "Invalid_age_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 39,
+                ],
+                "expected_msg" => ["age" => "age: check_err_field error. [30, 40]"]
+            ],
+            "Invalid_key_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 9,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 19,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 29,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 39,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_5" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 61,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        $this->validation->add_method("check_err_field", function ($data) {
+            if ($data < 10) {
+                return false;
+            } else if ($data < 20) {
+                return "id: check_err_field error. [10, 20]";
+            } else if ($data < 30) {
+                return [
+                    "error_type" => "3",
+                    "message" => "@this: check_err_field error. [20, 30]",
+                ];
+            } else if ($data <= 40) {
+                return [
+                    "error_type" => "4",
+                    "message" => "@this: check_err_field error. [30, 40]",
+                    "extra" => "It should be greater than 40"
+                ];
+            }
+
+            return true;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_temporary_err_msg_user_object()
+    {
+        $rule = [
+            "id" => [
+                "required|/^\d+$/|>=<=[1,100]",
+                "error_message" => [
+                    "required" => "Users define - @this is required",
+                    "preg" => "Users define - @this should be \"MATCHED\" @preg"
+                ]
+            ],
+            "name" => [
+                "optional_unset|string",
+                "error_message" => [
+                    "optional_unset" => "Users define - @this should be unset or not be empty",
+                    "string" => "Users define - Note! @this should be string"
+                ]
+            ],
+            "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
+            "age" => [
+                "optional|>=<=[1,60]|check_err_field",
+                "error_message" => [
+                    ">=<=" => "Users define - @this is not allowed.",
+                    "check_err_field" => "Users define - @this is not passed."
+                ]
+            ],
+            "key" => [
+                "optional|>=<=[1,60]|check_err_field",
+                "error_message" => [
+                    "whole_rule_set" => "@this is not correct",
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Invalid_id_empty" => [
+                "data" => [
+                    "name" => "devin"
+                ],
+                "expected_msg" => ["id" => "Users define - id is required"]
+            ],
+            "Invalid_id_preg" => [
+                "data" => [
+                    "id" => "devin"
+                ],
+                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
+            ],
+            "Invalid_id_not_in" => [
+                "data" => [
+                    "id" => 101
+                ],
+                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
+            ],
+            "Invalid_name_unset" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => ''
+                ],
+                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
+            ],
+            "Invalid_name_unset_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => 123
+                ],
+                "expected_msg" => ["name" => "Users define - Note! name should be string"]
+            ],
+            "Invalid_age" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 61,
+                ],
+                "expected_msg" => ["age" => "Users define - age is not allowed."]
+            ],
+            "Invalid_age_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 9,
+                ],
+                "expected_msg" => ["age" => "Users define - age is not passed."]
+            ],
+            "Invalid_age_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 19,
+                ],
+                "expected_msg" => ["age" => "id: check_err_field error. [10, 20]"]
+            ],
+            "Invalid_age_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 29,
+                ],
+                "expected_msg" => ["age" => "age: check_err_field error. [20, 30]"]
+            ],
+            "Invalid_age_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "age" => 39,
+                ],
+                "expected_msg" => ["age" => "age: check_err_field error. [30, 40]"]
+            ],
+            "Invalid_key_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 9,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 19,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_3" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 29,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_4" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 39,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+            "Invalid_key_5" => [
+                "data" => [
+                    "id" => 1,
+                    "name" => "devin",
+                    "key" => 61,
+                ],
+                "expected_msg" => ["key" => "key is not correct"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "name",
+        ];
+
+        $this->validation->add_method("check_err_field", function ($data) {
+            if ($data < 10) {
+                return false;
+            } else if ($data < 20) {
+                return "id: check_err_field error. [10, 20]";
+            } else if ($data < 30) {
+                return [
+                    "error_type" => "3",
+                    "message" => "@this: check_err_field error. [20, 30]",
+                ];
+            } else if ($data <= 40) {
+                return [
+                    "error_type" => "4",
+                    "message" => "@this: check_err_field error. [30, 40]",
+                    "extra" => "It should be greater than 40"
+                ];
+            }
+
+            return true;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_temporary_err_msg_complex()
     {
         $rule = [
             "id" => "required|check_err_field",
@@ -3470,301 +4005,6 @@ class Unit extends TestCommon
                     // "general" => false,
                 ]
             ],
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "field_path" => "name",
-        ];
-
-        $this->validation->add_method("check_err_field", function ($data) {
-            if ($data < 10) {
-                return false;
-            } else if ($data < 20) {
-                return "id: check_err_field error. [10, 20]";
-            } else if ($data < 30) {
-                return [
-                    "error_type" => "3",
-                    "message" => "@this: check_err_field error. [20, 30]",
-                ];
-            } else if ($data <= 40) {
-                return [
-                    "error_type" => "4",
-                    "message" => "@this: check_err_field error. [30, 40]",
-                    "extra" => "It should be greater than 40"
-                ];
-            }
-
-            return true;
-        });
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
-    protected function test_dynamic_err_msg_user_json()
-    {
-        $rule = [
-            "id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
-            "name" => 'optional_unset|string >> { "optional_unset": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
-            "age" => 'optional|>=<=[1,60]|check_err_field >> { ">=<=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
-        ];
-
-        $cases = [
-            "Invalid_id_empty" => [
-                "data" => [
-                    "name" => "devin"
-                ],
-                "expected_msg" => ["id" => "Users define - id is required"]
-            ],
-            "Invalid_id_preg" => [
-                "data" => [
-                    "id" => "devin"
-                ],
-                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
-            ],
-            "Invalid_id_not_in" => [
-                "data" => [
-                    "id" => 101
-                ],
-                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
-            ],
-            "Invalid_name_unset" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => ''
-                ],
-                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
-            ],
-            "Invalid_name_unset_1" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => 123
-                ],
-                "expected_msg" => ["name" => "Users define - Note! name should be string"]
-            ],
-            "Invalid_age" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "devin",
-                    "age" => 61,
-                ],
-                "expected_msg" => ["age" => "Users define - age is not allowed."]
-            ],
-            "Invalid_age_1" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "devin",
-                    "age" => 11,
-                ],
-                "expected_msg" => ["age" => "Users define - age is not passed."]
-            ]
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "field_path" => "name",
-        ];
-
-        $this->validation->add_method("check_err_field", function ($data) {
-            if ($data < 10) {
-                return false;
-            } else if ($data < 20) {
-                return "id: check_err_field error. [10, 20]";
-            } else if ($data < 30) {
-                return [
-                    "error_type" => "3",
-                    "message" => "@this: check_err_field error. [20, 30]",
-                ];
-            } else if ($data <= 40) {
-                return [
-                    "error_type" => "4",
-                    "message" => "@this: check_err_field error. [30, 40]",
-                    "extra" => "It should be greater than 40"
-                ];
-            }
-
-            return true;
-        });
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
-    protected function test_dynamic_err_msg_user_gh_string()
-    {
-        $rule = [
-            "id" => "required|/^\d+$/|>=<=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
-            "name" => "optional_unset|string >> [optional_unset] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
-            "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
-        ];
-
-        $cases = [
-            "Invalid_id_empty" => [
-                "data" => [
-                    "name" => "devin"
-                ],
-                "expected_msg" => ["id" => "Users define - id is required"]
-            ],
-            "Invalid_id_preg" => [
-                "data" => [
-                    "id" => "devin"
-                ],
-                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
-            ],
-            "Invalid_id_not_in" => [
-                "data" => [
-                    "id" => 101
-                ],
-                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
-            ],
-            "Invalid_name_unset" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => ''
-                ],
-                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
-            ],
-            "Invalid_name_unset_1" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => 123
-                ],
-                "expected_msg" => ["name" => "Users define - Note! name should be string"]
-            ],
-            "Invalid_age" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "devin",
-                    "age" => 61,
-                ],
-                "expected_msg" => ["age" => "Users define - age is not allowed."]
-            ],
-            "Invalid_age_1" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "devin",
-                    "age" => 11,
-                ],
-                "expected_msg" => ["age" => "Users define - age is not passed."]
-            ]
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "field_path" => "name",
-        ];
-
-        $this->validation->add_method("check_err_field", function ($data) {
-            if ($data < 10) {
-                return false;
-            } else if ($data < 20) {
-                return "id: check_err_field error. [10, 20]";
-            } else if ($data < 30) {
-                return [
-                    "error_type" => "3",
-                    "message" => "@this: check_err_field error. [20, 30]",
-                ];
-            } else if ($data <= 40) {
-                return [
-                    "error_type" => "4",
-                    "message" => "@this: check_err_field error. [30, 40]",
-                    "extra" => "It should be greater than 40"
-                ];
-            }
-
-            return true;
-        });
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
-    protected function test_dynamic_err_msg_user_object()
-    {
-        $rule = [
-            "id" => [
-                "required|/^\d+$/|>=<=[1,100]",
-                "error_message" => [
-                    "required" => "Users define - @this is required",
-                    "preg" => "Users define - @this should be \"MATCHED\" @preg"
-                ]
-            ],
-            "name" => [
-                "optional_unset|string",
-                "error_message" => [
-                    "optional_unset" => "Users define - @this should be unset or not be empty",
-                    "string" => "Users define - Note! @this should be string"
-                ]
-            ],
-            "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
-            "age" => [
-                "optional|>=<=[1,60]|check_err_field",
-                "error_message" => [
-                    ">=<=" => "Users define - @this is not allowed.",
-                    "check_err_field" => "Users define - @this is not passed."
-                ]
-            ],
-        ];
-
-        $cases = [
-            "Invalid_id_empty" => [
-                "data" => [
-                    "name" => "devin"
-                ],
-                "expected_msg" => ["id" => "Users define - id is required"]
-            ],
-            "Invalid_id_preg" => [
-                "data" => [
-                    "id" => "devin"
-                ],
-                "expected_msg" => ["id" => "Users define - id should be \"MATCHED\" /^\d+$/"]
-            ],
-            "Invalid_id_not_in" => [
-                "data" => [
-                    "id" => 101
-                ],
-                "expected_msg" => ["id" => "id must be greater than or equal to 1 and less than or equal to 100"]
-            ],
-            "Invalid_name_unset" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => ''
-                ],
-                "expected_msg" => ["name" => "Users define - name should be unset or not be empty"]
-            ],
-            "Invalid_name_unset_1" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => 123
-                ],
-                "expected_msg" => ["name" => "Users define - Note! name should be string"]
-            ],
-            "Invalid_age" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "devin",
-                    "age" => 61,
-                ],
-                "expected_msg" => ["age" => "Users define - age is not allowed."]
-            ],
-            "Invalid_age_1" => [
-                "data" => [
-                    "id" => 1,
-                    "name" => "devin",
-                    "age" => 11,
-                ],
-                "expected_msg" => ["age" => "Users define - age is not passed."]
-            ]
         ];
 
         $extra = [

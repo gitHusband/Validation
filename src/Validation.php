@@ -110,6 +110,7 @@ class Validation
     protected $symbol_root = '@root';
     protected $symbol_parent = '@parent';
     protected $symbol_preg = '@preg';
+    protected $symbol_method = '@method';
 
     protected $config_backup;
     protected $config = [
@@ -798,8 +799,8 @@ class Validation
     protected function execute_index_array_rules($data, $field, $field_path, $rule_set, $is_array_loop = false)
     {
         if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
-            $error_msg = $this->get_error_template('index_array');
-            $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
+            $error_template = $this->get_error_template('index_array');
+            $error_msg = str_replace($this->symbol_this, $field_path, $error_template);
             $message = [
                 "error_type" => 'validation',
                 "message" => $error_msg,
@@ -891,13 +892,13 @@ class Validation
     protected function parse_rule_set($rule_set)
     {
         if (is_array($rule_set)) {
-            $error_msg = $rule_set['error_message'];
+            $error_templates = $rule_set['error_message'];
             $rule_set = $rule_set[0];
         } else {
-            $error_msg = '';
+            $error_templates = '';
 
             if (preg_match($this->config['reg_msg'], $rule_set, $matches)) {
-                $error_msg = $matches[1];
+                $error_templates = $matches[1];
                 $rule_set = preg_replace($this->config['reg_msg'], '', $rule_set);
             }
         }
@@ -906,7 +907,7 @@ class Validation
 
         return [
             'rules' => $rules,
-            'error_msg' => $this->parse_error_message($error_msg)
+            'error_templates' => $this->parse_error_templates($error_templates)
         ];
     }
 
@@ -1005,29 +1006,29 @@ class Validation
     }
 
     /**
-     * Parse error message of the rule set
+     * Parse error message template of the rule set
      * 1. Simple string - show this error message if anything is invalid
      * 2. Json string - show one of the error message which is related to the invalid method
      * 3. Special string - Same functions as Json string. Such as " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes"
      * 4. Array
      *
-     * @param string $error_msg Simple string or Json string
+     * @param string $error_templates Simple string or Json string
      * @return array
      */
-    protected function parse_error_message($error_msg)
+    protected function parse_error_templates($error_templates)
     {
-        if (is_array($error_msg)) return $error_msg;
+        if (is_array($error_templates)) return $error_templates;
 
         // '{"*":"Users define - @this is required","preg":"Users define - @this should not be matched /^\\\d+$/"}'
-        $json_arr = json_decode($error_msg, true);
+        $json_arr = json_decode($error_templates, true);
         if ($json_arr) return $json_arr;
 
         $gh_arr = [];
         // " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes"
-        $this->parse_gh_string_to_array($gh_arr, $error_msg);
+        $this->parse_gh_string_to_array($gh_arr, $error_templates);
         if (!empty($gh_arr)) return $gh_arr;
 
-        return ['rule_set_error_message' => $error_msg];
+        return ['whole_rule_set' => $error_templates];
     }
 
     /**
@@ -1080,50 +1081,107 @@ class Validation
     /**
      * Match rule error message template. 
      * 
-     * The error message template priority from high to low:
-     * 1. Set template in rules array
-     * 2. Set template via Internationalization, e.g. en-us
-     * 3. Return the template directly in the method
+     * The error message template(EMT) priority from high to low:
+     * 1. The temporary EMT(general string) defined in rule set. No matter what rules in the rule set are invalid, return this EMT
+     * 2. The EMT returned from method directly
+     *   2.1 The EMT(general string or array) returned from method
+     *   2.2 The tag of EMT returned from method
+     * 3. One rule, one EMT. Matching EMT by the tag of EMT
+     *   3.1 The temporary EMT(JSON formatted) defined in rule set
+     *   3.2 The EMT defined via Internationalization, e.g. en-us
      *
-     * @param array $rule_error_msg Parsed error message array
-     * @param string $tag
-     * @param string $when_type
-     * @param bool $only_user_err_msg If can not find error message from user error message, will try to find it from error template
+     * @param array $rule_set_error_templates Parsed error message which is defined in rule set
+     * @param string $tag The tag of rule or method
+     * @param string $when_type The When rule of a rule or method
+     * @param bool|string|array $method_result The result of running a method
      * @return string
      */
-    protected function match_error_message($rule_error_msg, $tag, $when_type = '', $only_user_err_msg = false)
+    protected function match_error_template($rule_set_error_templates, $tag, $when_type = '', $method_result = false)
     {
-        // 1.1 Only one error message for the whole rule set
-        if (!empty($rule_error_msg) && !empty($rule_error_msg['rule_set_error_message'])) return $rule_error_msg['rule_set_error_message'];
+        // 1. The temporary EMT(general string formatted) defined in rule set. No matter what rules in the rule set are invalid, return this EMT
+        if (!empty($rule_set_error_templates) && !empty($rule_set_error_templates['whole_rule_set'])) return $rule_set_error_templates['whole_rule_set'];
 
-        // 1.2 One error message for each rule
-        $when_type_tag = empty($when_type) ? '' : $tag . ':' . $when_type;
-        if (!empty($when_type_tag) && isset($rule_error_msg[$when_type_tag])) return $rule_error_msg[$when_type_tag];
-        if (isset($rule_error_msg[$tag])) return $rule_error_msg[$tag];
+        // 2. The EMT returned from method directly
+        // NOTE: In this case we cannot internationalize the error message template
+        // 2.1 The EMT(general string or array) returned from method
+        if (is_array($method_result) && !empty($method_result['message'])) $method_result = $method_result['message'];
+        if ($method_result !== false && is_string($method_result) && !preg_match('/^TAG:(.*)/', $method_result, $matches)) {
+            return $method_result;
+        }
 
-        /**
-         * 1.3 One error message for each rule by using the symbol of tag which is customized. {@see static::$config}
-         * For example, if the tag is 'required', the symbol of tag is '*'.
-         */
-        $tag_symbol_key = 'symbol_' . $tag;
-        if (isset($this->config[$tag_symbol_key]) && isset($rule_error_msg[$this->config[$tag_symbol_key]])) return $rule_error_msg[$this->config[$tag_symbol_key]];
-
-        // If we only need to match user error message
-        if ($only_user_err_msg) return '';
-
-        // 2. Can not match user error message template, return the default error message template
-        if (!empty($when_type_tag)) {
-            $error_msg = $this->get_error_template($when_type_tag);
-            if (empty($error_msg)) {
-                $when_type_msg = $this->get_error_template($when_type);
+        if ($method_result !== false && !empty($matches)) {
+            // 2.2 The tag of EMT returned from method
+            $tag = $matches[1];
+            $tags = [ $matches[1] ];
+        } else {
+            // symbol_required, symbol_optional, symbol_optional_unset
+            if (isset($this->config[$tag]) && isset($this->config_default[$tag])) {
+                $tags = [
+                    $this->config[$tag],
+                    $this->config_default[$tag]
+                ];
+            } else {
+                $tags = [ $tag ];
             }
         }
-        if (empty($error_msg)) $error_msg = $this->get_error_template($tag);
-        if (empty($error_msg)) $error_msg = $this->get_error_template('default');
-        // Auto inject the When rule message
-        if (!empty($when_type_msg)) $error_msg = $when_type_msg . $error_msg;
 
-        return $error_msg;
+        // 3.1 The temporary EMT(JSON formatted) defined in rule set
+        // 3.2 The EMT defined via Internationalization, e.g. en-us
+        $error_templates = array_merge($this->get_error_templates(), $rule_set_error_templates);
+
+        $tags_max_key = count($tags) - 1;
+        foreach ($tags as $key => $value) {
+            $ignore_default_template = $tags_max_key > $key;
+            // 3. One rule, one EMT. Matching EMT by the tag of EMT
+            $error_template = $this->match_error_template_by_tag($value, $error_templates, $when_type, $ignore_default_template);
+            if (!empty($error_template)) break;  
+        }
+        return $error_template;
+    }
+    
+    /**
+     * One rule, one error message template(EMT). Matching EMT by the tag of EMT
+     *
+     * @param string $tag
+     * @param array $error_templates
+     * @param string $when_type
+     * @param bool $ignore_default_template Ignore the default EMT if it's not the last tag
+     * @return string
+     */
+    protected function match_error_template_by_tag($tag, $error_templates, $when_type = '', $ignore_default_template = false)
+    {
+        // The tag of When rule
+        $when_type_tag = empty($when_type) ? '' : $tag . ':' . $when_type;
+
+        if (!empty($when_type_tag)) {
+            // The EMT of the rule with When rule
+            if (isset($error_templates[$when_type_tag])) {
+                return $error_templates[$when_type_tag];
+            } else {
+                // The EMT of When rule only
+                $when_type_msg = $error_templates[$when_type];
+                // The EMT of rule only
+                if (isset($error_templates[$tag])) {
+                    $error_template = $error_templates[$tag];
+                }
+            }
+        } else {
+            // The EMT of rule only
+            if (isset($error_templates[$tag])) {
+                $error_template = $error_templates[$tag];
+            }
+        }
+
+        if (empty($error_template) && $ignore_default_template == true) return '';
+
+        if (empty($error_template)) {
+            $error_template = $error_templates['default'];
+        }
+
+        // Auto inject the When rule EMT into the rule EMT
+        if (!empty($when_type_msg)) $error_template = $when_type_msg . $error_template;
+
+        return $error_template;
     }
 
     /**
@@ -1148,7 +1206,7 @@ class Validation
      * - @p1: The value of the second parameter
      * - @t1: The type of the second parameter
      *
-     * @param string $error_msg
+     * @param string $error_template
      * @param int $key
      * @param mixed $value
      * @param array $method_rule
@@ -1203,7 +1261,7 @@ class Validation
             return true;
         }
 
-        $rule_error_msg = $rule_set['error_msg'];
+        $rule_set_error_templates = $rule_set['error_templates'];
 
         foreach ($rule_set['rules'] as $rule) {
             if (empty($rule)) {
@@ -1301,7 +1359,7 @@ class Validation
                     if ($has_when_rule === -1) {
                         $result = false;
                         $error_type = $this->config_default['symbol_required'];
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_required']);
+                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_required');
                     }
                     /**
                      * Required When rule
@@ -1312,7 +1370,7 @@ class Validation
                     else if ($has_when_rule !== -1 && $is_met_when_rule === true) {
                         $result = false;
                         $error_type = $this->config_default['symbol_required'] . ':' . $when_type;
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_required'], $when_type);
+                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_required', $when_type);
                     }
                     /**
                      * Required When rule
@@ -1349,7 +1407,7 @@ class Validation
                     else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
                         $result = false;
                         $error_type = $this->config_default['symbol_optional'] . ':' . $when_type;
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_optional'], $when_type);
+                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_optional', $when_type);
                     }
                 }
             }
@@ -1379,7 +1437,7 @@ class Validation
                     else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
                         $result = false;
                         $error_type = $this->config_default['symbol_optional_unset'] . ':' . $when_type;
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_optional_unset'], $when_type);
+                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_optional_unset', $when_type);
                     }
                 } else if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
@@ -1388,7 +1446,7 @@ class Validation
                     if ($has_when_rule === -1) {
                         $result = false;
                         $error_type = $this->config_default['symbol_optional_unset'];
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_optional_unset']);
+                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_optional_unset');
                     }
                     /**
                      * Optional Unset When rule
@@ -1398,7 +1456,7 @@ class Validation
                     else {
                         $result = false;
                         $error_type = $this->config_default['symbol_optional_unset'] . ':' . $when_type;
-                        $error_msg = $this->match_error_message($rule_error_msg, $this->config_default['symbol_optional_unset'], $when_type);
+                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_optional_unset', $when_type);
                     }
                 }
             }
@@ -1415,13 +1473,13 @@ class Validation
                 if (!preg_match($this->config['reg_preg_strict'], $preg, $matches)) {
                     $result = false;
                     $error_type = 'preg';
-                    $error_msg = $this->match_error_message('', 'preg_format');
-                    $error_msg = str_replace($this->symbol_preg, $preg, $error_msg);
+                    $error_template = $this->match_error_template([], 'preg_format');
+                    $error_template = str_replace($this->symbol_preg, $preg, $error_template);
                 } else {
                     if (!preg_match($preg, $data[$field], $matches)) {
                         $result = false;
-                        $error_msg = $this->match_error_message($rule_error_msg, 'preg', $when_type);
-                        $error_msg = str_replace($this->symbol_preg, $preg, $error_msg);
+                        $error_template = $this->match_error_template($rule_set_error_templates, 'preg', $when_type);
+                        $error_template = str_replace($this->symbol_preg, $preg, $error_template);
                     }
                 }
             }
@@ -1431,30 +1489,17 @@ class Validation
                 $params = $method_rule['params'];
                 $result = $this->execute_method($method_rule, $field_path);
 
-                if ($result === "Undefined") return false;
-
                 /**
                  * If method validation is success. should return true.
                  * If retrun anything others which is not equal to true, then means method validation failed.
                  * If retrun not a boolean value, will use the result as the error message template.
-                 * 
-                 * The error message template priority from high to low:
-                 * 1. Set template in rules array
-                 * 2. Set template via Internationalization, e.g. en-us
-                 * 3. Return the template directly in the method
                  */
                 if ($result !== true) {
-                    $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol'], $when_type, true);
+                    $error_template = $this->match_error_template($rule_set_error_templates, $method_rule['symbol'], $when_type, $result);
+                    $error_template = str_replace($this->symbol_method, $method_rule['symbol'], $error_template);
 
                     if (is_array($result)) {
                         $error_type = isset($result['error_type']) ? $result['error_type'] : $error_type;
-                        if (empty($error_msg)) $error_msg = isset($result['message']) ? $result['message'] : $error_msg;
-                    } else {
-                        $error_msg = empty($error_msg) ? $result : $error_msg;
-                    }
-
-                    if (empty($error_msg)) {
-                        $error_msg = $this->match_error_message($rule_error_msg, $method_rule['symbol'], $when_type);
                     }
                 }
             }
@@ -1467,8 +1512,8 @@ class Validation
              */
             if ($result !== true) {
                 // Replace symbol to field name and parameter value
-                $error_msg = str_replace($this->symbol_this, $field_path, $error_msg);
-                $error_msg = $this->inject_parameters_to_error_template($error_msg, $params, $method_rule);
+                $error_template = str_replace($this->symbol_this, $field_path, $error_template);
+                $error_msg = $this->inject_parameters_to_error_template($error_template, $params, $method_rule);
 
                 $message = [
                     "error_type" => $error_type,
@@ -1518,6 +1563,7 @@ class Validation
             $params = [$this->symbol_this];
         }
 
+        
         if (isset($this->method_symbols[$method])) {
             $symbol = $method;
             $method = $this->method_symbols[$method];
@@ -1563,7 +1609,7 @@ class Validation
         $method_rule = [
             'method' => $method,
             'symbol' => $symbol,
-            'params' => $params
+            'params' => $params,
         ];
 
         $this->set_current_method($method_rule);
@@ -1688,13 +1734,10 @@ class Validation
             } else if (function_exists($method_rule['method'])) {
                 $result = call_user_func_array($method_rule['method'], $params);
             } else {
-                $error_msg = str_replace('@method', $method_rule['symbol'], $this->error_templates['call_method']);
-                $message = [
-                    "error_type" => 'internal_server_error',
-                    "message" => $error_msg,
+                $result = [
+                    "error_type" => 'undefined_method',
+                    "message" => "TAG:call_method",
                 ];
-                $this->set_error($field_path, $message);
-                return "Undefined";
             }
         } catch (Throwable $t) {
             throw GhException::extend_privious($t, $this->get_recurrence_current(), $this->config['auto_field']);
