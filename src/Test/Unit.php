@@ -3727,7 +3727,6 @@ class Unit extends TestCommon
                     "string" => "Users define - Note! @this should be string"
                 ]
             ],
-            "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
             "age" => [
                 "optional|>=<=[1,60]|check_err_field",
                 "error_message" => [
@@ -3891,125 +3890,170 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_temporary_err_msg_complex()
+    protected function test_temporary_err_msg_format()
     {
         $rule = [
-            "id" => "required|check_err_field",
-            "number" => "required|check_err_field >> @this error!",
+            "id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
+            "age" => 'optional|>=<=[1,60]|check_err_field >> { ">=<=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
+            "key" => 'optional|>=<=[1,60]|check_err_field >> @this is not correct',
         ];
 
         $cases = [
-            "Valid_data" => [
+            "Invalid_id_1" => [
                 "data" => [
-                    "id" => 100,
-                    "number" => 100,
-                ]
-            ],
-            "Invalid_data_1" => [
-                "data" => [
-                    "id" => 1
+                    "name" => "devin"
                 ],
                 "expected_msg" => [
                     "id" => [
-                        "error_type" => "validation",
-                        "message" => "id validation failed",
+                        "error_type" => "required",
+                        "message" => "Users define - id is required"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_2" => [
+            "Invalid_id_2" => [
                 "data" => [
-                    "id" => 11
+                    "id" => "devin"
                 ],
                 "expected_msg" => [
                     "id" => [
                         "error_type" => "validation",
-                        "message" => "id: check_err_field error. [10, 20]",
+                        "message" => "Users define - id should be \"MATCHED\" /^\\d+$/"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_3" => [
+            "Invalid_age_1" => [
                 "data" => [
-                    "id" => 21
+                    "id" => 1,
+                    "age" => 9
                 ],
                 "expected_msg" => [
-                    "id" => [
+                    "age" => [
+                        "error_type" => "validation",
+                        "message" => "Users define - age is not passed."
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_2" => [
+                "data" => [
+                    "id" => 1,
+                    "age" => 19
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "validation",
+                        "message" => "id: check_err_field error. [10, 20]"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_3" => [
+                "data" => [
+                    "id" => 1,
+                    "age" => 29
+                ],
+                "expected_msg" => [
+                    "age" => [
                         "error_type" => "3",
-                        "message" => "id: check_err_field error. [20, 30]",
+                        "message" => "age: check_err_field error. [20, 30]"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_4" => [
+            "Invalid_age_4" => [
                 "data" => [
-                    "id" => 31
+                    "id" => 1,
+                    "age" => 39
                 ],
                 "expected_msg" => [
-                    "id" => [
+                    "age" => [
                         "error_type" => "4",
-                        "message" => "id: check_err_field error. [30, 40]",
+                        "message" => "age: check_err_field error. [30, 40]",
                         "extra" => "It should be greater than 40"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_5" => [
+            "Invalid_key_1" => [
                 "data" => [
-                    "id" => 41,
-                    "number" => 11
+                    "id" => 1,
+                    "key" => 9
                 ],
                 "expected_msg" => [
-                    "number" => [
+                    "key" => [
                         "error_type" => "validation",
-                        "message" => "number error!",
+                        "message" => "key is not correct"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_6" => [
+            "Invalid_key_2" => [
                 "data" => [
-                    "id" => 41,
-                    "number" => 31
+                    "id" => 1,
+                    "key" => 19
                 ],
                 "expected_msg" => [
-                    "number" => [
+                    "key" => [
+                        "error_type" => "validation",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_3" => [
+                "data" => [
+                    "id" => 1,
+                    "key" => 29
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "3",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_4" => [
+                "data" => [
+                    "id" => 1,
+                    "key" => 39
+                ],
+                "expected_msg" => [
+                    "key" => [
                         "error_type" => "4",
-                        "message" => "number error!",
+                        "message" => "key is not correct",
                         "extra" => "It should be greater than 40"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
         ];
 
         $extra = [
             "method_name" => __METHOD__,
-            "field_path" => "name",
+            "field_path" => "id"
         ];
 
         $this->validation->add_method("check_err_field", function ($data) {
@@ -4032,6 +4076,205 @@ class Unit extends TestCommon
 
             return true;
         });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_return_err_msg_tag()
+    {
+        $lang_config = (object)[];
+        $lang_config->error_templates = [
+            'method_return_tag' => '@this is not passed.',
+            'method_return_tag:20' => 'id: method_return_tag error. [10, 20]',
+            'method_return_tag:30' => '@this: method_return_tag error. [20, 30]',
+            'method_return_tag:40' => '@this: method_return_tag error. [30, 40]',
+        ];
+        $this->validation->custom_language($lang_config);
+
+        $rule = [
+            "age" => 'optional|method_return_tag >> { "method_return_tag": "Users define - @this is not passed."}',
+            "key" => 'optional|method_return_tag >> @this is not correct',
+        ];
+
+        $cases = [
+            "Invalid_age_1" => [
+                "data" => [
+                    "age" => 9
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "validation",
+                        "message" => "Users define - age is not passed."
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_2" => [
+                "data" => [
+                    "age" => 19
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "validation",
+                        "message" => "id: method_return_tag error. [10, 20]"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_3" => [
+                "data" => [
+                    "age" => 29
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "3",
+                        "message" => "age: method_return_tag error. [20, 30]"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_4" => [
+                "data" => [
+                    "age" => 39
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "4",
+                        "message" => "age: method_return_tag error. [30, 40]",
+                        "extra" => "It should be greater than 40"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_1" => [
+                "data" => [
+                    "key" => 9
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "validation",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_2" => [
+                "data" => [
+                    "key" => 19
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "validation",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_3" => [
+                "data" => [
+                    "key" => 29
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "3",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_4" => [
+                "data" => [
+                    "key" => 39
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "4",
+                        "message" => "key is not correct",
+                        "extra" => "It should be greater than 40"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "id"
+        ];
+
+        $this->validation->add_method("method_return_tag", function ($data) {
+            if ($data < 10) {
+                return false;
+            } else if ($data < 20) {
+                return "TAG:method_return_tag:20";
+            } else if ($data < 30) {
+                return [
+                    "error_type" => "3",
+                    "message" => "TAG:method_return_tag:30",
+                ];
+            } else if ($data <= 40) {
+                return [
+                    "error_type" => "4",
+                    "message" => "TAG:method_return_tag:40",
+                    "extra" => "It should be greater than 40"
+                ];
+            }
+
+            return true;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_error_template_for_method()
+    {
+        $rule = [
+            "age" => 'optional|>[10] >> { ">": "Symbol - @this is not validated by method \'@method\'", "greater_than": "Method - @this is not validated by method \'@method\'"}',
+            "key" => 'optional|greater_than[10] >> { ">": "Symbol - @this is not validated by method \'@method\'", "greater_than": "Method - @this is not validated by method \'@method\'" }',
+        ];
+
+        $cases = [
+            "Invalid_age_1" => [
+                "data" => [
+                    "age" => 9
+                ],
+                "expected_msg" => [ "age" => "Symbol - age is not validated by method '>'" ],
+            ],
+            "Invalid_key_1" => [
+                "data" => [
+                    "key" => 9
+                ],
+                "expected_msg" => [ "key" => "Method - key is not validated by method 'greater_than'" ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
 
         return $method_info = [
             "rule" => $rule,

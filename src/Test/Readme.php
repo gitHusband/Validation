@@ -444,6 +444,16 @@ class Readme extends TestCommon
             "animal" => "check_animal"
         ];
 
+        function is_exclude_animals($animal)
+        {
+            return false;
+        }
+
+        function is_fake_animals($animal)
+        {
+            return true;
+        }
+
         $validation = new Validation();
         $validation->add_method('check_animal', function ($animal) {
             if ($animal == "") {
@@ -454,6 +464,14 @@ class Readme extends TestCommon
                 return [
                     "error_type" => "server_error",
                     "message" => "I don't like snake",
+                    "extra" => "You scared me"
+                ];
+            } else if (!is_exclude_animals($animal)) {
+                return "TAG:is_exclude_animal";
+            } else if (is_fake_animals($animal)) {
+                return [
+                    "error_type" => "server_error",
+                    "message" => "TAG:is_fake_animals",
                     "extra" => "You scared me"
                 ];
             }

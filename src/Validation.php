@@ -1091,12 +1091,12 @@ class Validation
      *   3.2 The EMT defined via Internationalization, e.g. en-us
      *
      * @param array $rule_set_error_templates Parsed error message which is defined in rule set
-     * @param string $tag The tag of rule or method
+     * @param string|array $method_rule The rule or method rule
      * @param string $when_type The When rule of a rule or method
      * @param bool|string|array $method_result The result of running a method
      * @return string
      */
-    protected function match_error_template($rule_set_error_templates, $tag, $when_type = '', $method_result = false)
+    protected function match_error_template($rule_set_error_templates, $method_rule, $when_type = '', $method_result = false)
     {
         // 1. The temporary EMT(general string formatted) defined in rule set. No matter what rules in the rule set are invalid, return this EMT
         if (!empty($rule_set_error_templates) && !empty($rule_set_error_templates['whole_rule_set'])) return $rule_set_error_templates['whole_rule_set'];
@@ -1111,34 +1111,45 @@ class Validation
 
         if ($method_result !== false && !empty($matches)) {
             // 2.2 The tag of EMT returned from method
-            $tag = $matches[1];
-            $tags = [ $matches[1] ];
-        } else {
+            $tags = [$matches[1]];
+        } else if (is_string($method_rule)) {
             // symbol_required, symbol_optional, symbol_optional_unset
-            if (isset($this->config[$tag]) && isset($this->config_default[$tag])) {
+            if (isset($this->config[$method_rule]) && isset($this->config_default[$method_rule])) {
                 $tags = [
-                    $this->config[$tag],
-                    $this->config_default[$tag]
+                    $this->config[$method_rule],
+                    $this->config_default[$method_rule]
                 ];
             } else {
-                $tags = [ $tag ];
+                $tags = [$method_rule];
+            }
+        } else {
+            if (empty($method_rule['by_symbol'])) {
+                $tags = [
+                    $method_rule['method'],
+                    $method_rule['symbol'],
+                ];
+            } else {
+                $tags = [
+                    $method_rule['symbol'],
+                    $method_rule['method'],
+                ];
             }
         }
 
+        // 3. One rule, one EMT. Matching EMT by the tag of EMT
         // 3.1 The temporary EMT(JSON formatted) defined in rule set
         // 3.2 The EMT defined via Internationalization, e.g. en-us
         $error_templates = array_merge($this->get_error_templates(), $rule_set_error_templates);
-
         $tags_max_key = count($tags) - 1;
         foreach ($tags as $key => $value) {
             $ignore_default_template = $tags_max_key > $key;
-            // 3. One rule, one EMT. Matching EMT by the tag of EMT
             $error_template = $this->match_error_template_by_tag($value, $error_templates, $when_type, $ignore_default_template);
-            if (!empty($error_template)) break;  
+            if (!empty($error_template)) break;
         }
+
         return $error_template;
     }
-    
+
     /**
      * One rule, one error message template(EMT). Matching EMT by the tag of EMT
      *
@@ -1254,7 +1265,7 @@ class Validation
     {
         $this->set_current_field_path($field_path)
             ->set_current_field_rule_set($rule_set);
-            
+
         $rule_set = $this->parse_rule_set($rule_set);
 
         if (empty($rule_set) || empty($rule_set['rules'])) {
@@ -1304,7 +1315,7 @@ class Validation
                 $params = $method_rule['params'];
                 $if_result = $this->execute_method($method_rule, $field_path);
 
-                if ($if_result === "Undefined") return false;
+                if (is_array($if_result) && !empty($if_result['error_type']) && $if_result['error_type'] == 'undefined_method') return false;
 
                 if (
                     ($when_type === 'when' && $if_result === true)
@@ -1337,7 +1348,7 @@ class Validation
                 $params = $method_rule['params'];
                 $result = $this->execute_method($method_rule, $field_path);
 
-                if ($result === "Undefined") return false;
+                if (is_array($result) && !empty($result['error_type']) && $result['error_type'] == 'undefined_method') return false;
                 if (
                     ($if_type === 'if' && $result !== true)
                     || ($if_type === 'if_not' && $result === true)
@@ -1495,8 +1506,9 @@ class Validation
                  * If retrun not a boolean value, will use the result as the error message template.
                  */
                 if ($result !== true) {
-                    $error_template = $this->match_error_template($rule_set_error_templates, $method_rule['symbol'], $when_type, $result);
-                    $error_template = str_replace($this->symbol_method, $method_rule['symbol'], $error_template);
+                    $error_template = $this->match_error_template($rule_set_error_templates, $method_rule, $when_type, $result);
+                    if (empty($method_rule['by_symbol'])) $error_template = str_replace($this->symbol_method, $method_rule['method'], $error_template);
+                    else $error_template = str_replace($this->symbol_method, $method_rule['symbol'], $error_template);
 
                     if (is_array($result)) {
                         $error_type = isset($result['error_type']) ? $result['error_type'] : $error_type;
@@ -1563,11 +1575,13 @@ class Validation
             $params = [$this->symbol_this];
         }
 
-        
+
         if (isset($this->method_symbols[$method])) {
+            $by_symbol = true;
             $symbol = $method;
             $method = $this->method_symbols[$method];
         } else {
+            $by_symbol = false;
             $symbol = isset($this->method_symbols_flip[$method]) ? $this->method_symbols_flip[$method] : $method;
         }
 
@@ -1609,6 +1623,7 @@ class Validation
         $method_rule = [
             'method' => $method,
             'symbol' => $symbol,
+            'by_symbol' => $by_symbol,
             'params' => $params,
         ];
 

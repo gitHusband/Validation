@@ -720,7 +720,7 @@ Has it become more beautiful? <span>&#128525;</span> <strong style="font-size: 2
 
 ### 4.11 Internationalization
 
-Customize default error message templates for different methods. See [4.13 Error Message Template](#413-error-message-template) - point 2
+Customize default error message templates for different methods. See [4.13 Error Message Template](#413-error-message-template) - point 3
 
 **Internationalization Lists:**
 
@@ -747,6 +747,10 @@ $validation->set_language('zh-cn'); // The ZhCn.php Internationalization file wi
 **Add your internationalization files**
 
 1. Create a file `/MyPath/MyLang.php`
+
+If the method has a corresponding [Symbol](#appendix-1---methods-and-symbols), for example, the symbol of `equal` is `=`, then it is recommended to use the method symbol `=` for the key here.
+If the method does not have a corresponding symbol, then only the method name can be used, such as `check_custom`
+
 ```PHP
 <?php
 
@@ -798,29 +802,44 @@ $validation->set_validation_global(false);
 
 ### 4.13 Error Message Template
 
-**When a field fails validation, you may want to**
-- Set an error message template for an entire rule
-- Set an error message template for each method
+<u>**How to determine if method validation failed?**</u>
+If and only if the method result `result === true`, it means the validation is successful, otherwise it means the validation fails.
 
-**Then, you have three ways to set the error message template:**
-1. Set template in rules array
-2. Set template via [Internationalization](#411-internationalization)
-3. Return the template directly in the method
+<u>**When a field fails validation, you may want to**</u>
+- Set an error message template for an entire ruleset
+- Set an error message template for each rule in a ruleset
+
+<u>**Then, you have several ways to set the error message template:**</u>
+1. Set a unified template (general string) for the rule set
+2. Return the template (general string) directly from method
+3. Set templates for each method
+  3.1. Set temporary templates (JSON strings, etc.) in the ruleset
+  3.2. Set default templates via [Internationalization](#411-internationalization)
 
 Template **priority** from high to low: `1` > `2` > `3`
+
+<u>**To support the method of setting templates individually, the requirements are:**</u>
+- Method returns `false`: matches the error message template based on the method or its symbol
+- Method returns tag: Match the error message template based on the returned tag
+  *For example, `return 'TAG:='` matches the error message template based on `=`*
 
 **Template variables**
 Variable | Describe | Example
 ---|---|---
-`@this` | current field | `id` or `favorite_animation.name`
+`@this` | Current field | `id` or `favorite_animation.name`
+`@method` | Current method | `>` or `greater_than`
 `@p{x}` | The xth parameter of the current field | `@p1` represents the value of the first parameter. e.g. `100`
 `@t{x}` | The type of the xth parameter of the current field | `@t1` represents the type of the first parameter. e.g. `int`
 
-**1. Set template in rules array**
+**1. Set temporary template in ruleset**
 
-1.1 At the end of a rule, add the symbol "` >> `", note that there is a space at the start and end. For custom symbol, see [4.10 Customized Configuration](#410-customized-configuration)
+Temporary templates are only enabled for the current ruleset and have no effect on other rulesets.
 
-1.1.1. **Common string**：Indicates that no matter whether any method in the rule fails to validate, this error message will be returned.
+1.1 At the end of a ruleset, add the symbol "` >> `", note that there is a space at the start and end. For custom symbol, see [4.10 Customized Configuration](#410-customized-configuration)
+
+1.1.1. **General string**：Indicates that any rule in the ruleset fails to validate, this error message will be returned.
+
+*It takes effect for all rules for the current field. This error message template is used whether the method returns `false` or any other error templates*
 ```PHP
 // required OR regular expression OR >=<= method，no matter which validation fails, the error is "id is incorrect."
 "id" => 'required|/^\d+$/|>=<=[1,100] >> @this is incorrect.'
@@ -828,10 +847,11 @@ Variable | Describe | Example
 
 1.1.2. **JSON string**：Set an error message template for each method
 
+*It only takes effect for the corresponding rules. If the method returns `false`, use the corresponding error message template*
 ```PHP
 "id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}'
 ```
-When any of the methods fails to validate, the corresponding error message is:
+When any of the methods fails to validateand returns `false`, the corresponding error message tempalte is:
 - `required`: Users define - id is required
 - `/^\d+$/`: Users define - id should be "MATCHED" /^\d+$/
 - `>=<=`: id must be greater than or equal to 1 and less than or equal to 100
@@ -860,17 +880,36 @@ $rule = [
 ];
 ```
 
-2. **Set template via Internationalization**
-Refer to [4.11 Internationalization](#411-internationalization)
-
-3. **Return the template directly in the method**
+2. **Return the template directly in the method**
 
 If and only if the method result `result === true`, it means the validation is successful, otherwise it means the validation fails.
 
-So the method allows three types of error returns:
-- Return `false`
+So the method allows four types of error returns:
+- Return `false` (Supports [Internationalization](#411-internationalization))
+Match error message template based on method or its symbol, see [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
+```PHP
+return false;
+```
+- Return tag (Supports [Internationalization](#411-internationalization))
+Match the error message template based on the returned tag. For example the tag `is_exclude_animal`
+```PHP
+return "TAG:is_exclude_animal";
+```
 - Return error message template string
+```PHP
+return "I don't like mouse";
+```
 - Returns an array of error messages template. There are two fields by default, `error_type` and `message`. You can add other extra fields if you need.
+```PHP
+return [
+    "error_type" => "server_error",
+    "message" => "I don't like snake",
+    "extra" => "You scared me"
+];
+```
+
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view the complete method return example</strong></summary>
 
 ```PHP
 function check_animal($animal) {
@@ -884,11 +923,26 @@ function check_animal($animal) {
             "message" => "I don't like snake",
             "extra" => "You scared me"
         ];
+    } else if (!is_exclude_animals($animal)) {
+        return "TAG:is_exclude_animal";
+    } else if (is_fake_animals($animal)) {
+        return [
+            "error_type" => "server_error",
+            "message" => "TAG:is_fake_animals"
+        ];
     }
 
     return true;
 }
 ```
+
+</details>
+<br>
+
+3. **Set default template via Internationalization**
+
+The default template is effective for all rulesets, but may be overridden by temporary templates.
+Refer to [4.11 Internationalization](#411-internationalization)
 
 ### 4.14 Error Message Format
 
