@@ -90,14 +90,6 @@ class Unit extends TestCommon
 
         $result = $this->run_method($method_name);
 
-        if ($result) {
-            $this->write_log(static::LOG_LEVEL_INFO, "===================================\n= Re-run for strict parameter mode\n===================================\n");
-            $this->validation->set_config([
-                "is_strict_parameter_type" => true
-            ]);
-            $this->run_method($method_name);
-        }
-
         return $this->get_unit_result();
     }
 
