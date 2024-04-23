@@ -90,7 +90,7 @@ class Validation
      * If something get wrong, we can easily know which field or rule get wrong.
      * @var array{
      *   field_path: string,
-     *   field_rule_set: string,
+     *   field_ruleset: string,
      *   rule: string,
      *   method: array{
      *       method: string,
@@ -101,7 +101,7 @@ class Validation
      */
     protected $recurrence_current = [
         'field_path' => '',
-        'field_rule_set' => '',
+        'field_ruleset' => '',
         'rule' => '',
         'method' => [],
     ];
@@ -519,7 +519,7 @@ class Validation
      */
     protected function execute($data, $rules, $field_path = null, $is_array_loop = false)
     {
-        $rules_system_symbol = $this->get_rule_set_system_symbol($rules);
+        $rules_system_symbol = $this->get_ruleset_system_symbol($rules);
         // If The root rules has rule_system_symbol
         // Or The root rules is String, means root data is not an array
         // Set root data as an array to help validate the data
@@ -531,7 +531,7 @@ class Validation
             $this->result = $this->data;
         }
 
-        foreach ($rules as $field => $rule_set) {
+        foreach ($rules as $field => $ruleset) {
             $current_field_path = '';
             if ($field_path === null) $current_field_path = $field;
             else $current_field_path = $field_path . $this->config['symbol_field_name_separator'] . $field;
@@ -539,10 +539,10 @@ class Validation
 
             // if ($field == 'fruit_id') $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_1
 
-            $rule_set_system_symbol = $this->get_rule_set_system_symbol($rule_set);
-            if (!empty($rule_set_system_symbol)) {
+            $ruleset_system_symbol = $this->get_ruleset_system_symbol($ruleset);
+            if (!empty($ruleset_system_symbol)) {
                 // Allow array or object to be optional
-                if ($this->has_system_symbol($rule_set_system_symbol, 'symbol_array_optional')) {
+                if ($this->has_system_symbol($ruleset_system_symbol, 'symbol_array_optional')) {
                     if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                         $this->set_result($current_field_path, true);
                         continue;
@@ -551,20 +551,20 @@ class Validation
 
                 // Validate parallel rules.
                 // If one of parallel rules is valid, then the field is valid.
-                if ($this->has_system_symbol($rule_set_system_symbol, 'symbol_parallel_rule')) {
-                    $result = $this->execute_parallel_rules($data, $field, $current_field_path, $rule_set[$rule_set_system_symbol]);
+                if ($this->has_system_symbol($ruleset_system_symbol, 'symbol_parallel_rule')) {
+                    $result = $this->execute_parallel_rules($data, $field, $current_field_path, $ruleset[$ruleset_system_symbol]);
                 }
                 // Validate index array
-                else if ($this->has_system_symbol($rule_set_system_symbol, 'symbol_index_array', true)) {
-                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $rule_set[$rule_set_system_symbol], $is_array_loop);
+                else if ($this->has_system_symbol($ruleset_system_symbol, 'symbol_index_array', true)) {
+                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset[$ruleset_system_symbol], $is_array_loop);
                 }
                 // Validate association array
                 else {
                     // Validate association array
-                    if ($this->is_association_array_rule($rule_set[$rule_set_system_symbol])) {
-                        $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule_set[$rule_set_system_symbol], $current_field_path, $is_array_loop);
+                    if ($this->is_association_array_rule($ruleset[$ruleset_system_symbol])) {
+                        $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $ruleset[$ruleset_system_symbol], $current_field_path, $is_array_loop);
                     } else {
-                        $result = $this->execute_rule_set($data, $field, $rule_set[$rule_set_system_symbol], $current_field_path);
+                        $result = $this->execute_ruleset($data, $field, $ruleset[$ruleset_system_symbol], $current_field_path);
                         $this->set_result($current_field_path, $result);
                     }
                 }
@@ -593,20 +593,20 @@ class Validation
                     $field = $this->delete_system_symbol($field, 'symbol_parallel_rule');
                     $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_parallel_rule');
 
-                    $result = $this->execute_parallel_rules($data, $field, $current_field_path, $rule_set);
+                    $result = $this->execute_parallel_rules($data, $field, $current_field_path, $ruleset);
                 }
                 // Validate index array
                 else if ($this->has_system_symbol($field, 'symbol_index_array')) {
                     $field = $this->delete_system_symbol($field, 'symbol_index_array');
                     $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_index_array');
 
-                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $rule_set);
+                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset);
                 }
                 // Validate association array
-                else if ($this->is_association_array_rule($rule_set)) {
-                    $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $rule_set, $current_field_path, $is_array_loop);
+                else if ($this->is_association_array_rule($ruleset)) {
+                    $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $ruleset, $current_field_path, $is_array_loop);
                 } else {
-                    $result = $this->execute_rule_set($data, $field, $rule_set, $current_field_path);
+                    $result = $this->execute_ruleset($data, $field, $ruleset, $current_field_path);
 
                     $this->set_result($current_field_path, $result);
                 }
@@ -630,76 +630,76 @@ class Validation
      *
      * @see static::$config_default
      * @see static::$config
-     * @param array $rule_set
+     * @param array $ruleset
      * @return array|string|bool
      */
-    protected function get_rule_set_system_symbol($rule_set)
+    protected function get_ruleset_system_symbol($ruleset)
     {
-        if (!is_array($rule_set)) return false;
+        if (!is_array($ruleset)) return false;
 
-        $keys = array_keys($rule_set);
+        $keys = array_keys($ruleset);
 
         if (count($keys) != 1) return false;
 
-        $rule_set_system_symbol_string = $keys[0];
-        $rule_set_system_symbol_string_tmp = $rule_set_system_symbol_string;
+        $ruleset_system_symbol_string = $keys[0];
+        $ruleset_system_symbol_string_tmp = $ruleset_system_symbol_string;
 
-        if ($this->has_system_symbol($rule_set_system_symbol_string, 'symbol_array_optional')) {
-            $rule_set_system_symbol_string_tmp = $this->delete_system_symbol($rule_set_system_symbol_string_tmp, 'symbol_array_optional');
+        if ($this->has_system_symbol($ruleset_system_symbol_string, 'symbol_array_optional')) {
+            $ruleset_system_symbol_string_tmp = $this->delete_system_symbol($ruleset_system_symbol_string_tmp, 'symbol_array_optional');
         }
 
-        if ($this->has_system_symbol($rule_set_system_symbol_string, 'symbol_parallel_rule')) {
-            $rule_set_system_symbol_string_tmp = $this->delete_system_symbol($rule_set_system_symbol_string_tmp, 'symbol_parallel_rule');
+        if ($this->has_system_symbol($ruleset_system_symbol_string, 'symbol_parallel_rule')) {
+            $ruleset_system_symbol_string_tmp = $this->delete_system_symbol($ruleset_system_symbol_string_tmp, 'symbol_parallel_rule');
         }
 
-        if ($this->has_system_symbol($rule_set_system_symbol_string, 'symbol_index_array')) {
-            $rule_set_system_symbol_string_tmp = $this->delete_system_symbol($rule_set_system_symbol_string_tmp, 'symbol_index_array');
+        if ($this->has_system_symbol($ruleset_system_symbol_string, 'symbol_index_array')) {
+            $ruleset_system_symbol_string_tmp = $this->delete_system_symbol($ruleset_system_symbol_string_tmp, 'symbol_index_array');
         } else if (strpos($this->config['symbol_index_array'], '.') === 0) {
             $symbol_index_array_tmp = ltrim($this->config['symbol_index_array'], '.');
-            if ($this->has_system_symbol($rule_set_system_symbol_string, 'symbol_index_array', true)) {
-                $rule_set_system_symbol_string_tmp = $this->delete_system_symbol($rule_set_system_symbol_string_tmp, 'symbol_index_array', true);
+            if ($this->has_system_symbol($ruleset_system_symbol_string, 'symbol_index_array', true)) {
+                $ruleset_system_symbol_string_tmp = $this->delete_system_symbol($ruleset_system_symbol_string_tmp, 'symbol_index_array', true);
             }
         }
 
-        if (!empty($rule_set_system_symbol_string_tmp)) return false;
-        else return $rule_set_system_symbol_string;
+        if (!empty($ruleset_system_symbol_string_tmp)) return false;
+        else return $ruleset_system_symbol_string;
     }
 
     /**
      * Check a field name contains a specific system symbol or not. 
      * Should check the customized system symbol and its default symbol
      *
-     * @param string $rule_set_system_symbol_string
+     * @param string $ruleset_system_symbol_string
      * @param string $symbol_name
      * @param bool $ingore_left_dot Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
      * @return bool
      */
-    protected function has_system_symbol($rule_set_system_symbol_string, $symbol_name, $ingore_left_dot = false)
+    protected function has_system_symbol($ruleset_system_symbol_string, $symbol_name, $ingore_left_dot = false)
     {
         switch ($symbol_name) {
             case 'symbol_array_optional':
                 if (
-                    strpos($rule_set_system_symbol_string, $this->config['symbol_array_optional']) !== false
-                    || strpos($rule_set_system_symbol_string, $this->config_default['symbol_array_optional']) !== false
+                    strpos($ruleset_system_symbol_string, $this->config['symbol_array_optional']) !== false
+                    || strpos($ruleset_system_symbol_string, $this->config_default['symbol_array_optional']) !== false
                 ) {
                     return true;
                 }
                 break;
             case 'symbol_parallel_rule':
                 if (
-                    strpos($rule_set_system_symbol_string, $this->config['symbol_parallel_rule']) !== false
-                    || strpos($rule_set_system_symbol_string, $this->config_default['symbol_parallel_rule']) !== false
+                    strpos($ruleset_system_symbol_string, $this->config['symbol_parallel_rule']) !== false
+                    || strpos($ruleset_system_symbol_string, $this->config_default['symbol_parallel_rule']) !== false
                 ) {
                     return true;
                 }
                 break;
             case 'symbol_index_array':
-                if (strpos($rule_set_system_symbol_string, $this->config['symbol_index_array']) !== false) {
+                if (strpos($ruleset_system_symbol_string, $this->config['symbol_index_array']) !== false) {
                     return true;
                 }
 
                 if ($ingore_left_dot) {
-                    if (strpos($rule_set_system_symbol_string, ltrim($this->config['symbol_index_array'], '.')) !== false) {
+                    if (strpos($ruleset_system_symbol_string, ltrim($this->config['symbol_index_array'], '.')) !== false) {
                         return true;
                     }
                 }
@@ -715,35 +715,35 @@ class Validation
      * Delete a specific system symbol from a field. 
      * Should delete the customized system symbol and its default symbol
      *
-     * @param string $rule_set_system_symbol_string
+     * @param string $ruleset_system_symbol_string
      * @param string $symbol_name
      * @param bool $ingore_left_dot Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
      * @param string $replace_str Replace the symbol to this string
      * @return string
      */
-    protected function delete_system_symbol($rule_set_system_symbol_string, $symbol_name, $ingore_left_dot = false, $replace_str = '')
+    protected function delete_system_symbol($ruleset_system_symbol_string, $symbol_name, $ingore_left_dot = false, $replace_str = '')
     {
         switch ($symbol_name) {
             case 'symbol_array_optional':
-                $rule_set_system_symbol_string = str_replace($this->config['symbol_array_optional'], '', $rule_set_system_symbol_string);
-                $rule_set_system_symbol_string = str_replace($this->config_default['symbol_array_optional'], '', $rule_set_system_symbol_string);
-                return $rule_set_system_symbol_string;
+                $ruleset_system_symbol_string = str_replace($this->config['symbol_array_optional'], '', $ruleset_system_symbol_string);
+                $ruleset_system_symbol_string = str_replace($this->config_default['symbol_array_optional'], '', $ruleset_system_symbol_string);
+                return $ruleset_system_symbol_string;
                 break;
             case 'symbol_parallel_rule':
-                $rule_set_system_symbol_string = str_replace($this->config['symbol_parallel_rule'], '', $rule_set_system_symbol_string);
-                $rule_set_system_symbol_string = str_replace($this->config_default['symbol_parallel_rule'], '', $rule_set_system_symbol_string);
-                return $rule_set_system_symbol_string;
+                $ruleset_system_symbol_string = str_replace($this->config['symbol_parallel_rule'], '', $ruleset_system_symbol_string);
+                $ruleset_system_symbol_string = str_replace($this->config_default['symbol_parallel_rule'], '', $ruleset_system_symbol_string);
+                return $ruleset_system_symbol_string;
                 break;
             case 'symbol_index_array':
-                $rule_set_system_symbol_string = str_replace($this->config['symbol_index_array'], '', $rule_set_system_symbol_string);
-                if ($ingore_left_dot) $rule_set_system_symbol_string = str_replace(ltrim($this->config['symbol_index_array'], '.'), '', $rule_set_system_symbol_string);
-                return $rule_set_system_symbol_string;
+                $ruleset_system_symbol_string = str_replace($this->config['symbol_index_array'], '', $ruleset_system_symbol_string);
+                if ($ingore_left_dot) $ruleset_system_symbol_string = str_replace(ltrim($this->config['symbol_index_array'], '.'), '', $ruleset_system_symbol_string);
+                return $ruleset_system_symbol_string;
                 break;
             default:
-                return $rule_set_system_symbol_string;
+                return $ruleset_system_symbol_string;
         }
 
-        return $rule_set_system_symbol_string;
+        return $ruleset_system_symbol_string;
     }
 
     /**
@@ -756,16 +756,16 @@ class Validation
      * @param array $data The parent data of the field which is related to the rules
      * @param string $field The field which is related to the rules
      * @param string $field_path Field path, suce as fruit.apple
-     * @param array $rule_set The symbol value of the field rule set
+     * @param array $ruleset The symbol value of the field ruleset
      * @return bool The result of validation
      */
-    protected function execute_parallel_rules($data, $field, $field_path, $rule_set)
+    protected function execute_parallel_rules($data, $field, $field_path, $ruleset)
     {
-        $or_len = count($rule_set);
-        foreach ($rule_set as $key => $rule_or) {
+        $or_len = count($ruleset);
+        foreach ($ruleset as $key => $rule_or) {
             // if ($key == 0) $a = UNDEFINED_VAR; // @see Unit::test_exception -> Case:Exception_lib_2
 
-            $result = $this->execute_rule_set($data, $field, $rule_or, $field_path, true);
+            $result = $this->execute_ruleset($data, $field, $rule_or, $field_path, true);
             $this->set_result($field_path, $result);
             if ($result) {
                 $this->r_unset($this->nested_errors['general'], $field_path);
@@ -792,11 +792,11 @@ class Validation
      * @param array $data The parent data of the field which is related to the rules
      * @param string $field The field which is related to the rules
      * @param string $field_path Field path, suce as fruit.apple
-     * @param array $rule_set The symbol value of the field rule set
+     * @param array $ruleset The symbol value of the field ruleset
      * @param bool $is_array_loop If the execute method is called in array loop, $is_array_loop should be true
      * @return bool The result of validation
      */
-    protected function execute_index_array_rules($data, $field, $field_path, $rule_set, $is_array_loop = false)
+    protected function execute_index_array_rules($data, $field, $field_path, $ruleset, $is_array_loop = false)
     {
         if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
             $error_template = $this->get_error_template('index_array');
@@ -812,17 +812,17 @@ class Validation
             foreach ($data[$field] as $key => $value) {
                 $current_field_path = $field_path .  $this->config['symbol_field_name_separator'] . $key;
 
-                $rule_system_symbol = $this->get_rule_set_system_symbol($rule_set);
+                $rule_system_symbol = $this->get_ruleset_system_symbol($ruleset);
                 if (!empty($rule_system_symbol)) {
                     // $is_array_loop is true, means parent data is numberic arrya, too
                     $current_field_path = $is_array_loop ? $field_path : $current_field_path;
-                    $result = $this->execute($data[$field], [$key => $rule_set], $current_field_path, true);
-                } else if ($this->is_association_array_rule($rule_set)) {
-                    $result = $this->execute($data[$field][$key], $rule_set, $current_field_path, true);
+                    $result = $this->execute($data[$field], [$key => $ruleset], $current_field_path, true);
+                } else if ($this->is_association_array_rule($ruleset)) {
+                    $result = $this->execute($data[$field][$key], $ruleset, $current_field_path, true);
                 }
-                // Validate numberic array, all the rule are the same, only use $rule_set[0]
+                // Validate numberic array, all the rule are the same, only use $ruleset[0]
                 else {
-                    $result = $this->execute_rule_set($data[$field], $key, $rule_set, $current_field_path);
+                    $result = $this->execute_ruleset($data[$field], $key, $ruleset, $current_field_path);
                     $this->set_result($current_field_path, $result);
                 }
 
@@ -837,12 +837,12 @@ class Validation
     }
 
     /**
-     * A rule set of one field allows users to set error message template in an object.
+     * A ruleset of one field allows users to set error message template in an object.
      * So that users don't have to set the rule and error message in a string.
      * The object must in a special format which only contains two sub-fields: 0 and "error_message"
      * For example:
      * $rule_leaf_object_template = [
-     *      'required|int',             // Rule set
+     *      'required|int',             // Ruleset
      *      'error_message' => [        // Error message template
      *          'required' => 'It is request field',
      *          'int' => 'Must be integer',
@@ -881,29 +881,29 @@ class Validation
     }
 
     /**
-     * Parse a rule set which contains: 
+     * Parse a ruleset which contains: 
      * 1. method and parameters
      * 2. regular expression
      * 3. error message template
      *
-     * @param string $rule_set
+     * @param string $ruleset
      * @return array
      */
-    protected function parse_rule_set($rule_set)
+    protected function parse_ruleset($ruleset)
     {
-        if (is_array($rule_set)) {
-            $error_templates = $rule_set['error_message'];
-            $rule_set = $rule_set[0];
+        if (is_array($ruleset)) {
+            $error_templates = $ruleset['error_message'];
+            $ruleset = $ruleset[0];
         } else {
             $error_templates = '';
 
-            if (preg_match($this->config['reg_msg'], $rule_set, $matches)) {
+            if (preg_match($this->config['reg_msg'], $ruleset, $matches)) {
                 $error_templates = $matches[1];
-                $rule_set = preg_replace($this->config['reg_msg'], '', $rule_set);
+                $ruleset = preg_replace($this->config['reg_msg'], '', $ruleset);
             }
         }
 
-        $rules = $this->parse_serial_rule_set($rule_set);
+        $rules = $this->parse_serial_ruleset($ruleset);
 
         return [
             'rules' => $rules,
@@ -912,15 +912,15 @@ class Validation
     }
 
     /**
-     * Split a serial rule set into multiple rules(methods or regular expression) by using the separator |
+     * Split a serial ruleset into multiple rules(methods or regular expression) by using the separator |
      * NOTE: 
      * - The regular expression may cantain the character(|) which is the same as rule separator(|)
      * - Multiple regular expressions are allowed in one serial rule
      *
-     * @param string $rule_set
+     * @param string $ruleset
      * @return array
      */
-    protected function parse_serial_rule_set($rule_set)
+    protected function parse_serial_ruleset($ruleset)
     {
         $symbol_rule_separator = $this->config['symbol_rule_separator'];
         $symbol_rule_separator_length = strlen($symbol_rule_separator);
@@ -930,16 +930,16 @@ class Validation
         $is_next_method_flag = 0;
         $is_reg_flag = 0;
 
-        $rule_set_length = strlen($rule_set);
-        for ($i = 0; $i < $rule_set_length; $i++) {
-            $char = $rule_set[$i];
+        $ruleset_length = strlen($ruleset);
+        for ($i = 0; $i < $ruleset_length; $i++) {
+            $char = $ruleset[$i];
 
             // 支持自定义配置 symbol_rule_separator 为多个字符
             if ($symbol_rule_separator_length > 1 && $char == $symbol_rule_separator[0]) {
                 $ii = $i + 1;
                 $is_symbol_rule_separator = true;
                 for ($j = 1; $j < $symbol_rule_separator_length; $j++) {
-                    if ($symbol_rule_separator[$j] != $rule_set[$ii]) {
+                    if ($symbol_rule_separator[$j] != $ruleset[$ii]) {
                         $is_symbol_rule_separator = false;
                         break;
                     }
@@ -954,7 +954,7 @@ class Validation
             // 例如：\/, \| 
             if ($char === '\\') {
                 $current_rule .= $char;
-                $current_rule .= $rule_set[$i + 1];
+                $current_rule .= $ruleset[$i + 1];
                 $i++;
                 continue;
             }
@@ -986,7 +986,7 @@ class Validation
                 $is_next_method_flag = 0;
                 // Remove the whitespace on the left and right
                 $current_rule = trim($current_rule, ' ');
-                if ($current_rule === '') throw RuleException::rule_set('Contiguous separator', $this->get_recurrence_current(), $this->config['auto_field']);
+                if ($current_rule === '') throw RuleException::ruleset('Contiguous separator', $this->get_recurrence_current(), $this->config['auto_field']);
                 if (!empty($current_rule)) $rules[] = $current_rule;
                 $current_rule = '';
                 $is_reg_flag = 0;
@@ -996,9 +996,9 @@ class Validation
         $current_rule = trim($current_rule, ' ');
         if ($current_rule === '') {
             if (empty($rules)) {
-                throw RuleException::rule_set('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
+                throw RuleException::ruleset('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
             } else {
-                throw RuleException::rule_set('Endding separator', $this->get_recurrence_current(), $this->config['auto_field']);
+                throw RuleException::ruleset('Endding separator', $this->get_recurrence_current(), $this->config['auto_field']);
             }
         }
         if (!empty($current_rule)) $rules[] = $current_rule;
@@ -1006,7 +1006,7 @@ class Validation
     }
 
     /**
-     * Parse error message template of the rule set
+     * Parse error message template of the ruleset
      * 1. Simple string - show this error message if anything is invalid
      * 2. Json string - show one of the error message which is related to the invalid method
      * 3. Special string - Same functions as Json string. Such as " [ *] => It\'s required! [ preg  ] => It\'s invalid [no]=> [say yes] => yes"
@@ -1028,7 +1028,7 @@ class Validation
         $this->parse_gh_string_to_array($gh_arr, $error_templates);
         if (!empty($gh_arr)) return $gh_arr;
 
-        return ['whole_rule_set' => $error_templates];
+        return ['whole_ruleset' => $error_templates];
     }
 
     /**
@@ -1082,24 +1082,24 @@ class Validation
      * Match rule error message template. 
      * 
      * The error message template(EMT) priority from high to low:
-     * 1. The temporary EMT(general string) defined in rule set. No matter what rules in the rule set are invalid, return this EMT
+     * 1. The temporary EMT(general string) defined in ruleset. No matter what rules in the ruleset are invalid, return this EMT
      * 2. The EMT returned from method directly
      *   2.1 The EMT(general string or array) returned from method
      *   2.2 The tag of EMT returned from method
      * 3. One rule, one EMT. Matching EMT by the tag of EMT
-     *   3.1 The temporary EMT(JSON formatted) defined in rule set
+     *   3.1 The temporary EMT(JSON formatted) defined in ruleset
      *   3.2 The EMT defined via Internationalization, e.g. en-us
      *
-     * @param array $rule_set_error_templates Parsed error message which is defined in rule set
+     * @param array $ruleset_error_templates Parsed error message which is defined in ruleset
      * @param string|array $method_rule The rule or method rule
      * @param string $when_type The When rule of a rule or method
      * @param bool|string|array $method_result The result of running a method
      * @return string
      */
-    protected function match_error_template($rule_set_error_templates, $method_rule, $when_type = '', $method_result = false)
+    protected function match_error_template($ruleset_error_templates, $method_rule, $when_type = '', $method_result = false)
     {
-        // 1. The temporary EMT(general string formatted) defined in rule set. No matter what rules in the rule set are invalid, return this EMT
-        if (!empty($rule_set_error_templates) && !empty($rule_set_error_templates['whole_rule_set'])) return $rule_set_error_templates['whole_rule_set'];
+        // 1. The temporary EMT(general string formatted) defined in ruleset. No matter what rules in the ruleset are invalid, return this EMT
+        if (!empty($ruleset_error_templates) && !empty($ruleset_error_templates['whole_ruleset'])) return $ruleset_error_templates['whole_ruleset'];
 
         // 2. The EMT returned from method directly
         // NOTE: In this case we cannot internationalize the error message template
@@ -1137,9 +1137,9 @@ class Validation
         }
 
         // 3. One rule, one EMT. Matching EMT by the tag of EMT
-        // 3.1 The temporary EMT(JSON formatted) defined in rule set
+        // 3.1 The temporary EMT(JSON formatted) defined in ruleset
         // 3.2 The EMT defined via Internationalization, e.g. en-us
-        $error_templates = array_merge($this->get_error_templates(), $rule_set_error_templates);
+        $error_templates = array_merge($this->get_error_templates(), $ruleset_error_templates);
         $tags_max_key = count($tags) - 1;
         foreach ($tags as $key => $value) {
             $ignore_default_template = $tags_max_key > $key;
@@ -1245,7 +1245,7 @@ class Validation
     }
 
     /**
-     * Execute validation with the field and its rule set. Contains cases:
+     * Execute validation with the field and its ruleset. Contains cases:
      * 1. If rule
      * 2. Required(*) rule
      * 3. Optional(O) rule
@@ -1256,25 +1256,25 @@ class Validation
      *
      * @param array $data The parent data of the field which is related to the rule
      * @param string $field The field which is related to the rule
-     * @param string $rule_set The rule set of the field
+     * @param string $ruleset The ruleset of the field
      * @param bool $field_path Field path, suce as fruit.apple
      * @param bool $is_parallel_rule Flag of or rule
      * @return bool The result of validation
      */
-    protected function execute_rule_set($data, $field, $rule_set, $field_path = false, $is_parallel_rule = false)
+    protected function execute_ruleset($data, $field, $ruleset, $field_path = false, $is_parallel_rule = false)
     {
         $this->set_current_field_path($field_path)
-            ->set_current_field_rule_set($rule_set);
+            ->set_current_field_ruleset($ruleset);
 
-        $rule_set = $this->parse_rule_set($rule_set);
+        $ruleset = $this->parse_ruleset($ruleset);
 
-        if (empty($rule_set) || empty($rule_set['rules'])) {
+        if (empty($ruleset) || empty($ruleset['rules'])) {
             return true;
         }
 
-        $rule_set_error_templates = $rule_set['error_templates'];
+        $ruleset_error_templates = $ruleset['error_templates'];
 
-        foreach ($rule_set['rules'] as $rule) {
+        foreach ($ruleset['rules'] as $rule) {
             if (empty($rule)) {
                 continue;
             }
@@ -1370,7 +1370,7 @@ class Validation
                     if ($has_when_rule === -1) {
                         $result = false;
                         $error_type = $this->config_default['symbol_required'];
-                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_required');
+                        $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_required');
                     }
                     /**
                      * Required When rule
@@ -1381,7 +1381,7 @@ class Validation
                     else if ($has_when_rule !== -1 && $is_met_when_rule === true) {
                         $result = false;
                         $error_type = $this->config_default['symbol_required'] . ':' . $when_type;
-                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_required', $when_type);
+                        $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_required', $when_type);
                     }
                     /**
                      * Required When rule
@@ -1418,7 +1418,7 @@ class Validation
                     else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
                         $result = false;
                         $error_type = $this->config_default['symbol_optional'] . ':' . $when_type;
-                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_optional', $when_type);
+                        $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_optional', $when_type);
                     }
                 }
             }
@@ -1448,7 +1448,7 @@ class Validation
                     else if ($has_when_rule !== -1 && $is_met_when_rule !== true) {
                         $result = false;
                         $error_type = $this->config_default['symbol_optional_unset'] . ':' . $when_type;
-                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_optional_unset', $when_type);
+                        $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_optional_unset', $when_type);
                     }
                 } else if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
@@ -1457,7 +1457,7 @@ class Validation
                     if ($has_when_rule === -1) {
                         $result = false;
                         $error_type = $this->config_default['symbol_optional_unset'];
-                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_optional_unset');
+                        $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_optional_unset');
                     }
                     /**
                      * Optional Unset When rule
@@ -1467,7 +1467,7 @@ class Validation
                     else {
                         $result = false;
                         $error_type = $this->config_default['symbol_optional_unset'] . ':' . $when_type;
-                        $error_template = $this->match_error_template($rule_set_error_templates, 'symbol_optional_unset', $when_type);
+                        $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_optional_unset', $when_type);
                     }
                 }
             }
@@ -1489,7 +1489,7 @@ class Validation
                 } else {
                     if (!preg_match($preg, $data[$field], $matches)) {
                         $result = false;
-                        $error_template = $this->match_error_template($rule_set_error_templates, 'preg', $when_type);
+                        $error_template = $this->match_error_template($ruleset_error_templates, 'preg', $when_type);
                         $error_template = str_replace($this->symbol_preg, $preg, $error_template);
                     }
                 }
@@ -1506,7 +1506,7 @@ class Validation
                  * If retrun not a boolean value, will use the result as the error message template.
                  */
                 if ($result !== true) {
-                    $error_template = $this->match_error_template($rule_set_error_templates, $method_rule, $when_type, $result);
+                    $error_template = $this->match_error_template($ruleset_error_templates, $method_rule, $when_type, $result);
                     if (empty($method_rule['by_symbol'])) $error_template = str_replace($this->symbol_method, $method_rule['method'], $error_template);
                     else $error_template = str_replace($this->symbol_method, $method_rule['symbol'], $error_template);
 
@@ -1549,7 +1549,7 @@ class Validation
     /**
      * Parse method and its parameters
      *
-     * @param string $rule One separation of rule set
+     * @param string $rule One separation of ruleset
      * @param array $data The parent data of the field which is related to the rule
      * @param string $field The field which is related to the rule
      * @return array Method detail
@@ -1784,7 +1784,7 @@ class Validation
     protected function set_current_field_path($field_path)
     {
         $this->recurrence_current['field_path'] = $field_path;
-        $this->recurrence_current['field_rule_set'] = '';
+        $this->recurrence_current['field_ruleset'] = '';
         $this->recurrence_current['rule'] = '';
         $this->recurrence_current['method'] = [];
         return $this;
@@ -1801,38 +1801,38 @@ class Validation
     }
 
     /**
-     * Set the rule set of current field
+     * Set the ruleset of current field
      * 
      * @param string|array $rule
      * @return static
      */
-    protected function set_current_field_rule_set($field_rule_set)
+    protected function set_current_field_ruleset($field_ruleset)
     {
-        if (is_array($field_rule_set)) {
+        if (is_array($field_ruleset)) {
             /**
-             * The 0 is the rule set key.
+             * The 0 is the ruleset key.
              * @see static::is_rule_leaf_object()
              */
-            $field_rule_set = isset($field_rule_set[0]) ? $field_rule_set[0] : '';
+            $field_ruleset = isset($field_ruleset[0]) ? $field_ruleset[0] : '';
         }
-        $this->recurrence_current['field_rule_set'] = $field_rule_set;
+        $this->recurrence_current['field_ruleset'] = $field_ruleset;
         $this->recurrence_current['rule'] = '';
         $this->recurrence_current['method'] = [];
         return $this;
     }
 
     /**
-     * Get the rule set of current field
+     * Get the ruleset of current field
      * 
      * @return string|array
      */
-    public function get_current_field_rule_set()
+    public function get_current_field_ruleset()
     {
-        return $this->recurrence_current['field_rule_set'];
+        return $this->recurrence_current['field_ruleset'];
     }
 
     /**
-     * Set the current rule of the currect rule set
+     * Set the current rule of the currect ruleset
      *
      * @param string $rule
      * @return static
@@ -1845,7 +1845,7 @@ class Validation
     }
 
     /**
-     * Get the current rule of the currect rule set
+     * Get the current rule of the currect ruleset
      * 
      * @return string
      */

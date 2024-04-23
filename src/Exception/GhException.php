@@ -66,9 +66,9 @@ class GhException extends \Exception
         } else if (!empty($recurrence_current['rule'])) {
             $field_detail = "@rule:{$recurrence_current['rule']}";
         } else {
-            $current_rule_set = $recurrence_current['field_rule_set'];
-            $current_rule_set = empty($current_rule_set) ? 'NotSet' : $current_rule_set;
-            $field_detail = "@rule_set:{$current_rule_set}";
+            $current_ruleset = $recurrence_current['field_ruleset'];
+            $current_ruleset = empty($current_ruleset) ? 'NotSet' : $current_ruleset;
+            $field_detail = "@ruleset:{$current_ruleset}";
         }
         
         return "@field:{$current_field_path}, {$field_detail}";

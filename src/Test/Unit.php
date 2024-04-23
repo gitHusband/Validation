@@ -2898,7 +2898,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_rule_set_1()
+    protected function test_exception_ruleset_1()
     {
         $rule = [
             "id" => "optional||int",
@@ -2909,7 +2909,7 @@ class Unit extends TestCommon
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => '@field:id, @rule_set:optional||int - Invalid Rule Set: Contiguous separator'
+                "expected_msg" => '@field:id, @ruleset:optional||int - Invalid Ruleset: Contiguous separator'
             ],
         ];
 
@@ -2924,7 +2924,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_rule_set_2()
+    protected function test_exception_ruleset_2()
     {
         $rule = [
             "id" => "optional| |int",
@@ -2935,7 +2935,7 @@ class Unit extends TestCommon
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => '@field:id, @rule_set:optional| |int - Invalid Rule Set: Contiguous separator'
+                "expected_msg" => '@field:id, @ruleset:optional| |int - Invalid Ruleset: Contiguous separator'
             ],
         ];
 
@@ -2950,7 +2950,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_rule_set_3()
+    protected function test_exception_ruleset_3()
     {
         $rule = [
             "id" => "optional|int|",
@@ -2961,7 +2961,7 @@ class Unit extends TestCommon
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => '@field:id, @rule_set:optional|int| - Invalid Rule Set: Endding separator'
+                "expected_msg" => '@field:id, @ruleset:optional|int| - Invalid Ruleset: Endding separator'
             ],
         ];
 
@@ -2976,7 +2976,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_rule_set_4()
+    protected function test_exception_ruleset_4()
     {
         $rule = [
             "id" => "optional|int|  ",
@@ -2987,7 +2987,7 @@ class Unit extends TestCommon
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => '@field:id, @rule_set:optional|int|   - Invalid Rule Set: Endding separator'
+                "expected_msg" => '@field:id, @ruleset:optional|int|   - Invalid Ruleset: Endding separator'
             ],
         ];
 
@@ -3002,7 +3002,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_rule_set_5()
+    protected function test_exception_ruleset_5()
     {
         $rule = [
             "id" => "optional|/^[a-z|\|\/]+$/ | ",
@@ -3013,7 +3013,7 @@ class Unit extends TestCommon
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => '@field:id, @rule_set:optional|/^[a-z|\\|\\/]+$/ |  - Invalid Rule Set: Endding separator'
+                "expected_msg" => '@field:id, @ruleset:optional|/^[a-z|\\|\\/]+$/ |  - Invalid Ruleset: Endding separator'
             ],
         ];
 
@@ -3028,7 +3028,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_rule_set_6()
+    protected function test_exception_ruleset_6()
     {
         $rule = [
             "id" => "",
@@ -3039,7 +3039,7 @@ class Unit extends TestCommon
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => '@field:id, @rule_set:NotSet - Invalid Rule Set: Empty'
+                "expected_msg" => '@field:id, @ruleset:NotSet - Invalid Ruleset: Empty'
             ],
         ];
 
@@ -3054,7 +3054,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_rule_set_7()
+    protected function test_exception_ruleset_7()
     {
         $rule = [
             "id" => "   ",
@@ -3065,7 +3065,7 @@ class Unit extends TestCommon
                 "data" => [
                     "id" => 1,
                 ],
-                "expected_msg" => '@field:id, @rule_set:    - Invalid Rule Set: Empty'
+                "expected_msg" => '@field:id, @ruleset:    - Invalid Ruleset: Empty'
             ],
         ];
 
@@ -3354,7 +3354,7 @@ class Unit extends TestCommon
         return $result;
     }
 
-    protected function test_temporary_err_msg_rule_set()
+    protected function test_temporary_err_msg_ruleset()
     {
         $rule = [
             "id" => "required|>=<=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
@@ -3729,7 +3729,7 @@ class Unit extends TestCommon
             "key" => [
                 "optional|>=<=[1,60]|check_err_field",
                 "error_message" => [
-                    "whole_rule_set" => "@this is not correct",
+                    "whole_ruleset" => "@this is not correct",
                 ]
             ],
         ];

@@ -2999,7 +2999,7 @@ class UnitDeprecated extends TestCommon
         return $result;
     }
 
-    protected function test_temporary_err_msg_rule_set()
+    protected function test_temporary_err_msg_ruleset()
     {
         $rule = [
             "id" => "required|<=>=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
@@ -3375,7 +3375,7 @@ class UnitDeprecated extends TestCommon
             "key" => [
                 "optional|<=>=[1,60]|check_err_field",
                 "error_message" => [
-                    "whole_rule_set" => "@this is not correct",
+                    "whole_ruleset" => "@this is not correct",
                 ]
             ],
         ];

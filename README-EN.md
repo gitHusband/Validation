@@ -78,7 +78,7 @@ Goal is only 5 words - **Rule structure is data structure**。
 
 ## 1. Overview
 ### 1.1 Feature
-- One field corresponds to one validation rule set, and a rule set consists of multiple validation rules or methods (functions).
+- One field corresponds to one validation ruleset, and a ruleset consists of multiple validation rules or methods (functions).
 - The validation method supports the substitution of symbol, which is easy to understand and simplifies the rules. e.g. `*`, `>`, `<`, `length>`
 - Supports regular expressions
 
@@ -198,7 +198,7 @@ $ composer run-script readme test_complete_example
 ## 4. Features
 
 ### 4.1 Methods And Their Symbols
-One field corresponds to one validation rule set, and a rule set consists of multiple validation **rules**, **methods (functions)** and *error message templates(optional)*.
+One field corresponds to one validation ruleset, and a ruleset consists of multiple validation **rules**, **methods (functions)** and *error message templates(optional)*.
 In order to facilitate understanding and simplify the rules, some method **symbols** are allowed to represent actual methods (functions).
 
 ```PHP
@@ -810,7 +810,7 @@ If and only if the method result `result === true`, it means the validation is s
 - Set an error message template for each rule in a ruleset
 
 <u>**Then, you have several ways to set the error message template:**</u>
-1. Set a unified template (general string) for the rule set
+1. Set a unified template (general string) for the ruleset
 2. Return the template (general string) directly from method
 3. Set templates for each method
   3.1. Set temporary templates (JSON strings, etc.) in the ruleset
