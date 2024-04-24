@@ -11,12 +11,12 @@
  *  - VALIDATION_LOG_LEVEL=1 php Test.php Unit run
  */
 
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-use githusband\Test\Unit;
-use githusband\Test\UnitDeprecated;
-use githusband\Test\Readme;
-use githusband\Test\Demo;
+use githusband\Tests\Unit;
+use githusband\Tests\UnitDeprecated;
+use githusband\Tests\Readme;
+use githusband\Tests\Demo;
 
 function check_id($data, $min, $max)
 {
@@ -65,7 +65,7 @@ unset($arguments[0], $arguments[1], $arguments[2]);
  */
 date_default_timezone_set('Asia/Shanghai');
 
-/** @var githusband\Test\TestCommon */
+/** @var githusband\Tests\TestCommon */
 $class = new $class_lists[$class_name]();
 
 if (method_exists($class, $method)) {

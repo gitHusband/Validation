@@ -163,7 +163,7 @@ Execute them via [Composer Script](https://getcomposer.org/doc/articles/scripts.
 
 After cloning this project, please generate the project's automatic loading file by:
 ```BASH
-$ composer dump-autoload
+$ composer dump-autoload --dev
 ```
 
 - **Unit testing class**

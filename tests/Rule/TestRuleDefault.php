@@ -1,11 +1,8 @@
 <?php
 
-namespace githusband\Test\Rule;
+namespace githusband\Tests\Rule;
 
-/**
- * @deprecated 2.3.1
- */
-trait TestRuleDefaultDeprecated
+trait TestRuleDefault
 {
     protected function test_method_equal()
     {
@@ -96,8 +93,8 @@ trait TestRuleDefaultDeprecated
             "key_float_str" => "optional|==[\"1.1\"]|strictly_equal['1.1']",
             "key_bool_true" => "optional|==[TRUE]|strictly_equal[true]",
             "key_bool_false" => "optional|==[FALSE]|strictly_equal[false]",
-            "key_bool_str_true" => "optional|==[\"true\"]|strictly_equal['true']",
-            "key_bool_str_FALSE" => "optional|==[\"FALSE\"]|strictly_equal['FALSE']",
+            "key_bool_string_true" => "optional|==[\"true\"]|strictly_equal['true']",
+            "key_bool_string_FALSE" => "optional|==[\"FALSE\"]|strictly_equal['FALSE']",
         ];
 
         $cases = [
@@ -109,8 +106,8 @@ trait TestRuleDefaultDeprecated
                     "key_float_str" => "1.1",
                     "key_bool_true" => true,
                     "key_bool_false" => FALSE,
-                    "key_bool_str_true" => "true",
-                    "key_bool_str_FALSE" => "FALSE",
+                    "key_bool_string_true" => "true",
+                    "key_bool_string_FALSE" => "FALSE",
                 ]
             ],
             "Valid_data_2" => [
@@ -121,8 +118,8 @@ trait TestRuleDefaultDeprecated
                     "key_float_str" => "1.1",
                     "key_bool_true" => TRUE,
                     "key_bool_false" => FALSE,
-                    "key_bool_str_true" => "true",
-                    "key_bool_str_FALSE" => "FALSE",
+                    "key_bool_string_true" => "true",
+                    "key_bool_string_FALSE" => "FALSE",
                 ]
             ],
             "Invalid_key_int" => [
@@ -197,29 +194,29 @@ trait TestRuleDefaultDeprecated
                 ],
                 "expected_msg" => ["key_bool_false" => "key_bool_false must be strictly equal to bool(false)"]
             ],
-            "Invalid_key_bool_str_true" => [
+            "Invalid_key_bool_string_true" => [
                 "data" => [
-                    "key_bool_str_true" => true,
+                    "key_bool_string_true" => true,
                 ],
-                "expected_msg" => ["key_bool_str_true" => "key_bool_str_true must be strictly equal to string(true)"]
+                "expected_msg" => ["key_bool_string_true" => "key_bool_string_true must be strictly equal to string(true)"]
             ],
-            "Invalid_key_bool_str_true_1" => [
+            "Invalid_key_bool_string_true_1" => [
                 "data" => [
-                    "key_bool_str_true" => "TRUE",
+                    "key_bool_string_true" => "TRUE",
                 ],
-                "expected_msg" => ["key_bool_str_true" => "key_bool_str_true must be strictly equal to string(true)"]
+                "expected_msg" => ["key_bool_string_true" => "key_bool_string_true must be strictly equal to string(true)"]
             ],
-            "Invalid_key_bool_str_FALSE" => [
+            "Invalid_key_bool_string_FALSE" => [
                 "data" => [
-                    "key_bool_str_FALSE" => false,
+                    "key_bool_string_FALSE" => false,
                 ],
-                "expected_msg" => ["key_bool_str_FALSE" => "key_bool_str_FALSE must be strictly equal to string(FALSE)"]
+                "expected_msg" => ["key_bool_string_FALSE" => "key_bool_string_FALSE must be strictly equal to string(FALSE)"]
             ],
-            "Invalid_key_bool_str_FALSE_1" => [
+            "Invalid_key_bool_string_FALSE_1" => [
                 "data" => [
-                    "key_bool_str_FALSE" => "false",
+                    "key_bool_string_FALSE" => "false",
                 ],
-                "expected_msg" => ["key_bool_str_FALSE" => "key_bool_str_FALSE must be strictly equal to string(FALSE)"]
+                "expected_msg" => ["key_bool_string_FALSE" => "key_bool_string_FALSE must be strictly equal to string(FALSE)"]
             ],
         ];
 
@@ -243,8 +240,8 @@ trait TestRuleDefaultDeprecated
             "key_float_str" => "optional|!==[\"1.1\"]|not_strictly_equal['1.1']",
             "key_bool_true" => "optional|!==[TRUE]|not_strictly_equal[true]",
             "key_bool_false" => "optional|!==[FALSE]|not_strictly_equal[false]",
-            "key_bool_str_true" => "optional|!==[\"true\"]|not_strictly_equal['true']",
-            "key_bool_str_FALSE" => "optional|!==[\"FALSE\"]|not_strictly_equal['FALSE']",
+            "key_bool_string_true" => "optional|!==[\"true\"]|not_strictly_equal['true']",
+            "key_bool_string_FALSE" => "optional|!==[\"FALSE\"]|not_strictly_equal['FALSE']",
         ];
 
         $cases = [
@@ -256,8 +253,8 @@ trait TestRuleDefaultDeprecated
                     "key_float_str" => 1.1,
                     "key_bool_true" => "true",
                     "key_bool_false" => "FALSE",
-                    "key_bool_str_true" => true,
-                    "key_bool_str_FALSE" => FALSE,
+                    "key_bool_string_true" => true,
+                    "key_bool_string_FALSE" => FALSE,
                 ]
             ],
             "Valid_data_2" => [
@@ -268,8 +265,8 @@ trait TestRuleDefaultDeprecated
                     "key_float_str" => 1.10,
                     "key_bool_true" => "TRUE",
                     "key_bool_false" => 0,
-                    "key_bool_str_true" => 1,
-                    "key_bool_str_FALSE" => "",
+                    "key_bool_string_true" => 1,
+                    "key_bool_string_FALSE" => "",
                 ]
             ],
         ];
@@ -498,7 +495,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_between()
     {
         $rule = [
-            "id" => "<>[1,10]|between[1,10]",
+            "id" => "><[1,10]|between[1,10]",
         ];
 
         $cases = [
@@ -541,7 +538,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "<>",
+            "error_tag" => "><",
             "field_path" => "id",
             "parameters" => [
                 "1",
@@ -559,7 +556,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_greater_lessequal()
     {
         $rule = [
-            "id" => "<=>[1,10]|greater_lessequal[1,10]",
+            "id" => "><=[1,10]|greater_lessequal[1,10]",
         ];
 
         $cases = [
@@ -607,7 +604,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "<=>",
+            "error_tag" => "><=",
             "field_path" => "id",
             "parameters" => [
                 "1",
@@ -625,7 +622,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_greaterequal_less()
     {
         $rule = [
-            "id" => "<>=[1,10]|greaterequal_less[1,10]",
+            "id" => ">=<[1,10]|greaterequal_less[1,10]",
         ];
 
         $cases = [
@@ -673,7 +670,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "<>=",
+            "error_tag" => ">=<",
             "field_path" => "id",
             "parameters" => [
                 "1",
@@ -691,7 +688,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_greaterequal_lessequal()
     {
         $rule = [
-            "id" => "<=>=[1,10]|greaterequal_lessequal[1,10]",
+            "id" => ">=<=[1,10]|greaterequal_lessequal[1,10]",
         ];
 
         $cases = [
@@ -739,7 +736,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "<=>=",
+            "error_tag" => ">=<=",
             "field_path" => "id",
             "parameters" => [
                 "1",
@@ -757,7 +754,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_in_number_array()
     {
         $rule = [
-            "id" => "(n)[1,2,3]|in_number_array[1,2]",
+            "id" => "<number>[1,2,3]|in_number_array[1,2]",
         ];
 
         $cases = [
@@ -812,7 +809,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "(n)",
+            "error_tag" => "<number>",
             "field_path" => "id",
             "parameters" => [
                 "1,2,3"
@@ -829,7 +826,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_not_in_number_array()
     {
         $rule = [
-            "id" => "!(n)[1,2]|not_in_number_array[1,2,3]",
+            "id" => "!<number>[1,2]|not_in_number_array[1,2,3]",
         ];
 
         $cases = [
@@ -897,7 +894,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "!(n)",
+            "error_tag" => "!<number>",
             "field_path" => "id",
             "parameters" => [
                 "1,2,3"
@@ -914,7 +911,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_in_string_array()
     {
         $rule = [
-            "id" => "(s)[1,2,3]|in_string_array[1,2]",
+            "id" => "<string>[1,2,3]|in_string_array[1,2]",
         ];
 
         $cases = [
@@ -956,7 +953,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "(s)",
+            "error_tag" => "<string>",
             "field_path" => "id",
             "parameters" => [
                 "1,2,3"
@@ -973,7 +970,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_not_in_string_array()
     {
         $rule = [
-            "id" => "!(s)[1,2]|not_in_string_array[1,2,3]",
+            "id" => "!<string>[1,2]|not_in_string_array[1,2,3]",
         ];
 
         $cases = [
@@ -1023,7 +1020,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "!(s)",
+            "error_tag" => "!<string>",
             "field_path" => "id",
             "parameters" => [
                 "1,2,3"
@@ -1040,7 +1037,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_equal()
     {
         $rule = [
-            "text" => "len=[3]|length_equal[3]",
+            "text" => "length=[3]|length_equal[3]",
         ];
 
         $cases = [
@@ -1083,7 +1080,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len=",
+            "error_tag" => "length=",
             "field_path" => "text",
             "parameters" => [
                 "3"
@@ -1100,7 +1097,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_not_equal()
     {
         $rule = [
-            "text" => "len!=[3]|length_not_equal[3]",
+            "text" => "length!=[3]|length_not_equal[3]",
         ];
 
         $cases = [
@@ -1143,7 +1140,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len!=",
+            "error_tag" => "length!=",
             "field_path" => "text",
             "parameters" => [
                 "3"
@@ -1160,7 +1157,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_greater_than()
     {
         $rule = [
-            "text" => "len>[3]|length_greater_than[3]",
+            "text" => "length>[3]|length_greater_than[3]",
         ];
 
         $cases = [
@@ -1213,7 +1210,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len>",
+            "error_tag" => "length>",
             "field_path" => "text",
             "parameters" => [
                 "3"
@@ -1230,7 +1227,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_less_than()
     {
         $rule = [
-            "text" => "len<[3]|length_less_than[3]",
+            "text" => "length<[3]|length_less_than[3]",
         ];
 
         $cases = [
@@ -1283,7 +1280,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len<",
+            "error_tag" => "length<",
             "field_path" => "text",
             "parameters" => [
                 "3"
@@ -1300,7 +1297,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_greater_than_equal()
     {
         $rule = [
-            "text" => "len>=[3]|length_greater_than_equal[3]",
+            "text" => "length>=[3]|length_greater_than_equal[3]",
         ];
 
         $cases = [
@@ -1358,7 +1355,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len>=",
+            "error_tag" => "length>=",
             "field_path" => "text",
             "parameters" => [
                 "3"
@@ -1375,7 +1372,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_less_than_equal()
     {
         $rule = [
-            "text" => "len<=[3]|length_less_than_equal[3]",
+            "text" => "length<=[3]|length_less_than_equal[3]",
         ];
 
         $cases = [
@@ -1428,7 +1425,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len<=",
+            "error_tag" => "length<=",
             "field_path" => "text",
             "parameters" => [
                 "3"
@@ -1445,7 +1442,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_between()
     {
         $rule = [
-            "text" => "len<>[1,10]|length_between[1,10]",
+            "text" => "length><[1,10]|length_between[1,10]",
         ];
 
         $cases = [
@@ -1523,7 +1520,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len<>",
+            "error_tag" => "length><",
             "field_path" => "text",
             "parameters" => [
                 "1",
@@ -1541,7 +1538,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_greater_lessequal()
     {
         $rule = [
-            "text" => "len<=>[1,10]|length_greater_lessequal[1,10]",
+            "text" => "length><=[1,10]|length_greater_lessequal[1,10]",
         ];
 
         $cases = [
@@ -1619,7 +1616,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len<=>",
+            "error_tag" => "length><=",
             "field_path" => "text",
             "parameters" => [
                 "1",
@@ -1637,7 +1634,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_greaterequal_less()
     {
         $rule = [
-            "text" => "len<>=[1,10]|length_greaterequal_less[1,10]",
+            "text" => "length>=<[1,10]|length_greaterequal_less[1,10]",
         ];
 
         $cases = [
@@ -1715,7 +1712,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len<>=",
+            "error_tag" => "length>=<",
             "field_path" => "text",
             "parameters" => [
                 "1",
@@ -1733,7 +1730,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_length_greaterequal_lessequal()
     {
         $rule = [
-            "text" => "len<=>=[1,10]|length_greaterequal_lessequal[1,10]",
+            "text" => "length>=<=[1,10]|length_greaterequal_lessequal[1,10]",
         ];
 
         $cases = [
@@ -1816,7 +1813,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "len<=>=",
+            "error_tag" => "length>=<=",
             "field_path" => "text",
             "parameters" => [
                 "1",
@@ -2030,7 +2027,7 @@ trait TestRuleDefaultDeprecated
     protected function test_method_is_array()
     {
         $rule = [
-            "id" => "arr|is_array",
+            "id" => "array|is_array",
         ];
 
         $cases = [
@@ -2083,7 +2080,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "arr",
+            "error_tag" => "array",
             "field_path" => "id",
         ];
 
@@ -2156,10 +2153,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_bool_str()
+    protected function test_method_bool_string()
     {
         $rule = [
-            "id" => "bool_str",
+            "id" => "bool_string",
         ];
 
         $cases = [
@@ -2217,7 +2214,7 @@ trait TestRuleDefaultDeprecated
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "bool_str",
+            "error_tag" => "bool_string",
             "field_path" => "id",
         ];
 

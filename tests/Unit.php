@@ -1,8 +1,8 @@
 <?php
 
-namespace githusband\Test;
+namespace githusband\Tests;
 
-use githusband\Test\Rule\TestRuleDefaultDeprecated;
+use githusband\Tests\Rule\TestRuleDefault;
 
 /**
  * 1. How to add a new unit test case?
@@ -34,19 +34,16 @@ use githusband\Test\Rule\TestRuleDefaultDeprecated;
  *          }
  *      },
  *      "extra": {
- *          "method_name": "githusband\Test\Unit::test_xxx",
+ *          "method_name": "githusband\Tests\Unit::test_xxx",
  *      }
  *  }
  */
 
 use githusband\Validation;
-use githusband\Test\TestCommon;
-use githusband\Test\Extend\MyValidation;
+use githusband\Tests\TestCommon;
+use githusband\Tests\Extend\MyValidation;
 
-/**
- * @deprecated 2.3.1
- */
-class UnitDeprecated extends TestCommon
+class Unit extends TestCommon
 {
     /**
      * @var Validation
@@ -96,29 +93,6 @@ class UnitDeprecated extends TestCommon
         return $this->get_unit_result();
     }
 
-    protected function run_method($method_name = '', $is_performance = false)
-    {
-        $this->write_log(static::LOG_LEVEL_INFO, "# Test PHP v" . PHP_VERSION . "\n");
-        if (!empty($method_name)) {
-            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute test case of method {$method_name}:\n");
-            $result = $this->execute_tests($method_name);
-        } else {
-            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute all the test cases:\n");
-            $class_methods = get_class_methods($this);
-
-            foreach ($class_methods as $method_name) {
-                if (preg_match('/^test_.*/', $method_name)) {
-                    if ($is_performance && $method_name == 'test_exception') continue;
-
-                    $result = $this->execute_tests($method_name);
-                    if (!$result) break;
-                }
-            }
-        }
-
-        return $result;
-    }
-
     /**
      * Performance testing
      *
@@ -141,6 +115,29 @@ class UnitDeprecated extends TestCommon
         return $this->get_unit_result();
     }
 
+    protected function run_method($method_name = '', $is_performance = false)
+    {
+        $this->write_log(static::LOG_LEVEL_INFO, "# Test PHP v" . PHP_VERSION . "\n");
+        if (!empty($method_name)) {
+            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute test case of method {$method_name}:\n");
+            $result = $this->execute_tests($method_name);
+        } else {
+            $this->write_log(static::LOG_LEVEL_DEBUG, "Start execute all the test cases:\n");
+            $class_methods = get_class_methods($this);
+
+            foreach ($class_methods as $method_name) {
+                if (preg_match('/^test_.*/', $method_name)) {
+                    if (!$this->check_test_method($method_name, $is_performance)) continue;
+
+                    $result = $this->execute_tests($method_name);
+                    if (!$result) break;
+                }
+            }
+        }
+
+        return $result;
+    }
+
     protected function run_performance($times = 100, $method_name = '') {
         $start_time = (int) (microtime(true) * 1000);
         $start_datetime = date('Y-m-d H:i:s', floor($start_time / 1000));
@@ -161,6 +158,24 @@ class UnitDeprecated extends TestCommon
         $this->write_log(static::LOG_LEVEL_WARN, "#######################################################\n");
 
         return $spent_time;
+    }
+
+    protected function check_test_method($method_name, $is_performance)
+    {
+        /**
+         * When running performance test, we can not run test_exception and test_strict
+         * Because the non-strict mode can not parse the parameters.
+         * After we remove the non-strict mode, we will remove its performance testing and remove this checking
+         */
+        if ($is_performance) {
+            if (
+                strpos($method_name, 'test_exception') === 0
+                || strpos($method_name, 'test_strict') === 0
+            ) {
+                return false;
+            }
+        }
+         return true;
     }
 
     /**
@@ -801,7 +816,7 @@ class UnitDeprecated extends TestCommon
     protected function test_if_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             "name_1" => "if(<(@id,5))|required|string|/^\d+.*/",
             "name_0" => "!if(<(@id,5))|required|string|/^\d+.*/",
         ];
@@ -878,7 +893,7 @@ class UnitDeprecated extends TestCommon
     protected function test_required_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             "name_1" => "required:when(<(@id,5))|string|/^\d+.*/",
             "name_*_1" => "*:?(<(@id,5))|string|/^\d+.*/ >> {\"required:when\": \"@this can not be empty when id < 5\"}",
             "name_0" => "required:when_not(<(@id,5))|string|/^\d+.*/",
@@ -1033,7 +1048,7 @@ class UnitDeprecated extends TestCommon
     protected function test_optional_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             "name_1" => "optional:when(>(@id,5))|string|/^\d+.*/",
             "name_*_1" => "O:?(>(@id,5))|string|/^\d+.*/ >> {\"optional:when\": \"@this can be empty when id > 5\"}",
             "name_0" => "optional:when_not(>(@id,5))|string|/^\d+.*/",
@@ -1188,7 +1203,7 @@ class UnitDeprecated extends TestCommon
     protected function test_optional_unset_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
+            "id" => "required|><[0,10]",
             "name_1" => "optional_unset:when(>(@id,5))|string|/^\d+.*/",
             "name_*_1" => "O!:?(>(@id,5))|string|/^\d+.*/ >> {\"optional_unset:when\": \"@this must be unset or must not be empty if it's set when id > 5. Otherwise it can not be empty\"}",
             "name_0" => "optional_unset:when_not(>(@id,5))|string|/^\d+.*/",
@@ -1368,11 +1383,11 @@ class UnitDeprecated extends TestCommon
     protected function test_regular_expression_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
-            "name_1" => "/^\d+$/:when(<(@id,5))|len>[2]",
-            "name_*_1" => "/^\d+$/:?(<(@id,5))|len>[2] >> {\"preg:when\": \"name_*_1 must be @preg when id < 5\"}",
-            "name_0" => "/^\d+$/:when_not(<(@id,5))|len>[2]",
-            "name_*_0" => "/^\d+$/:!?(<(@id,5))|len>[2] >> {\"preg:when_not\": \"@this must be @preg when id is not less than 5\"}",
+            "id" => "required|><[0,10]",
+            "name_1" => "/^\d+$/:when(<(@id,5))|length>[2]",
+            "name_*_1" => "/^\d+$/:?(<(@id,5))|length>[2] >> {\"preg:when\": \"name_*_1 must be @preg when id < 5\"}",
+            "name_0" => "/^\d+$/:when_not(<(@id,5))|length>[2]",
+            "name_*_0" => "/^\d+$/:!?(<(@id,5))|length>[2] >> {\"preg:when_not\": \"@this must be @preg when id is not less than 5\"}",
         ];
 
         $cases = [
@@ -1497,11 +1512,11 @@ class UnitDeprecated extends TestCommon
     protected function test_method_when_rule()
     {
         $rule = [
-            "id" => "required|<>[0,10]",
-            "name_1" => "len<[5]:when(<(@id,5))|len>[2]",
-            "name_*_1" => "len<[5]:?(<(@id,5))|len>[2] >> {\"len<:when\": \"name_*_1 length must be less than @p1 when id < 5\"}",
-            "name_0" => "len<[5]:when_not(<(@id,5))|len>[2]",
-            "name_*_0" => "len<[5]:!?(<(@id,5))|len>[2] >> {\"len<:when_not\": \"@this length must be less than @p1 when id is not less than 5\"}",
+            "id" => "required|><[0,10]",
+            "name_1" => "length<[5]:when(<(@id,5))|length>[2]",
+            "name_*_1" => "length<[5]:?(<(@id,5))|length>[2] >> {\"length<:when\": \"name_*_1 length must be less than @p1 when id < 5\"}",
+            "name_0" => "length<[5]:when_not(<(@id,5))|length>[2]",
+            "name_*_0" => "length<[5]:!?(<(@id,5))|length>[2] >> {\"length<:when_not\": \"@this length must be less than @p1 when id is not less than 5\"}",
         ];
 
         $cases = [
@@ -1628,7 +1643,7 @@ class UnitDeprecated extends TestCommon
         $rule = [
             "name[or]" => [
                 "required|bool",
-                "required|bool_str",
+                "required|bool_string",
             ],
             "height" => [
                 "[or]" => [
@@ -1689,7 +1704,7 @@ class UnitDeprecated extends TestCommon
         $rule = [
             "name[||]" => [
                 "required|bool",
-                "required|bool_str",
+                "required|bool_string",
             ],
             "height" => [
                 "[||]" => [
@@ -2450,7 +2465,7 @@ class UnitDeprecated extends TestCommon
             "favourite_fruit" => [
                 "fruit_id" => "optional|check_fruit_id(@root)",
                 "fruit_name" => "optional|check_fruit_name(@parent)",
-                "fruit_color" => "optional|check_fruit_color[@fruit_name,@this] >> fruit name(@p0) and color(@p1) is not matched",
+                "fruit_color" => "optional|check_fruit_color[@fruit_name,@this]",
             ]
         ];
 
@@ -2522,7 +2537,7 @@ class UnitDeprecated extends TestCommon
                         "fruit_color" => "yellow",
                     ]
                 ],
-                "expected_msg" => ["favourite_fruit.fruit_color" => "fruit name(apple) and color(yellow) is not matched"]
+                "expected_msg" => ["favourite_fruit.fruit_color" => "favourite_fruit.fruit_color validation failed"]
             ],
         ];
 
@@ -2589,8 +2604,10 @@ class UnitDeprecated extends TestCommon
     protected function test_strict_parameter()
     {
         $rule = [
-            "id" => "optional|(n)[1,\"10\",'100']",
-            "color" => "optional|(s)[red,\"white\",'black']"
+            "id" => "optional|<number>[1,\"10\",'100']",
+            "color" => "optional|<string>[red,\"white\",'black']",
+            "fruit" => "optional|<string>[ apple, \"orange\" ,  'cherry'  , grape ]",
+            "text" => "optional|my_strict_method[100,'1',[1,2,3,{\"a\": \"A\", \"b\": \"B\"}],{\"a\": \"A\", \"b\": [1,3,5]},false,'false','',null,NULL]",
         ];
 
         $cases = [
@@ -2624,10 +2641,70 @@ class UnitDeprecated extends TestCommon
                     "name" => "black"
                 ]
             ],
-            "Valid_data_3" => [
+            "Valid_data_6" => [
                 "data" => [
                     "id" => "100",
                     "name" => "black"
+                ]
+            ],
+            "Valid_data_fruit_1" => [
+                "data" => [
+                    "fruit" => "apple"
+                ]
+            ],
+            "Valid_data_fruit_2" => [
+                "data" => [
+                    "fruit" => "orange"
+                ]
+            ],
+            "Valid_data_fruit_3" => [
+                "data" => [
+                    "fruit" => "cherry"
+                ]
+            ],
+            "Valid_data_fruit_4" => [
+                "data" => [
+                    "fruit" => "grape"
+                ]
+            ],
+            "Valid_data_text_1" => [
+                "data" => [
+                    "text" => "int"
+                ]
+            ],
+            "Valid_data_text_2" => [
+                "data" => [
+                    "text" => "string"
+                ]
+            ],
+            "Valid_data_text_3" => [
+                "data" => [
+                    "text" => "array"
+                ]
+            ],
+            "Valid_data_text_4" => [
+                "data" => [
+                    "text" => "object"
+                ]
+            ],
+            "Valid_data_text_5" => [
+                "data" => [
+                    "text" => "bool"
+                ]
+            ],
+            "Valid_data_text_6" => [
+                "data" => [
+                    "text" => "bool_string"
+                ]
+            ],
+            "Valid_data_text_7" => [
+                "data" => [
+                    "text" => "empty_string"
+                ]
+            ],
+            "Valid_data_text_8" => [
+                "data" => [
+                    "text" => "null"
                 ]
             ],
             "Invalid_1" => [
@@ -2641,12 +2718,40 @@ class UnitDeprecated extends TestCommon
                     "color" => "green",
                 ],
                 "expected_msg" => ["color" => "color must be string and in red,white,black"]
+            ],
+            "Invalid_3" => [
+                "data" => [
+                    "text" => "xxx",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
             ]
         ];
 
         $extra = [
             "method_name" => __METHOD__,
         ];
+
+        $this->validation->add_method("my_strict_method", function ($text, $data_int, $data_string, $data_array, $data_object, $data_bool, $data_bool_string, $data_empty_string, $data_null, $data_NULL) {
+            if ($text == 'int') {
+                return is_int($data_int);
+            } else if ($text == 'string') {
+                return is_string($data_string);
+            } else if ($text == 'array') {
+                return is_array($data_array);
+            } else if ($text == 'object') {
+                return is_object($data_object);
+            } else if ($text == 'bool') {
+                return is_bool($data_bool);
+            } else if ($text == 'bool_string') {
+                return in_array($data_bool_string, ["true", "false"]);
+            } else if ($text == 'empty_string') {
+                return $data_empty_string === '';
+            } else if ($text == 'null') {
+                return $data_null === null && $data_NULL === null;
+            } else {
+                return false;
+            }
+        });
 
         return $method_info = [
             "rule" => $rule,
@@ -2721,7 +2826,7 @@ class UnitDeprecated extends TestCommon
                 "data" => [
                     "name" => "Devin",
                 ],
-                "expected_msg" => '@field:name, @method:php_exception_name - Undefined constant "githusband\\Test\\UNDEFINED_VAR"'
+                "expected_msg" => '@field:name, @method:php_exception_name - Undefined constant "githusband\\Tests\\UNDEFINED_VAR"'
             ],
             "Exception_add_2" => [
                 "data" => [
@@ -2785,6 +2890,256 @@ class UnitDeprecated extends TestCommon
         $this->validation->add_method("php_exception_fruit_id", function ($fruit_id) {
             throw new \Exception("fruit id is not valid");
         });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_1()
+    {
+        $rule = [
+            "id" => "optional||int",
+        ];
+
+        $cases = [
+            "Exception_ruleset_1" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:optional||int - Invalid Ruleset: Contiguous separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_2()
+    {
+        $rule = [
+            "id" => "optional| |int",
+        ];
+
+        $cases = [
+            "Exception_ruleset_2" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:optional| |int - Invalid Ruleset: Contiguous separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_3()
+    {
+        $rule = [
+            "id" => "optional|int|",
+        ];
+
+        $cases = [
+            "Exception_ruleset_3" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:optional|int| - Invalid Ruleset: Endding separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_4()
+    {
+        $rule = [
+            "id" => "optional|int|  ",
+        ];
+
+        $cases = [
+            "Exception_ruleset_4" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:optional|int|   - Invalid Ruleset: Endding separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_5()
+    {
+        $rule = [
+            "id" => "optional|/^[a-z|\|\/]+$/ | ",
+        ];
+
+        $cases = [
+            "Exception_ruleset_5" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:optional|/^[a-z|\\|\\/]+$/ |  - Invalid Ruleset: Endding separator'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_6()
+    {
+        $rule = [
+            "id" => "",
+        ];
+
+        $cases = [
+            "Exception_ruleset_6" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:NotSet - Invalid Ruleset: Empty'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_7()
+    {
+        $rule = [
+            "id" => "   ",
+        ];
+
+        $cases = [
+            "Exception_ruleset_7" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:    - Invalid Ruleset: Empty'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter()
+    {
+        $rule = [
+            "parameter_1" => "optional|my_method[1, 2,,3]",
+            "parameter_2" => "optional|my_method[1, 2, ,3]",
+            "parameter_3" => "optional|my_method[1, 2, 3,]",
+            "parameter_4" => "optional|my_method[]",
+            "parameter_5" => "optional|=['']",
+            "parameter_type_json_1" => "optional|my_method[1, [1,2,[,3]",
+            "parameter_type_json_2" => "optional|my_method[1, {\"a\": {\"A\"}]",
+        ];
+
+        $cases = [
+            "Exception_parameter_1" => [
+                "data" => [
+                    "parameter_1" => 1,
+                ],
+                "expected_msg" => '@field:parameter_1, @rule:my_method[1, 2,,3] - Invalid Parameter: Contiguous separator'
+            ],
+            "Exception_parameter_2" => [
+                "data" => [
+                    "parameter_2" => 1,
+                ],
+                "expected_msg" => '@field:parameter_2, @rule:my_method[1, 2, ,3] - Invalid Parameter: Contiguous separator'
+            ],
+            "Exception_parameter_3" => [
+                "data" => [
+                    "parameter_3" => 1,
+                ],
+                "expected_msg" => '@field:parameter_3, @rule:my_method[1, 2, 3,] - Invalid Parameter: Endding separator'
+            ],
+            "Exception_parameter_4" => [
+                "data" => [
+                    "parameter_4" => 1,
+                ],
+                "expected_msg" => '@field:parameter_4, @rule:my_method[] - Invalid Parameter: Empty'
+            ],
+            "Invalid_parameter_5" => [
+                "data" => [
+                    "parameter_5" => 1,
+                ],
+                "expected_msg" => ["parameter_5" => "parameter_5 must be equal to "]
+            ],
+            "Exception_parameter_type_json_1" => [
+                "data" => [
+                    "parameter_type_json_1" => 1,
+                ],
+                "expected_msg" => '@field:parameter_type_json_1, @rule:my_method[1, [1,2,[,3] - Invalid Parameter: Unclosed [ or {'
+            ],
+            "Exception_parameter_type_json_2" => [
+                "data" => [
+                    "parameter_type_json_2" => 1,
+                ],
+                "expected_msg" => '@field:parameter_type_json_2, @rule:my_method[1, {"a": {"A"}] - Invalid Parameter: Unclosed [ or {'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
 
         return $method_info = [
             "rule" => $rule,
@@ -3002,7 +3357,7 @@ class UnitDeprecated extends TestCommon
     protected function test_temporary_err_msg_ruleset()
     {
         $rule = [
-            "id" => "required|<=>=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
+            "id" => "required|>=<=[1,100] >> Users define - @this should not be >= @p1 and <= @p2",
             "name" => "required|string >> Users define - @this should not be empty and must be string",
         ];
 
@@ -3036,10 +3391,10 @@ class UnitDeprecated extends TestCommon
     protected function test_temporary_err_msg_user_json()
     {
         $rule = [
-            "id" => 'required|/^\d+$/|<=>=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
+            "id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
             "name" => 'optional_unset|string >> { "optional_unset": "Users define - @this should be unset or not be empty", "string": "Users define - Note! @this should be string"}',
-            "age" => 'optional|<=>=[1,60]|check_err_field >> { "<=>=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
-            "key" => 'optional|<=>=[1,60]|check_err_field >> @this is not correct',
+            "age" => 'optional|>=<=[1,60]|check_err_field >> { ">=<=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
+            "key" => 'optional|>=<=[1,60]|check_err_field >> @this is not correct',
         ];
 
         $cases = [
@@ -3193,10 +3548,10 @@ class UnitDeprecated extends TestCommon
     protected function test_temporary_err_msg_user_gh_string()
     {
         $rule = [
-            "id" => "required|/^\d+$/|<=>=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
+            "id" => "required|/^\d+$/|>=<=[1,100] >> [required]=> Users define - @this is required [preg]=> Users define - @this should be \"MATCHED\" @preg",
             "name" => "optional_unset|string >> [optional_unset] => Users define - @this should be unset or not be empty [string]=> Users define - Note! @this should be string",
-            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
-            "key" => 'optional|<=>=[1,60]|check_err_field >> @this is not correct',
+            "age" => "optional|>=<=[1,60]|check_err_field >> [>=<=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
+            "key" => 'optional|>=<=[1,60]|check_err_field >> @this is not correct',
         ];
 
         $cases = [
@@ -3351,7 +3706,7 @@ class UnitDeprecated extends TestCommon
     {
         $rule = [
             "id" => [
-                "required|/^\d+$/|<=>=[1,100]",
+                "required|/^\d+$/|>=<=[1,100]",
                 "error_message" => [
                     "required" => "Users define - @this is required",
                     "preg" => "Users define - @this should be \"MATCHED\" @preg"
@@ -3364,16 +3719,15 @@ class UnitDeprecated extends TestCommon
                     "string" => "Users define - Note! @this should be string"
                 ]
             ],
-            "age" => "optional|<=>=[1,60]|check_err_field >> [<=>=]=> Users define - @this is not allowed. [check_err_field]=> Users define - @this is not passed.",
             "age" => [
-                "optional|<=>=[1,60]|check_err_field",
+                "optional|>=<=[1,60]|check_err_field",
                 "error_message" => [
-                    "<=>=" => "Users define - @this is not allowed.",
+                    ">=<=" => "Users define - @this is not allowed.",
                     "check_err_field" => "Users define - @this is not passed."
                 ]
             ],
             "key" => [
-                "optional|<=>=[1,60]|check_err_field",
+                "optional|>=<=[1,60]|check_err_field",
                 "error_message" => [
                     "whole_ruleset" => "@this is not correct",
                 ]
@@ -3528,125 +3882,170 @@ class UnitDeprecated extends TestCommon
         ];
     }
 
-    protected function test_temporary_err_msg_complex()
+    protected function test_temporary_err_msg_format()
     {
         $rule = [
-            "id" => "required|check_err_field",
-            "number" => "required|check_err_field >> @this error!",
+            "id" => 'required|/^\d+$/|>=<=[1,100] >> { "required": "Users define - @this is required", "preg": "Users define - @this should be \"MATCHED\" @preg"}',
+            "age" => 'optional|>=<=[1,60]|check_err_field >> { ">=<=": "Users define - @this is not allowed.", "check_err_field": "Users define - @this is not passed."}',
+            "key" => 'optional|>=<=[1,60]|check_err_field >> @this is not correct',
         ];
 
         $cases = [
-            "Valid_data" => [
+            "Invalid_id_1" => [
                 "data" => [
-                    "id" => 100,
-                    "number" => 100,
-                ]
-            ],
-            "Invalid_data_1" => [
-                "data" => [
-                    "id" => 1
+                    "name" => "devin"
                 ],
                 "expected_msg" => [
                     "id" => [
-                        "error_type" => "validation",
-                        "message" => "id validation failed",
+                        "error_type" => "required",
+                        "message" => "Users define - id is required"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_2" => [
+            "Invalid_id_2" => [
                 "data" => [
-                    "id" => 11
+                    "id" => "devin"
                 ],
                 "expected_msg" => [
                     "id" => [
                         "error_type" => "validation",
-                        "message" => "id: check_err_field error. [10, 20]",
+                        "message" => "Users define - id should be \"MATCHED\" /^\\d+$/"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_3" => [
+            "Invalid_age_1" => [
                 "data" => [
-                    "id" => 21
+                    "id" => 1,
+                    "age" => 9
                 ],
                 "expected_msg" => [
-                    "id" => [
+                    "age" => [
+                        "error_type" => "validation",
+                        "message" => "Users define - age is not passed."
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_2" => [
+                "data" => [
+                    "id" => 1,
+                    "age" => 19
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "validation",
+                        "message" => "id: check_err_field error. [10, 20]"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_3" => [
+                "data" => [
+                    "id" => 1,
+                    "age" => 29
+                ],
+                "expected_msg" => [
+                    "age" => [
                         "error_type" => "3",
-                        "message" => "id: check_err_field error. [20, 30]",
+                        "message" => "age: check_err_field error. [20, 30]"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_4" => [
+            "Invalid_age_4" => [
                 "data" => [
-                    "id" => 31
+                    "id" => 1,
+                    "age" => 39
                 ],
                 "expected_msg" => [
-                    "id" => [
+                    "age" => [
                         "error_type" => "4",
-                        "message" => "id: check_err_field error. [30, 40]",
+                        "message" => "age: check_err_field error. [30, 40]",
                         "extra" => "It should be greater than 40"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_5" => [
+            "Invalid_key_1" => [
                 "data" => [
-                    "id" => 41,
-                    "number" => 11
+                    "id" => 1,
+                    "key" => 9
                 ],
                 "expected_msg" => [
-                    "number" => [
+                    "key" => [
                         "error_type" => "validation",
-                        "message" => "number error!",
+                        "message" => "key is not correct"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
-            "Invalid_data_6" => [
+            "Invalid_key_2" => [
                 "data" => [
-                    "id" => 41,
-                    "number" => 31
+                    "id" => 1,
+                    "key" => 19
                 ],
                 "expected_msg" => [
-                    "number" => [
+                    "key" => [
+                        "error_type" => "validation",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_3" => [
+                "data" => [
+                    "id" => 1,
+                    "key" => 29
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "3",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_4" => [
+                "data" => [
+                    "id" => 1,
+                    "key" => 39
+                ],
+                "expected_msg" => [
+                    "key" => [
                         "error_type" => "4",
-                        "message" => "number error!",
+                        "message" => "key is not correct",
                         "extra" => "It should be greater than 40"
                     ]
                 ],
                 "error_msg_format" => [
                     "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
-                    // "nested" => true,
-                    // "general" => false,
                 ]
             ],
         ];
 
         $extra = [
             "method_name" => __METHOD__,
-            "field_path" => "name",
+            "field_path" => "id"
         ];
 
         $this->validation->add_method("check_err_field", function ($data) {
@@ -3669,6 +4068,205 @@ class UnitDeprecated extends TestCommon
 
             return true;
         });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_return_err_msg_tag()
+    {
+        $lang_config = (object)[];
+        $lang_config->error_templates = [
+            'method_return_tag' => '@this is not passed.',
+            'method_return_tag:20' => 'id: method_return_tag error. [10, 20]',
+            'method_return_tag:30' => '@this: method_return_tag error. [20, 30]',
+            'method_return_tag:40' => '@this: method_return_tag error. [30, 40]',
+        ];
+        $this->validation->custom_language($lang_config);
+
+        $rule = [
+            "age" => 'optional|method_return_tag >> { "method_return_tag": "Users define - @this is not passed."}',
+            "key" => 'optional|method_return_tag >> @this is not correct',
+        ];
+
+        $cases = [
+            "Invalid_age_1" => [
+                "data" => [
+                    "age" => 9
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "validation",
+                        "message" => "Users define - age is not passed."
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_2" => [
+                "data" => [
+                    "age" => 19
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "validation",
+                        "message" => "id: method_return_tag error. [10, 20]"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_3" => [
+                "data" => [
+                    "age" => 29
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "3",
+                        "message" => "age: method_return_tag error. [20, 30]"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_age_4" => [
+                "data" => [
+                    "age" => 39
+                ],
+                "expected_msg" => [
+                    "age" => [
+                        "error_type" => "4",
+                        "message" => "age: method_return_tag error. [30, 40]",
+                        "extra" => "It should be greater than 40"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_1" => [
+                "data" => [
+                    "key" => 9
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "validation",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_2" => [
+                "data" => [
+                    "key" => 19
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "validation",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_3" => [
+                "data" => [
+                    "key" => 29
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "3",
+                        "message" => "key is not correct"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+            "Invalid_key_4" => [
+                "data" => [
+                    "key" => 39
+                ],
+                "expected_msg" => [
+                    "key" => [
+                        "error_type" => "4",
+                        "message" => "key is not correct",
+                        "extra" => "It should be greater than 40"
+                    ]
+                ],
+                "error_msg_format" => [
+                    "format" => Validation::ERROR_FORMAT_NESTED_DETAILED,
+                ]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "field_path" => "id"
+        ];
+
+        $this->validation->add_method("method_return_tag", function ($data) {
+            if ($data < 10) {
+                return false;
+            } else if ($data < 20) {
+                return "TAG:method_return_tag:20";
+            } else if ($data < 30) {
+                return [
+                    "error_type" => "3",
+                    "message" => "TAG:method_return_tag:30",
+                ];
+            } else if ($data <= 40) {
+                return [
+                    "error_type" => "4",
+                    "message" => "TAG:method_return_tag:40",
+                    "extra" => "It should be greater than 40"
+                ];
+            }
+
+            return true;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_error_template_for_method()
+    {
+        $rule = [
+            "age" => 'optional|>[10] >> { ">": "Symbol - @this is not validated by method \'@method\'", "greater_than": "Method - @this is not validated by method \'@method\'"}',
+            "key" => 'optional|greater_than[10] >> { ">": "Symbol - @this is not validated by method \'@method\'", "greater_than": "Method - @this is not validated by method \'@method\'" }',
+        ];
+
+        $cases = [
+            "Invalid_age_1" => [
+                "data" => [
+                    "age" => 9
+                ],
+                "expected_msg" => [ "age" => "Symbol - age is not validated by method '>'" ],
+            ],
+            "Invalid_key_1" => [
+                "data" => [
+                    "key" => 9
+                ],
+                "expected_msg" => [ "key" => "Method - key is not validated by method 'greater_than'" ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
 
         return $method_info = [
             "rule" => $rule,
@@ -3794,33 +4392,33 @@ class UnitDeprecated extends TestCommon
     {
         $rule = [
             "id" => "required|int|/^\d+$/",
-            "name" => "required|string|len<=>[8,32]",
-            "gender" => "required|(s)[male,female]",
+            "name" => "required|string|length><=[8,32]",
+            "gender" => "required|<string>[male,female]",
             "dob" => "required|dob",
             "age" => "required|check_age[@gender,30] >> @this is wrong",
-            "height_unit" => "required|(s)[cm,m]",
+            "height_unit" => "required|<string>[cm,m]",
             "height[or]" => [
-                "required|=(@height_unit,cm)|<=>=[100,200] >> @this should be in [100,200] when height_unit is cm",
-                "required|=(@height_unit,m)|<=>=[1,2] >> @this should be in [1,2] when height_unit is m",
+                "required|=(@height_unit,cm)|>=<=[100,200] >> @this should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|>=<=[1,2] >> @this should be in [1,2] when height_unit is m",
             ],
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|len>[10]",
-                "university" => "!if(=(@junior_middle_school,Qiankeng Zhongxue))|required|len>[10]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[10]",
+                "university" => "!if(=(@junior_middle_school,Qiankeng Zhongxue))|required|length>[10]",
             ],
             "company" => [
-                "name" => "required|len<=>[8,64]",
-                "country" => "optional|len>=[3]",
-                "addr" => "required|len>[16]",
+                "name" => "required|length><=[8,64]",
+                "country" => "optional|length>=[3]",
+                "addr" => "required|length>[16]",
                 "colleagues.*" => [
-                    "name" => "required|string|len<=>[3,32]",
-                    "position" => "required|(s)[Reception,Financial,PHP,JAVA]"
+                    "name" => "required|string|length><=[3,32]",
+                    "position" => "required|<string>[Reception,Financial,PHP,JAVA]"
                 ],
                 "boss" => [
                     "required|=[Mike]",
-                    "required|(s)[Johnny,David]",
-                    "optional|(s)[Johnny,David]"
+                    "required|<string>[Johnny,David]",
+                    "optional|<string>[Johnny,David]"
                 ]
             ],
             "favourite_food[optional].*" => [
@@ -4026,33 +4624,33 @@ class UnitDeprecated extends TestCommon
 
         $rule = [
             "id" => "!*&&int&&Reg:/^\d+$/i",
-            "name" => "!*&&string&&len<=>~8,32",
-            "gender" => "!*&&(s)~male,female",
+            "name" => "!*&&string&&length><=~8,32",
+            "gender" => "!*&&<string>~male,female",
             "dob" => "!*&&dob",
             "age" => "!*&&check_age~@gender,30 >>>@this is wrong",
-            "height_unit" => "!*&&(s)~cm,m",
+            "height_unit" => "!*&&<string>~cm,m",
             "height[or]" => [
-                "!*&&=~~@height_unit,cm&&<=>=~100,200 >>>@this should be in [100,200] when height_unit is cm",
-                "!*&&=~~@height_unit,m&&<=>=~1,2 >>>@this should be in [1,2] when height_unit is m",
+                "!*&&=~~@height_unit,cm&&>=<=~100,200 >>>@this should be in [100,200] when height_unit is cm",
+                "!*&&=~~@height_unit,m&&>=<=~1,2 >>>@this should be in [1,2] when height_unit is m",
             ],
             "education" => [
                 "primary_school" => "!*&&=~Qiankeng Xiaoxue",
                 "junior_middle_school" => "!*&&!=~Foshan Zhongxue",
-                "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&len>~10",
-                "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&len>~10",
+                "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&length>~10",
+                "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&length>~10",
             ],
             "company" => [
-                "name" => "!*&&len<=>~8,64",
-                "country" => "o&&len>=~3",
-                "addr" => "!*&&len>~16",
+                "name" => "!*&&length><=~8,64",
+                "country" => "o&&length>=~3",
+                "addr" => "!*&&length>~16",
                 "colleagues[N]" => [
-                    "name" => "!*&&string&&len<=>~3,32",
-                    "position" => "!*&&(s)~Reception,Financial,PHP,JAVA"
+                    "name" => "!*&&string&&length><=~3,32",
+                    "position" => "!*&&<string>~Reception,Financial,PHP,JAVA"
                 ],
                 "boss" => [
                     "!*&&=~Mike",
-                    "!*&&(s)~Johnny,David",
-                    "o&&(s)~Johnny,David"
+                    "!*&&<string>~Johnny,David",
+                    "o&&<string>~Johnny,David"
                 ]
             ],
             "favourite_food[o][N]" => [
@@ -4356,5 +4954,5 @@ class UnitDeprecated extends TestCommon
         ];
     }
 
-    use TestRuleDefaultDeprecated;
+    use TestRuleDefault;
 }

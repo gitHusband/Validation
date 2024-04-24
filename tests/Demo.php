@@ -1,9 +1,9 @@
 <?php
 
-namespace githusband\Test;
+namespace githusband\Tests;
 
 use githusband\Validation;
-use githusband\Test\TestCommon;
+use githusband\Tests\TestCommon;
 
 class Demo extends TestCommon
 {

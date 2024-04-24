@@ -160,7 +160,7 @@ $ composer require githusband/validation
 
 克隆本项目后，请先加载项目的自动加载文件：
 ```BASH
-$ composer dump-autoload
+$ composer dump-autoload --dev
 ```
 
 - **单元测试类**

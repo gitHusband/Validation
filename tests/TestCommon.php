@@ -1,6 +1,6 @@
 <?php
 
-namespace githusband\Test;
+namespace githusband\Tests;
 
 class TestCommon
 {

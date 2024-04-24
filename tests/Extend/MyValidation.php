@@ -1,9 +1,9 @@
 <?php
 
-namespace githusband\Test\Extend;
+namespace githusband\Tests\Extend;
 
 use githusband\Validation;
-use githusband\Test\Extend\Rule\RuleCustom;
+use githusband\Tests\Extend\Rule\RuleCustom;
 
 /**
  * 2. 拓展类，直接增加验证方法

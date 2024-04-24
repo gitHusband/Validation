@@ -1,6 +1,6 @@
 <?php
 
-namespace githusband\Test\Extend\Rule;
+namespace githusband\Tests\Extend\Rule;
 
 /**
  * 1. 推荐用 trait 拓展验证方法

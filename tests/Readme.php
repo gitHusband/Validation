@@ -1,10 +1,10 @@
 <?php
 
-namespace githusband\Test;
+namespace githusband\Tests;
 
 use githusband\Validation;
-use githusband\Test\TestCommon;
-use githusband\Test\Extend\MyValidation;
+use githusband\Tests\TestCommon;
+use githusband\Tests\Extend\MyValidation;
 
 class Readme extends TestCommon
 {
