@@ -2457,6 +2457,64 @@ class Unit extends TestCommon
         ];
     }
 
+    protected function test_backslash()
+    {
+        $rule = [
+            "text" => "required|/^[\w !,\|\\\\]+$/|check_backslash[Hello World!,Hi\, Devin]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "Hello World!",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "Hi, Devin",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "Hello World",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => "Hi\, Devin",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => "Hi",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        $this->validation->add_method("check_backslash", function ($data, $param1, $param2) {
+            if ($data === $param1) {
+                return true;
+            } else if ($data === $param2) {
+                return true;
+            }
+
+            return false;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_method_and_parameter()
     {
         $rule = [

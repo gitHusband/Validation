@@ -1672,9 +1672,8 @@ class Validation
             }
 
             // \ 是转义字符，在它之后的任意一个字符，都不能被当做是参数分隔符
-            // 例如：\,
+            // 例如：`\,` 表示字符串 `,`
             if ($char === '\\') {
-                $current_parameter .= $char;
                 $current_parameter .= $parameter[$i + 1];
                 $i++;
                 continue;
