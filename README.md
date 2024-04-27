@@ -1039,6 +1039,20 @@ function check_animal($animal) {
 / | `file_base64:size` | @this 文件尺寸必须小于 @p2kb
 / | `uuid` | @this 必须是 UUID
 / | `oauth2_grant_type` | @this 必须是合法的 OAuth2 授权类型
+`date` | `is_date` | @this 必须是格式正确的日期
+/ | `date:format:@p1` | @this 必须是日期且格式为 @p1
+/ | `date:format:@p2` | @this 必须是日期且格式为 @p2
+/ | `date:format:@p3` | @this 必须是日期且格式为 @p3
+`date=` | `date_equal` | @this 日期必须等于 @p1
+`date!=` | `date_not_equal` | @this 日期必须不等于 @p1
+`date>` | `date_greater_than` | @this 日期必须大于 @p1
+`date>=` | `date_greater_equal` | @this 日期必须大于等于 @p1
+`date<` | `date_less_than` | @this 日期必须小于 @p1
+`date<=` | `date_less_equal` | @this 日期必须小于等于 @p1
+`date><` | `date_greater_less` | @this 日期必须大于 @p1 且小于 @p2
+`date>=<` | `date_greaterequal_less` | @this 日期必须大于等于 @p1 且小于 @p2
+`date><=` | `date_greater_lessequal` | @this 日期必须大于 @p1 且小于等于 @p2
+`date>=<=` | `date_between` | @this 日期必须在 @p1 和 @p2 之间
 
 </details>
 

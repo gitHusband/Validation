@@ -102,6 +102,14 @@ class ZhCn
         'date:format:@p2' => '@this 必须是日期且格式为 @p2',
         'date:format:@p3' => '@this 必须是日期且格式为 @p3',
         'date=' => '@this 日期必须等于 @p1',
+        'date!=' => '@this 日期必须不等于 @p1',
+        'date>' => '@this 日期必须大于 @p1',
+        'date>=' => '@this 日期必须大于等于 @p1',
+        'date<' => '@this 日期必须小于 @p1',
+        'date<=' => '@this 日期必须小于等于 @p1',
+        'date><' => '@this 日期必须大于 @p1 且小于 @p2',
+        'date>=<' => '@this 日期必须大于等于 @p1 且小于 @p2',
+        'date><=' => '@this 日期必须大于 @p1 且小于等于 @p2',
         'date>=<=' => '@this 日期必须在 @p1 和 @p2 之间',
     ];
 }

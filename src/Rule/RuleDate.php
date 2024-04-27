@@ -11,6 +11,14 @@ trait RuleDate
     protected $method_symbols_of_rule_date = [
         'date' => 'is_date',
         'date=' => 'date_equal',
+        'date!=' => 'date_not_equal',
+        'date>' => 'date_greater_than',
+        'date>=' => 'date_greater_equal',
+        'date<' => 'date_less_than',
+        'date<=' => 'date_less_equal',
+        'date><' => 'date_greater_less',
+        'date><=' => 'date_greater_lessequal',
+        'date>=<' => 'date_greaterequal_less',
         'date>=<=' => 'date_between',
     ];
 
@@ -153,6 +161,164 @@ trait RuleDate
 
         $param_timestamp = static::get_timestamp_of_parameter($param_date, $format);
         return $data_timestamp == $param_timestamp;
+    }
+
+    /**
+     * The field data must be a valid date and not equal to the parameter date
+     *
+     * @param string $data
+     * @param string $param_date
+     * @param string $format
+     * @return bool
+     * @throws MethodException
+     */
+    public static function date_not_equal($data, $param_date, $format = '')
+    {
+        $data_datetime_obj = static::new_datetime_of_data($data, $format, '@p2');
+        if (!($data_datetime_obj instanceof Datetime)) return $data_datetime_obj;
+        $data_timestamp = $data_datetime_obj->getTimestamp();
+
+        $param_timestamp = static::get_timestamp_of_parameter($param_date, $format);
+        return $data_timestamp != $param_timestamp;
+    }
+
+    /**
+     * The field data must be a valid date and greater than the parameter date
+     *
+     * @param string $data
+     * @param string $param_date
+     * @param string $format
+     * @return bool
+     * @throws MethodException
+     */
+    public static function date_greater_than($data, $param_date, $format = '')
+    {
+        $data_datetime_obj = static::new_datetime_of_data($data, $format, '@p2');
+        if (!($data_datetime_obj instanceof Datetime)) return $data_datetime_obj;
+        $data_timestamp = $data_datetime_obj->getTimestamp();
+
+        $param_timestamp = static::get_timestamp_of_parameter($param_date, $format);
+        return $data_timestamp > $param_timestamp;
+    }
+
+    /**
+     * The field data must be a valid date and greater than or equal to the parameter date
+     *
+     * @param string $data
+     * @param string $param_date
+     * @param string $format
+     * @return bool
+     * @throws MethodException
+     */
+    public static function date_greater_equal($data, $param_date, $format = '')
+    {
+        $data_datetime_obj = static::new_datetime_of_data($data, $format, '@p2');
+        if (!($data_datetime_obj instanceof Datetime)) return $data_datetime_obj;
+        $data_timestamp = $data_datetime_obj->getTimestamp();
+
+        $param_timestamp = static::get_timestamp_of_parameter($param_date, $format);
+        return $data_timestamp >= $param_timestamp;
+    }
+
+    /**
+     * The field data must be a valid date and greater than the parameter date
+     *
+     * @param string $data
+     * @param string $param_date
+     * @param string $format
+     * @return bool
+     * @throws MethodException
+     */
+    public static function date_less_than($data, $param_date, $format = '')
+    {
+        $data_datetime_obj = static::new_datetime_of_data($data, $format, '@p2');
+        if (!($data_datetime_obj instanceof Datetime)) return $data_datetime_obj;
+        $data_timestamp = $data_datetime_obj->getTimestamp();
+
+        $param_timestamp = static::get_timestamp_of_parameter($param_date, $format);
+        return $data_timestamp < $param_timestamp;
+    }
+
+    /**
+     * The field data must be a valid date and less than or equal to the parameter date
+     *
+     * @param string $data
+     * @param string $param_date
+     * @param string $format
+     * @return bool
+     * @throws MethodException
+     */
+    public static function date_less_equal($data, $param_date, $format = '')
+    {
+        $data_datetime_obj = static::new_datetime_of_data($data, $format, '@p2');
+        if (!($data_datetime_obj instanceof Datetime)) return $data_datetime_obj;
+        $data_timestamp = $data_datetime_obj->getTimestamp();
+
+        $param_timestamp = static::get_timestamp_of_parameter($param_date, $format);
+        return $data_timestamp <= $param_timestamp;
+    }
+
+    /**
+     * The field data must be a valid date and greater than the start date and less than the end date
+     *
+     * @param string $data
+     * @param string $start_date
+     * @param string $end_date
+     * @param string $format
+     * @return bool|string
+     * @throws MethodException
+     */
+    public static function date_greater_less($data, $start_date, $end_date, $format = '')
+    {
+        $data_datetime_obj = static::new_datetime_of_data($data, $format, '@p3');
+        if (!($data_datetime_obj instanceof Datetime)) return $data_datetime_obj;
+        $data_timestamp = $data_datetime_obj->getTimestamp();
+
+        $start_timestamp = static::get_timestamp_of_parameter($start_date, $format);
+        $end_timestamp = static::get_timestamp_of_parameter($end_date, $format);
+        return $data_timestamp > $start_timestamp && $data_timestamp < $end_timestamp;
+    }
+
+    /**
+     * The field data must be a valid date and greater than or euqal to the start date and less than the end date
+     *
+     * @param string $data
+     * @param string $start_date
+     * @param string $end_date
+     * @param string $format
+     * @return bool|string
+     * @throws MethodException
+     */
+    public static function date_greaterequal_less($data, $start_date, $end_date, $format = '')
+    {
+        $data_datetime_obj = static::new_datetime_of_data($data, $format, '@p3');
+        if (!($data_datetime_obj instanceof Datetime)) return $data_datetime_obj;
+        $data_timestamp = $data_datetime_obj->getTimestamp();
+
+        $start_timestamp = static::get_timestamp_of_parameter($start_date, $format);
+        $end_timestamp = static::get_timestamp_of_parameter($end_date, $format);
+        return $data_timestamp >= $start_timestamp && $data_timestamp < $end_timestamp;
+    }
+
+    /**
+     * The field data must be a valid date and greater than the start date and less than or equal to the end date
+     *
+     * @param string $data
+     * @param string $start_date
+     * @param string $end_date
+     * @param string $format
+     * @return bool|string
+     * @throws MethodException
+     */
+    public static function date_greater_lessequal($data, $start_date, $end_date, $format = '')
+    {
+        $data_datetime_obj = static::new_datetime_of_data($data, $format, '@p3');
+        if (!($data_datetime_obj instanceof Datetime)) return $data_datetime_obj;
+        $data_timestamp = $data_datetime_obj->getTimestamp();
+
+        $start_timestamp = static::get_timestamp_of_parameter($start_date, $format);
+        $end_timestamp = static::get_timestamp_of_parameter($end_date, $format);
+        return $data_timestamp > $start_timestamp && $data_timestamp <= $end_timestamp;
     }
 
     /**

@@ -1044,6 +1044,20 @@ Symbol | Method | Error Message Template
 / | `file_base64:size` | @this file size must be less than @p2kb
 / | `uuid` | @this must be a UUID
 / | `oauth2_grant_type` | @this is not a valid OAuth2 grant type
+`date` | `is_date` | @this must be a valid date
+/ | `date:format:@p1` | @this must be a valid date in format @p1
+/ | `date:format:@p2` | @this must be a valid date in format @p2
+/ | `date:format:@p3` | @this must be a valid date in format @p3
+`date=` | `date_equal` | @this must be a valid date and equal to @p1
+`date!=` | `date_not_equal` | @this must be a valid date and not equal to @p1
+`date>` | `date_greater_than` | @this must be a valid date and greater than @p1
+`date>=` | `date_greater_equal` | @this must be a valid date and greater than or equal to @p1
+`date<` | `date_less_than` | @this must be a valid date and less than @p1
+`date<=` | `date_less_equal` | @this must be a valid date and less than or equal to @p1
+`date><` | `date_greater_less` | @this must be a valid date and greater than @p1 and less than @p2
+`date>=<` | `date_greaterequal_less` | @this must be a valid date and greater than or equal to @p1 and less than @p2
+`date><=` | `date_greater_lessequal` | @this must be a valid date and greater than @p1 and less than or equal to @p2
+`date>=<=` | `date_between` | @this date must be between @p1 and @p2
 
 </details>
 

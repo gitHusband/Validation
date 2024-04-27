@@ -699,6 +699,802 @@ trait TestRuleDate
         ];
     }
 
+    public static function test_date_not_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date!=[2024-04-23]",
+                "B_date" => "optional|date!=[2024-04-23 01:01:01,Y-m-d H:i:s]",
+                "A_exc" => "optional|date!=[2024-04-50]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_not_equal[2024-04-23]",
+                "B_date" => "optional|date_not_equal[2024-04-23 01:01:01,Y-m-d H:i:s]",
+                "A_exc" => "optional|date_not_equal[2024-04-50]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024/04/23 00:00:01",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:01:00",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "123456789",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and not equal to 2024-04-23"]
+            ],
+            "Invalid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:00",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and not equal to 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and not equal to 2024-04-23 01:01:01"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "2024-04-23",
+                ],
+                "expected_msg" => '@field:A_exc, @method:date_not_equal - Parameter 2024-04-50 is not a valid date'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    public static function test_date_greater_than()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date>[2024-04-23]",
+                "B_date" => "optional|date>[2024-04-23 12:12:12]",
+                "C_date" => "optional|date>[04/23/2024,m/d/Y]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greater_than[2024-04-23]",
+                "B_date" => "optional|date_greater_than[2024-04-23 12:12:12]",
+                "C_date" => "optional|date_greater_than[04/23/2024,m/d/Y]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:01",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:13",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/24/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:12",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 12:12:12"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "04/23/2024",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than 04/23/2024"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    public static function test_date_greater_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date>=[2024-04-23]",
+                "B_date" => "optional|date>=[2024-04-23 12:12:12]",
+                "C_date" => "optional|date>=[04/23/2024,m/d/Y]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greater_equal[2024-04-23]",
+                "B_date" => "optional|date_greater_equal[2024-04-23 12:12:12]",
+                "C_date" => "optional|date_greater_equal[04/23/2024,m/d/Y]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:00",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:13",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:13",
+                ]
+            ],
+            "Valid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/23/2024",
+                ]
+            ],
+            "Valid_C_date_2" => [
+                "data" => [
+                    "C_date" => "04/24/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22 23:59:59",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than or equal to 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:11",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than or equal to 2024-04-23 12:12:12"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-04-22",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "04/22/2024",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than or equal to 04/23/2024"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    public static function test_date_less_than()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date<[2024-04-23]",
+                "B_date" => "optional|date<[2024-04-23 12:12:12]",
+                "C_date" => "optional|date<[04/23/2024,m/d/Y]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_less_than[2024-04-23]",
+                "B_date" => "optional|date_less_than[2024-04-23 12:12:12]",
+                "C_date" => "optional|date_less_than[04/23/2024,m/d/Y]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-22 23:59:59",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:11",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/22/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and less than 2024-04-23"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and less than 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:12",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and less than 2024-04-23 12:12:12"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:13",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and less than 2024-04-23 12:12:12"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "04/23/2024",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and less than 04/23/2024"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    public static function test_date_less_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date<=[2024-04-23]",
+                "B_date" => "optional|date<=[2024-04-23 12:12:12]",
+                "C_date" => "optional|date<=[04/23/2024,m/d/Y]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_less_equal[2024-04-23]",
+                "B_date" => "optional|date_less_equal[2024-04-23 12:12:12]",
+                "C_date" => "optional|date_less_equal[04/23/2024,m/d/Y]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ]
+            ],
+            "Valid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:00",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:12",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:11",
+                ]
+            ],
+            "Valid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/22/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and less than or equal to 2024-04-23"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and less than or equal to 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 12:12:13",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and less than or equal to 2024-04-23 12:12:12"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-24",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and less than or equal to 2024-04-23 12:12:12"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "04/24/2024",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and less than or equal to 04/23/2024"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    public static function test_date_greater_less()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date><[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date><[2024-04-23 01:01:01,2024-05-01 12:12:12]",
+                "C_date" => "optional|date><[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greater_less[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date_greater_less[2024-04-23 01:01:01,2024-05-01 12:12:12]",
+                "C_date" => "optional|date_greater_less[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23 01:01:01",
+                ]
+            ],
+            "Valid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024/04/30 23:59:59",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:01:02",
+                ]
+            ],
+            "Valid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024/05/01 12:12:11",
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:02",
+                ]
+            ],
+            "Valid_C_date_2" => [
+                "data" => [
+                    "C_date" => "05/01/2024 12:12:11",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024/05/01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-05-01 12:12:12",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+            "Invalid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024/05/01 12:12:12",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "05/01/2024 12:12:12",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    public static function test_date_greater_lessequal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date><=[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date><=[2024-04-23 01:01:01,2024-05-01 12:12:12]",
+                "C_date" => "optional|date><=[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greater_lessequal[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date_greater_lessequal[2024-04-23 01:01:01,2024-05-01 12:12:12]",
+                "C_date" => "optional|date_greater_lessequal[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23 01:01:01",
+                ]
+            ],
+            "Valid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024/05/01 00:00:00",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:01:02",
+                ]
+            ],
+            "Valid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024/05/01 12:12:12",
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:02",
+                ]
+            ],
+            "Valid_C_date_2" => [
+                "data" => [
+                    "C_date" => "05/01/2024 12:12:12",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23 and less than or equal to 2024-05-01"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024/05/01 00:00:01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23 and less than or equal to 2024-05-01"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 01:01:01 and less than or equal to 2024-05-01 12:12:12"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-05-01 12:12:13",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 01:01:01 and less than or equal to 2024-05-01 12:12:12"]
+            ],
+            "Invalid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024/05/01 12:12:13",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 01:01:01 and less than or equal to 2024-05-01 12:12:12"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than 2024-04-23 01:01:01 and less than or equal to 2024-05-01 12:12:12"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "05/01/2024 12:12:13",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than 2024-04-23 01:01:01 and less than or equal to 2024-05-01 12:12:12"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    public static function test_date_greaterequal_less()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date>=<[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date>=<[2024-04-23 01:01:01,2024-05-01 12:12:12]",
+                "C_date" => "optional|date>=<[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greaterequal_less[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date_greaterequal_less[2024-04-23 01:01:01,2024-05-01 12:12:12]",
+                "C_date" => "optional|date_greaterequal_less[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:00",
+                ]
+            ],
+            "Valid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024/04/30 23:59:59",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:01:01",
+                ]
+            ],
+            "Valid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024/05/01 12:12:11",
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:01",
+                ]
+            ],
+            "Valid_C_date_2" => [
+                "data" => [
+                    "C_date" => "05/01/2024 12:12:11",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than or equal to 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024/05/01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than or equal to 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:01:00",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than or equal to 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-05-01 12:12:12",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than or equal to 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+            "Invalid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024/05/01 12:12:12",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than or equal to 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:00",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than or equal to 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "05/01/2024 12:12:12",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than or equal to 2024-04-23 01:01:01 and less than 2024-05-01 12:12:12"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_method_date_between()
     {
         $rules = [

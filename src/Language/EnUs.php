@@ -102,6 +102,14 @@ class EnUs
         'date:format:@p2' => '@this must be a valid date in format @p2',
         'date:format:@p3' => '@this must be a valid date in format @p3',
         'date=' => '@this must be a valid date and equal to @p1',
+        'date!=' => '@this must be a valid date and not equal to @p1',
+        'date>' => '@this must be a valid date and greater than @p1',
+        'date>=' => '@this must be a valid date and greater than or equal to @p1',
+        'date<' => '@this must be a valid date and less than @p1',
+        'date<=' => '@this must be a valid date and less than or equal to @p1',
+        'date><' => '@this must be a valid date and greater than @p1 and less than @p2',
+        'date>=<' => '@this must be a valid date and greater than or equal to @p1 and less than @p2',
+        'date><=' => '@this must be a valid date and greater than @p1 and less than or equal to @p2',
         'date>=<=' => '@this date must be between @p1 and @p2',
     ];
 }
