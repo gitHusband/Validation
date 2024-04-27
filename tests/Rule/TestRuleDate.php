@@ -1110,7 +1110,7 @@ trait TestRuleDate
             ],
             "Invalid_I_date_2" => [
                 "data" => [
-                    "I_date" => "2024-04-23T01:01:01+1080:00",
+                    "I_date" => "2024-04-23T24:01:01+08:00",
                 ],
                 "expected_msg" => ["I_date" => "I_date must be a valid date in format RFC3339"]
             ],
@@ -1146,7 +1146,7 @@ trait TestRuleDate
             ],
             "Invalid_J_date_2" => [
                 "data" => [
-                    "J_date" => "2024-04-23T01:01:01+1080:00",
+                    "J_date" => "2024-04-23T24:01:01+08:00",
                 ],
                 "expected_msg" => ["J_date" => "J_date must be a valid date in format RFC3339"]
             ],
@@ -1182,7 +1182,7 @@ trait TestRuleDate
             ],
             "Invalid_K_date_2" => [
                 "data" => [
-                    "K_date" => "Tue, 23 Apr 2024 01:01:01 +10800",
+                    "K_date" => "Tue, 23 Apr 2024 01:60:01 +0800",
                 ],
                 "expected_msg" => ["K_date" => "K_date must be a valid date in format RFC2822"]
             ],
@@ -1218,7 +1218,7 @@ trait TestRuleDate
             ],
             "Invalid_L_date_2" => [
                 "data" => [
-                    "L_date" => "Tue, 23 Apr 2024 01:01:01 +10800",
+                    "L_date" => "Tue, 23 Apr 2024 01:60:01 +0800",
                 ],
                 "expected_msg" => ["L_date" => "L_date must be a valid date in format RFC2822"]
             ],
