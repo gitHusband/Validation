@@ -1002,10 +1002,10 @@ function check_animal($animal) {
 `<` | `less_than` | @this 必须小于 @p1
 `>=` | `greater_than_equal` | @this 必须大于等于 @p1
 `<=` | `less_than_equal` | @this 必须小于等于 @p1
-`><` | `between` | @this 必须大于 @p1 且小于 @p2
+`><` | `greater_less` | @this 必须大于 @p1 且小于 @p2
 `><=` | `greater_lessequal` | @this 必须大于 @p1 且小于等于 @p2
 `>=<` | `greaterequal_less` | @this 必须大于等于 @p1 且小于 @p2
-`>=<=` | `greaterequal_lessequal` | @this 必须大于等于 @p1 且小于等于 @p2
+`>=<=` | `between` | @this 必须大于等于 @p1 且小于等于 @p2
 `<number>` | `in_number_array` | @this 必须是数字且在此之内 @p1
 `!<number>` | `not_in_number_array` | @this 必须是数字且不在此之内 @p1
 `<string>` | `in_string_array` | @this 必须是字符串且在此之内 @p1
@@ -1016,10 +1016,10 @@ function check_animal($animal) {
 `length<` | `length_less_than` | @this 长度必须小于 @p1
 `length>=` | `length_greater_than_equal` | @this 长度必须大于等于 @p1
 `length<=` | `length_less_than_equal` | @this 长度必须小于等于 @p1
-`length><` | `length_between` | @this 长度必须大于 @p1 且小于 @p2
+`length><` | `length_greater_less` | @this 长度必须大于 @p1 且小于 @p2
 `length><=` | `length_greater_lessequal` | @this 长度必须大于 @p1 且小于等于 @p2
 `length>=<` | `length_greaterequal_less` | @this 长度必须大于等于 @p1 且小于 @p2
-`length>=<=` | `length_greaterequal_lessequal` | @this 长度必须大于等于 @p1 且小于等于 @p2
+`length>=<=` | `length_between` | @this 长度必须大于等于 @p1 且小于等于 @p2
 `int` | `integer` | @this 必须是整型
 / | `float` | @this 必须是小数
 / | `string` | @this 必须是字符串

@@ -1007,10 +1007,10 @@ Symbol | Method | Error Message Template
 `<` | `less_than` | @this must be less than @p1
 `>=` | `greater_than_equal` | @this must be greater than or equal to @p1
 `<=` | `less_than_equal` | @this must be less than or equal to @p1
-`><` | `between` | @this must be greater than @p1 and less than @p2
+`><` | `greater_less` | @this must be greater than @p1 and less than @p2
 `><=` | `greater_lessequal` | @this must be greater than @p1 and less than or equal to @p2
 `>=<` | `greaterequal_less` | @this must be greater than or equal to @p1 and less than @p2
-`>=<=` | `greaterequal_lessequal` | @this must be greater than or equal to @p1 and less than or equal to @p2
+`>=<=` | `between` | @this must be greater than or equal to @p1 and less than or equal to @p2
 `<number>` | `in_number_array` | @this must be numeric and in @p1
 `!<number>` | `not_in_number_array` | @this must be numeric and can not be in @p1
 `<string>` | `in_string_array` | @this must be string and in @p1
@@ -1021,10 +1021,10 @@ Symbol | Method | Error Message Template
 `length<` | `length_less_than` | @this length must be less than @p1
 `length>=` | `length_greater_than_equal` | @this length must be greater than or equal to @p1
 `length<=` | `length_less_than_equal` | @this length must be less than or equal to @p1
-`length><` | `length_between` | @this length must be greater than @p1 and less than @p2
+`length><` | `length_greater_less` | @this length must be greater than @p1 and less than @p2
 `length><=` | `length_greater_lessequal` | @this length must be greater than @p1 and less than or equal to @p2
 `length>=<` | `length_greaterequal_less` | @this length must be greater than or equal to @p1 and less than @p2
-`length>=<=` | `length_greaterequal_lessequal` | @this length must be greater than or equal to @p1 and less than or equal to @p2
+`length>=<=` | `length_between` | @this length must be greater than or equal to @p1 and less than or equal to @p2
 `int` | `integer` | @this must be integer
 / | `float` | @this must be float
 / | `string` | @this must be string

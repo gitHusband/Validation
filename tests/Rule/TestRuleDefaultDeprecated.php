@@ -495,10 +495,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_between()
+    protected function test_method_greater_less()
     {
         $rule = [
-            "id" => "<>[1,10]|between[1,10]",
+            "id" => "<>[1,10]|greater_less[1,10]",
         ];
 
         $cases = [
@@ -688,10 +688,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_greaterequal_lessequal()
+    protected function test_method_between()
     {
         $rule = [
-            "id" => "<=>=[1,10]|greaterequal_lessequal[1,10]",
+            "id" => "<=>=[1,10]|between[1,10]",
         ];
 
         $cases = [
@@ -1442,10 +1442,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_length_between()
+    protected function test_method_length_greater_less()
     {
         $rule = [
-            "text" => "len<>[1,10]|length_between[1,10]",
+            "text" => "len<>[1,10]|length_greater_less[1,10]",
         ];
 
         $cases = [
@@ -1730,10 +1730,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_length_greaterequal_lessequal()
+    protected function test_method_length_between()
     {
         $rule = [
-            "text" => "len<=>=[1,10]|length_greaterequal_lessequal[1,10]",
+            "text" => "len<=>=[1,10]|length_between[1,10]",
         ];
 
         $cases = [

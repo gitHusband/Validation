@@ -18,10 +18,10 @@ trait RuleDefault
         '<' => 'less_than',
         '>=' => 'greater_than_equal',
         '<=' => 'less_than_equal',
-        '><' => 'between',
+        '><' => 'greater_less',
         '><=' => 'greater_lessequal',
         '>=<' => 'greaterequal_less',
-        '>=<=' => 'greaterequal_lessequal',
+        '>=<=' => 'between',
         '<number>' => 'in_number_array',
         '!<number>' => 'not_in_number_array',
         '<string>' => 'in_string_array',
@@ -32,10 +32,10 @@ trait RuleDefault
         'length<' => 'length_less_than',
         'length>=' => 'length_greater_than_equal',
         'length<=' => 'length_less_than_equal',
-        'length><' => 'length_between',
+        'length><' => 'length_greater_less',
         'length><=' => 'length_greater_lessequal',
         'length>=<' => 'length_greaterequal_less',
-        'length>=<=' => 'length_greaterequal_lessequal',
+        'length>=<=' => 'length_between',
         'int' => 'integer',
         'array' => 'is_array',    // native function
         'bool=' => 'bool_equal',
@@ -57,10 +57,10 @@ trait RuleDefault
         // '<' => 'less_than',
         // '>=' => 'greater_than_equal',
         // '<=' => 'less_than_equal',
-        '<>' => 'between',
+        '<>' => 'greater_less',
         '<=>' => 'greater_lessequal',
         '<>=' => 'greaterequal_less',
-        '<=>=' => 'greaterequal_lessequal',
+        '<=>=' => 'between',
         '(n)' => 'in_number_array',
         '!(n)' => 'not_in_number_array',
         '(s)' => 'in_string_array',
@@ -71,10 +71,10 @@ trait RuleDefault
         'len<' => 'length_less_than',
         'len>=' => 'length_greater_than_equal',
         'len<=' => 'length_less_than_equal',
-        'len<>' => 'length_between',
+        'len<>' => 'length_greater_less',
         'len<=>' => 'length_greater_lessequal',
         'len<>=' => 'length_greaterequal_less',
-        'len<=>=' => 'length_greaterequal_lessequal',
+        'len<=>=' => 'length_between',
         // 'int' => 'integer',
         'arr' => 'is_array',    // native function
         // 'bool=' => 'bool_equal',
@@ -208,7 +208,7 @@ trait RuleDefault
      * @param int|float $param2
      * @return bool
      */
-    public static function between($data, $param1, $param2)
+    public static function greater_less($data, $param1, $param2)
     {
         return is_numeric($data) && $data > $param1 && $data < $param2;
     }
@@ -247,7 +247,7 @@ trait RuleDefault
      * @param int|float $param2
      * @return bool
      */
-    public static function greaterequal_lessequal($data, $param1, $param2)
+    public static function between($data, $param1, $param2)
     {
         return is_numeric($data) && $data >= $param1 && $data <= $param2;
     }
@@ -398,7 +398,7 @@ trait RuleDefault
      * @param int $param2
      * @return bool
      */
-    public static function length_between($data, $param1, $param2)
+    public static function length_greater_less($data, $param1, $param2)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
 
@@ -446,7 +446,7 @@ trait RuleDefault
      * @param int $param2
      * @return bool
      */
-    public static function length_greaterequal_lessequal($data, $param1, $param2)
+    public static function length_between($data, $param1, $param2)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
 
