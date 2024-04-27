@@ -187,3 +187,19 @@
 - 优化模板优先级，
 - 方法返回错误消息模板，不会被国际化配置覆盖
 - 支持从方法返回模板标签，从而允许国际化
+
+## v2.4.4
+
+1. 修复参数中，反斜杠的 bug
+
+2. 更新 ‘between’ 方法，改为包含边界值。
+- between -> greater_less
+- length_between -> length_greater_less
+- greaterequal_lessequal -> between
+- length_greaterequal_lessequal -> length_between
+
+3. 更新部分方法名
+- greater_than_equal -> greater_equal
+- less_than_equal -> less_equal
+- length_greater_than_equal -> length_greater_equal
+- length_less_than_equal -> length_less_equal
