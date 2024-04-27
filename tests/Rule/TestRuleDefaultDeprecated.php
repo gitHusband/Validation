@@ -385,10 +385,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_greater_than_equal()
+    protected function test_method_greater_equal()
     {
         $rule = [
-            "id" => ">=[1]|greater_than_equal[1]",
+            "id" => ">=[1]|greater_equal[1]",
         ];
 
         $cases = [
@@ -440,10 +440,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_less_than_equal()
+    protected function test_method_less_equal()
     {
         $rule = [
-            "id" => "<=[1]|less_than_equal[1]",
+            "id" => "<=[1]|less_equal[1]",
         ];
 
         $cases = [
@@ -1297,10 +1297,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_length_greater_than_equal()
+    protected function test_method_length_greater_equal()
     {
         $rule = [
-            "text" => "len>=[3]|length_greater_than_equal[3]",
+            "text" => "len>=[3]|length_greater_equal[3]",
         ];
 
         $cases = [
@@ -1372,10 +1372,10 @@ trait TestRuleDefaultDeprecated
         ];
     }
 
-    protected function test_method_length_less_than_equal()
+    protected function test_method_length_less_equal()
     {
         $rule = [
-            "text" => "len<=[3]|length_less_than_equal[3]",
+            "text" => "len<=[3]|length_less_equal[3]",
         ];
 
         $cases = [

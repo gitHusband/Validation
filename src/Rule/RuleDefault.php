@@ -16,8 +16,8 @@ trait RuleDefault
         '!==' => 'not_strictly_equal',
         '>' => 'greater_than',
         '<' => 'less_than',
-        '>=' => 'greater_than_equal',
-        '<=' => 'less_than_equal',
+        '>=' => 'greater_equal',
+        '<=' => 'less_equal',
         '><' => 'greater_less',
         '><=' => 'greater_lessequal',
         '>=<' => 'greaterequal_less',
@@ -30,8 +30,8 @@ trait RuleDefault
         'length!=' => 'length_not_equal',
         'length>' => 'length_greater_than',
         'length<' => 'length_less_than',
-        'length>=' => 'length_greater_than_equal',
-        'length<=' => 'length_less_than_equal',
+        'length>=' => 'length_greater_equal',
+        'length<=' => 'length_less_equal',
         'length><' => 'length_greater_less',
         'length><=' => 'length_greater_lessequal',
         'length>=<' => 'length_greaterequal_less',
@@ -55,8 +55,8 @@ trait RuleDefault
         // '!==' => 'not_strictly_equal',
         // '>' => 'greater_than',
         // '<' => 'less_than',
-        // '>=' => 'greater_than_equal',
-        // '<=' => 'less_than_equal',
+        // '>=' => 'greater_equal',
+        // '<=' => 'less_equal',
         '<>' => 'greater_less',
         '<=>' => 'greater_lessequal',
         '<>=' => 'greaterequal_less',
@@ -69,8 +69,8 @@ trait RuleDefault
         'len!=' => 'length_not_equal',
         'len>' => 'length_greater_than',
         'len<' => 'length_less_than',
-        'len>=' => 'length_greater_than_equal',
-        'len<=' => 'length_less_than_equal',
+        'len>=' => 'length_greater_equal',
+        'len<=' => 'length_less_equal',
         'len<>' => 'length_greater_less',
         'len<=>' => 'length_greater_lessequal',
         'len<>=' => 'length_greaterequal_less',
@@ -183,7 +183,7 @@ trait RuleDefault
      * @param int|float $param
      * @return bool
      */
-    public static function greater_than_equal($data, $param)
+    public static function greater_equal($data, $param)
     {
         return is_numeric($data) && $data >= $param;
     }
@@ -195,7 +195,7 @@ trait RuleDefault
      * @param int|float $param
      * @return bool
      */
-    public static function less_than_equal($data, $param)
+    public static function less_equal($data, $param)
     {
         return is_numeric($data) && $data <= $param;
     }
@@ -367,7 +367,7 @@ trait RuleDefault
      * @param int $param
      * @return bool
      */
-    public static function length_greater_than_equal($data, $param)
+    public static function length_greater_equal($data, $param)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
 
@@ -382,7 +382,7 @@ trait RuleDefault
      * @param int $param
      * @return bool
      */
-    public static function length_less_than_equal($data, $param)
+    public static function length_less_equal($data, $param)
     {
         if (!static::string($data) && is_numeric($data)) $data = (string)$data;
 

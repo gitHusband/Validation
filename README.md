@@ -1000,8 +1000,8 @@ function check_animal($animal) {
 `!==` | `not_strictly_equal` | @this 必须严格不等于 @t1(@p1)
 `>` | `greater_than` | @this 必须大于 @p1
 `<` | `less_than` | @this 必须小于 @p1
-`>=` | `greater_than_equal` | @this 必须大于等于 @p1
-`<=` | `less_than_equal` | @this 必须小于等于 @p1
+`>=` | `greater_equal` | @this 必须大于等于 @p1
+`<=` | `less_equal` | @this 必须小于等于 @p1
 `><` | `greater_less` | @this 必须大于 @p1 且小于 @p2
 `><=` | `greater_lessequal` | @this 必须大于 @p1 且小于等于 @p2
 `>=<` | `greaterequal_less` | @this 必须大于等于 @p1 且小于 @p2
@@ -1014,8 +1014,8 @@ function check_animal($animal) {
 `length!=` | `length_not_equal` | @this 长度必须不等于 @p1
 `length>` | `length_greater_than` | @this 长度必须大于 @p1
 `length<` | `length_less_than` | @this 长度必须小于 @p1
-`length>=` | `length_greater_than_equal` | @this 长度必须大于等于 @p1
-`length<=` | `length_less_than_equal` | @this 长度必须小于等于 @p1
+`length>=` | `length_greater_equal` | @this 长度必须大于等于 @p1
+`length<=` | `length_less_equal` | @this 长度必须小于等于 @p1
 `length><` | `length_greater_less` | @this 长度必须大于 @p1 且小于 @p2
 `length><=` | `length_greater_lessequal` | @this 长度必须大于 @p1 且小于等于 @p2
 `length>=<` | `length_greaterequal_less` | @this 长度必须大于等于 @p1 且小于 @p2
@@ -1035,6 +1035,8 @@ function check_animal($animal) {
 / | `mac` | @this 必须是MAC地址
 / | `dob` | @this 必须是正确的日期
 / | `file_base64` | @this 必须是正确的文件的base64码
+/ | `file_base64:mime` | @this 文件类型必须是 @p1
+/ | `file_base64:size` | @this 文件尺寸必须小于 @p2kb
 / | `uuid` | @this 必须是 UUID
 / | `oauth2_grant_type` | @this 必须是合法的 OAuth2 授权类型
 

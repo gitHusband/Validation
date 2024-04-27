@@ -1005,8 +1005,8 @@ Symbol | Method | Error Message Template
 `!==` | `not_strictly_equal` | @this must not be strictly equal to @t1(@p1)
 `>` | `greater_than` | @this must be greater than @p1
 `<` | `less_than` | @this must be less than @p1
-`>=` | `greater_than_equal` | @this must be greater than or equal to @p1
-`<=` | `less_than_equal` | @this must be less than or equal to @p1
+`>=` | `greater_equal` | @this must be greater than or equal to @p1
+`<=` | `less_equal` | @this must be less than or equal to @p1
 `><` | `greater_less` | @this must be greater than @p1 and less than @p2
 `><=` | `greater_lessequal` | @this must be greater than @p1 and less than or equal to @p2
 `>=<` | `greaterequal_less` | @this must be greater than or equal to @p1 and less than @p2
@@ -1019,8 +1019,8 @@ Symbol | Method | Error Message Template
 `length!=` | `length_not_equal` | @this length must be not equal to @p1
 `length>` | `length_greater_than` | @this length must be greater than @p1
 `length<` | `length_less_than` | @this length must be less than @p1
-`length>=` | `length_greater_than_equal` | @this length must be greater than or equal to @p1
-`length<=` | `length_less_than_equal` | @this length must be less than or equal to @p1
+`length>=` | `length_greater_equal` | @this length must be greater than or equal to @p1
+`length<=` | `length_less_equal` | @this length must be less than or equal to @p1
 `length><` | `length_greater_less` | @this length must be greater than @p1 and less than @p2
 `length><=` | `length_greater_lessequal` | @this length must be greater than @p1 and less than or equal to @p2
 `length>=<` | `length_greaterequal_less` | @this length must be greater than or equal to @p1 and less than @p2
@@ -1040,6 +1040,8 @@ Symbol | Method | Error Message Template
 / | `mac` | @this must be MAC address
 / | `dob` | @this must be a valid date
 / | `file_base64` | @this must be a valid file base64
+/ | `file_base64:mime` | @this file mine must be euqal to @p1
+/ | `file_base64:size` | @this file size must be less than @p2kb
 / | `uuid` | @this must be a UUID
 / | `oauth2_grant_type` | @this is not a valid OAuth2 grant type
 
