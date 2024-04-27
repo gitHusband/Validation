@@ -3,6 +3,7 @@
 namespace githusband\Tests;
 
 use githusband\Tests\Rule\TestRuleDefault;
+use githusband\Tests\Rule\TestRuleDate;
 
 /**
  * 1. How to add a new unit test case?
@@ -13,10 +14,20 @@ use githusband\Tests\Rule\TestRuleDefault;
  * 
  * 2. What is a unit test case?
  *  - @see Unit::validate_cases() for the logic.
- *  For example:
+ * @example
+ * ```
  *  {
+ *      "rules": {
+ *          "symbol": {
+ *              "id": "*|/^\d+$/|>[20]"
+ *          },
+ *          "method": {
+ *              "id": "required|/^\d+$/|greater_than[20]"
+ *          },
+ *      },
+ *      // Choose one between rules and rule 
  *      "rule": {
- *          "id": "required|/^\d+$/"
+ *          "id": "required|/^\d+$/|>[20]"
  *      },
  *      "cases": {
  *          "Valid_data_1": {
@@ -37,6 +48,7 @@ use githusband\Tests\Rule\TestRuleDefault;
  *          "method_name": "githusband\Tests\Unit::test_xxx",
  *      }
  *  }
+ * ```
  */
 
 use githusband\Validation;
@@ -202,9 +214,18 @@ class Unit extends TestCommon
             return false;
         }
 
-        if ($error_data !== false) return $this->get_method_info($method_info['rule'], $method_info['cases'], $method_info['extra'], $error_data);
 
-        return $this->validate_cases($method_info['rule'], $method_info['cases'], $method_info['extra']);
+        if (isset($method_info['rules'])) {
+            foreach ($method_info['rules'] as $rule) {
+                if ($error_data !== false) return $this->get_method_info($rule, $method_info['cases'], $method_info['extra'], $error_data);
+                $result = $this->validate_cases($rule, $method_info['cases'], $method_info['extra']);
+                if (!$result) return $result;
+            }
+            return $result;
+        } else {
+            if ($error_data !== false) return $this->get_method_info($method_info['rule'], $method_info['cases'], $method_info['extra'], $error_data);
+            return $this->validate_cases($method_info['rule'], $method_info['cases'], $method_info['extra']);
+        }
     }
 
     /**
@@ -5012,5 +5033,5 @@ class Unit extends TestCommon
         ];
     }
 
-    use TestRuleDefault;
+    use TestRuleDefault, TestRuleDate;
 }

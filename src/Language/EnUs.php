@@ -96,6 +96,12 @@ class EnUs
         'file_base64:mime' => '@this file mine must be euqal to @p1',
         'file_base64:size' => '@this file size must be less than @p2kb',
         'uuid' => '@this must be a UUID',
-        'oauth2_grant_type' => '@this is not a valid OAuth2 grant type'
+        'oauth2_grant_type' => '@this is not a valid OAuth2 grant type',
+        'date' => '@this must be a valid date',
+        'date:format:@p1' => '@this must be a valid date in format @p1',
+        'date:format:@p2' => '@this must be a valid date in format @p2',
+        'date:format:@p3' => '@this must be a valid date in format @p3',
+        'date=' => '@this must be a valid date and equal to @p1',
+        'date>=<=' => '@this date must be between @p1 and @p2',
     ];
 }

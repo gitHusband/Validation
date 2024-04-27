@@ -2,6 +2,9 @@
 
 namespace githusband\Exception;
 
+/**
+ * Throw this exception if you define any invalid ruleset
+ */
 class RuleException extends GhException
 {
     const CODE_RULESET = 1;

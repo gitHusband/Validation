@@ -96,6 +96,12 @@ class ZhCn
         'file_base64:mime' => '@this 文件类型必须是 @p1',
         'file_base64:size' => '@this 文件尺寸必须小于 @p2kb',
         'uuid' => '@this 必须是 UUID',
-        'oauth2_grant_type' => '@this 必须是合法的 OAuth2 授权类型'
+        'oauth2_grant_type' => '@this 必须是合法的 OAuth2 授权类型',
+        'date' => '@this 必须是格式正确的日期',
+        'date:format:@p1' => '@this 必须是日期且格式为 @p1',
+        'date:format:@p2' => '@this 必须是日期且格式为 @p2',
+        'date:format:@p3' => '@this 必须是日期且格式为 @p3',
+        'date=' => '@this 日期必须等于 @p1',
+        'date>=<=' => '@this 日期必须在 @p1 和 @p2 之间',
     ];
 }

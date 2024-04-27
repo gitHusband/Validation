@@ -4,6 +4,10 @@ namespace githusband\Exception;
 
 use Throwable;
 
+/**
+ * Injecting recurrence details(field, method etc) into an exception
+ * In order to help debugging
+ */
 class GhException extends \Exception
 {
     /**

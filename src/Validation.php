@@ -3,6 +3,7 @@
 namespace githusband;
 
 use githusband\Rule\RuleDefault;
+use githusband\Rule\RuleDate;
 use githusband\Exception\GhException;
 use githusband\Exception\RuleException;
 use Exception;
@@ -10,7 +11,7 @@ use Throwable;
 
 class Validation
 {
-    use RuleDefault;
+    use RuleDefault, RuleDate;
 
     const ERROR_FORMAT_NESTED_GENERAL = 'NESTED_GENERAL';
     const ERROR_FORMAT_NESTED_DETAILED = 'NESTED_DETAILED';
