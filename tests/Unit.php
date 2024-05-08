@@ -3,7 +3,7 @@
 namespace githusband\Tests;
 
 use githusband\Tests\Rule\TestRuleDefault;
-use githusband\Tests\Rule\TestRuleDate;
+use githusband\Tests\Rule\TestRuleDatetime;
 
 /**
  * 1. How to add a new unit test case?
@@ -5033,5 +5033,5 @@ class Unit extends TestCommon
         ];
     }
 
-    use TestRuleDefault, TestRuleDate;
+    use TestRuleDefault, TestRuleDatetime;
 }
