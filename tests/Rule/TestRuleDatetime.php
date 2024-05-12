@@ -2100,6 +2100,11 @@ trait TestRuledatetime
                 "C_date" => "optional|date[Y/m/d]",
                 "D_date" => "optional|date[Y/m-d]",
                 "E_date" => "optional|date[d/m/Y]",
+                "F_date" => "optional|date[Y-m]",
+                "G_date" => "optional|date[d/m]",
+                "H_date" => "optional|date[d]",
+                "I_date" => "optional|date[m]",
+                "J_date" => "optional|date[Y]",
             ],
             "method" => [
                 "A_date" => "optional|is_date",
@@ -2107,6 +2112,11 @@ trait TestRuledatetime
                 "C_date" => "optional|is_date[Y/m/d]",
                 "D_date" => "optional|is_date[Y/m-d]",
                 "E_date" => "optional|is_date[d/m/Y]",
+                "F_date" => "optional|is_date[Y-m]",
+                "G_date" => "optional|is_date[d/m]",
+                "H_date" => "optional|is_date[d]",
+                "I_date" => "optional|is_date[m]",
+                "J_date" => "optional|is_date[Y]",
             ],
         ];
 
@@ -2134,6 +2144,31 @@ trait TestRuledatetime
             "Valid_E_date_1" => [
                 "data" => [
                     "E_date" => '23/04/2024',
+                ]
+            ],
+            "Valid_F_date_1" => [
+                "data" => [
+                    "F_date" => '2024-04',
+                ]
+            ],
+            "Valid_G_date_1" => [
+                "data" => [
+                    "G_date" => '23/04',
+                ]
+            ],
+            "Valid_H_date_1" => [
+                "data" => [
+                    "H_date" => '23',
+                ]
+            ],
+            "Valid_I_date_1" => [
+                "data" => [
+                    "I_date" => '04',
+                ]
+            ],
+            "Valid_J_date_1" => [
+                "data" => [
+                    "J_date" => '2024',
                 ]
             ],
 
@@ -2211,6 +2246,66 @@ trait TestRuledatetime
                     "E_date" => "2024-04-23",
                 ],
                 "expected_msg" => ["E_date" => "E_date must be a valid date in format d/m/Y"]
+            ],
+            "Invalid_F_date_1" => [
+                "data" => [
+                    "F_date" => "2024-13",
+                ],
+                "expected_msg" => ["F_date" => "F_date must be a valid date in format Y-m"]
+            ],
+            "Invalid_F_date_2" => [
+                "data" => [
+                    "F_date" => "20240-04",
+                ],
+                "expected_msg" => ["F_date" => "F_date must be a valid date in format Y-m"]
+            ],
+            "Invalid_G_date_1" => [
+                "data" => [
+                    "G_date" => "23/13",
+                ],
+                "expected_msg" => ["G_date" => "G_date must be a valid date in format d/m"]
+            ],
+            "Invalid_G_date_2" => [
+                "data" => [
+                    "G_date" => "32/04",
+                ],
+                "expected_msg" => ["G_date" => "G_date must be a valid date in format d/m"]
+            ],
+            "Invalid_H_date_1" => [
+                "data" => [
+                    "H_date" => "32",
+                ],
+                "expected_msg" => ["H_date" => "H_date must be a valid date in format d"]
+            ],
+            "Invalid_H_date_2" => [
+                "data" => [
+                    "H_date" => "00",
+                ],
+                "expected_msg" => ["H_date" => "H_date must be a valid date in format d"]
+            ],
+            "Invalid_I_date_1" => [
+                "data" => [
+                    "I_date" => "13",
+                ],
+                "expected_msg" => ["I_date" => "I_date must be a valid date in format m"]
+            ],
+            "Invalid_I_date_2" => [
+                "data" => [
+                    "I_date" => "00",
+                ],
+                "expected_msg" => ["I_date" => "I_date must be a valid date in format m"]
+            ],
+            "Invalid_J_date_1" => [
+                "data" => [
+                    "J_date" => "12345",
+                ],
+                "expected_msg" => ["J_date" => "J_date must be a valid date in format Y"]
+            ],
+            "Invalid_J_date_2" => [
+                "data" => [
+                    "J_date" => "01234",
+                ],
+                "expected_msg" => ["J_date" => "J_date must be a valid date in format Y"]
             ],
         ];
 
@@ -2459,10 +2554,16 @@ trait TestRuledatetime
             "symbol" => [
                 "A_date" => "optional|date>[2024-04-23]",
                 "B_date" => "optional|date>[04/23/2024,m/d/Y]",
+                "C_date" => "optional|date>[2024-04,Y-m]",
+                "D_date" => "optional|date>[04/23,m/d]",
+                "E_date" => "optional|date>[23,d]",
             ],
             "method" => [
                 "A_date" => "optional|date_greater_than[2024-04-23]",
                 "B_date" => "optional|date_greater_than[04/23/2024,m/d/Y]",
+                "C_date" => "optional|date>[2024-04,Y-m]",
+                "D_date" => "optional|date>[04/23,m/d]",
+                "E_date" => "optional|date>[23,d]",
             ]
         ];
 
@@ -2475,6 +2576,36 @@ trait TestRuledatetime
             "Valid_B_date_1" => [
                 "data" => [
                     "B_date" => "04/24/2024",
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-05",
+                ]
+            ],
+            "Valid_C_date_2" => [
+                "data" => [
+                    "C_date" => "2025-01",
+                ]
+            ],
+            "Valid_D_date_1" => [
+                "data" => [
+                    "D_date" => "04/24",
+                ]
+            ],
+            "Valid_D_date_2" => [
+                "data" => [
+                    "D_date" => "05/01",
+                ]
+            ],
+            "Valid_E_date_1" => [
+                "data" => [
+                    "E_date" => "24",
+                ]
+            ],
+            "Valid_E_date_2" => [
+                "data" => [
+                    "E_date" => "31",
                 ]
             ],
             "Invalid_A_date_1" => [
@@ -2500,6 +2631,60 @@ trait TestRuledatetime
                     "B_date" => "04/23/2024",
                 ],
                 "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 04/23/2024"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024-13",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format Y-m"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "2024-04",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than 2024-04"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "2023-12",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and greater than 2024-04"]
+            ],
+            "Invalid_D_date_1" => [
+                "data" => [
+                    "D_date" => "13/23",
+                ],
+                "expected_msg" => ["D_date" => "D_date must be a valid date in format m/d"]
+            ],
+            "Invalid_D_date_2" => [
+                "data" => [
+                    "D_date" => "04/23",
+                ],
+                "expected_msg" => ["D_date" => "D_date must be a valid date and greater than 04/23"]
+            ],
+            "Invalid_D_date_3" => [
+                "data" => [
+                    "D_date" => "03/30",
+                ],
+                "expected_msg" => ["D_date" => "D_date must be a valid date and greater than 04/23"]
+            ],
+            "Invalid_E_date_1" => [
+                "data" => [
+                    "E_date" => "32",
+                ],
+                "expected_msg" => ["E_date" => "E_date must be a valid date in format d"]
+            ],
+            "Invalid_E_date_2" => [
+                "data" => [
+                    "E_date" => "23",
+                ],
+                "expected_msg" => ["E_date" => "E_date must be a valid date and greater than 23"]
+            ],
+            "Invalid_E_date_3" => [
+                "data" => [
+                    "E_date" => "01",
+                ],
+                "expected_msg" => ["E_date" => "E_date must be a valid date and greater than 23"]
             ],
         ];
 
@@ -3063,11 +3248,17 @@ trait TestRuledatetime
                 "A_date" => "optional|date>=<=[2024-04-23,2024-05-01]",
                 "B_date" => "optional|date>=<=[2024-04-23,2024-05-01,m/d/Y]",
                 "C_date" => "optional|date>=<=[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+                "D_date" => "optional|date>=<=[2024-04,2024-10,Y-m]",
+                "E_date" => "optional|date>=<=[04/23,05/01,m/d]",
+                "F_date" => "optional|date>=<=[04,10,m]",
             ],
             "method" => [
                 "A_date" => "optional|date_between[2024-04-23,2024-05-01]",
                 "B_date" => "optional|date_between[2024-04-23,2024-05-01,m/d/Y]",
                 "C_date" => "optional|date_between[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+                "D_date" => "optional|date_between[2024-04,2024-10,Y-m]",
+                "E_date" => "optional|date_between[04/23,05/01,m/d]",
+                "F_date" => "optional|date_between[04,10,m]",
             ]
         ];
 
@@ -3110,6 +3301,66 @@ trait TestRuledatetime
             "Valid_B_date_4" => [
                 "data" => [
                     "B_date" => "05/01/2024",
+                ]
+            ],
+            "Valid_D_date_1" => [
+                "data" => [
+                    "D_date" => "2024-04",
+                ]
+            ],
+            "Valid_D_date_2" => [
+                "data" => [
+                    "D_date" => "2024-05",
+                ]
+            ],
+            "Valid_D_date_3" => [
+                "data" => [
+                    "D_date" => "2024-10",
+                ]
+            ],
+            "Valid_D_date_4" => [
+                "data" => [
+                    "D_date" => "2024-09",
+                ]
+            ],
+            "Valid_E_date_1" => [
+                "data" => [
+                    "E_date" => "04/23",
+                ]
+            ],
+            "Valid_E_date_2" => [
+                "data" => [
+                    "E_date" => "04/24",
+                ]
+            ],
+            "Valid_E_date_3" => [
+                "data" => [
+                    "E_date" => "05/01",
+                ]
+            ],
+            "Valid_E_date_4" => [
+                "data" => [
+                    "E_date" => "04/30",
+                ]
+            ],
+            "Valid_F_date_1" => [
+                "data" => [
+                    "F_date" => "04",
+                ]
+            ],
+            "Valid_F_date_2" => [
+                "data" => [
+                    "F_date" => "05",
+                ]
+            ],
+            "Valid_F_date_3" => [
+                "data" => [
+                    "F_date" => "10",
+                ]
+            ],
+            "Valid_F_date_4" => [
+                "data" => [
+                    "F_date" => "09",
                 ]
             ],
             "Invalid_A_date_1" => [
@@ -3165,6 +3416,54 @@ trait TestRuledatetime
                     "C_date" => "2024-04-23 01:01:01",
                 ],
                 "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+            "Invalid_D_date_1" => [
+                "data" => [
+                    "D_date" => "2024-13",
+                ],
+                "expected_msg" => ["D_date" => "D_date must be a valid date in format Y-m"]
+            ],
+            "Invalid_D_date_2" => [
+                "data" => [
+                    "D_date" => "2024-03",
+                ],
+                "expected_msg" => ["D_date" => "D_date date must be between 2024-04 and 2024-10"]
+            ],
+            "Invalid_D_date_3" => [
+                "data" => [
+                    "D_date" => "2024-11",
+                ],
+                "expected_msg" => ["D_date" => "D_date date must be between 2024-04 and 2024-10"]
+            ],
+            "Invalid_E_date_1" => [
+                "data" => [
+                    "E_date" => "13/23",
+                ],
+                "expected_msg" => ["E_date" => "E_date must be a valid date in format m/d"]
+            ],
+            "Invalid_E_date_2" => [
+                "data" => [
+                    "E_date" => "04/22",
+                ],
+                "expected_msg" => ["E_date" => "E_date date must be between 04/23 and 05/01"]
+            ],
+            "Invalid_E_date_3" => [
+                "data" => [
+                    "E_date" => "03/30",
+                ],
+                "expected_msg" => ["E_date" => "E_date date must be between 04/23 and 05/01"]
+            ],
+            "Invalid_E_date_4" => [
+                "data" => [
+                    "E_date" => "05/02",
+                ],
+                "expected_msg" => ["E_date" => "E_date date must be between 04/23 and 05/01"]
+            ],
+            "Invalid_E_date_5" => [
+                "data" => [
+                    "E_date" => "06/01",
+                ],
+                "expected_msg" => ["E_date" => "E_date date must be between 04/23 and 05/01"]
             ],
         ];
 
