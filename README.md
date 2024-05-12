@@ -1039,10 +1039,30 @@ function check_animal($animal) {
 / | `file_base64:size` | @this 文件尺寸必须小于 @p2kb
 / | `uuid` | @this 必须是 UUID
 / | `oauth2_grant_type` | @this 必须是合法的 OAuth2 授权类型
-`date` | `is_date` | @this 必须是格式正确的日期
+`datetime` | `is_datetime` | @this 必须是格式正确的日期时间
+/ | `datetime:format:@p1` | @this 必须是日期时间且格式为 @p1
+/ | `datetime:format:@p2` | @this 必须是日期时间且格式为 @p2
+/ | `datetime:format:@p3` | @this 必须是日期时间且格式为 @p3
+/ | `datetime:invalid_format:@p1` | @this 格式 @p1 不是合法的日期时间格式
+/ | `datetime:invalid_format:@p2` | @this 格式 @p2 不是合法的日期时间格式
+/ | `datetime:invalid_format:@p3` | @this 格式 @p3 不是合法的日期时间格式
+`datetime=` | `datetime_equal` | @this 日期时间必须等于 @p1
+`datetime!=` | `datetime_not_equal` | @this 日期时间必须不等于 @p1
+`datetime>` | `datetime_greater_than` | @this 日期时间必须大于 @p1
+`datetime>=` | `datetime_greater_equal` | @this 日期时间必须大于等于 @p1
+`datetime<` | `datetime_less_than` | @this 日期时间必须小于 @p1
+`datetime<=` | `datetime_less_equal` | @this 日期时间必须小于等于 @p1
+`datetime><` | `datetime_greater_less` | @this 日期时间必须大于 @p1 且小于 @p2
+`datetime>=<` | `datetime_greaterequal_less` | @this 日期时间必须大于等于 @p1 且小于 @p2
+`datetime><=` | `datetime_greater_lessequal` | @this 日期时间必须大于 @p1 且小于等于 @p2
+`datetime>=<=` | `datetime_between` | @this 日期时间必须在 @p1 和 @p2 之间
+`date` | `is_date` | @this 必须是日期且格式为 Y-m-d
 / | `date:format:@p1` | @this 必须是日期且格式为 @p1
 / | `date:format:@p2` | @this 必须是日期且格式为 @p2
 / | `date:format:@p3` | @this 必须是日期且格式为 @p3
+/ | `date:invalid_format:@p1` | @this 格式 @p1 不是合法的日期格式
+/ | `date:invalid_format:@p2` | @this 格式 @p2 不是合法的日期格式
+/ | `date:invalid_format:@p3` | @this 格式 @p3 不是合法的日期格式
 `date=` | `date_equal` | @this 日期必须等于 @p1
 `date!=` | `date_not_equal` | @this 日期必须不等于 @p1
 `date>` | `date_greater_than` | @this 日期必须大于 @p1
@@ -1053,6 +1073,23 @@ function check_animal($animal) {
 `date>=<` | `date_greaterequal_less` | @this 日期必须大于等于 @p1 且小于 @p2
 `date><=` | `date_greater_lessequal` | @this 日期必须大于 @p1 且小于等于 @p2
 `date>=<=` | `date_between` | @this 日期必须在 @p1 和 @p2 之间
+`time` | `is_time` | @this 必须是时间且格式为 H:i:s
+/ | `time:format:@p1` | @this 必须是时间且格式为 @p1
+/ | `time:format:@p2` | @this 必须是时间且格式为 @p2
+/ | `time:format:@p3` | @this 必须是时间且格式为 @p3
+/ | `time:invalid_format:@p1` | @this 格式 @p1 不是合法的时间格式
+/ | `time:invalid_format:@p2` | @this 格式 @p2 不是合法的时间格式
+/ | `time:invalid_format:@p3` | @this 格式 @p3 不是合法的时间格式
+`time=` | `time_equal` | @this 时间必须等于 @p1
+`time!=` | `time_not_equal` | @this 时间必须不等于 @p1
+`time>` | `time_greater_than` | @this 时间必须大于 @p1
+`time>=` | `time_greater_equal` | @this 时间必须大于等于 @p1
+`time<` | `time_less_than` | @this 时间必须小于 @p1
+`time<=` | `time_less_equal` | @this 时间必须小于等于 @p1
+`time><` | `time_greater_less` | @this 时间必须大于 @p1 且小于 @p2
+`time>=<` | `time_greaterequal_less` | @this 时间必须大于等于 @p1 且小于 @p2
+`time><=` | `time_greater_lessequal` | @this 时间必须大于 @p1 且小于等于 @p2
+`time>=<=` | `time_between` | @this 时间必须在 @p1 和 @p2 之间
 
 </details>
 

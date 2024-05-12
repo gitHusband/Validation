@@ -1044,10 +1044,30 @@ Symbol | Method | Error Message Template
 / | `file_base64:size` | @this file size must be less than @p2kb
 / | `uuid` | @this must be a UUID
 / | `oauth2_grant_type` | @this is not a valid OAuth2 grant type
-`date` | `is_date` | @this must be a valid date
+`datetime` | `is_datetime` | @this must be a valid datetime
+/ | `datetime:format:@p1` | @this must be a valid datetime in format @p1
+/ | `datetime:format:@p2` | @this must be a valid datetime in format @p2
+/ | `datetime:format:@p3` | @this must be a valid datetime in format @p3
+/ | `datetime:invalid_format:@p1` | @this format @p1 is not a valid datetime format
+/ | `datetime:invalid_format:@p2` | @this format @p2 is not a valid datetime format
+/ | `datetime:invalid_format:@p3` | @this format @p3 is not a valid datetime format
+`datetime=` | `datetime_equal` | @this must be a valid datetime and equal to @p1
+`datetime!=` | `datetime_not_equal` | @this must be a valid datetime and not equal to @p1
+`datetime>` | `datetime_greater_than` | @this must be a valid datetime and greater than @p1
+`datetime>=` | `datetime_greater_equal` | @this must be a valid datetime and greater than or equal to @p1
+`datetime<` | `datetime_less_than` | @this must be a valid datetime and less than @p1
+`datetime<=` | `datetime_less_equal` | @this must be a valid datetime and less than or equal to @p1
+`datetime><` | `datetime_greater_less` | @this must be a valid datetime and greater than @p1 and less than @p2
+`datetime>=<` | `datetime_greaterequal_less` | @this must be a valid datetime and greater than or equal to @p1 and less than @p2
+`datetime><=` | `datetime_greater_lessequal` | @this must be a valid datetime and greater than @p1 and less than or equal to @p2
+`datetime>=<=` | `datetime_between` | @this datetime must be between @p1 and @p2
+`date` | `is_date` | @this must be a valid date in format Y-m-d
 / | `date:format:@p1` | @this must be a valid date in format @p1
 / | `date:format:@p2` | @this must be a valid date in format @p2
 / | `date:format:@p3` | @this must be a valid date in format @p3
+/ | `date:invalid_format:@p1` | @this format @p1 is not a valid date format
+/ | `date:invalid_format:@p2` | @this format @p2 is not a valid date format
+/ | `date:invalid_format:@p3` | @this format @p3 is not a valid date format
 `date=` | `date_equal` | @this must be a valid date and equal to @p1
 `date!=` | `date_not_equal` | @this must be a valid date and not equal to @p1
 `date>` | `date_greater_than` | @this must be a valid date and greater than @p1
@@ -1058,6 +1078,23 @@ Symbol | Method | Error Message Template
 `date>=<` | `date_greaterequal_less` | @this must be a valid date and greater than or equal to @p1 and less than @p2
 `date><=` | `date_greater_lessequal` | @this must be a valid date and greater than @p1 and less than or equal to @p2
 `date>=<=` | `date_between` | @this date must be between @p1 and @p2
+`time` | `is_time` | @this must be a valid time in format H:i:s
+/ | `time:format:@p1` | @this must be a valid time in format @p1
+/ | `time:format:@p2` | @this must be a valid time in format @p2
+/ | `time:format:@p3` | @this must be a valid time in format @p3
+/ | `time:invalid_format:@p1` | @this format @p1 is not a valid time format
+/ | `time:invalid_format:@p2` | @this format @p2 is not a valid time format
+/ | `time:invalid_format:@p3` | @this format @p3 is not a valid time format
+`time=` | `time_equal` | @this must be a valid time and equal to @p1
+`time!=` | `time_not_equal` | @this must be a valid time and not equal to @p1
+`time>` | `time_greater_than` | @this must be a valid time and greater than @p1
+`time>=` | `time_greater_equal` | @this must be a valid time and greater than or equal to @p1
+`time<` | `time_less_than` | @this must be a valid time and less than @p1
+`time<=` | `time_less_equal` | @this must be a valid time and less than or equal to @p1
+`time><` | `time_greater_less` | @this must be a valid time and greater than @p1 and less than @p2
+`time>=<` | `time_greaterequal_less` | @this must be a valid time and greater than or equal to @p1 and less than @p2
+`time><=` | `time_greater_lessequal` | @this must be a valid time and greater than @p1 and less than or equal to @p2
+`time>=<=` | `time_between` | @this time must be between @p1 and @p2
 
 </details>
 
