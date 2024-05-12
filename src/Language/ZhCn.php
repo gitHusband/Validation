@@ -116,7 +116,7 @@ class ZhCn
         'datetime><=' => '@this 日期时间必须大于 @p1 且小于等于 @p2',
         'datetime>=<=' => '@this 日期时间必须在 @p1 和 @p2 之间',
         // Date
-        'date' => '@this 必须是格式正确的日期',
+        'date' => '@this 必须是日期且格式为 Y-m-d',
         'date:format:@p1' => '@this 必须是日期且格式为 @p1',
         'date:format:@p2' => '@this 必须是日期且格式为 @p2',
         'date:format:@p3' => '@this 必须是日期且格式为 @p3',
@@ -134,7 +134,7 @@ class ZhCn
         'date><=' => '@this 日期必须大于 @p1 且小于等于 @p2',
         'date>=<=' => '@this 日期必须在 @p1 和 @p2 之间',
         // Time
-        'date' => '@this 必须是格式正确的时间',
+        'date' => '@this 必须是时间且格式为 H:i:s',
         'date:format:@p1' => '@this 必须是时间且格式为 @p1',
         'date:format:@p2' => '@this 必须是时间且格式为 @p2',
         'date:format:@p3' => '@this 必须是时间且格式为 @p3',

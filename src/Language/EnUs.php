@@ -116,7 +116,7 @@ class EnUs
         'datetime><=' => '@this must be a valid datetime and greater than @p1 and less than or equal to @p2',
         'datetime>=<=' => '@this datetime must be between @p1 and @p2',
         // Date
-        'date' => '@this must be a valid date',
+        'date' => '@this must be a valid date in format Y-m-d',
         'date:format:@p1' => '@this must be a valid date in format @p1',
         'date:format:@p2' => '@this must be a valid date in format @p2',
         'date:format:@p3' => '@this must be a valid date in format @p3',

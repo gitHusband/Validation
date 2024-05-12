@@ -2113,17 +2113,7 @@ trait TestRuledatetime
         $cases = [
             "Valid_A_date_1" => [
                 "data" => [
-                    "A_date" => "20240423",
-                ]
-            ],
-            "Valid_A_date_2" => [
-                "data" => [
                     "A_date" => '2024-04-23',
-                ]
-            ],
-            "Valid_A_date_3" => [
-                "data" => [
-                    "A_date" => '04/23/2024',
                 ]
             ],
             "Valid_B_date_1" => [
@@ -2154,19 +2144,25 @@ trait TestRuledatetime
                 "data" => [
                     "A_date" => "12345678",
                 ],
-                "expected_msg" => ["A_date" => "A_date must be a valid date"]
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
             ],
             "Invalid_A_date_2" => [
                 "data" => [
                     "A_date" => "23/04/2024",
                 ],
-                "expected_msg" => ["A_date" => "A_date must be a valid date"]
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
             ],
             "Invalid_A_date_3" => [
                 "data" => [
                     "A_date" => "2024-04-50",
                 ],
-                "expected_msg" => ["A_date" => "A_date must be a valid date"]
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_4" => [
+                "data" => [
+                    "A_date" => "2024/04/23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
             ],
             "Invalid_B_date_1" => [
                 "data" => [
@@ -2229,18 +2225,978 @@ trait TestRuledatetime
         ];
     }
 
+    protected function test_method_date_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date=[2024-04-23]",
+                "B_date" => "optional|date=[2024-04-23,Y-m-d]",
+                "C_date" => "optional|date=[2024-04-23,d/Y/m]",
+                "D_date" => "optional|date=[2024-04-23 00:00:00,Y-m-d H:i:s]",      // date method is not recommended using time part H:i:s(00:00:00)
+                "E_date" => "optional|date=[2024-04-23T00:00:00+08:00,RFC3339]",    // date method is not recommended using the format contains time part
+                "A_exc" => "optional|date=[2024-04-50]",
+                "C_exc" => "optional|date=[2024-13-23,d/Y/m]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_equal[2024-04-23]",
+                "B_date" => "optional|date_equal[2024-04-23,Y-m-d]",
+                "C_date" => "optional|date_equal[2024-04-23,d/Y/m]",
+                "D_date" => "optional|date_equal[2024-04-23 00:00:00,Y-m-d H:i:s]",      // date method is not recommended using time part H:i:s(00:00:00)
+                "E_date" => "optional|date_equal[2024-04-23T00:00:00+08:00,RFC3339]",    // date method is not recommended using the format contains time part
+                "A_exc" => "optional|date_equal[2024-04-50]",
+                "C_exc" => "optional|date_equal[2024-13-23,d/Y/m]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => '2024-04-23',
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => '2024-04-23',
+                ]
+            ],
+            "Valid_C_date_1" => [
+                "data" => [
+                    "C_date" => '23/2024/04',
+                ]
+            ],
+            "Valid_D_date_1" => [
+                "data" => [
+                    "D_date" => '2024-04-23 00:00:00',
+                ]
+            ],
+            "Valid_E_date_1" => [
+                "data" => [
+                    "E_date" => '2024-04-23T00:00:00+08:00',
+                ]
+            ],
+
+            /**
+             * Invalid cases
+             */
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "12345678",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "23/04/2024",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-50",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_4" => [
+                "data" => [
+                    "A_date" => "2023/04/23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_5" => [
+                "data" => [
+                    "A_date" => "2024-05-01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and equal to 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024/04/23",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "2024-04-23 01:00:00",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_B_date_3" => [
+                "data" => [
+                    "B_date" => "2024-04-24",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and equal to 2024-04-23"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "2024/04/23",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format d/Y/m"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "2024-04-23 01:00:00",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format d/Y/m"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "24/2024/04",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date and equal to 2024-04-23"]
+            ],
+            "Invalid_D_date_1" => [
+                "data" => [
+                    "D_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["D_date" => 'D_date format Y-m-d H:i:s is not a valid date format']
+            ],
+            "Invalid_D_date_2" => [
+                "data" => [
+                    "D_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["D_date" => 'D_date must be a valid date in format Y-m-d H:i:s']
+            ],
+            "Invalid_E_date_1" => [
+                "data" => [
+                    "E_date" => '2024-04-23T00:00:01+08:00',
+                ],
+                "expected_msg" => ["E_date" => 'E_date format RFC3339 is not a valid date format']
+            ],
+            "Invalid_E_date_2" => [
+                "data" => [
+                    "E_date" => '2024-04-23',
+                ],
+                "expected_msg" => ["E_date" => 'E_date must be a valid date in format RFC3339']
+            ],
+
+            /**
+             * Exception cases
+             */
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "2024-04-23",
+                ],
+                "expected_msg" => '@field:A_exc, @method:date_equal - Parameter 2024-04-50 is not a valid date'
+            ],
+            "Exception_C_exc" => [
+                "data" => [
+                    "C_exc" => "23/2024/04",
+                ],
+                "expected_msg" => '@field:C_exc, @method:date_equal - Parameter 2024-13-23 is not a valid date'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_not_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date!=[2024-04-23]",
+                "A_exc" => "optional|date!=[2024-04-50]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_not_equal[2024-04-23]",
+                "A_exc" => "optional|date_not_equal[2024-04-50]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "123456789",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and not equal to 2024-04-23"]
+            ],
+            "Invalid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:00",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "2024-04-23",
+                ],
+                "expected_msg" => '@field:A_exc, @method:date_not_equal - Parameter 2024-04-50 is not a valid date'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_greater_than()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date>[2024-04-23]",
+                "B_date" => "optional|date>[04/23/2024,m/d/Y]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greater_than[2024-04-23]",
+                "B_date" => "optional|date_greater_than[04/23/2024,m/d/Y]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/24/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024/04/23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/23/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 04/23/2024"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_greater_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date>=[2024-04-23]",
+                "B_date" => "optional|date>=[04/23/2024,m/d/Y]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greater_equal[2024-04-23]",
+                "B_date" => "optional|date_greater_equal[04/23/2024,m/d/Y]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/23/2024",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/24/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22 23:59:59",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than or equal to 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-22",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/22/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than or equal to 04/23/2024"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_less_than()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date<[2024-04-23]",
+                "B_date" => "optional|date<[04/23/2024,m/d/Y]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_less_than[2024-04-23]",
+                "B_date" => "optional|date_less_than[04/23/2024,m/d/Y]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "1970-01-01",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/22/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:00",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and less than 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/23/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and less than 04/23/2024"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_less_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date<=[2024-04-23]",
+                "B_date" => "optional|date<=[04/23/2024,m/d/Y]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_less_equal[2024-04-23]",
+                "B_date" => "optional|date_less_equal[04/23/2024,m/d/Y]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/22/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23 00:00:01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and less than or equal to 2024-04-23"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/24/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and less than or equal to 04/23/2024"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_greater_less()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date><[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date><[2024-04-23,2024-05-01,m/d/Y]",
+                "C_date" => "optional|date><[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greater_less[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date_greater_less[2024-04-23,2024-05-01,m/d/Y]",
+                "C_date" => "optional|date_greater_less[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-30",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/24/2024",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/30/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-05-01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-24 00:00:00",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/23/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "05/01/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_B_date_3" => [
+                "data" => [
+                    "B_date" => "04/24/2024 00:00:00",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date format m/d/Y H:i:s is not a valid date format"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "05/01/2024",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_greater_lessequal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date><=[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date><=[2024-04-23,2024-05-01,m/d/Y]",
+                "C_date" => "optional|date><=[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greater_lessequal[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date_greater_lessequal[2024-04-23,2024-05-01,m/d/Y]",
+                "C_date" => "optional|date_greater_lessequal[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-30",
+                ]
+            ],
+            "Valid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-05-01",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/24/2024",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/30/2024",
+                ]
+            ],
+            "Valid_B_date_3" => [
+                "data" => [
+                    "B_date" => "05/01/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23 and less than or equal to 2024-05-01"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-05-02",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than 2024-04-23 and less than or equal to 2024-05-01"]
+            ],
+            "Invalid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-24 00:00:00",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/23/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 and less than or equal to 2024-05-01"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "05/02/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than 2024-04-23 and less than or equal to 2024-05-01"]
+            ],
+            "Invalid_B_date_3" => [
+                "data" => [
+                    "B_date" => "04/24/2024 00:00:00",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date format m/d/Y H:i:s is not a valid date format"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "05/01/2024",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_greaterequal_less()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date>=<[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date>=<[2024-04-23,2024-05-01,m/d/Y]",
+                "C_date" => "optional|date>=<[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_greaterequal_less[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date_greaterequal_less[2024-04-23,2024-05-01,m/d/Y]",
+                "C_date" => "optional|date_greaterequal_less[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-30",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/23/2024",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/24/2024",
+                ]
+            ],
+            "Valid_B_date_3" => [
+                "data" => [
+                    "B_date" => "04/30/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than or equal to 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-05-01",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date and greater than or equal to 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-24 00:00:00",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/22/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than or equal to 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "05/01/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date and greater than or equal to 2024-04-23 and less than 2024-05-01"]
+            ],
+            "Invalid_B_date_3" => [
+                "data" => [
+                    "B_date" => "04/24/2024 00:00:00",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date format m/d/Y H:i:s is not a valid date format"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "05/01/2024",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_date_between()
+    {
+        $rules = [
+            "symbol" => [
+                "A_date" => "optional|date>=<=[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date>=<=[2024-04-23,2024-05-01,m/d/Y]",
+                "C_date" => "optional|date>=<=[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ],
+            "method" => [
+                "A_date" => "optional|date_between[2024-04-23,2024-05-01]",
+                "B_date" => "optional|date_between[2024-04-23,2024-05-01,m/d/Y]",
+                "C_date" => "optional|date_between[2024-04-23 01:01:01,2024-05-01 12:12:12,m/d/Y H:i:s]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-23",
+                ]
+            ],
+            "Valid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-04-24",
+                ]
+            ],
+            "Valid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-30",
+                ]
+            ],
+            "Valid_A_date_4" => [
+                "data" => [
+                    "A_date" => "2024-05-01",
+                ]
+            ],
+            "Valid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/23/2024",
+                ]
+            ],
+            "Valid_B_date_2" => [
+                "data" => [
+                    "B_date" => "04/24/2024",
+                ]
+            ],
+            "Valid_B_date_3" => [
+                "data" => [
+                    "B_date" => "04/30/2024",
+                ]
+            ],
+            "Valid_B_date_4" => [
+                "data" => [
+                    "B_date" => "05/01/2024",
+                ]
+            ],
+            "Invalid_A_date_1" => [
+                "data" => [
+                    "A_date" => "2024-04-22",
+                ],
+                "expected_msg" => ["A_date" => "A_date date must be between 2024-04-23 and 2024-05-01"]
+            ],
+            "Invalid_A_date_2" => [
+                "data" => [
+                    "A_date" => "2024-05-02",
+                ],
+                "expected_msg" => ["A_date" => "A_date date must be between 2024-04-23 and 2024-05-01"]
+            ],
+            "Invalid_A_date_3" => [
+                "data" => [
+                    "A_date" => "2024-04-24 00:00:00",
+                ],
+                "expected_msg" => ["A_date" => "A_date must be a valid date in format Y-m-d"]
+            ],
+            "Invalid_B_date_1" => [
+                "data" => [
+                    "B_date" => "04/22/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date date must be between 2024-04-23 and 2024-05-01"]
+            ],
+            "Invalid_B_date_2" => [
+                "data" => [
+                    "B_date" => "05/02/2024",
+                ],
+                "expected_msg" => ["B_date" => "B_date date must be between 2024-04-23 and 2024-05-01"]
+            ],
+            "Invalid_B_date_3" => [
+                "data" => [
+                    "B_date" => "04/24/2024 00:00:00",
+                ],
+                "expected_msg" => ["B_date" => "B_date must be a valid date in format m/d/Y"]
+            ],
+            "Invalid_C_date_1" => [
+                "data" => [
+                    "C_date" => "04/23/2024 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date format m/d/Y H:i:s is not a valid date format"]
+            ],
+            "Invalid_C_date_2" => [
+                "data" => [
+                    "C_date" => "05/01/2024",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+            "Invalid_C_date_3" => [
+                "data" => [
+                    "C_date" => "2024-04-23 01:01:01",
+                ],
+                "expected_msg" => ["C_date" => "C_date must be a valid date in format m/d/Y H:i:s"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_method_time()
     {
         $rules = [
             "symbol" => [
                 "A_time" => "optional|time",
                 "B_time" => "optional|time[H_i_s]",
-                "C_time" => "optional|time[Y-m-d H:i:s]",
+                "C_time" => "optional|time[H:i]",
+                "D_time" => "optional|time[i:s]",
+                "E_time" => "optional|time[s]",
+                "A_wrong" => "optional|time[Y-m-d H:i:s]",
             ],
             "method" => [
                 "A_time" => "optional|is_time",
                 "B_time" => "optional|is_time[H_i_s]",
-                "C_time" => "optional|is_time[Y-m-d H:i:s]",
+                "C_time" => "optional|is_time[H:i]",
+                "D_time" => "optional|is_time[i:s]",
+                "E_time" => "optional|is_time[s]",
+                "A_wrong" => "optional|is_time[Y-m-d H:i:s]",
             ],
         ];
 
@@ -2253,6 +3209,36 @@ trait TestRuledatetime
             "Valid_B_time_1" => [
                 "data" => [
                     "B_time" => "12_00_00",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "00:00",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "23:59",
+                ]
+            ],
+            "Valid_D_time_1" => [
+                "data" => [
+                    "D_time" => "00:00",
+                ]
+            ],
+            "Valid_D_time_1" => [
+                "data" => [
+                    "D_time" => "59:59",
+                ]
+            ],
+            "Valid_E_time_1" => [
+                "data" => [
+                    "E_time" => "01",
+                ]
+            ],
+            "Valid_E_time_2" => [
+                "data" => [
+                    "E_time" => "59",
                 ]
             ],
 
@@ -2271,18 +3257,1395 @@ trait TestRuledatetime
                 ],
                 "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
             ],
+            "Invalid_A_time_3" => [
+                "data" => [
+                    "A_time" => "12:00:60",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
             "Invalid_B_time_1" => [
                 "data" => [
-                    "B_time" => "12345678",
+                    "B_time" => "00:00:00",
                 ],
                 "expected_msg" => ["B_time" => "B_time must be a valid time in format H_i_s"]
             ],
-
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "12_00_60",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H_i_s"]
+            ],
             "Invalid_C_time_1" => [
                 "data" => [
-                    "C_time" => "2024-04-23 12:00:00",
+                    "C_time" => "12:00:00",
                 ],
-                "expected_msg" => ["C_time" => "C_time format Y-m-d H:i:s is not a valid time format"]
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format H:i"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => "24:00",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format H:i"]
+            ],
+            "Invalid_C_time_3" => [
+                "data" => [
+                    "C_time" => "23:60",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format H:i"]
+            ],
+            "Invalid_D_time_1" => [
+                "data" => [
+                    "D_time" => "12:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time in format i:s"]
+            ],
+            "Invalid_D_time_2" => [
+                "data" => [
+                    "D_time" => "60:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time in format i:s"]
+            ],
+            "Invalid_D_time_3" => [
+                "data" => [
+                    "D_time" => "59:60",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time in format i:s"]
+            ],
+            "Invalid_E_time_1" => [
+                "data" => [
+                    "E_time" => "0",
+                ],
+                "expected_msg" => ["E_time" => "E_time must be a valid time in format s"]
+            ],
+            "Invalid_E_time_2" => [
+                "data" => [
+                    "E_time" => "60",
+                ],
+                "expected_msg" => ["E_time" => "E_time must be a valid time in format s"]
+            ],
+
+            "Invalid_A_wrong_1" => [
+                "data" => [
+                    "A_wrong" => "2024-04-23 12:00:00",
+                ],
+                "expected_msg" => ["A_wrong" => "A_wrong format Y-m-d H:i:s is not a valid time format"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time=[01:01:01]",
+                "B_time" => "optional|time=[01:01:00,H:i:s]",
+                "C_time" => "optional|time=[01:01,H:i]",
+                "A_exc" => "optional|time=[01:01:60]",
+                "C_exc" => "optional|time=['0160',H:i]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_equal[01:01:01]",
+                "B_time" => "optional|time_equal[01:01:00,H:i:s]",
+                "C_time" => "optional|time_equal[01:01,H:i]",
+                "A_exc" => "optional|time_equal[01:01:60]",
+                "C_exc" => "optional|time_equal['0160',H:i]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => '01:01:01',
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => '01:01:00',
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => '01:01',
+                ]
+            ],
+
+            /**
+             * Invalid cases
+             */
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "010101",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01_01_01",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_3" => [
+                "data" => [
+                    "A_time" => "01:01:60",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_4" => [
+                "data" => [
+                    "A_time" => "01:60:01",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_5" => [
+                "data" => [
+                    "A_time" => "12:12:12",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and equal to 01:01:01"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "010101",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01_01_01",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_B_time_3" => [
+                "data" => [
+                    "B_time" => "01:01:60",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_B_time_4" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_B_time_5" => [
+                "data" => [
+                    "B_time" => "12:12:12",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and equal to 01:01:00"]
+            ],
+            "Invalid_C_time_1" => [
+                "data" => [
+                    "C_time" => "01:01:00",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format H:i"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => "01:60",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format H:i"]
+            ],
+            "Invalid_C_time_3" => [
+                "data" => [
+                    "C_time" => "01:00",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and equal to 01:01"]
+            ],
+
+            /**
+             * Exception cases
+             */
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_equal - Parameter 01:01:60 is not a valid time'
+            ],
+            "Exception_C_exc" => [
+                "data" => [
+                    "C_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:C_exc, @method:time_equal - Parameter 0160 is not a valid time with format H:i'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_not_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time!=[01:01:01]",
+                "B_time" => "optional|time!=[01:01,H:i]",
+                "A_exc" => "optional|time!=[01:01:60]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_not_equal[01:01:01]",
+                "B_time" => "optional|time_not_equal[01:01,H:i]",
+                "A_exc" => "optional|time_not_equal[01:01:60]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:00",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:01:60",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_3" => [
+                "data" => [
+                    "A_time" => "01:01:01",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and not equal to 01:01:01"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:01:01",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:01:60",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i"]
+            ],
+            "Invalid_B_time_3" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and not equal to 01:01"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_not_equal - Parameter 01:01:60 is not a valid time'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_greater_than()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time>[01:01:00]",
+                "B_time" => "optional|time>[01:01,H:i]",
+                "C_time" => "optional|time>[01,H]",
+                "A_exc" => "optional|time>[01:01:60]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_greater_than[01:01:00]",
+                "B_time" => "optional|time_greater_than[01:01,H:i]",
+                "C_time" => "optional|time_greater_than[01,H]",
+                "A_exc" => "optional|time_greater_than[01:01:60]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:01",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "02",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:02",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:00:59",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_greater_than - Parameter 01:01:60 is not a valid time'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_greater_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time>=[01:01:00]",
+                "B_time" => "optional|time>=[01:01,H:i]",
+                "C_time" => "optional|time>=[01,H]",
+                "A_exc" => "optional|time>=[01:01:60]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_greater_equal[01:01:00]",
+                "B_time" => "optional|time_greater_equal[01:01,H:i]",
+                "C_time" => "optional|time_greater_equal[01,H]",
+                "A_exc" => "optional|time_greater_equal[01:01:60]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:00",
+                ]
+            ],
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:01",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ]
+            ],
+            "Valid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "01",
+                ]
+            ],
+            "Valid_C_time_2" => [
+                "data" => [
+                    "C_time" => "02",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:02",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:00:59",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than or equal to 01:01:00"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "00:59:59",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than or equal to 01:01:00"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than or equal to 01:01"]
+            ],
+            "Invalid_B_time_3" => [
+                "data" => [
+                    "B_time" => "00:59",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than or equal to 01:01"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_greater_equal - Parameter 01:01:60 is not a valid time'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_less_than()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time<[01:01:00]",
+                "B_time" => "optional|time<[01:01,i:s]",
+                "C_time" => "optional|time<['01',s]",
+                "A_exc" => "optional|time<[01:01:60]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_less_than[01:01:00]",
+                "B_time" => "optional|time_less_than[01:01,i:s]",
+                "C_time" => "optional|time_less_than['01',s]",
+                "A_exc" => "optional|time_less_than[01:01:60]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:00:59",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:00",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "00",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:02",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "02:00:00",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and less than 01:01:00"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format i:s"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and less than 01:01"]
+            ],
+            "Invalid_C_time_1" => [
+                "data" => [
+                    "C_time" => "01:01:00",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format s"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => "01",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and less than 01"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_less_than - Parameter 01:01:60 is not a valid time'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_less_equal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time<=[01:01:00]",
+                "B_time" => "optional|time<=[01:01,i:s]",
+                "C_time" => "optional|time<=['01',s]",
+                "A_exc" => "optional|time<=[01:01:60]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_less_equal[01:01:00]",
+                "B_time" => "optional|time_less_equal[01:01,i:s]",
+                "C_time" => "optional|time_less_equal['01',s]",
+                "A_exc" => "optional|time_less_equal[01:01:60]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:00:59",
+                ]
+            ],
+            "Valid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:01:00",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:00",
+                ]
+            ],
+            "Valid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "00",
+                ]
+            ],
+            "Valid_C_time_2" => [
+                "data" => [
+                    "C_time" => "01",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:02",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "02:00:00",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and less than or equal to 01:01:00"]
+            ],
+            "Invalid_A_time_3" => [
+                "data" => [
+                    "A_time" => "01:01:01",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and less than or equal to 01:01:00"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format i:s"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and less than or equal to 01:01"]
+            ],
+            "Invalid_C_time_1" => [
+                "data" => [
+                    "C_time" => "01:01:00",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format s"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => "02",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and less than or equal to 01"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_less_equal - Parameter 01:01:60 is not a valid time'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_greater_less()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time><[01:01:00,12:12:00]",
+                "B_time" => "optional|time><[01:01,12:12,H:i]",
+                "C_time" => "optional|time><['01',12,H]",
+                "A_exc" => "optional|time><[01:60,60:00,H:i]",
+                "B_exc" => "optional|time><[01:01,60:00,H:i]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_greater_less[01:01:00,12:12:00]",
+                "B_time" => "optional|time_greater_less[01:01,12:12,H:i]",
+                "C_time" => "optional|time_greater_less['01',12,H]",
+                "A_exc" => "optional|time_greater_less[01:60,60:00,H:i]",
+                "B_exc" => "optional|time_greater_less[01:01,60:00,H:i]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:01",
+                ]
+            ],
+            "Valid_A_time_2" => [
+                "data" => [
+                    "A_time" => "12:11:59",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ]
+            ],
+            "Valid_B_time_2" => [
+                "data" => [
+                    "B_time" => "11:59",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "02",
+                ]
+            ],
+            "Valid_C_time_2" => [
+                "data" => [
+                    "C_time" => "11",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:60",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:01:00",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00 and less than 12:12:00"]
+            ],
+            "Invalid_A_time_3" => [
+                "data" => [
+                    "A_time" => "01:00:59",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00 and less than 12:12:00"]
+            ],
+            "Invalid_A_time_4" => [
+                "data" => [
+                    "A_time" => "12:12:00",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00 and less than 12:12:00"]
+            ],
+            "Invalid_A_time_5" => [
+                "data" => [
+                    "A_time" => "12:12:01",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00 and less than 12:12:00"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:60",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01 and less than 12:12"]
+            ],
+            "Invalid_B_time_3" => [
+                "data" => [
+                    "B_time" => "01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01 and less than 12:12"]
+            ],
+            "Invalid_B_time_4" => [
+                "data" => [
+                    "B_time" => "12:12",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01 and less than 12:12"]
+            ],
+            "Invalid_B_time_5" => [
+                "data" => [
+                    "B_time" => "12:13",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01 and less than 12:12"]
+            ],
+            "Invalid_C_time_1" => [
+                "data" => [
+                    "C_time" => "24",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format H"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => "01",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than 12"]
+            ],
+            "Invalid_C_time_3" => [
+                "data" => [
+                    "C_time" => "00",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than 12"]
+            ],
+            "Invalid_C_time_4" => [
+                "data" => [
+                    "C_time" => "12",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than 12"]
+            ],
+            "Invalid_C_time_5" => [
+                "data" => [
+                    "C_time" => "13",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than 12"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_greater_less - Parameter 01:60 is not a valid time with format H:i'
+            ],
+            "Exception_B_exc" => [
+                "data" => [
+                    "B_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:B_exc, @method:time_greater_less - Parameter 60:00 is not a valid time with format H:i'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_greater_lessequal()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time><=[01:01:00,12:12:00]",
+                "B_time" => "optional|time><=[01:01,12:12,H:i]",
+                "C_time" => "optional|time><=['01',12,H]",
+                "A_exc" => "optional|time><=[01:60,60:00,H:i]",
+                "B_exc" => "optional|time><=[01:01,60:00,H:i]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_greater_lessequal[01:01:00,12:12:00]",
+                "B_time" => "optional|time_greater_lessequal[01:01,12:12,H:i]",
+                "C_time" => "optional|time_greater_lessequal['01',12,H]",
+                "A_exc" => "optional|time_greater_lessequal[01:60,60:00,H:i]",
+                "B_exc" => "optional|time_greater_lessequal[01:01,60:00,H:i]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:01",
+                ]
+            ],
+            "Valid_A_time_2" => [
+                "data" => [
+                    "A_time" => "12:11:59",
+                ]
+            ],
+            "Valid_A_time_3" => [
+                "data" => [
+                    "A_time" => "12:12:00",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ]
+            ],
+            "Valid_B_time_2" => [
+                "data" => [
+                    "B_time" => "12:11",
+                ]
+            ],
+            "Valid_B_time_3" => [
+                "data" => [
+                    "B_time" => "12:12",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "02",
+                ]
+            ],
+            "Valid_C_time_2" => [
+                "data" => [
+                    "C_time" => "11",
+                ]
+            ],
+            "Valid_C_time_3" => [
+                "data" => [
+                    "C_time" => "12",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:60",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:01:00",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00 and less than or equal to 12:12:00"]
+            ],
+            "Invalid_A_time_3" => [
+                "data" => [
+                    "A_time" => "01:00:59",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00 and less than or equal to 12:12:00"]
+            ],
+            "Invalid_A_time_4" => [
+                "data" => [
+                    "A_time" => "12:12:01",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00 and less than or equal to 12:12:00"]
+            ],
+            "Invalid_A_time_5" => [
+                "data" => [
+                    "A_time" => "12:12:02",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than 01:01:00 and less than or equal to 12:12:00"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:60",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format H:i"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01 and less than or equal to 12:12"]
+            ],
+            "Invalid_B_time_3" => [
+                "data" => [
+                    "B_time" => "01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01 and less than or equal to 12:12"]
+            ],
+            "Invalid_B_time_4" => [
+                "data" => [
+                    "B_time" => "12:13",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01 and less than or equal to 12:12"]
+            ],
+            "Invalid_B_time_5" => [
+                "data" => [
+                    "B_time" => "13:12",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than 01:01 and less than or equal to 12:12"]
+            ],
+            "Invalid_C_time_1" => [
+                "data" => [
+                    "C_time" => "24",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format H"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => "01",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than or equal to 12"]
+            ],
+            "Invalid_C_time_3" => [
+                "data" => [
+                    "C_time" => "00",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than or equal to 12"]
+            ],
+            "Invalid_C_time_4" => [
+                "data" => [
+                    "C_time" => "13",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than or equal to 12"]
+            ],
+            "Invalid_C_time_5" => [
+                "data" => [
+                    "C_time" => "14",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than or equal to 12"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_greater_lessequal - Parameter 01:60 is not a valid time with format H:i'
+            ],
+            "Exception_B_exc" => [
+                "data" => [
+                    "B_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:B_exc, @method:time_greater_lessequal - Parameter 60:00 is not a valid time with format H:i'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_greaterequal_less()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time>=<[01:01:00,12:12:00]",
+                "B_time" => "optional|time>=<[01:01,12:12,i:s]",
+                "C_time" => "optional|time>=<['01',12,i]",
+                "A_exc" => "optional|time>=<[01:60,60:00,i:s]",
+                "B_exc" => "optional|time>=<[01:01,60:00,H:i]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_greaterequal_less[01:01:00,12:12:00]",
+                "B_time" => "optional|time_greaterequal_less[01:01,12:12,i:s]",
+                "C_time" => "optional|time_greaterequal_less['01',12,i]",
+                "A_exc" => "optional|time_greaterequal_less[01:60,60:00,i:s]",
+                "B_exc" => "optional|time_greaterequal_less[01:01,60:00,H:i]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:01",
+                ]
+            ],
+            "Valid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:01:00",
+                ]
+            ],
+            "Valid_A_time_3" => [
+                "data" => [
+                    "A_time" => "12:11:59",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ]
+            ],
+            "Valid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ]
+            ],
+            "Valid_B_time_3" => [
+                "data" => [
+                    "B_time" => "12:11",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "02",
+                ]
+            ],
+            "Valid_C_time_2" => [
+                "data" => [
+                    "C_time" => "01",
+                ]
+            ],
+            "Valid_C_time_3" => [
+                "data" => [
+                    "C_time" => "11",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:60",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:00:59",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than or equal to 01:01:00 and less than 12:12:00"]
+            ],
+            "Invalid_A_time_3" => [
+                "data" => [
+                    "A_time" => "00:01:00",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than or equal to 01:01:00 and less than 12:12:00"]
+            ],
+            "Invalid_A_time_4" => [
+                "data" => [
+                    "A_time" => "12:12:01",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than or equal to 01:01:00 and less than 12:12:00"]
+            ],
+            "Invalid_A_time_5" => [
+                "data" => [
+                    "A_time" => "12:12:02",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time and greater than or equal to 01:01:00 and less than 12:12:00"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:60",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format i:s"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than or equal to 01:01 and less than 12:12"]
+            ],
+            "Invalid_B_time_3" => [
+                "data" => [
+                    "B_time" => "00:59",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than or equal to 01:01 and less than 12:12"]
+            ],
+            "Invalid_B_time_4" => [
+                "data" => [
+                    "B_time" => "12:13",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than or equal to 01:01 and less than 12:12"]
+            ],
+            "Invalid_B_time_5" => [
+                "data" => [
+                    "B_time" => "13:12",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time and greater than or equal to 01:01 and less than 12:12"]
+            ],
+            "Invalid_C_time_1" => [
+                "data" => [
+                    "C_time" => "60",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format i"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => "00",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than or equal to 01 and less than 12"]
+            ],
+            "Invalid_C_time_3" => [
+                "data" => [
+                    "C_time" => "12",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than or equal to 01 and less than 12"]
+            ],
+            "Invalid_C_time_4" => [
+                "data" => [
+                    "C_time" => "13",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than or equal to 01 and less than 12"]
+            ],
+            "Invalid_C_time_5" => [
+                "data" => [
+                    "C_time" => "14",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time and greater than or equal to 01 and less than 12"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_greaterequal_less - Parameter 01:60 is not a valid time with format i:s'
+            ],
+            "Exception_B_exc" => [
+                "data" => [
+                    "B_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:B_exc, @method:time_greaterequal_less - Parameter 60:00 is not a valid time with format H:i'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_between()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time>=<=[01:01:00,12:12:00]",
+                "B_time" => "optional|time>=<=[01:01,12:12,i:s]",
+                "C_time" => "optional|time>=<=['01',12,i]",
+                "A_exc" => "optional|time>=<=[01:60,60:00,i:s]",
+                "B_exc" => "optional|time>=<=[01:01,60:00,H:i]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_between[01:01:00,12:12:00]",
+                "B_time" => "optional|time_between[01:01,12:12,i:s]",
+                "C_time" => "optional|time_between['01',12,i]",
+                "A_exc" => "optional|time_between[01:60,60:00,i:s]",
+                "B_exc" => "optional|time_between[01:01,60:00,H:i]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:01",
+                ]
+            ],
+            "Valid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:01:00",
+                ]
+            ],
+            "Valid_A_time_3" => [
+                "data" => [
+                    "A_time" => "12:11:59",
+                ]
+            ],
+            "Valid_A_time_4" => [
+                "data" => [
+                    "A_time" => "12:12:00",
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:02",
+                ]
+            ],
+            "Valid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:01",
+                ]
+            ],
+            "Valid_B_time_3" => [
+                "data" => [
+                    "B_time" => "12:11",
+                ]
+            ],
+            "Valid_B_time_4" => [
+                "data" => [
+                    "B_time" => "12:12",
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => "02",
+                ]
+            ],
+            "Valid_C_time_2" => [
+                "data" => [
+                    "C_time" => "01",
+                ]
+            ],
+            "Valid_C_time_3" => [
+                "data" => [
+                    "C_time" => "11",
+                ]
+            ],
+            "Valid_C_time_4" => [
+                "data" => [
+                    "C_time" => "12",
+                ]
+            ],
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => "01:01:60",
+                ],
+                "expected_msg" => ["A_time" => "A_time must be a valid time in format H:i:s"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => "01:00:59",
+                ],
+                "expected_msg" => ["A_time" => "A_time time must be between 01:01:00 and 12:12:00"]
+            ],
+            "Invalid_A_time_3" => [
+                "data" => [
+                    "A_time" => "00:01:00",
+                ],
+                "expected_msg" => ["A_time" => "A_time time must be between 01:01:00 and 12:12:00"]
+            ],
+            "Invalid_A_time_4" => [
+                "data" => [
+                    "A_time" => "12:12:01",
+                ],
+                "expected_msg" => ["A_time" => "A_time time must be between 01:01:00 and 12:12:00"]
+            ],
+            "Invalid_A_time_5" => [
+                "data" => [
+                    "A_time" => "12:12:02",
+                ],
+                "expected_msg" => ["A_time" => "A_time time must be between 01:01:00 and 12:12:00"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => "01:60",
+                ],
+                "expected_msg" => ["B_time" => "B_time must be a valid time in format i:s"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => "01:00",
+                ],
+                "expected_msg" => ["B_time" => "B_time time must be between 01:01 and 12:12"]
+            ],
+            "Invalid_B_time_3" => [
+                "data" => [
+                    "B_time" => "00:59",
+                ],
+                "expected_msg" => ["B_time" => "B_time time must be between 01:01 and 12:12"]
+            ],
+            "Invalid_B_time_4" => [
+                "data" => [
+                    "B_time" => "12:13",
+                ],
+                "expected_msg" => ["B_time" => "B_time time must be between 01:01 and 12:12"]
+            ],
+            "Invalid_B_time_5" => [
+                "data" => [
+                    "B_time" => "13:12",
+                ],
+                "expected_msg" => ["B_time" => "B_time time must be between 01:01 and 12:12"]
+            ],
+            "Invalid_C_time_1" => [
+                "data" => [
+                    "C_time" => "60",
+                ],
+                "expected_msg" => ["C_time" => "C_time must be a valid time in format i"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => "00",
+                ],
+                "expected_msg" => ["C_time" => "C_time time must be between 01 and 12"]
+            ],
+            "Invalid_C_time_3" => [
+                "data" => [
+                    "C_time" => "13",
+                ],
+                "expected_msg" => ["C_time" => "C_time time must be between 01 and 12"]
+            ],
+            "Invalid_C_time_4" => [
+                "data" => [
+                    "C_time" => "14",
+                ],
+                "expected_msg" => ["C_time" => "C_time time must be between 01 and 12"]
+            ],
+            "Exception_A_exc" => [
+                "data" => [
+                    "A_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:A_exc, @method:time_between - Parameter 01:60 is not a valid time with format i:s'
+            ],
+            "Exception_B_exc" => [
+                "data" => [
+                    "B_exc" => "01:01",
+                ],
+                "expected_msg" => '@field:B_exc, @method:time_between - Parameter 60:00 is not a valid time with format H:i'
             ],
         ];
 
