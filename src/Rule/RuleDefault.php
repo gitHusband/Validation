@@ -40,6 +40,12 @@ trait RuleDefault
         'array' => 'is_array',    // native function
         'bool=' => 'bool_equal',
         'bool_string=' => 'bool_string_equal',
+        'email' => 'is_email',
+        'url' => 'is_url',
+        'ip' => 'is_ip',
+        'mac' => 'is_mac',
+        'uuid' => 'is_uuid',
+        'ulid' => 'is_ulid',
     ];
 
     /**
@@ -574,70 +580,6 @@ trait RuleDefault
     }
 
     /**
-     * The field data must be an email address
-     *
-     * @param mixed $data
-     * @return bool
-     */
-    public static function email($data)
-    {
-        if (empty($data)) return false;
-        if (!preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/', $data)) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * The field data must be a url
-     *
-     * @param mixed $data
-     * @return bool
-     */
-    public static function url($data)
-    {
-        if (empty($data)) return false;
-        if (!preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,8}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
-    /**
-     * The field data must be an ip address
-     *
-     * @param mixed $data
-     * @return bool
-     */
-    public static function ip($data)
-    {
-        if (empty($data) || !is_string($data)) return false;
-        if (filter_var($data, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * The field data must be a mac address
-     *
-     * @param mixed $data
-     * @return bool
-     */
-    public static function mac($data)
-    {
-        if (empty($data) || !is_string($data)) return false;
-        if (filter_var($data, FILTER_VALIDATE_MAC)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
      * The field data must be date of birth which is a past date
      *
      * @param mixed $data
@@ -711,22 +653,6 @@ trait RuleDefault
     }
 
     /**
-     * The field data must be a UUID
-     *
-     * @param string $data
-     * @return bool
-     */
-    public static function uuid($data)
-    {
-        if (empty($data) || !is_string($data)) return false;
-        if (preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/', $data)) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
      * The field data must be one of the grant types of OAuth2
      *
      * @param string $data
@@ -742,5 +668,107 @@ trait RuleDefault
         } else {
             return false;
         }
+    }
+
+    /**
+     * The field data must be an email address
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function is_email($data)
+    {
+        if (empty($data)) return false;
+        if (!preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/', $data)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * The field data must be a url
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function is_url($data)
+    {
+        if (empty($data)) return false;
+        if (!preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,8}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * The field data must be an ip address
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function is_ip($data)
+    {
+        if (empty($data) || !is_string($data)) return false;
+        if (filter_var($data, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * The field data must be a mac address
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function is_mac($data)
+    {
+        if (empty($data) || !is_string($data)) return false;
+        if (filter_var($data, FILTER_VALIDATE_MAC)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * The field data must be a UUID
+     *
+     * @param string $data
+     * @return bool
+     */
+    public static function is_uuid($data)
+    {
+        if (empty($data) || !is_string($data)) return false;
+        if (preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/', $data)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * The field data must be a ULID
+     *
+     * @param string $data
+     * @return bool
+     */
+    public static function is_ulid($data)
+    {
+        $ulid_length = 26;
+        if (empty($data) || !is_string($data)) return false;
+        if (strlen($data) !== $ulid_length) {
+            return false;
+        }
+
+        $base32_chars = '0123456789ABCDEFGHJKMNPQRSTVWXYZabcdefghjkmnpqrstvwxyz';
+        if ($ulid_length !== strspn($data, $base32_chars)) {
+            return false;
+        }
+
+        return true;
     }
 }

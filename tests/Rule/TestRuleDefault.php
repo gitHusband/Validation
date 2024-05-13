@@ -2225,254 +2225,6 @@ trait TestRuleDefault
         ];
     }
 
-    protected function test_method_email()
-    {
-        $rule = [
-            "text" => "email",
-        ];
-
-        $cases = [
-            "Valid_data_1" => [
-                "data" => [
-                    "text" => "xxx@qq.com",
-                ]
-            ],
-            "Valid_data_2" => [
-                "data" => [
-                    "text" => "x-xx@gmail.com",
-                ]
-            ],
-            "Invalid_data_1" => [
-                "data" => [
-                    "text" => "",
-                ],
-            ],
-            "Invalid_data_2" => [
-                "data" => [
-                    "text" => null,
-                ],
-            ],
-            "Invalid_data_3" => [
-                "data" => [
-                    "text" => "xxx.com",
-                ],
-            ],
-            "Invalid_data_4" => [
-                "data" => [
-                    "text" => "xxx@com",
-                ],
-            ],
-            "Invalid_data_5" => [
-                "data" => [
-                    "text" => "xxx+@qq.com",
-                ],
-            ],
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "error_tag" => "email",
-            "field_path" => "text",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
-    protected function test_method_url()
-    {
-        $rule = [
-            "text" => "url",
-        ];
-
-        $cases = [
-            "Valid_data_1" => [
-                "data" => [
-                    "text" => "http://github.com",
-                ]
-            ],
-            "Valid_data_2" => [
-                "data" => [
-                    "text" => "https://github.com/gitHusband/Validation?tab=readme-ov-file",
-                ]
-            ],
-            "Valid_data_3" => [
-                "data" => [
-                    "text" => "https://xxx.abcdefgh",
-                ]
-            ],
-            "Invalid_data_1" => [
-                "data" => [
-                    "text" => "",
-                ],
-            ],
-            "Invalid_data_2" => [
-                "data" => [
-                    "text" => null,
-                ],
-            ],
-            "Invalid_data_3" => [
-                "data" => [
-                    "text" => "xxx.com",
-                ],
-            ],
-            "Invalid_data_4" => [
-                "data" => [
-                    "text" => "http:xxx.com",
-                ],
-            ],
-            "Invalid_data_5" => [
-                "data" => [
-                    "text" => "https://xxx.abcdefghi",
-                ],
-            ],
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "error_tag" => "url",
-            "field_path" => "text",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
-    protected function test_method_ip()
-    {
-        $rule = [
-            "text" => "ip",
-        ];
-
-        $cases = [
-            "Valid_data_1" => [
-                "data" => [
-                    "text" => "1.1.1.1",
-                ]
-            ],
-            "Valid_data_2" => [
-                "data" => [
-                    "text" => "255.255.255.255",
-                ]
-            ],
-            "Valid_data_3" => [
-                "data" => [
-                    "text" => "0.0.0.0",
-                ]
-            ],
-            "Invalid_data_1" => [
-                "data" => [
-                    "text" => "",
-                ],
-            ],
-            "Invalid_data_2" => [
-                "data" => [
-                    "text" => null,
-                ],
-            ],
-            "Invalid_data_3" => [
-                "data" => [
-                    "text" => "1.1.1.257",
-                ],
-            ],
-            "Invalid_data_4" => [
-                "data" => [
-                    "text" => "1.1.1",
-                ],
-            ],
-            "Invalid_data_5" => [
-                "data" => [
-                    "text" => "1.1.1.1000",
-                ],
-            ],
-            "Invalid_data_5" => [
-                "data" => [
-                    "text" => "1.1.1.1.1",
-                ],
-            ],
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "error_tag" => "ip",
-            "field_path" => "text",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
-    protected function test_method_mac()
-    {
-        $rule = [
-            "text" => "mac",
-        ];
-
-        $cases = [
-            "Valid_data_1" => [
-                "data" => [
-                    "text" => "00-00-00-00-00-00",
-                ]
-            ],
-            "Valid_data_2" => [
-                "data" => [
-                    "text" => "FF-FF-FF-FF-FF-FF",
-                ]
-            ],
-            "Invalid_data_1" => [
-                "data" => [
-                    "text" => "",
-                ],
-            ],
-            "Invalid_data_2" => [
-                "data" => [
-                    "text" => null,
-                ],
-            ],
-            "Invalid_data_3" => [
-                "data" => [
-                    "text" => "FF-FF-FF-FF-FF",
-                ],
-            ],
-            "Invalid_data_4" => [
-                "data" => [
-                    "text" => "FF-FF-FF-FF-FF-FF-00",
-                ],
-            ],
-            "Invalid_data_5" => [
-                "data" => [
-                    "text" => "FF-FF-FF-FF-FF-FH",
-                ],
-            ],
-            "Invalid_data_5" => [
-                "data" => [
-                    "text" => "FF-FF-FF-FF-FF-F",
-                ],
-            ],
-        ];
-
-        $extra = [
-            "method_name" => __METHOD__,
-            "error_tag" => "mac",
-            "field_path" => "text",
-        ];
-
-        return $method_info = [
-            "rule" => $rule,
-            "cases" => $cases,
-            "extra" => $extra
-        ];
-    }
-
     protected function test_method_dob()
     {
         $rule = [
@@ -2590,10 +2342,335 @@ trait TestRuleDefault
         ];
     }
 
-    protected function test_method_uuid()
+    protected function test_method_oauth2_grant_type()
     {
         $rule = [
-            "text" => "uuid",
+            "text" => "oauth2_grant_type",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "authorization_code",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "password",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => "client_credentials",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => "xxx",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "oauth2_grant_type",
+            "field_path" => "text",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_email()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "email",
+            ],
+            "method" => [
+                "text" => "is_email",
+            ]
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "xxx@qq.com",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "x-xx@gmail.com",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => "xxx.com",
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => "xxx@com",
+                ],
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => "xxx+@qq.com",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "email",
+            "field_path" => "text",
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_url()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "url",
+            ],
+            "method" => [
+                "text" => "is_url",
+            ]
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "http://github.com",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "https://github.com/gitHusband/Validation?tab=readme-ov-file",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => "https://xxx.abcdefgh",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => "xxx.com",
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => "http:xxx.com",
+                ],
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => "https://xxx.abcdefghi",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "url",
+            "field_path" => "text",
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_ip()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "ip",
+            ],
+            "method" => [
+                "text" => "is_ip",
+            ]
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "1.1.1.1",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "255.255.255.255",
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => "0.0.0.0",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => "1.1.1.257",
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => "1.1.1",
+                ],
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => "1.1.1.1000",
+                ],
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => "1.1.1.1.1",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "ip",
+            "field_path" => "text",
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_mac()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "mac",
+            ],
+            "method" => [
+                "text" => "is_mac",
+            ]
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "00-00-00-00-00-00",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "FF-FF-FF-FF-FF-FF",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    "text" => "FF-FF-FF-FF-FF",
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => "FF-FF-FF-FF-FF-FF-00",
+                ],
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => "FF-FF-FF-FF-FF-FH",
+                ],
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => "FF-FF-FF-FF-FF-F",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "mac",
+            "field_path" => "text",
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_uuid()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "uuid",
+            ],
+            "method" => [
+                "text" => "is_uuid",
+            ]
         ];
 
         $cases = [
@@ -2681,32 +2758,52 @@ trait TestRuleDefault
         ];
 
         return $method_info = [
-            "rule" => $rule,
+            "rules" => $rules,
             "cases" => $cases,
             "extra" => $extra
         ];
     }
 
-    protected function test_method_oauth2_grant_type()
+    protected function test_method_is_ulid()
     {
-        $rule = [
-            "text" => "oauth2_grant_type",
+        $rules = [
+            "symbol" => [
+                "text" => "ulid",
+            ],
+            "method" => [
+                "text" => "is_ulid",
+            ]
         ];
 
         $cases = [
             "Valid_data_1" => [
                 "data" => [
-                    "text" => "authorization_code",
+                    "text" => "01h97k6e25vh3acmx6xae8qsfp",
                 ]
             ],
             "Valid_data_2" => [
                 "data" => [
-                    "text" => "password",
+                    "text" => "01hb7hnc1dhdemr7cm6gcp7r2g",
                 ]
             ],
             "Valid_data_3" => [
                 "data" => [
-                    "text" => "client_credentials",
+                    "text" => "01hdgrqmy4bhjw39h83tbxrrw7",
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "01H97K6E25VH3ACMX6XAE8QSFP",
+                ]
+            ],
+            "Valid_data_5" => [
+                "data" => [
+                    "text" => "01HB7HNC1DHDEMR7CM6GCP7R2G",
+                ]
+            ],
+            "Valid_data_6" => [
+                "data" => [
+                    "text" => "01HDGRQMY4BHJW39H83TBXRRW7",
                 ]
             ],
             "Invalid_data_1" => [
@@ -2721,19 +2818,34 @@ trait TestRuleDefault
             ],
             "Invalid_data_3" => [
                 "data" => [
-                    "text" => "xxx",
+                    "text" => "01h97k6e25vh3acmx6xae8qsfp1",
+                ],
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    "text" => "1h97k6e25vh3acmx6xae8qsfp",
+                ],
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => "01HDGRQMY4BHJW39H83TBXRRW71",
+                ],
+            ],
+            "Invalid_data_5" => [
+                "data" => [
+                    "text" => "1HDGRQMY4BHJW39H83TBXRRW7",
                 ],
             ],
         ];
 
         $extra = [
             "method_name" => __METHOD__,
-            "error_tag" => "oauth2_grant_type",
+            "error_tag" => "ulid",
             "field_path" => "text",
         ];
 
         return $method_info = [
-            "rule" => $rule,
+            "rules" => $rules,
             "cases" => $cases,
             "extra" => $extra
         ];
