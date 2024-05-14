@@ -44,5 +44,9 @@
             "./tests/Test.sh Unit performance"
         ],
         "readme": "php tests/Test.php Readme"
+    },
+    "require-dev": {
+        "robinvdvleuten/ulid": "^5.0",
+        "ramsey/uuid": "^4.7"
     }
 }

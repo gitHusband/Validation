@@ -743,7 +743,7 @@ trait RuleDefault
     public static function is_uuid($data)
     {
         if (empty($data) || !is_string($data)) return false;
-        if (preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/', $data)) {
+        if (preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/Di', $data)) {
             return true;
         } else {
             return false;
@@ -758,8 +758,9 @@ trait RuleDefault
      */
     public static function is_ulid($data)
     {
-        $ulid_length = 26;
         if (empty($data) || !is_string($data)) return false;
+
+        $ulid_length = 26;
         if (strlen($data) !== $ulid_length) {
             return false;
         }
@@ -769,6 +770,6 @@ trait RuleDefault
             return false;
         }
 
-        return true;
+        return $data[0] <= '7';
     }
 }

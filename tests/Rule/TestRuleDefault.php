@@ -2674,44 +2674,84 @@ trait TestRuleDefault
         ];
 
         $cases = [
-            "Valid_uuid_v1" => [
+            "Valid_uuidV1_1" => [
                 "data" => [
                     "text" => "e1d66bd0-fa4d-11ee-a06a-0242ac120003",
                 ]
             ],
-            "Valid_uuid_v2" => [
+            "Valid_uuidV2_1" => [
                 "data" => [
                     "text" => "00000000-fa4d-21ee-8800-0242ac120003",
                 ]
             ],
-            "Valid_uuid_v3" => [
+            "Valid_uuidV3_1" => [
                 "data" => [
                     "text" => "3f703955-aaba-3e70-a3cb-baff6aa3b28f",
                 ]
             ],
-            "Valid_uuid_v4" => [
+            "Valid_uuidV4_1" => [
                 "data" => [
                     "text" => "197f8315-72d8-4beb-b004-c64db12fead5",
                 ]
             ],
-            "Valid_uuid_v5" => [
+            "Valid_uuidV5_1" => [
                 "data" => [
                     "text" => "a8f6ae40-d8a7-58f0-be05-a22f94eca9ec",
                 ]
             ],
-            "Valid_uuid_v6" => [
+            "Valid_uuidV6_1" => [
                 "data" => [
                     "text" => "1eefa4de-1e0e-6722-851d-0242ac120003",
                 ]
             ],
-            "Valid_uuid_v7" => [
+            "Valid_uuidV7_1" => [
                 "data" => [
                     "text" => "018edc41-e76b-71af-84fc-a34311b97cd3",
                 ]
             ],
-            "Valid_uuid_v8" => [
+            "Valid_uuidV8_1" => [
                 "data" => [
                     "text" => "00112233-4455-8677-8899-aabbccddeeff",
+                ]
+            ],
+            "Valid_uuidV1_2" => [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid1(),
+                ]
+            ],
+            "Valid_uuidV2_2" => [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid2(\Ramsey\Uuid\Uuid::DCE_DOMAIN_PERSON),
+                ]
+            ],
+            "Valid_uuidV3_2" => [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid3(\Ramsey\Uuid\Uuid::NAMESPACE_URL, 'https://github.com/gitHusband/Validation'),
+                ]
+            ],
+            "Valid_uuidV4_2" => [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid4(),
+                ]
+            ],
+            "Valid_uuidV5_2" => [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid5(\Ramsey\Uuid\Uuid::NAMESPACE_URL, 'https://github.com/gitHusband/Validation'),
+                ]
+            ],
+            "Valid_uuidV6_2" => [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid6(),
+                ]
+            ],
+            "Valid_uuidV7_2" => [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid7(),
+                ]
+            ],
+            "Valid_uuidV8_2" => [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid8("\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff"),
                 ]
             ],
             "Invalid_data_1" => [
@@ -2778,32 +2818,42 @@ trait TestRuleDefault
         $cases = [
             "Valid_data_1" => [
                 "data" => [
-                    "text" => "01h97k6e25vh3acmx6xae8qsfp",
+                    "text" => "01HXTZVYTF6CKBXYRFWBGDD9BB",
                 ]
             ],
             "Valid_data_2" => [
                 "data" => [
-                    "text" => "01hb7hnc1dhdemr7cm6gcp7r2g",
+                    "text" => "01hxtzvytf6ckbxyrfwbgdd9bc",
                 ]
             ],
             "Valid_data_3" => [
                 "data" => [
-                    "text" => "01hdgrqmy4bhjw39h83tbxrrw7",
+                    "text" => "01HXTZZ2DA2X3MJSNY01JWHBCS",
                 ]
             ],
             "Valid_data_4" => [
                 "data" => [
-                    "text" => "01H97K6E25VH3ACMX6XAE8QSFP",
+                    "text" => "01hxtzz2dbn89agrsjwexzdm0c",
                 ]
             ],
             "Valid_data_5" => [
                 "data" => [
-                    "text" => "01HB7HNC1DHDEMR7CM6GCP7R2G",
+                    "text" => "01HXTZZN67HXB9FM2QXTR1QTND",
                 ]
             ],
             "Valid_data_6" => [
                 "data" => [
-                    "text" => "01HDGRQMY4BHJW39H83TBXRRW7",
+                    "text" => "01hxtzzn67hxb9fm2qxtr1qtne",
+                ]
+            ],
+            "Valid_data_7" => [
+                "data" => [
+                    "text" => (string) \Ulid\Ulid::generate(),
+                ]
+            ],
+            "Valid_data_8" => [
+                "data" => [
+                    "text" => (string) \Ulid\Ulid::generate(true),
                 ]
             ],
             "Invalid_data_1" => [
@@ -2818,22 +2868,22 @@ trait TestRuleDefault
             ],
             "Invalid_data_3" => [
                 "data" => [
-                    "text" => "01h97k6e25vh3acmx6xae8qsfp1",
+                    "text" => "01HXTZVYTF6CKBXYRFWBGDD9BO",
                 ],
             ],
             "Invalid_data_4" => [
                 "data" => [
-                    "text" => "1h97k6e25vh3acmx6xae8qsfp",
+                    "text" => "01HXTZVYTF6CKBXYRFWBGDD9B",
                 ],
             ],
             "Invalid_data_5" => [
                 "data" => [
-                    "text" => "01HDGRQMY4BHJW39H83TBXRRW71",
+                    "text" => "01hxtzvytf6ckbxyrfwbgdd9bi",
                 ],
             ],
-            "Invalid_data_5" => [
+            "Invalid_data_6" => [
                 "data" => [
-                    "text" => "1HDGRQMY4BHJW39H83TBXRRW7",
+                    "text" => "01hxtzvytf6ckbxyrfwbgdd9b",
                 ],
             ],
         ];
