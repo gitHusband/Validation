@@ -2714,46 +2714,6 @@ trait TestRuleDefault
                     "text" => "00112233-4455-8677-8899-aabbccddeeff",
                 ]
             ],
-            "Valid_uuidV1_2" => [
-                "data" => [
-                    "text" => (string) \Ramsey\Uuid\Uuid::uuid1(),
-                ]
-            ],
-            "Valid_uuidV2_2" => [
-                "data" => [
-                    "text" => (string) \Ramsey\Uuid\Uuid::uuid2(\Ramsey\Uuid\Uuid::DCE_DOMAIN_PERSON),
-                ]
-            ],
-            "Valid_uuidV3_2" => [
-                "data" => [
-                    "text" => (string) \Ramsey\Uuid\Uuid::uuid3(\Ramsey\Uuid\Uuid::NAMESPACE_URL, 'https://github.com/gitHusband/Validation'),
-                ]
-            ],
-            "Valid_uuidV4_2" => [
-                "data" => [
-                    "text" => (string) \Ramsey\Uuid\Uuid::uuid4(),
-                ]
-            ],
-            "Valid_uuidV5_2" => [
-                "data" => [
-                    "text" => (string) \Ramsey\Uuid\Uuid::uuid5(\Ramsey\Uuid\Uuid::NAMESPACE_URL, 'https://github.com/gitHusband/Validation'),
-                ]
-            ],
-            "Valid_uuidV6_2" => [
-                "data" => [
-                    "text" => (string) \Ramsey\Uuid\Uuid::uuid6(),
-                ]
-            ],
-            "Valid_uuidV7_2" => [
-                "data" => [
-                    "text" => (string) \Ramsey\Uuid\Uuid::uuid7(),
-                ]
-            ],
-            "Valid_uuidV8_2" => [
-                "data" => [
-                    "text" => (string) \Ramsey\Uuid\Uuid::uuid8("\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff"),
-                ]
-            ],
             "Invalid_data_1" => [
                 "data" => [
                     "text" => "",
@@ -2790,6 +2750,49 @@ trait TestRuleDefault
                 ],
             ],
         ];
+
+        if (version_compare(PHP_VERSION, '7', '>=')) {
+            $cases["Valid_uuidV1_2"] = [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid1(),
+                ]
+            ];
+            if (method_exists('\Ramsey\Uuid\Uuid', 'uuid2')) $cases["Valid_uuidV2_2"] = [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid2(\Ramsey\Uuid\Uuid::DCE_DOMAIN_PERSON),
+                ]
+            ];
+            $cases["Valid_uuidV3_2"] = [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid3(\Ramsey\Uuid\Uuid::NAMESPACE_URL, 'https://github.com/gitHusband/Validation'),
+                ]
+            ];
+            $cases["Valid_uuidV4_2"] = [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid4(),
+                ]
+            ];
+            $cases["Valid_uuidV5_2"] = [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid5(\Ramsey\Uuid\Uuid::NAMESPACE_URL, 'https://github.com/gitHusband/Validation'),
+                ]
+            ];
+            if (method_exists('\Ramsey\Uuid\Uuid', 'uuid6')) $cases["Valid_uuidV6_2"] = [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid6(),
+                ]
+            ];
+            if (method_exists('\Ramsey\Uuid\Uuid', 'uuid7')) $cases["Valid_uuidV7_2"] = [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid7(),
+                ]
+            ];
+            if (method_exists('\Ramsey\Uuid\Uuid', 'uuid8')) $cases["Valid_uuidV8_2"] = [
+                "data" => [
+                    "text" => (string) \Ramsey\Uuid\Uuid::uuid8("\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff"),
+                ]
+            ];
+        }
 
         $extra = [
             "method_name" => __METHOD__,
@@ -2846,16 +2849,6 @@ trait TestRuleDefault
                     "text" => "01hxtzzn67hxb9fm2qxtr1qtne",
                 ]
             ],
-            "Valid_data_7" => [
-                "data" => [
-                    "text" => (string) \Ulid\Ulid::generate(),
-                ]
-            ],
-            "Valid_data_8" => [
-                "data" => [
-                    "text" => (string) \Ulid\Ulid::generate(true),
-                ]
-            ],
             "Invalid_data_1" => [
                 "data" => [
                     "text" => "",
@@ -2887,6 +2880,24 @@ trait TestRuleDefault
                 ],
             ],
         ];
+
+        if (version_compare(PHP_VERSION, '7', '>=')) {
+            // echo 123;die;
+            $dynamic_cases = [
+                "Valid_data_7" => [
+                    "data" => [
+                        "text" => (string) \Ulid\Ulid::generate(),
+                    ]
+                ],
+                "Valid_data_8" => [
+                    "data" => [
+                        "text" => (string) \Ulid\Ulid::generate(true),
+                    ]
+                ],
+            ];
+
+            $cases = array_merge($cases, $dynamic_cases);
+        }
 
         $extra = [
             "method_name" => __METHOD__,

@@ -47,6 +47,6 @@
     },
     "require-dev": {
         "robinvdvleuten/ulid": "^5.0",
-        "ramsey/uuid": "^4.7"
+        "ramsey/uuid": "^3"
     }
 }
