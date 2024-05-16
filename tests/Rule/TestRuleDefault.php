@@ -2416,6 +2416,16 @@ trait TestRuleDefault
                     "text" => "x-xx@gmail.com",
                 ]
             ],
+            "Valid_data_3" => [
+                "data" => [
+                    "text" => "x-xx+xx@gmail.com",
+                ]
+            ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "123!#$%&'*+-/=?^_`{|}~@qq.com",
+                ]
+            ],
             "Invalid_data_1" => [
                 "data" => [
                     "text" => "",
@@ -2438,7 +2448,7 @@ trait TestRuleDefault
             ],
             "Invalid_data_5" => [
                 "data" => [
-                    "text" => "xxx+@qq.com",
+                    "text" => "xxx@@qq.com",
                 ],
             ],
         ];

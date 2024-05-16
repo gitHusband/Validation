@@ -678,11 +678,11 @@ trait RuleDefault
      */
     public static function is_email($data)
     {
-        if (empty($data)) return false;
-        if (!preg_match('/^[_a-zA-Z0-9-]+(\.[_a-zA-Z0-9-]+)*@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*(\.[a-zA-Z]{2,})$/', $data)) {
-            return false;
-        } else {
+        if (empty($data) || !is_string($data)) return false;
+        if (filter_var($data, FILTER_VALIDATE_EMAIL)) {
             return true;
+        } else {
+            return false;
         }
     }
 

@@ -2267,7 +2267,7 @@ trait TestRuleDefaultDeprecated
             ],
             "Invalid_data_5" => [
                 "data" => [
-                    "text" => "xxx+@qq.com",
+                    "text" => "xxx@@qq.com",
                 ],
             ],
         ];
