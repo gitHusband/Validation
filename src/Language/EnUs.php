@@ -93,6 +93,8 @@ class EnUs
         'email' => '@this must be email',
         'url' => '@this must be url',
         'ip' => '@this must be IP address',
+        'ipv4' => '@this must be IPv4 address',
+        'ipv6' => '@this must be IPv6 address',
         'mac' => '@this must be MAC address',
         'dob' => '@this must be a valid date',
         'uuid' => '@this must be a UUID',

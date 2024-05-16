@@ -43,6 +43,8 @@ trait RuleDefault
         'email' => 'is_email',
         'url' => 'is_url',
         'ip' => 'is_ip',
+        'ipv4' => 'is_ipv4',
+        'ipv6' => 'is_ipv6',
         'mac' => 'is_mac',
         'uuid' => 'is_uuid',
         'ulid' => 'is_ulid',
@@ -695,10 +697,10 @@ trait RuleDefault
     public static function is_url($data)
     {
         if (empty($data)) return false;
-        if (!preg_match('/^http(s?):\/\/(?:[A-za-z0-9-]+\.)+[A-za-z]{2,8}(?:[\/\?#][\/=\?%\-&~`@[\]\':+!\.#\w]*)?$/', $data)) {
-            return false;
-        } else {
+        if (filter_var($data, FILTER_VALIDATE_URL)) {
             return true;
+        } else {
+            return false;
         }
     }
 
@@ -711,7 +713,39 @@ trait RuleDefault
     public static function is_ip($data)
     {
         if (empty($data) || !is_string($data)) return false;
+        if (filter_var($data, FILTER_VALIDATE_IP)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * The field data must be an ipv4 address
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function is_ipv4($data)
+    {
+        if (empty($data) || !is_string($data)) return false;
         if (filter_var($data, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * The field data must be an ipv6 address
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function is_ipv6($data)
+    {
+        if (empty($data) || !is_string($data)) return false;
+        if (filter_var($data, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
             return true;
         } else {
             return false;

@@ -2515,7 +2515,7 @@ trait TestRuleDefault
             ],
             "Invalid_data_5" => [
                 "data" => [
-                    "text" => "https://xxx.abcdefghi",
+                    "text" => "https://xx+x.com",
                 ],
             ],
         ];
@@ -2545,49 +2545,109 @@ trait TestRuleDefault
         ];
 
         $cases = [
-            "Valid_data_1" => [
+            "Valid_ipv4_1" => [
                 "data" => [
                     "text" => "1.1.1.1",
                 ]
             ],
-            "Valid_data_2" => [
+            "Valid_ipv4_2" => [
                 "data" => [
                     "text" => "255.255.255.255",
                 ]
             ],
-            "Valid_data_3" => [
+            "Valid_ipv4_3" => [
                 "data" => [
                     "text" => "0.0.0.0",
                 ]
             ],
-            "Invalid_data_1" => [
+            "Valid_ipv6_1" => [
+                "data" => [
+                    "text" => "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789",
+                ]
+            ],
+            "Valid_ipv6_2" => [
+                "data" => [
+                    "text" => "2001:DB8:0:23:8:800:200C:417A",
+                ]
+            ],
+            "Valid_ipv6_3" => [
+                "data" => [
+                    "text" => "FF01:0:0:0:0:0:0:1101",
+                ]
+            ],
+            "Valid_ipv6_4" => [
+                "data" => [
+                    "text" => "FF01::1101",
+                ]
+            ],
+            "Valid_ipv6_5" => [
+                "data" => [
+                    "text" => "0:0:0:0:0:0:0:1",
+                ]
+            ],
+            "Valid_ipv6_6" => [
+                "data" => [
+                    "text" => "::1",
+                ]
+            ],
+            "Valid_ipv6_7" => [
+                "data" => [
+                    "text" => "0:0:0:0:0:0:0:0",
+                ]
+            ],
+            "Valid_ipv6_8" => [
+                "data" => [
+                    "text" => "::",
+                ]
+            ],
+            "Valid_ipv6_9" => [
+                "data" => [
+                    "text" => "::192.168.0.1",
+                ]
+            ],
+            "Valid_ipv6_10" => [
+                "data" => [
+                    "text" => "::FFFF:192.168.0.1",
+                ]
+            ],
+            "Invalid_ipv4_1" => [
                 "data" => [
                     "text" => "",
                 ],
             ],
-            "Invalid_data_2" => [
+            "Invalid_ipv4_2" => [
                 "data" => [
                     "text" => null,
                 ],
             ],
-            "Invalid_data_3" => [
+            "Invalid_ipv4_3" => [
                 "data" => [
                     "text" => "1.1.1.257",
                 ],
             ],
-            "Invalid_data_4" => [
+            "Invalid_ipv4_4" => [
                 "data" => [
                     "text" => "1.1.1",
                 ],
             ],
-            "Invalid_data_5" => [
+            "Invalid_ipv4_5" => [
                 "data" => [
                     "text" => "1.1.1.1000",
                 ],
             ],
-            "Invalid_data_5" => [
+            "Invalid_ipv4_6" => [
                 "data" => [
                     "text" => "1.1.1.1.1",
+                ],
+            ],
+            "Invalid_ipv6_1" => [
+                "data" => [
+                    "text" => "GBCD:EF01:2345:6789:ABCD:EF01:2345:6789",
+                ],
+            ],
+            "Invalid_ipv6_2" => [
+                "data" => [
+                    "text" => "::2345:6789::2345:6789",
                 ],
             ],
         ];
@@ -2595,6 +2655,270 @@ trait TestRuleDefault
         $extra = [
             "method_name" => __METHOD__,
             "error_tag" => "ip",
+            "field_path" => "text",
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_ipv4()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "ipv4",
+            ],
+            "method" => [
+                "text" => "is_ipv4",
+            ]
+        ];
+
+        $cases = [
+            "Valid_ipv4_1" => [
+                "data" => [
+                    "text" => "1.1.1.1",
+                ]
+            ],
+            "Valid_ipv4_2" => [
+                "data" => [
+                    "text" => "255.255.255.255",
+                ]
+            ],
+            "Valid_ipv4_3" => [
+                "data" => [
+                    "text" => "0.0.0.0",
+                ]
+            ],
+            "Invalid_ipv4_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_ipv4_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_ipv4_3" => [
+                "data" => [
+                    "text" => "1.1.1.257",
+                ],
+            ],
+            "Invalid_ipv4_4" => [
+                "data" => [
+                    "text" => "1.1.1",
+                ],
+            ],
+            "Invalid_ipv4_5" => [
+                "data" => [
+                    "text" => "1.1.1.1000",
+                ],
+            ],
+            "Invalid_ipv4_6" => [
+                "data" => [
+                    "text" => "1.1.1.1.1",
+                ],
+            ],
+            "Invalid_ipv6_1" => [
+                "data" => [
+                    "text" => "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789",
+                ]
+            ],
+            "Invalid_ipv6_2" => [
+                "data" => [
+                    "text" => "2001:DB8:0:23:8:800:200C:417A",
+                ]
+            ],
+            "Invalid_ipv6_3" => [
+                "data" => [
+                    "text" => "FF01:0:0:0:0:0:0:1101",
+                ]
+            ],
+            "Invalid_ipv6_4" => [
+                "data" => [
+                    "text" => "FF01::1101",
+                ]
+            ],
+            "Invalid_ipv6_5" => [
+                "data" => [
+                    "text" => "0:0:0:0:0:0:0:1",
+                ]
+            ],
+            "Invalid_ipv6_6" => [
+                "data" => [
+                    "text" => "::1",
+                ]
+            ],
+            "Invalid_ipv6_7" => [
+                "data" => [
+                    "text" => "0:0:0:0:0:0:0:0",
+                ]
+            ],
+            "Invalid_ipv6_8" => [
+                "data" => [
+                    "text" => "::",
+                ]
+            ],
+            "Invalid_ipv6_9" => [
+                "data" => [
+                    "text" => "::192.168.0.1",
+                ]
+            ],
+            "Invalid_ipv6_10" => [
+                "data" => [
+                    "text" => "::FFFF:192.168.0.1",
+                ]
+            ],
+            "Invalid_ipv6_2_1" => [
+                "data" => [
+                    "text" => "GBCD:EF01:2345:6789:ABCD:EF01:2345:6789",
+                ],
+            ],
+            "Invalid_ipv6_2_2" => [
+                "data" => [
+                    "text" => "::2345:6789::2345:6789",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "ipv4",
+            "field_path" => "text",
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_ipv6()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "ipv6",
+            ],
+            "method" => [
+                "text" => "is_ipv6",
+            ]
+        ];
+
+        $cases = [
+            "Valid_ipv6_1" => [
+                "data" => [
+                    "text" => "ABCD:EF01:2345:6789:ABCD:EF01:2345:6789",
+                ]
+            ],
+            "Valid_ipv6_2" => [
+                "data" => [
+                    "text" => "2001:DB8:0:23:8:800:200C:417A",
+                ]
+            ],
+            "Valid_ipv6_3" => [
+                "data" => [
+                    "text" => "FF01:0:0:0:0:0:0:1101",
+                ]
+            ],
+            "Valid_ipv6_4" => [
+                "data" => [
+                    "text" => "FF01::1101",
+                ]
+            ],
+            "Valid_ipv6_5" => [
+                "data" => [
+                    "text" => "0:0:0:0:0:0:0:1",
+                ]
+            ],
+            "Valid_ipv6_6" => [
+                "data" => [
+                    "text" => "::1",
+                ]
+            ],
+            "Valid_ipv6_7" => [
+                "data" => [
+                    "text" => "0:0:0:0:0:0:0:0",
+                ]
+            ],
+            "Valid_ipv6_8" => [
+                "data" => [
+                    "text" => "::",
+                ]
+            ],
+            "Valid_ipv6_9" => [
+                "data" => [
+                    "text" => "::192.168.0.1",
+                ]
+            ],
+            "Valid_ipv6_10" => [
+                "data" => [
+                    "text" => "::FFFF:192.168.0.1",
+                ]
+            ],
+            "Invalid_ipv4_1" => [
+                "data" => [
+                    "text" => "1.1.1.1",
+                ]
+            ],
+            "Invalid_ipv4_2" => [
+                "data" => [
+                    "text" => "255.255.255.255",
+                ]
+            ],
+            "Invalid_ipv4_3" => [
+                "data" => [
+                    "text" => "0.0.0.0",
+                ]
+            ],
+            "Invalid_ipv4_2_1" => [
+                "data" => [
+                    "text" => "",
+                ],
+            ],
+            "Invalid_ipv4_2_2" => [
+                "data" => [
+                    "text" => null,
+                ],
+            ],
+            "Invalid_ipv4_2_3" => [
+                "data" => [
+                    "text" => "1.1.1.257",
+                ],
+            ],
+            "Invalid_ipv4_2_4" => [
+                "data" => [
+                    "text" => "1.1.1",
+                ],
+            ],
+            "Invalid_ipv4_2_5" => [
+                "data" => [
+                    "text" => "1.1.1.1000",
+                ],
+            ],
+            "Invalid_ipv4_2_6" => [
+                "data" => [
+                    "text" => "1.1.1.1.1",
+                ],
+            ],
+            "Invalid_ipv6_1" => [
+                "data" => [
+                    "text" => "GBCD:EF01:2345:6789:ABCD:EF01:2345:6789",
+                ],
+            ],
+            "Invalid_ipv6_2" => [
+                "data" => [
+                    "text" => "::2345:6789::2345:6789",
+                ],
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+            "error_tag" => "ipv6",
             "field_path" => "text",
         ];
 

@@ -2329,7 +2329,7 @@ trait TestRuleDefaultDeprecated
             ],
             "Invalid_data_5" => [
                 "data" => [
-                    "text" => "https://xxx.abcdefghi",
+                    "text" => "https://xx+x.com",
                 ],
             ],
         ];

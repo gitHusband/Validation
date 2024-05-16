@@ -94,6 +94,8 @@ class ZhCn
         'email' => '@this 必须是邮箱',
         'url' => '@this 必须是网址',
         'ip' => '@this 必须是IP地址',
+        'ipv4' => '@this 必须是IPv6地址',
+        'ipv6' => '@this 必须是IPv6地址',
         'mac' => '@this 必须是MAC地址',
         'uuid' => '@this 必须是 UUID',
         'ulid' => '@this 必须是 ULID',
