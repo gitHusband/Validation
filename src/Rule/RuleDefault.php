@@ -692,13 +692,23 @@ trait RuleDefault
      * The field data must be a url
      *
      * @param mixed $data
+     * @param string $schemes Supports scheme seperators: + or /. e.g. https/ftp
      * @return bool
      */
-    public static function is_url($data)
+    public static function is_url($data, $schemes = '')
     {
         if (empty($data)) return false;
         if (filter_var($data, FILTER_VALIDATE_URL)) {
-            return true;
+            if (!empty($schemes)) {
+                $schemes = preg_replace('/[\/\+]/', '|', $schemes);
+                if (preg_match("/^({$schemes}):\/\//", $data)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return true;
+            }
         } else {
             return false;
         }

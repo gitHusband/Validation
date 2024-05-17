@@ -965,7 +965,10 @@ class Validation
             // 在此之后，匹配的字符都当作是正则表达式的模式修饰符。直到匹配到 |，表示正则表达式完全结束
             if ($char === '/') {
                 if ($is_reg_flag == 0) {
-                    $is_reg_flag = 1;
+                    // 第一个字符不是 /，表明不是正则表达式
+                    if ($current_rule == '') {
+                        $is_reg_flag = 1;
+                    }
                 } else if ($is_reg_flag == 1) {
                     $is_reg_flag = 2;
                 }

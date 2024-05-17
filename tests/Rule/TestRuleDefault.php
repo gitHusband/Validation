@@ -2470,14 +2470,23 @@ trait TestRuleDefault
     {
         $rules = [
             "symbol" => [
-                "text" => "url",
+                "text" => "optional|url",
+                "text_https" => "optional|url[https]",
+                "text_mixed" => "optional|url[https/ftp]|string",
             ],
             "method" => [
-                "text" => "is_url",
+                "text" => "optional|is_url",
+                "text_https" => "optional|is_url[https]",
+                "text_mixed" => "optional|is_url[https+ftp]|string",
             ]
         ];
 
         $cases = [
+            "Valid_data_mixed_2" => [
+                "data" => [
+                    "text_mixed" => "ftp://user:pass@ftp.example.com/public_html",
+                ]
+            ],
             "Valid_data_1" => [
                 "data" => [
                     "text" => "http://github.com",
@@ -2493,14 +2502,34 @@ trait TestRuleDefault
                     "text" => "https://xxx.abcdefgh",
                 ]
             ],
+            "Valid_data_4" => [
+                "data" => [
+                    "text" => "ftp://user:pass@ftp.example.com/public_html",
+                ]
+            ],
+            "Valid_data_https_1" => [
+                "data" => [
+                    "text_https" => "https://github.com",
+                ]
+            ],
+            "Valid_data_mixed_1" => [
+                "data" => [
+                    "text_mixed" => "https://github.com",
+                ]
+            ],
+            "Valid_data_mixed_2" => [
+                "data" => [
+                    "text_mixed" => "ftp://user:pass@ftp.example.com/public_html",
+                ]
+            ],
             "Invalid_data_1" => [
                 "data" => [
-                    "text" => "",
+                    "text" => "xxx",
                 ],
             ],
             "Invalid_data_2" => [
                 "data" => [
-                    "text" => null,
+                    "text" => ".com",
                 ],
             ],
             "Invalid_data_3" => [
@@ -2517,6 +2546,12 @@ trait TestRuleDefault
                 "data" => [
                     "text" => "https://xx+x.com",
                 ],
+            ],
+            "Invalid_data_https_1" => [
+                "data" => [
+                    "text_https" => "http://github.com",
+                ],
+                "expected_msg" => ["text_https" => "text_https must be url"]
             ],
         ];
 
