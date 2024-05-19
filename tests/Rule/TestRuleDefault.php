@@ -3287,10 +3287,14 @@ trait TestRuleDefault
             "symbol" => [
                 "A_text" => "optional|alpha",
                 "B_text" => "optional|alpha[ASCII]",
+                "C_text" => "optional|alpha[UNICODE,_ \,-]",
+                "D_text" => "optional|alpha[ASCII,_ \,-]",
             ],
             "method" => [
                 "A_text" => "optional|is_alpha",
                 "B_text" => "optional|is_alpha[ASCII]",
+                "C_text" => "optional|alpha[UNICODE,_ \,-]",
+                "D_text" => "optional|alpha[ASCII,_ \,-]",
             ]
         ];
 
@@ -3328,6 +3332,16 @@ trait TestRuleDefault
             "Valid_B_text_1" => [
                 "data" => [
                     "B_text" => "abcdefghijklmnopurstuvwxyzABCDEFGHIJKLMNOPURSTUVWXYZ",
+                ]
+            ],
+            "Valid_C_text_1" => [
+                "data" => [
+                    "C_text" => "abcdefghijklmnopurstuvwxyz,ABCDEFGHIJKLMNOPURSTUVWXYZ_µßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ",
+                ]
+            ],
+            "Valid_D_text_1" => [
+                "data" => [
+                    "D_text" => "abc_def,ghijklmnopurstuvwxyz-ABC DEF,GHIJKLMNOPURSTUVWXYZ",
                 ]
             ],
             "Invalid_A_text_1" => [
@@ -3372,6 +3386,30 @@ trait TestRuleDefault
                 ],
                 "expected_msg" => ["B_text" => "B_text must only contain letters"]
             ],
+            "Invalid_C_text_1" => [
+                "data" => [
+                    "C_text" => "abcABC1",
+                ],
+                "expected_msg" => ["C_text" => "C_text must only contain letters and _ ,-"]
+            ],
+            "Invalid_C_text_2" => [
+                "data" => [
+                    "C_text" => "abc+ABC",
+                ],
+                "expected_msg" => ["C_text" => "C_text must only contain letters and _ ,-"]
+            ],
+            "Invalid_D_text_1" => [
+                "data" => [
+                    "D_text" => "abcABC1",
+                ],
+                "expected_msg" => ["D_text" => "D_text must only contain letters and _ ,-"]
+            ],
+            "Invalid_D_text_2" => [
+                "data" => [
+                    "D_text" => "abc+ABC",
+                ],
+                "expected_msg" => ["D_text" => "D_text must only contain letters and _ ,-"]
+            ],
         ];
 
         $extra = [
@@ -3391,10 +3429,14 @@ trait TestRuleDefault
             "symbol" => [
                 "A_text" => "optional|alphanumeric",
                 "B_text" => "optional|alphanumeric[ASCII]",
+                "C_text" => "optional|alphanumeric[UNICODE,_ \,-]",
+                "D_text" => "optional|alphanumeric[ASCII,_ \,-]",
             ],
             "method" => [
                 "A_text" => "optional|is_alphanumeric",
                 "B_text" => "optional|is_alphanumeric[ASCII]",
+                "C_text" => "optional|is_alphanumeric[UNICODE,_ \,-]",
+                "D_text" => "optional|is_alphanumeric[ASCII,_ \,-]",
             ]
         ];
 
@@ -3432,6 +3474,16 @@ trait TestRuleDefault
             "Valid_B_text_1" => [
                 "data" => [
                     "B_text" => "abcdefghijklmnopurstuvwxyzABCDEFGHIJKLMNOPURSTUVWXYZ0123456789",
+                ]
+            ],
+            "Valid_C_text_1" => [
+                "data" => [
+                    "C_text" => "abcdefghijklmnopurstuvwxyz,ABCDEFGHIJKLMNOPURSTUVWXYZ_µßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ 0123456789 ①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳",
+                ]
+            ],
+            "Valid_D_text_1" => [
+                "data" => [
+                    "D_text" => "abc_def,ghijklmnopurstuvwxyz-ABC DEF,GHIJKLMNOPURSTUVWXYZ 0123456789",
                 ]
             ],
             "Invalid_A_text_1" => [
@@ -3481,6 +3533,320 @@ trait TestRuleDefault
                     "B_text" => "abcABC123①",
                 ],
                 "expected_msg" => ["B_text" => "B_text must only contain letters and numbers"]
+            ],
+            "Invalid_C_text_1" => [
+                "data" => [
+                    "C_text" => "abc&ABC",
+                ],
+                "expected_msg" => ["C_text" => "C_text must only contain letters and numbers and _ ,-"]
+            ],
+            "Invalid_C_text_2" => [
+                "data" => [
+                    "C_text" => "abc+ABC",
+                ],
+                "expected_msg" => ["C_text" => "C_text must only contain letters and numbers and _ ,-"]
+            ],
+            "Invalid_D_text_1" => [
+                "data" => [
+                    "D_text" => "abc，ABC",
+                ],
+                "expected_msg" => ["D_text" => "D_text must only contain letters and numbers and _ ,-"]
+            ],
+            "Invalid_D_text_2" => [
+                "data" => [
+                    "D_text" => "abc+ABC",
+                ],
+                "expected_msg" => ["D_text" => "D_text must only contain letters and numbers and _ ,-"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_alpha_ext()
+    {
+        $rules = [
+            "symbol" => [
+                "A_text" => "optional|alpha_ext",
+                "B_text" => "optional|alpha_ext[ASCII]",
+                "C_text" => "optional|alpha_ext[UNICODE,_ \,-]",
+                "D_text" => "optional|alpha_ext[ASCII,_ \,-]",
+            ],
+            "method" => [
+                "A_text" => "optional|is_alpha_ext",
+                "B_text" => "optional|is_alpha_ext[ASCII]",
+                "C_text" => "optional|is_alpha_ext[UNICODE,_ \,-]",
+                "D_text" => "optional|is_alpha_ext[ASCII,_ \,-]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_text_1" => [
+                "data" => [
+                    "A_text" => "abcdefghijklmnopurstuvwxyz_ABCDEFGHIJKLMNOPURSTUVWXYZ",
+                ]
+            ],
+            "Valid_A_text_2" => [
+                "data" => [
+                    "A_text" => "abcdefghijklmnopurstuvwxyzµ-ßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ",
+                ]
+            ],
+            "Valid_A_text_3" => [
+                "data" => [
+                    "A_text" => "ABCDEFGHIJKLMNOPURSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ",
+                ]
+            ],
+            "Valid_A_text_4" => [
+                "data" => [
+                    "A_text" => "ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁˆˇˈˉˊˋˌˍˎˏːˑˠˡˢˣˤˬˮʹͺՙ",
+                ]
+            ],
+            "Valid_A_text_5" => [
+                "data" => [
+                    "A_text" => "ªºƻǀǁǂǃʔ",
+                ]
+            ],
+            "Valid_A_text_6" => [
+                "data" => [
+                    "A_text" => "ǅǈǋǲᾈᾉᾊᾋᾌᾍᾎᾏᾘᾙᾚᾛᾜᾝᾞᾟᾨᾩᾪᾫᾬᾭᾮᾯᾼῌῼ",
+                ]
+            ],
+            "Valid_B_text_1" => [
+                "data" => [
+                    "B_text" => "abcdefghijklmnopurstuvwxyz_ABC-DEFGHIJKLMNOPURSTUVWXYZ",
+                ]
+            ],
+            "Valid_C_text_1" => [
+                "data" => [
+                    "C_text" => "abcdefghijklmnopurstuvwxyz,ABCDEFGHIJKLMNOPURSTUVWXYZ_µßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ",
+                ]
+            ],
+            "Valid_D_text_1" => [
+                "data" => [
+                    "D_text" => "abc_def,ghijklmnopurstuvwxyz-ABC DEF,GHIJKLMNOPURSTUVWXYZ",
+                ]
+            ],
+            "Invalid_A_text_1" => [
+                "data" => [
+                    "A_text" => "abcABC1",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and _-"]
+            ],
+            "Invalid_A_text_2" => [
+                "data" => [
+                    "A_text" => "abc ABC",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and _-"]
+            ],
+            "Invalid_A_text_3" => [
+                "data" => [
+                    "A_text" => "abc,ABC",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and _-"]
+            ],
+            "Invalid_B_text_1" => [
+                "data" => [
+                    "B_text" => "abcABC1",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and _-"]
+            ],
+            "Invalid_B_text_2" => [
+                "data" => [
+                    "B_text" => "abc ABC",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and _-"]
+            ],
+            "Invalid_B_text_3" => [
+                "data" => [
+                    "B_text" => "abc,ABC",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and _-"]
+            ],
+            "Invalid_B_text_4" => [
+                "data" => [
+                    "B_text" => "abcABCÀ",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and _-"]
+            ],
+            "Invalid_C_text_1" => [
+                "data" => [
+                    "C_text" => "abcABC1",
+                ],
+                "expected_msg" => ["C_text" => "C_text must only contain letters and _ ,-"]
+            ],
+            "Invalid_C_text_2" => [
+                "data" => [
+                    "C_text" => "abc+ABC",
+                ],
+                "expected_msg" => ["C_text" => "C_text must only contain letters and _ ,-"]
+            ],
+            "Invalid_D_text_1" => [
+                "data" => [
+                    "D_text" => "abcABC1",
+                ],
+                "expected_msg" => ["D_text" => "D_text must only contain letters and _ ,-"]
+            ],
+            "Invalid_D_text_2" => [
+                "data" => [
+                    "D_text" => "abc+ABC",
+                ],
+                "expected_msg" => ["D_text" => "D_text must only contain letters and _ ,-"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_alphanumeric_ext()
+    {
+        $rules = [
+            "symbol" => [
+                "A_text" => "optional|alphanumeric_ext",
+                "B_text" => "optional|alphanumeric_ext[ASCII]",
+                "C_text" => "optional|alphanumeric_ext[UNICODE,_ \,-]",
+                "D_text" => "optional|alphanumeric_ext[ASCII,_ \,-]",
+            ],
+            "method" => [
+                "A_text" => "optional|is_alphanumeric_ext",
+                "B_text" => "optional|is_alphanumeric_ext[ASCII]",
+                "C_text" => "optional|is_alphanumeric_ext[UNICODE,_ \,-]",
+                "D_text" => "optional|is_alphanumeric_ext[ASCII,_ \,-]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_text_1" => [
+                "data" => [
+                    "A_text" => "abcdefghijklmnopurstuvwxyz_ABCDEFGHIJKLMNOPURSTUVWXYZ-0123456789",
+                ]
+            ],
+            "Valid_A_text_2" => [
+                "data" => [
+                    "A_text" => "abcdefghijklmnopurstuvwxyzµßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ0123456789٠١٢٣٤٥٦٧٨٩",
+                ]
+            ],
+            "Valid_A_text_3" => [
+                "data" => [
+                    "A_text" => "ABCDEFGHIJKLMNOPURSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅬⅭⅮⅯⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹⅺⅻⅼⅽⅾⅿ",
+                ]
+            ],
+            "Valid_A_text_4" => [
+                "data" => [
+                    "A_text" => "ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁˆˇˈˉˊˋˌˍˎˏːˑˠˡˢˣˤˬˮʹͺՙ⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅐⅛⅜⅝⅞⅑⅒①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳",
+                ]
+            ],
+            "Valid_A_text_5" => [
+                "data" => [
+                    "A_text" => "ªºƻǀǁǂǃʔ",
+                ]
+            ],
+            "Valid_A_text_6" => [
+                "data" => [
+                    "A_text" => "ǅǈǋǲᾈᾉᾊᾋᾌᾍᾎᾏᾘᾙᾚᾛᾜᾝᾞᾟᾨᾩᾪᾫᾬᾭᾮᾯᾼῌῼ",
+                ]
+            ],
+            "Valid_B_text_1" => [
+                "data" => [
+                    "B_text" => "abcdefghijklmnopurstuvwxyz_ABCDEFGHIJKLMNOPURSTUVWXYZ-0123456789",
+                ]
+            ],
+            "Valid_C_text_1" => [
+                "data" => [
+                    "C_text" => "abcdefghijklmnopurstuvwxyz,ABCDEFGHIJKLMNOPURSTUVWXYZ_µßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ-ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ 0123456789 ①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳",
+                ]
+            ],
+            "Valid_D_text_1" => [
+                "data" => [
+                    "D_text" => "abc_def,ghijklmnopurstuvwxyz-ABC DEF,GHIJKLMNOPURSTUVWXYZ 0123456789",
+                ]
+            ],
+            "Invalid_A_text_1" => [
+                "data" => [
+                    "A_text" => "abcABC,123",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and numbers and _-"]
+            ],
+            "Invalid_A_text_2" => [
+                "data" => [
+                    "A_text" => "abcABC 123",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and numbers and _-"]
+            ],
+            "Invalid_A_text_3" => [
+                "data" => [
+                    "A_text" => "abcABC+123",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and numbers and _-"]
+            ],
+            "Invalid_B_text_1" => [
+                "data" => [
+                    "B_text" => "abcABC,123",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers and _-"]
+            ],
+            "Invalid_B_text_2" => [
+                "data" => [
+                    "B_text" => "abcABC 123",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers and _-"]
+            ],
+            "Invalid_B_text_3" => [
+                "data" => [
+                    "B_text" => "abcABC+123",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers and _-"]
+            ],
+            "Invalid_B_text_4" => [
+                "data" => [
+                    "B_text" => "abcABC123À",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers and _-"]
+            ],
+            "Invalid_B_text_4" => [
+                "data" => [
+                    "B_text" => "abcABC123①",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers and _-"]
+            ],
+            "Invalid_C_text_1" => [
+                "data" => [
+                    "C_text" => "abc&ABC",
+                ],
+                "expected_msg" => ["C_text" => "C_text must only contain letters and numbers and _ ,-"]
+            ],
+            "Invalid_C_text_2" => [
+                "data" => [
+                    "C_text" => "abc+ABC",
+                ],
+                "expected_msg" => ["C_text" => "C_text must only contain letters and numbers and _ ,-"]
+            ],
+            "Invalid_D_text_1" => [
+                "data" => [
+                    "D_text" => "abc，ABC",
+                ],
+                "expected_msg" => ["D_text" => "D_text must only contain letters and numbers and _ ,-"]
+            ],
+            "Invalid_D_text_2" => [
+                "data" => [
+                    "D_text" => "abc+ABC",
+                ],
+                "expected_msg" => ["D_text" => "D_text must only contain letters and numbers and _ ,-"]
             ],
         ];
 

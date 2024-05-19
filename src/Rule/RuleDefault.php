@@ -50,7 +50,9 @@ trait RuleDefault
         'uuid' => 'is_uuid',
         'ulid' => 'is_ulid',
         'alpha' => 'is_alpha',
+        'alpha_ext' => 'is_alpha_ext',
         'alphanumeric' => 'is_alphanumeric',
+        'alphanumeric_ext' => 'is_alphanumeric_ext',
     ];
 
     /**
@@ -967,15 +969,17 @@ trait RuleDefault
      *
      * @param string $data
      * @param string $charset
-     * @return bool
+     * @param string $extensions
+     * @return bool|string
+     * @throws MethodException
      */
-    public static function is_alpha($data, $charset = 'UNICODE')
+    public static function is_alpha($data, $charset = 'UNICODE', $extensions = '')
     {
         if (empty($data) || !is_string($data)) return false;
 
         $letter_expression = static::get_alpha_preg_letter('default', $charset);
         $mark_expression = static::get_alpha_preg_mark('default', $charset);
-        $alpha_expression = $letter_expression . $mark_expression;
+        $alpha_expression = $letter_expression . $mark_expression . $extensions;
 
         /**
          * @example Unicode /^[\pL\pM]+$/u
@@ -984,7 +988,11 @@ trait RuleDefault
         if (preg_match("/^[{$alpha_expression}]+$/u", $data)) {
             return true;
         } else {
-            return false;
+            if (empty($extensions)) {
+                return false;
+            } else {
+                return 'TAG:alpha_ext:@p2';
+            }
         }
     }
 
@@ -992,16 +1000,18 @@ trait RuleDefault
      * The field data must only contain letters and numbers
      *
      * @param string $data
-     * @param string $parameter
-     * @return bool
+     * @param string $charset
+     * @param string $extensions
+     * @return bool|string
+     * @throws MethodException
      */
-    public static function is_alphanumeric($data, $charset = 'UNICODE')
+    public static function is_alphanumeric($data, $charset = 'UNICODE', $extensions = '')
     {
         if (empty($data) || !is_string($data)) return false;
 
         $letter_numeric_expression = static::get_alpha_preg_letter_numeric('default', $charset);
         $mark_expression = static::get_alpha_preg_mark('default', $charset);
-        $alphanumeric_expression = $letter_numeric_expression . $mark_expression;
+        $alphanumeric_expression = $letter_numeric_expression . $mark_expression . $extensions;
 
         /**
          * @example Unicode /^[\pL\pM\pN]+$/u
@@ -1010,7 +1020,55 @@ trait RuleDefault
         if (preg_match("/^[{$alphanumeric_expression}]+$/u", $data)) {
             return true;
         } else {
-            return false;
+            if (empty($extensions)) {
+                return false;
+            } else {
+                return 'TAG:alphanumeric_ext:@p2';
+            }
+        }
+    }
+
+    /**
+     * The field data must only contain letters and extensions
+     *
+     * @param string $data
+     * @param string $charset
+     * @param string $extensions Default to "_-"
+     * @return bool|string
+     * @throws MethodException
+     */
+    public static function is_alpha_ext($data, $charset = 'UNICODE', $extensions = '_-')
+    {
+        if(static::is_alpha($data, $charset, $extensions) === true) {
+            return true;
+        } else {
+            if ($extensions === '_-') {
+                return false;
+            } else {
+                return 'TAG:alpha_ext:@p2';
+            }
+        }
+    }
+
+    /**
+     * The field data must only contain letters and numbers and extensions
+     *
+     * @param string $data
+     * @param string $charset
+     * @param string $extensions Default to "_-"
+     * @return bool|string
+     * @throws MethodException
+     */
+    public static function is_alphanumeric_ext($data, $charset = 'UNICODE', $extensions = '_-')
+    {
+        if(static::is_alphanumeric($data, $charset, $extensions) === true) {
+            return true;
+        } else {
+            if ($extensions === '_-') {
+                return false;
+            } else {
+                return 'TAG:alphanumeric_ext:@p2';
+            }
         }
     }
 }

@@ -101,7 +101,11 @@ class ZhCn
         'uuid' => '@this 必须是 UUID',
         'ulid' => '@this 必须是 ULID',
         'alpha' => '@this 只能包含字母',
+        'alpha_ext' => '@this 只能包含字母和_-',
+        'alpha_ext:@p2' => '@this 只能包含字母和@p2',
         'alphanumeric' => '@this 只能包含字母和数字',
+        'alphanumeric_ext' => '@this 只能包含字母，数字和_-',
+        'alphanumeric_ext:@p2' => '@this 只能包含字母，数字和@p2',
         // Datetime
         'datetime' => '@this 必须是格式正确的日期时间',
         'datetime:format:@p1' => '@this 必须是日期时间且格式为 @p1',

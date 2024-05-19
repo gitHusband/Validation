@@ -101,7 +101,11 @@ class EnUs
         'uuid' => '@this must be a UUID',
         'ulid' => '@this must be a ULID',
         'alpha' => '@this must only contain letters',
+        'alpha_ext' => '@this must only contain letters and _-',
+        'alpha_ext:@p2' => '@this must only contain letters and @p2',
         'alphanumeric' => '@this must only contain letters and numbers',
+        'alphanumeric_ext' => '@this must only contain letters and numbers and _-',
+        'alphanumeric_ext:@p2' => '@this must only contain letters and numbers and @p2',
         // Datetime
         'datetime' => '@this must be a valid datetime',
         'datetime:format:@p1' => '@this must be a valid datetime in format @p1',
