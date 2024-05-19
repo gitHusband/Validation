@@ -3280,4 +3280,218 @@ trait TestRuleDefault
             "extra" => $extra
         ];
     }
+
+    protected function test_method_is_alpha()
+    {
+        $rules = [
+            "symbol" => [
+                "A_text" => "optional|alpha",
+                "B_text" => "optional|alpha[ASCII]",
+            ],
+            "method" => [
+                "A_text" => "optional|is_alpha",
+                "B_text" => "optional|is_alpha[ASCII]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_text_1" => [
+                "data" => [
+                    "A_text" => "abcdefghijklmnopurstuvwxyzABCDEFGHIJKLMNOPURSTUVWXYZ",
+                ]
+            ],
+            "Valid_A_text_2" => [
+                "data" => [
+                    "A_text" => "abcdefghijklmnopurstuvwxyzµßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ",
+                ]
+            ],
+            "Valid_A_text_3" => [
+                "data" => [
+                    "A_text" => "ABCDEFGHIJKLMNOPURSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ",
+                ]
+            ],
+            "Valid_A_text_4" => [
+                "data" => [
+                    "A_text" => "ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁˆˇˈˉˊˋˌˍˎˏːˑˠˡˢˣˤˬˮʹͺՙ",
+                ]
+            ],
+            "Valid_A_text_5" => [
+                "data" => [
+                    "A_text" => "ªºƻǀǁǂǃʔ",
+                ]
+            ],
+            "Valid_A_text_6" => [
+                "data" => [
+                    "A_text" => "ǅǈǋǲᾈᾉᾊᾋᾌᾍᾎᾏᾘᾙᾚᾛᾜᾝᾞᾟᾨᾩᾪᾫᾬᾭᾮᾯᾼῌῼ",
+                ]
+            ],
+            "Valid_B_text_1" => [
+                "data" => [
+                    "B_text" => "abcdefghijklmnopurstuvwxyzABCDEFGHIJKLMNOPURSTUVWXYZ",
+                ]
+            ],
+            "Invalid_A_text_1" => [
+                "data" => [
+                    "A_text" => "abcABC1",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters"]
+            ],
+            "Invalid_A_text_2" => [
+                "data" => [
+                    "A_text" => "abc ABC",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters"]
+            ],
+            "Invalid_A_text_3" => [
+                "data" => [
+                    "A_text" => "abc,ABC",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters"]
+            ],
+            "Invalid_B_text_1" => [
+                "data" => [
+                    "B_text" => "abcABC1",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters"]
+            ],
+            "Invalid_B_text_2" => [
+                "data" => [
+                    "B_text" => "abc ABC",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters"]
+            ],
+            "Invalid_B_text_3" => [
+                "data" => [
+                    "B_text" => "abc,ABC",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters"]
+            ],
+            "Invalid_B_text_4" => [
+                "data" => [
+                    "B_text" => "abcABCÀ",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_is_alphanumeric()
+    {
+        $rules = [
+            "symbol" => [
+                "A_text" => "optional|alphanumeric",
+                "B_text" => "optional|alphanumeric[ASCII]",
+            ],
+            "method" => [
+                "A_text" => "optional|is_alphanumeric",
+                "B_text" => "optional|is_alphanumeric[ASCII]",
+            ]
+        ];
+
+        $cases = [
+            "Valid_A_text_1" => [
+                "data" => [
+                    "A_text" => "abcdefghijklmnopurstuvwxyzABCDEFGHIJKLMNOPURSTUVWXYZ0123456789",
+                ]
+            ],
+            "Valid_A_text_2" => [
+                "data" => [
+                    "A_text" => "abcdefghijklmnopurstuvwxyzµßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ0123456789٠١٢٣٤٥٦٧٨٩",
+                ]
+            ],
+            "Valid_A_text_3" => [
+                "data" => [
+                    "A_text" => "ABCDEFGHIJKLMNOPURSTUVWXYZÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅬⅭⅮⅯⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹⅺⅻⅼⅽⅾⅿ",
+                ]
+            ],
+            "Valid_A_text_4" => [
+                "data" => [
+                    "A_text" => "ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁˆˇˈˉˊˋˌˍˎˏːˑˠˡˢˣˤˬˮʹͺՙ⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅐⅛⅜⅝⅞⅑⅒①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳",
+                ]
+            ],
+            "Valid_A_text_5" => [
+                "data" => [
+                    "A_text" => "ªºƻǀǁǂǃʔ",
+                ]
+            ],
+            "Valid_A_text_6" => [
+                "data" => [
+                    "A_text" => "ǅǈǋǲᾈᾉᾊᾋᾌᾍᾎᾏᾘᾙᾚᾛᾜᾝᾞᾟᾨᾩᾪᾫᾬᾭᾮᾯᾼῌῼ",
+                ]
+            ],
+            "Valid_B_text_1" => [
+                "data" => [
+                    "B_text" => "abcdefghijklmnopurstuvwxyzABCDEFGHIJKLMNOPURSTUVWXYZ0123456789",
+                ]
+            ],
+            "Invalid_A_text_1" => [
+                "data" => [
+                    "A_text" => "abcABC,123",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and numbers"]
+            ],
+            "Invalid_A_text_2" => [
+                "data" => [
+                    "A_text" => "abcABC 123",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and numbers"]
+            ],
+            "Invalid_A_text_3" => [
+                "data" => [
+                    "A_text" => "abcABC_123",
+                ],
+                "expected_msg" => ["A_text" => "A_text must only contain letters and numbers"]
+            ],
+            "Invalid_B_text_1" => [
+                "data" => [
+                    "B_text" => "abcABC,123",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers"]
+            ],
+            "Invalid_B_text_2" => [
+                "data" => [
+                    "B_text" => "abcABC 123",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers"]
+            ],
+            "Invalid_B_text_3" => [
+                "data" => [
+                    "B_text" => "abcABC_123",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers"]
+            ],
+            "Invalid_B_text_4" => [
+                "data" => [
+                    "B_text" => "abcABC123À",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers"]
+            ],
+            "Invalid_B_text_4" => [
+                "data" => [
+                    "B_text" => "abcABC123①",
+                ],
+                "expected_msg" => ["B_text" => "B_text must only contain letters and numbers"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
 }

@@ -1,6 +1,7 @@
 <?php
 
 namespace githusband\Rule;
+use githusband\Exception\MethodException;
 
 trait RuleDefault
 {
@@ -48,6 +49,8 @@ trait RuleDefault
         'mac' => 'is_mac',
         'uuid' => 'is_uuid',
         'ulid' => 'is_ulid',
+        'alpha' => 'is_alpha',
+        'alphanumeric' => 'is_alphanumeric',
     ];
 
     /**
@@ -87,6 +90,49 @@ trait RuleDefault
         'arr' => 'is_array',    // native function
         // 'bool=' => 'bool_equal',
         'bool_str=' => 'bool_string_equal',
+    ];
+
+    public static $unicode_alpha_preg_of_letter = [
+        'letter' => '\pL',
+        'letter_lowercase' => '\p{Ll}',    // a-z, µßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ and more
+        'letter_uppercase' => '\p{Lu}',    // A-Z, ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞ and more
+        'letter_modifier' => '\p{Lm}',     // Letter-like characters that are usually combined with others, but here they stand alone: ʰʱʲʳʴʵʶʷʸʹʺʻʼʽʾʿˀˁˆˇˈˉˊˋˌˍˎˏːˑˠˡˢˣˤˬˮʹͺՙ and more
+        'letter_other' => '\p{Lo}',        // ªºƻǀǁǂǃʔ and many more ideographs and letters from unicase alphabets
+        'letter_title' => '\p{Lt}',        // ǅǈǋǲᾈᾉᾊᾋᾌᾍᾎᾏᾘᾙᾚᾛᾜᾝᾞᾟᾨᾩᾪᾫᾬᾭᾮᾯᾼῌῼ
+    ];
+
+    public static $ascii_alpha_preg_of_letter = [
+        'letter' => 'a-zA-Z',
+        'letter_lowercase' => 'a-z',
+        'letter_uppercase' => 'A-Z',
+    ];
+
+    public static $unicode_alpha_preg_of_mark = [
+        'mark' => '\pM',
+        'mark_spacing' => '\p{Mc}',          // None in latin scripts
+        'mark_non-spacing' => '\p{Mn}',      // Combining enclosing square (U+20DE) like in a⃞ , combining enclosing circle backslash (U+20E0) like in a⃠
+        'mark_enclosing' => '\p{Me}',        // Combining diacritical marks U+0300-U+036f, like the accents on this letter a: áâãāa̅ăȧäảåa̋ǎa̍a̎ȁa̐ȃ
+    ];
+
+    public static $ascii_alpha_preg_of_mark = [
+        'mark' => '',
+        'mark_spacing' => '',
+        'mark_non-spacing' => '',
+        'mark_enclosing' => '',
+    ];
+
+    public static $unicode_alpha_preg_of_numeric = [
+        'numeric' => '\pN',
+        'numeric_decimal' => '\p{Nd}',  // 0123456789, ٠١٢٣٤٥٦٧٨٩ and digits in many other scripts.
+        'numeric_letter' => '\p{Nl}',   // ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩⅪⅫⅬⅭⅮⅯⅰⅱⅲⅳⅴⅵⅶⅷⅸⅹⅺⅻⅼⅽⅾⅿ and some more
+        'numeric_other' => '\p{No}',    // ⁰¹²³⁴⁵⁶⁷⁸⁹ ₀₁₂₃₄₅₆₇₈₉ ½⅓⅔¼¾⅕⅖⅗⅘⅙⅚⅐⅛⅜⅝⅞⅑⅒ ①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳, etc.
+    ];
+
+    public static $ascii_alpha_preg_of_numeric = [
+        'numeric' => '0-9',
+        // 'numeric_decimal' => '0-9',
+        // 'numeric_letter' => '0-9',
+        // 'numeric_other' => '0-9',
     ];
 
     /**
@@ -261,7 +307,7 @@ trait RuleDefault
     }
 
     /**
-     * The field data must be numberic and in a given array
+     * The field data must be numeric and in a given array
      *
      * @param mixed $data
      * @param array $param
@@ -273,7 +319,7 @@ trait RuleDefault
     }
 
     /**
-     * The field data must be numberic and not in a given array
+     * The field data must be numeric and not in a given array
      *
      * @param mixed $data
      * @param array $param
@@ -815,5 +861,156 @@ trait RuleDefault
         }
 
         return $data[0] <= '7';
+    }
+
+    /**
+     * Get the regular expression of Alphabet or Alphanumeric
+     *
+     * @see https://www.php.net/manual/en/regexp.reference.unicode.php
+     * @param string $sub_types For example, type "letter" have sub-type "lowercase" or "uppercase"
+     * @param string $charset UNICODE / ASCII
+     * @return string
+     * @throws MethodException
+     */
+    public static function get_alpha_preg($types, $sub_types = 'default', $charset = 'UNICODE')
+    {
+        $charset = strtolower($charset);
+
+        $types_array = explode('/', $types);
+
+        $expression = '';
+        $invalid_sub_types = [];
+        foreach ($types_array as $type) {
+            $prototype_name = "{$charset}_alpha_preg_of_{$type}";
+            if (!property_exists(static::class, $prototype_name)) throw MethodException::parameter("Invalid charset {$charset} {$type}");
+            $alpha_preg = static::${$prototype_name};
+
+            if (
+                $sub_types == 'default'
+                ||$sub_types == $type
+            ) {
+                $expression .= $alpha_preg[$type];
+            } else {
+                $sub_types_array = explode('/', $sub_types);
+                foreach ($sub_types_array as $sub_type) {
+                    $full_sub_type = "{$type}_{$sub_type}";
+                    if (!isset($alpha_preg[$full_sub_type])) {
+                        if (in_array($sub_type, $invalid_sub_types)) $invalid_sub_types[] = $sub_type;
+                        break;
+                    }
+                    $expression .= $alpha_preg[$full_sub_type];
+                }
+            }
+        }
+
+        if (!empty($invalid_sub_types)) {
+            throw MethodException::parameter("Invalid alpha {$type}:{$invalid_sub_types[0]} type of {$charset}");
+        }
+
+        return $expression;
+    }
+
+    /**
+     * Get the regular expression of Alphabet
+     *
+     * @param string $sub_types 
+     * @param string $charset UNICODE / ASCII
+     * @return string
+     * @throws MethodException
+     */
+    public static function get_alpha_preg_letter($sub_types = 'default', $charset = 'UNICODE')
+    {
+        return static::get_alpha_preg('letter', $sub_types, $charset);
+    }
+
+    /**
+     * Get the regular expression of Mark
+     *
+     * @param string $sub_types
+     * @param string $charset UNICODE / ASCII
+     * @return string
+     * @throws MethodException
+     */
+    public static function get_alpha_preg_mark($sub_types = 'default', $charset = 'UNICODE')
+    {
+        return static::get_alpha_preg('mark', $sub_types, $charset);
+    }
+
+    /**
+     * Get the regular expression of Numeric
+     *
+     * @param string $sub_types
+     * @param string $charset UNICODE / ASCII
+     * @return string
+     * @throws MethodException
+     */
+    public static function get_alpha_preg_numeric($sub_types = 'default', $charset = 'UNICODE')
+    {
+        return static::get_alpha_preg('numeric', $sub_types, $charset);
+    }
+
+    /**
+     * Get the regular expression of Letter and Numeric
+     *
+     * @param string $sub_types
+     * @param string $charset UNICODE / ASCII
+     * @return string
+     * @throws MethodException
+     */
+    public static function get_alpha_preg_letter_numeric($sub_types = 'default', $charset = 'UNICODE')
+    {
+        return static::get_alpha_preg('letter/numeric', $sub_types, $charset);
+    }
+
+    /**
+     * The field data must only contain letters
+     *
+     * @param string $data
+     * @param string $charset
+     * @return bool
+     */
+    public static function is_alpha($data, $charset = 'UNICODE')
+    {
+        if (empty($data) || !is_string($data)) return false;
+
+        $letter_expression = static::get_alpha_preg_letter('default', $charset);
+        $mark_expression = static::get_alpha_preg_mark('default', $charset);
+        $alpha_expression = $letter_expression . $mark_expression;
+
+        /**
+         * @example Unicode /^[\pL\pM]+$/u
+         * @example ASCII /^[a-zA-Z]+$/u
+         */
+        if (preg_match("/^[{$alpha_expression}]+$/u", $data)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * The field data must only contain letters and numbers
+     *
+     * @param string $data
+     * @param string $parameter
+     * @return bool
+     */
+    public static function is_alphanumeric($data, $charset = 'UNICODE')
+    {
+        if (empty($data) || !is_string($data)) return false;
+
+        $letter_numeric_expression = static::get_alpha_preg_letter_numeric('default', $charset);
+        $mark_expression = static::get_alpha_preg_mark('default', $charset);
+        $alphanumeric_expression = $letter_numeric_expression . $mark_expression;
+
+        /**
+         * @example Unicode /^[\pL\pM\pN]+$/u
+         * @example ASCII /^[a-zA-Z0-9]+$/u
+         */
+        if (preg_match("/^[{$alphanumeric_expression}]+$/u", $data)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

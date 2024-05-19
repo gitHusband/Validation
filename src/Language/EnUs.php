@@ -90,6 +90,7 @@ class EnUs
         'file_base64' => '@this must be a valid file base64',
         'file_base64:mime' => '@this file mine must be euqal to @p1',
         'file_base64:size' => '@this file size must be less than @p2kb',
+        'oauth2_grant_type' => '@this is not a valid OAuth2 grant type',
         'email' => '@this must be email',
         'url' => '@this must be url',
         'ip' => '@this must be IP address',
@@ -99,7 +100,8 @@ class EnUs
         'dob' => '@this must be a valid date',
         'uuid' => '@this must be a UUID',
         'ulid' => '@this must be a ULID',
-        'oauth2_grant_type' => '@this is not a valid OAuth2 grant type',
+        'alpha' => '@this must only contain letters',
+        'alphanumeric' => '@this must only contain letters and numbers',
         // Datetime
         'datetime' => '@this must be a valid datetime',
         'datetime:format:@p1' => '@this must be a valid datetime in format @p1',

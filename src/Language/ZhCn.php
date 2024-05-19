@@ -91,6 +91,7 @@ class ZhCn
         'file_base64' => '@this 必须是正确的文件的base64码',
         'file_base64:mime' => '@this 文件类型必须是 @p1',
         'file_base64:size' => '@this 文件尺寸必须小于 @p2kb',
+        'oauth2_grant_type' => '@this 必须是合法的 OAuth2 授权类型',
         'email' => '@this 必须是邮箱',
         'url' => '@this 必须是网址',
         'ip' => '@this 必须是IP地址',
@@ -99,7 +100,8 @@ class ZhCn
         'mac' => '@this 必须是MAC地址',
         'uuid' => '@this 必须是 UUID',
         'ulid' => '@this 必须是 ULID',
-        'oauth2_grant_type' => '@this 必须是合法的 OAuth2 授权类型',
+        'alpha' => '@this 只能包含字母',
+        'alphanumeric' => '@this 只能包含字母和数字',
         // Datetime
         'datetime' => '@this 必须是格式正确的日期时间',
         'datetime:format:@p1' => '@this 必须是日期时间且格式为 @p1',
