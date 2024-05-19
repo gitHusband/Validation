@@ -1029,16 +1029,25 @@ function check_animal($animal) {
 / | `bool_str` | @this 必须是布尔型字符串
 / | `bool_string` | @this 必须是布尔型字符串
 `bool_string=` | `bool_string_equal` | @this 必须是布尔型字符串且等于 @p1
-/ | `email` | @this 必须是邮箱
-/ | `url` | @this 必须是网址
-/ | `ip` | @this 必须是IP地址
-/ | `mac` | @this 必须是MAC地址
 / | `dob` | @this 必须是正确的日期
 / | `file_base64` | @this 必须是正确的文件的base64码
 / | `file_base64:mime` | @this 文件类型必须是 @p1
 / | `file_base64:size` | @this 文件尺寸必须小于 @p2kb
-/ | `uuid` | @this 必须是 UUID
 / | `oauth2_grant_type` | @this 必须是合法的 OAuth2 授权类型
+`email` | `is_email` | @this 必须是邮箱
+`url` | `is_url` | @this 必须是网址
+`ip` | `is_ip` | @this 必须是IP地址
+`ipv4` | `is_ipv4` | @this 必须是IPv6地址
+`ipv6` | `is_ipv6` | @this 必须是IPv6地址
+`mac` | `is_mac` | @this 必须是MAC地址
+`uuid` | `is_uuid` | @this 必须是 UUID
+`ulid` | `is_ulid` | @this 必须是 ULID
+`alpha` | `is_alpha` | @this 只能包含字母
+`alpha_ext` | `is_alpha_ext` | @this 只能包含字母和_-
+/ | `alpha_ext:@p2` | @this 只能包含字母和@p2
+`alphanumeric` | `is_alphanumeric` | @this 只能包含字母和数字
+`alphanumeric_ext` | `is_alphanumeric_ext` | @this 只能包含字母，数字和_-
+/ | `alphanumeric_ext:@p2` | @this 只能包含字母，数字和@p2
 `datetime` | `is_datetime` | @this 必须是格式正确的日期时间
 / | `datetime:format:@p1` | @this 必须是日期时间且格式为 @p1
 / | `datetime:format:@p2` | @this 必须是日期时间且格式为 @p2

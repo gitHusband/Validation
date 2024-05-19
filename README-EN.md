@@ -1034,16 +1034,25 @@ Symbol | Method | Error Message Template
 / | `bool_str` | @this must be boolean string
 / | `bool_string` | @this must be boolean string
 `bool_string=` | `bool_string_equal` | @this must be boolean string @p1
-/ | `email` | @this must be email
-/ | `url` | @this must be url
-/ | `ip` | @this must be IP address
-/ | `mac` | @this must be MAC address
-/ | `dob` | @this must be a valid date
 / | `file_base64` | @this must be a valid file base64
 / | `file_base64:mime` | @this file mine must be euqal to @p1
 / | `file_base64:size` | @this file size must be less than @p2kb
-/ | `uuid` | @this must be a UUID
 / | `oauth2_grant_type` | @this is not a valid OAuth2 grant type
+`email` | `is_email` | @this must be email
+`url` | `is_url` | @this must be url
+`ip` | `is_ip` | @this must be IP address
+`ipv4` | `is_ipv4` | @this must be IPv4 address
+`ipv6` | `is_ipv6` | @this must be IPv6 address
+`mac` | `is_mac` | @this must be MAC address
+/ | `dob` | @this must be a valid date
+`uuid` | `is_uuid` | @this must be a UUID
+`ulid` | `is_ulid` | @this must be a ULID
+`alpha` | `is_alpha` | @this must only contain letters
+`alpha_ext` | `is_alpha_ext` | @this must only contain letters and _-
+/ | `alpha_ext:@p2` | @this must only contain letters and @p2
+`alphanumeric` | `is_alphanumeric` | @this must only contain letters and numbers
+`alphanumeric_ext` | `is_alphanumeric_ext` | @this must only contain letters and numbers and _-
+/ | `alphanumeric_ext:@p2` | @this must only contain letters and numbers and @p2
 `datetime` | `is_datetime` | @this must be a valid datetime
 / | `datetime:format:@p1` | @this must be a valid datetime in format @p1
 / | `datetime:format:@p2` | @this must be a valid datetime in format @p2
