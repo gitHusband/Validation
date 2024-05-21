@@ -203,3 +203,63 @@
 - less_than_equal -> less_equal
 - length_greater_than_equal -> length_greater_equal
 - length_less_than_equal -> length_less_equal
+
+## v2.5.1
+
+### 优化正则表达式的解析方法
+- 支持在任意参数中直接使用 `/`
+
+### 新增的方法
+- `ulid`: `is_ulid`,
+- `ipv4`: `is_ipv4`,
+- `ipv6`: `is_ipv6`,
+- `alpha`: `is_alpha`,
+- `alpha_ext`: `is_alpha_ext`,
+- `alphanumeric_ext`: `is_alphanumeric_ext`,
+- `alphanumeric_ext`: `is_alphanumeric_ext`,
+- `datetime`: `is_datetime`,
+- `datetime=`: `datetime_equal`,
+- `datetime!=`: `datetime_not_equal`,
+- `datetime>`: `datetime_greater_than`,
+- `datetime>=`: `datetime_greater_equal`,
+- `datetime<`: `datetime_less_than`,
+- `datetime<=`: `datetime_less_equal`,
+- `datetime><`: `datetime_greater_less`,
+- `datetime><=`: `datetime_greater_lessequal`,
+- `datetime>=<`: `datetime_greaterequal_less`,
+- `datetime>=<=`: `datetime_between`,
+- `date`: `is_date`,
+- `date=`: `date_equal`,
+- `date!=`: `date_not_equal`,
+- `date>`: `date_greater_than`,
+- `date>=`: `date_greater_equal`,
+- `date<`: `date_less_than`,
+- `date<=`: `date_less_equal`,
+- `date><`: `date_greater_less`,
+- `date><=`: `date_greater_lessequal`,
+- `date>=<`: `date_greaterequal_less`,
+- `date>=<=`: `date_between`,
+- `time`: `is_time`,
+- `time=`: `time_equal`,
+- `time!=`: `time_not_equal`,
+- `time>`: `time_greater_than`,
+- `time>=`: `time_greater_equal`,
+- `time<`: `time_less_than`,
+- `time<=`: `time_less_equal`,
+- `time><`: `time_greater_less`,
+- `time><=`: `time_greater_lessequal`,
+- `time>=<`: `time_greaterequal_less`,
+- `time>=<=`: `time_between`,
+
+### 优化的方法名
+
+Symbol | Old Method Name | New Method Name | Is Optimized
+---|---|---|---
+`email` | ~~email~~ | `is_email` ｜ Y
+`url` | ~~url~~ | `is_url` | Y
+`ip` | ~~ip~~ | `is_ip` | Y
+`ipv4` | / | `is_ipv4` | /
+`ipv6` | / | `is_ipv6` | /
+`mac` | ~~mac~~ | `is_mac` | /
+`uuid` | ~~uuid~~ | `is_uuid` | Y
+`ulid` | / | `is_ulid` | /
