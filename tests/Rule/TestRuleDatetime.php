@@ -4252,6 +4252,7 @@ trait TestRuledatetime
                 "A_time" => "optional|time><[01:01:00,12:12:00]",
                 "B_time" => "optional|time><[01:01,12:12,H:i]",
                 "C_time" => "optional|time><['01',12,H]",
+                "D_time" => "optional|time><[22:00:00,02:00:00]",
                 "A_exc" => "optional|time><[01:60,60:00,H:i]",
                 "B_exc" => "optional|time><[01:01,60:00,H:i]",
             ],
@@ -4259,6 +4260,7 @@ trait TestRuledatetime
                 "A_time" => "optional|time_greater_less[01:01:00,12:12:00]",
                 "B_time" => "optional|time_greater_less[01:01,12:12,H:i]",
                 "C_time" => "optional|time_greater_less['01',12,H]",
+                "D_time" => "optional|time_greater_less[22:00:00,02:00:00]",
                 "A_exc" => "optional|time_greater_less[01:60,60:00,H:i]",
                 "B_exc" => "optional|time_greater_less[01:01,60:00,H:i]",
             ]
@@ -4293,6 +4295,26 @@ trait TestRuledatetime
             "Valid_C_time_2" => [
                 "data" => [
                     "C_time" => "11",
+                ]
+            ],
+            "Valid_D_time_1" => [
+                "data" => [
+                    "D_time" => "22:00:01",
+                ]
+            ],
+            "Valid_D_time_2" => [
+                "data" => [
+                    "D_time" => "23:59:59",
+                ]
+            ],
+            "Valid_D_time_3" => [
+                "data" => [
+                    "D_time" => "00:00:00",
+                ]
+            ],
+            "Valid_D_time_4" => [
+                "data" => [
+                    "D_time" => "01:59:59",
                 ]
             ],
             "Invalid_A_time_1" => [
@@ -4385,6 +4407,30 @@ trait TestRuledatetime
                 ],
                 "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than 12"]
             ],
+            "Invalid_D_time_1" => [
+                "data" => [
+                    "D_time" => "22:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than 22:00:00 and less than 02:00:00"]
+            ],
+            "Invalid_D_time_2" => [
+                "data" => [
+                    "D_time" => "02:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than 22:00:00 and less than 02:00:00"]
+            ],
+            "Invalid_D_time_3" => [
+                "data" => [
+                    "D_time" => "21:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than 22:00:00 and less than 02:00:00"]
+            ],
+            "Invalid_D_time_4" => [
+                "data" => [
+                    "D_time" => "03:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than 22:00:00 and less than 02:00:00"]
+            ],
             "Exception_A_exc" => [
                 "data" => [
                     "A_exc" => "01:01",
@@ -4417,6 +4463,7 @@ trait TestRuledatetime
                 "A_time" => "optional|time><=[01:01:00,12:12:00]",
                 "B_time" => "optional|time><=[01:01,12:12,H:i]",
                 "C_time" => "optional|time><=['01',12,H]",
+                "D_time" => "optional|time><=[22:00:00,02:00:00]",
                 "A_exc" => "optional|time><=[01:60,60:00,H:i]",
                 "B_exc" => "optional|time><=[01:01,60:00,H:i]",
             ],
@@ -4424,6 +4471,7 @@ trait TestRuledatetime
                 "A_time" => "optional|time_greater_lessequal[01:01:00,12:12:00]",
                 "B_time" => "optional|time_greater_lessequal[01:01,12:12,H:i]",
                 "C_time" => "optional|time_greater_lessequal['01',12,H]",
+                "D_time" => "optional|time_greater_lessequal[22:00:00,02:00:00]",
                 "A_exc" => "optional|time_greater_lessequal[01:60,60:00,H:i]",
                 "B_exc" => "optional|time_greater_lessequal[01:01,60:00,H:i]",
             ]
@@ -4473,6 +4521,26 @@ trait TestRuledatetime
             "Valid_C_time_3" => [
                 "data" => [
                     "C_time" => "12",
+                ]
+            ],
+            "Valid_D_time_1" => [
+                "data" => [
+                    "D_time" => "22:00:01",
+                ]
+            ],
+            "Valid_D_time_2" => [
+                "data" => [
+                    "D_time" => "23:59:59",
+                ]
+            ],
+            "Valid_D_time_3" => [
+                "data" => [
+                    "D_time" => "00:00:00",
+                ]
+            ],
+            "Valid_D_time_4" => [
+                "data" => [
+                    "D_time" => "02:00:00",
                 ]
             ],
             "Invalid_A_time_1" => [
@@ -4565,6 +4633,24 @@ trait TestRuledatetime
                 ],
                 "expected_msg" => ["C_time" => "C_time must be a valid time and greater than 01 and less than or equal to 12"]
             ],
+            "Invalid_D_time_1" => [
+                "data" => [
+                    "D_time" => "22:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than 22:00:00 and less than or equal to 02:00:00"]
+            ],
+            "Invalid_D_time_2" => [
+                "data" => [
+                    "D_time" => "03:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than 22:00:00 and less than or equal to 02:00:00"]
+            ],
+            "Invalid_D_time_3" => [
+                "data" => [
+                    "D_time" => "21:59:59",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than 22:00:00 and less than or equal to 02:00:00"]
+            ],
             "Exception_A_exc" => [
                 "data" => [
                     "A_exc" => "01:01",
@@ -4597,6 +4683,7 @@ trait TestRuledatetime
                 "A_time" => "optional|time>=<[01:01:00,12:12:00]",
                 "B_time" => "optional|time>=<[01:01,12:12,i:s]",
                 "C_time" => "optional|time>=<['01',12,i]",
+                "D_time" => "optional|time>=<[22:00:00,02:00:00]",
                 "A_exc" => "optional|time>=<[01:60,60:00,i:s]",
                 "B_exc" => "optional|time>=<[01:01,60:00,H:i]",
             ],
@@ -4604,6 +4691,7 @@ trait TestRuledatetime
                 "A_time" => "optional|time_greaterequal_less[01:01:00,12:12:00]",
                 "B_time" => "optional|time_greaterequal_less[01:01,12:12,i:s]",
                 "C_time" => "optional|time_greaterequal_less['01',12,i]",
+                "D_time" => "optional|time_greaterequal_less[22:00:00,02:00:00]",
                 "A_exc" => "optional|time_greaterequal_less[01:60,60:00,i:s]",
                 "B_exc" => "optional|time_greaterequal_less[01:01,60:00,H:i]",
             ]
@@ -4653,6 +4741,26 @@ trait TestRuledatetime
             "Valid_C_time_3" => [
                 "data" => [
                     "C_time" => "11",
+                ]
+            ],
+            "Valid_D_time_1" => [
+                "data" => [
+                    "D_time" => "22:00:00",
+                ]
+            ],
+            "Valid_D_time_2" => [
+                "data" => [
+                    "D_time" => "23:59:59",
+                ]
+            ],
+            "Valid_D_time_3" => [
+                "data" => [
+                    "D_time" => "00:00:00",
+                ]
+            ],
+            "Valid_D_time_4" => [
+                "data" => [
+                    "D_time" => "01:59:59",
                 ]
             ],
             "Invalid_A_time_1" => [
@@ -4745,6 +4853,24 @@ trait TestRuledatetime
                 ],
                 "expected_msg" => ["C_time" => "C_time must be a valid time and greater than or equal to 01 and less than 12"]
             ],
+            "Invalid_D_time_1" => [
+                "data" => [
+                    "D_time" => "21:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than or equal to 22:00:00 and less than 02:00:00"]
+            ],
+            "Invalid_D_time_2" => [
+                "data" => [
+                    "D_time" => "02:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than or equal to 22:00:00 and less than 02:00:00"]
+            ],
+            "Invalid_D_time_2" => [
+                "data" => [
+                    "D_time" => "03:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time must be a valid time and greater than or equal to 22:00:00 and less than 02:00:00"]
+            ],
             "Exception_A_exc" => [
                 "data" => [
                     "A_exc" => "01:01",
@@ -4777,6 +4903,7 @@ trait TestRuledatetime
                 "A_time" => "optional|time>=<=[01:01:00,12:12:00]",
                 "B_time" => "optional|time>=<=[01:01,12:12,i:s]",
                 "C_time" => "optional|time>=<=['01',12,i]",
+                "D_time" => "optional|time>=<=[22:00:00,02:00:00]",
                 "A_exc" => "optional|time>=<=[01:60,60:00,i:s]",
                 "B_exc" => "optional|time>=<=[01:01,60:00,H:i]",
             ],
@@ -4784,6 +4911,7 @@ trait TestRuledatetime
                 "A_time" => "optional|time_between[01:01:00,12:12:00]",
                 "B_time" => "optional|time_between[01:01,12:12,i:s]",
                 "C_time" => "optional|time_between['01',12,i]",
+                "D_time" => "optional|time_between[22:00:00,02:00:00]",
                 "A_exc" => "optional|time_between[01:60,60:00,i:s]",
                 "B_exc" => "optional|time_between[01:01,60:00,H:i]",
             ]
@@ -4848,6 +4976,26 @@ trait TestRuledatetime
             "Valid_C_time_4" => [
                 "data" => [
                     "C_time" => "12",
+                ]
+            ],
+            "Valid_D_time_1" => [
+                "data" => [
+                    "D_time" => "22:00:00",
+                ]
+            ],
+            "Valid_D_time_2" => [
+                "data" => [
+                    "D_time" => "23:59:59",
+                ]
+            ],
+            "Valid_D_time_3" => [
+                "data" => [
+                    "D_time" => "00:00:00",
+                ]
+            ],
+            "Valid_D_time_4" => [
+                "data" => [
+                    "D_time" => "02:00:00",
                 ]
             ],
             "Invalid_A_time_1" => [
@@ -4940,11 +5088,287 @@ trait TestRuledatetime
                 ],
                 "expected_msg" => '@field:A_exc, @method:time_between - Parameter 01:60 is not a valid time with format i:s'
             ],
+            "Invalid_D_time_1" => [
+                "data" => [
+                    "D_time" => "21:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time time must be between 22:00:00 and 02:00:00"]
+            ],
+            "Invalid_D_time_2" => [
+                "data" => [
+                    "D_time" => "03:00:00",
+                ],
+                "expected_msg" => ["D_time" => "D_time time must be between 22:00:00 and 02:00:00"]
+            ],
             "Exception_B_exc" => [
                 "data" => [
                     "B_exc" => "01:01",
                 ],
                 "expected_msg" => '@field:B_exc, @method:time_between - Parameter 60:00 is not a valid time with format H:i'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_datetime_between_by_relative_date_notation()
+    {
+        $rules = [
+            "symbol" => [
+                "A_datetime" => "optional|datetime>=<=[today, tomorrow]",
+                "B_datetime" => "optional|datetime>=<=[-3 days, next week, Y-m-d H:i:s]",
+                "C_datetime" => "optional|datetime>=<=[Tuesday, first day of next month, Y-m-d]",
+                "A1_exc" => "optional|datetime>=<=[today1, tomorrow]",
+                "A2_exc" => "optional|datetime>=<=[to-day, tomorrow]",
+                "A3_exc" => "optional|datetime>=<=[todad, tomorrow]",
+            ],
+            "method" => [
+                "A_datetime" => "optional|datetime_between[today, tomorrow]",
+                "B_datetime" => "optional|datetime_between[-3 days, next week, Y-m-d H:i:s]",
+                "C_datetime" => "optional|datetime_between[Tuesday, first day of next month, Y-m-d]",
+                "A1_exc" => "optional|datetime_between[today1, tomorrow]",
+                "A2_exc" => "optional|datetime_between[to-day, tomorrow]",
+                "A3_exc" => "optional|datetime_between[todad, tomorrow]",
+            ],
+        ];
+
+        // echo date('Y-m-d H:i:s', strtotime('next week')) . "\n";
+        // echo date('Y-m-d H:i:s', strtotime('+7 days')) . "\n";die;
+
+        $cases = [
+            "Valid_B_datetime_2" => [
+                "data" => [
+                    "B_datetime" => date('Y-m-d H:i:s', strtotime('+7 days')),
+                ]
+            ],
+            "Valid_A_datetime_1" => [
+                "data" => [
+                    "A_datetime" => date('Y-m-d'),
+                ]
+            ],
+            "Valid_A_datetime_2" => [
+                "data" => [
+                    "A_datetime" => date('Y-m-d', strtotime('+1 day')),
+                ]
+            ],
+            "Valid_B_datetime_1" => [
+                "data" => [
+                    "B_datetime" => date('Y-m-d H:i:s', strtotime('-3 days')),
+                ]
+            ],
+            "Valid_B_datetime_2" => [
+                "data" => [
+                    "B_datetime" => date('Y-m-d H:i:s', strtotime('+6 days')),
+                ]
+            ],
+            "Valid_C_datetime_1" => [
+                "data" => [
+                    "C_datetime" => date('Y-m-d H:i:s', strtotime('Tuesday')),
+                ]
+            ],
+            "Valid_C_datetime_1" => [
+                "data" => [
+                    "C_datetime" => date('Y-m-d', strtotime('Tuesday')),
+                ]
+            ],
+            "Valid_C_datetime_2" => [
+                "data" => [
+                    "C_datetime" => date('Y-m-01', strtotime('next month')),
+                ]
+            ],
+
+            /**
+             * Invalid cases
+             */
+            "Invalid_A_datetime_1" => [
+                "data" => [
+                    "A_datetime" => date('Y-m-d', strtotime('-1 day')),
+                ],
+                "expected_msg" => ["A_datetime" => "A_datetime datetime must be between today and tomorrow"]
+            ],
+            "Invalid_A_datetime_2" => [
+                "data" => [
+                    "A_datetime" => date('Y-m-d', strtotime('+2 day')),
+                ],
+                "expected_msg" => ["A_datetime" => "A_datetime datetime must be between today and tomorrow"]
+            ],
+            "Invalid_B_datetime_1" => [
+                "data" => [
+                    "B_datetime" => date('Y-m-d H:i:s', strtotime('-4 day')),
+                ],
+                "expected_msg" => ["B_datetime" => "B_datetime datetime must be between -3 days and next week"]
+            ],
+            "Invalid_B_datetime_2" => [
+                "data" => [
+                    "B_datetime" => date('Y-m-d H:i:s', strtotime('+8 days')),
+                ],
+                "expected_msg" => ["B_datetime" => "B_datetime datetime must be between -3 days and next week"]
+            ],
+            "Invalid_C_datetime_1" => [
+                "data" => [
+                    "C_datetime" => date('Y-m-d', strtotime('-4 day')),
+                ],
+                "expected_msg" => ["C_datetime" => "C_datetime datetime must be between Tuesday and first day of next month"]
+            ],
+            "Invalid_C_datetime_2" => [
+                "data" => [
+                    "C_datetime" => date('Y-m-02', strtotime('next month')),
+                ],
+                "expected_msg" => ["C_datetime" => "C_datetime datetime must be between Tuesday and first day of next month"]
+            ],
+
+            /**
+             * Exception cases
+             */
+            "Exception_A1_exc" => [
+                "data" => [
+                    "A1_exc" => "2024-05-01",
+                ],
+                "expected_msg" => '@field:A1_exc, @method:datetime_between - Parameter today1 is not a valid datetime'
+            ],
+            "Exception_A2_exc" => [
+                "data" => [
+                    "A2_exc" => "2024-05-01",
+                ],
+                "expected_msg" => '@field:A2_exc, @method:datetime_between - Parameter to-day is not a valid datetime'
+            ],
+            "Exception_A3_exc" => [
+                "data" => [
+                    "A3_exc" => "2024-05-01",
+                ],
+                "expected_msg" => '@field:A3_exc, @method:datetime_between - Parameter todad is not a valid datetime'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_method_time_between_by_relative_date_notation()
+    {
+        $rules = [
+            "symbol" => [
+                "A_time" => "optional|time>=<=[last hour, +3 hours]",
+                "B_time" => "optional|time>=<=[last hour, +3 hours, H:i:s]",
+                "C_time" => "optional|time>=<=[last hour, +15 hours, H:i:s]",
+                "A1_exc" => "optional|time>=<=[last hour1, +3 hours]",
+                "A2_exc" => "optional|time>=<=[last hour, add 3 hours]",
+            ],
+            "method" => [
+                "A_time" => "optional|time_between[last hour, +3 hours]",
+                "B_time" => "optional|time_between[last hour, +3 hours, H:i:s]",
+                "C_time" => "optional|time_between[last hour, +15 hours, H:i:s]",
+                "A1_exc" => "optional|time_between[last hour1, +3 hours]",
+                "A2_exc" => "optional|time_between[last hour, add 3 hours]",
+            ],
+        ];
+
+        $cases = [
+            "Valid_A_time_1" => [
+                "data" => [
+                    "A_time" => date('H:i:s'),
+                ]
+            ],
+            "Valid_A_time_2" => [
+                "data" => [
+                    "A_time" => date('H:i:s', strtotime('+3 hours')),
+                ]
+            ],
+            "Valid_B_time_1" => [
+                "data" => [
+                    "B_time" => date('H:i:s'),
+                ]
+            ],
+            "Valid_B_time_2" => [
+                "data" => [
+                    "B_time" => date('H:i:s', strtotime('+3 hours')),
+                ]
+            ],
+            "Valid_C_time_1" => [
+                "data" => [
+                    "C_time" => date('H:i:s', strtotime('-1 hour')),
+                ]
+            ],
+            "Valid_C_time_2" => [
+                "data" => [
+                    "C_time" => date('H:i:s', strtotime('+10 hour')),
+                ]
+            ],
+            "Valid_C_time_3" => [
+                "data" => [
+                    "C_time" => date('H:i:s', strtotime('+15 hour')),
+                ]
+            ],
+
+            /**
+             * Invalid cases
+             */
+            "Invalid_A_time_1" => [
+                "data" => [
+                    "A_time" => date('H:i:s', strtotime('-2 hours')),
+                ],
+                "expected_msg" => ["A_time" => "A_time time must be between last hour and +3 hours"]
+            ],
+            "Invalid_A_time_2" => [
+                "data" => [
+                    "A_time" => date('H:i:s', strtotime('-4 hours')),
+                ],
+                "expected_msg" => ["A_time" => "A_time time must be between last hour and +3 hours"]
+            ],
+            "Invalid_B_time_1" => [
+                "data" => [
+                    "B_time" => date('H:i:s', strtotime('-2 hours')),
+                ],
+                "expected_msg" => ["B_time" => "B_time time must be between last hour and +3 hours"]
+            ],
+            "Invalid_B_time_2" => [
+                "data" => [
+                    "B_time" => date('H:i:s', strtotime('-4 hours')),
+                ],
+                "expected_msg" => ["B_time" => "B_time time must be between last hour and +3 hours"]
+            ],
+            "Invalid_C_time_1" => [
+                "data" => [
+                    "C_time" => date('H:i:s', strtotime('-2 hours')),
+                ],
+                "expected_msg" => ["C_time" => "C_time time must be between last hour and +15 hours"]
+            ],
+            "Invalid_C_time_2" => [
+                "data" => [
+                    "C_time" => date('H:i:s', strtotime('+16 hours')),
+                ],
+                "expected_msg" => ["C_time" => "C_time time must be between last hour and +15 hours"]
+            ],
+
+            /**
+             * Exception cases
+             */
+            "Exception_A1_exc" => [
+                "data" => [
+                    "A1_exc" => date('H:i:s'),
+                ],
+                "expected_msg" => '@field:A1_exc, @method:time_between - Notation last hour1 is invalid'
+            ],
+            "Exception_A2_exc" => [
+                "data" => [
+                    "A2_exc" => date('H:i:s'),
+                ],
+                "expected_msg" => '@field:A2_exc, @method:time_between - Notation add 3 hours is invalid'
             ],
         ];
 

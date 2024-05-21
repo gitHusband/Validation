@@ -164,6 +164,10 @@ trait RuleDatetime
                 throw MethodException::parameter("Parameter {$param} is not a valid {$time_type}");
             }
         } else {
+            if (static::is_relative_date_notation($param)) {
+                $param = static::convert_relative_date_notation_to_format($param, $format);
+            }
+
             $format_backup = $format;
             if (defined('DateTime::' . $format)) {
                 $format = constant('DateTime::' . $format);
@@ -206,6 +210,52 @@ trait RuleDatetime
                 }
             }
         }
+    }
+
+    /**
+     * Check if it's a relative date notation
+     *
+     * @see https://www.php.net/manual/en/datetime.formats.php
+     * @param string $notation
+     * @return bool
+     */
+    public static function is_relative_date_notation($notation)
+    {
+        if (preg_match('/midnight|now|noon|tomorrow|back|front|first|this|last|next|ago|second|minute|hour|day|week|month|year/', $notation)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Get Datetime from relative date notation
+     * 
+     * @see https://www.php.net/manual/en/datetime.formats.php
+     * @param string $notation Relative Date Notation
+     * @param string $format
+     * @return Datetime
+     * @throws MethodException
+     */
+    public static function get_datetime_from_relative_date_notation($notation)
+    {
+        try {
+            return new Datetime($notation);
+        } catch (Exception $e) {
+            throw MethodException::parameter("Notation {$notation} is invalid");
+        }
+    }
+
+    /**
+     * Convert relative date notation into the specified format
+     *
+     * @return string
+     * @throws MethodException
+     */
+    public static function convert_relative_date_notation_to_format($notation, $format)
+    {
+        $datetime_obj = static::get_datetime_from_relative_date_notation($notation);
+        return $datetime_obj->format($format);
     }
 
     /**
@@ -402,7 +452,19 @@ trait RuleDatetime
 
         $start_timestamp = static::get_timestamp_of_parameter($start_datetime, $format, true, $time_type);
         $end_timestamp = static::get_timestamp_of_parameter($end_datetime, $format, true, $time_type);
-        return $data_timestamp > $start_timestamp && $data_timestamp < $end_timestamp;
+
+        if ($time_type !== 'time') {
+            return $data_timestamp > $start_timestamp && $data_timestamp < $end_timestamp;
+        } else {
+            if ($start_timestamp <= $end_timestamp) {
+                return $data_timestamp > $start_timestamp && $data_timestamp < $end_timestamp;
+            } else {
+                /** @example 23:00:00 ~ 01:00:00 */
+                if ($data_timestamp > $start_timestamp) return true;
+                if ($data_timestamp < $end_timestamp) return true;
+                return false;
+            }
+        }
     }
 
     /**
@@ -424,7 +486,19 @@ trait RuleDatetime
 
         $start_timestamp = static::get_timestamp_of_parameter($start_datetime, $format, true, $time_type);
         $end_timestamp = static::get_timestamp_of_parameter($end_datetime, $format, true, $time_type);
-        return $data_timestamp >= $start_timestamp && $data_timestamp < $end_timestamp;
+
+        if ($time_type !== 'time') {
+            return $data_timestamp >= $start_timestamp && $data_timestamp < $end_timestamp;
+        } else {
+            if ($start_timestamp <= $end_timestamp) {
+                return $data_timestamp >= $start_timestamp && $data_timestamp < $end_timestamp;
+            } else {
+                /** @example 23:00:00 ~ 01:00:00 */
+                if ($data_timestamp >= $start_timestamp) return true;
+                if ($data_timestamp < $end_timestamp) return true;
+                return false;
+            }
+        }
     }
 
     /**
@@ -446,7 +520,19 @@ trait RuleDatetime
 
         $start_timestamp = static::get_timestamp_of_parameter($start_datetime, $format, true, $time_type);
         $end_timestamp = static::get_timestamp_of_parameter($end_datetime, $format, true, $time_type);
-        return $data_timestamp > $start_timestamp && $data_timestamp <= $end_timestamp;
+
+        if ($time_type !== 'time') {
+            return $data_timestamp > $start_timestamp && $data_timestamp <= $end_timestamp;
+        } else {
+            if ($start_timestamp <= $end_timestamp) {
+                return $data_timestamp > $start_timestamp && $data_timestamp <= $end_timestamp;
+            } else {
+                /** @example 23:00:00 ~ 01:00:00 */
+                if ($data_timestamp > $start_timestamp) return true;
+                if ($data_timestamp <= $end_timestamp) return true;
+                return false;
+            }
+        }
     }
 
     /**
@@ -468,7 +554,19 @@ trait RuleDatetime
 
         $start_timestamp = static::get_timestamp_of_parameter($start_datetime, $format, true, $time_type);
         $end_timestamp = static::get_timestamp_of_parameter($end_datetime, $format, true, $time_type);
-        return $data_timestamp >= $start_timestamp && $data_timestamp <= $end_timestamp;
+
+        if ($time_type !== 'time') {
+            return $data_timestamp >= $start_timestamp && $data_timestamp <= $end_timestamp;
+        } else {
+            if ($start_timestamp <= $end_timestamp) {
+                return $data_timestamp >= $start_timestamp && $data_timestamp <= $end_timestamp;
+            } else {
+                /** @example 23:00:00 ~ 01:00:00 */
+                if ($data_timestamp >= $start_timestamp) return true;
+                if ($data_timestamp <= $end_timestamp) return true;
+                return false;
+            }
+        }
     }
 
     /**
