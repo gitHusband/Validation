@@ -968,10 +968,18 @@ function check_animal($animal) {
 
 详见 [附录 3 - 错误信息格式](#附录-3---错误信息格式)
 
-
 ---
 
 ## 附录 1 - 方法标志及其含义
+
+标志 | 方法 | 错误消息模板
+---|---|---
+`*` | `required` | @this 不能为空
+`O:?` | `optional:when` | 在特定情况下，@this 才能为空
+`uuid` | `is_uuid` | @this 必须是 UUID
+`length>=<=` | `length_between` | @this 长度必须大于等于 @p1 且小于等于 @p2
+`date>` | `date_greater_than` | @this 日期必须大于 @p1
+
 
 <details>
   <summary><span>&#128071;</span> <strong>点击查看 附录 1 - 方法标志及其含义</strong></summary>
@@ -1101,6 +1109,15 @@ function check_animal($animal) {
 `time>=<=` | `time_between` | @this 时间必须在 @p1 和 @p2 之间
 
 </details>
+</br>
+
+如果您不知道如何使用附录中的任意方法，请于 `tests` 文件夹中搜索 `test_method_` + 方法名。例如：
+- `test_method_is_uuid`
+- `test_method_datetime_between`
+
+里面有详细的示例。
+
+*目前暂无方法的使用文档。*
 
 ---
 

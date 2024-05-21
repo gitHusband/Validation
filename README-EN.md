@@ -978,6 +978,14 @@ For details, see [Appendix 3 -Error Message Format](#Appendix-3---Error Message 
 
 ## Appendix 1 - Methods And Symbols
 
+Symbol | Method | Error Message Template
+---|---|---
+`*` | `required` | @this can not be empty
+`O:?` | `optional:when` | @this can be empty only when certain circumstances are met
+`uuid` | `is_uuid` | @this must be a UUID
+`length>=<=` | `length_between` | @this length must be greater than or equal to @p1 and less than or equal to @p2
+`date>` | `date_greater_than` | @this must be a valid date and greater than @p1
+
 <details>
   <summary><span>&#128071;</span> <strong>Click to view Appendix 1 - Methods And Symbols</strong></summary>
 
@@ -1106,6 +1114,15 @@ Symbol | Method | Error Message Template
 `time>=<=` | `time_between` | @this time must be between @p1 and @p2
 
 </details>
+</br>
+
+If you don't know how to use any of the methods in the appendix, search for `test_method_` + the method name in the `tests` folder. For example:
+- `test_method_is_uuid`
+- `test_method_datetime_between`
+
+There are detailed examples inside.
+
+*No usage documentation for the methods currently.*
 
 ---
 
