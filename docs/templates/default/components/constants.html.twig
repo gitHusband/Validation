@@ -1,0 +1,13 @@
+{% set constants = constants(node)|sortByVisibility %}
+
+{% if constants is not empty %}
+    <section class="phpdocumentor-constants">
+        <h3 class="phpdocumentor-elements__header" id="constants">
+            Constants
+            {{ include('components/headerlink.html.twig', {'on': node, 'at': 'constants'}, with_context = false) }}
+        </h3>
+        {% for constant in constants %}
+            {% include 'components/constant.html.twig' %}
+        {% endfor %}
+    </section>
+{% endif %}

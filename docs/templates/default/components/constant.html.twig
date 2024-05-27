@@ -1,0 +1,15 @@
+<article class="phpdocumentor-element -constant -{{ constant.visibility }} {% if constant.deprecated %}-deprecated{% endif %}">
+    <h4 class="phpdocumentor-element__name" id="constant_{{ constant.name }}">
+        {{ constant.name }}
+        {{ include('components/headerlink.html.twig', {'on': constant}, with_context = false) }}
+    </h4>
+
+    {{ include('components/element-found-in.html.twig', {'node': constant}) }}
+    {{ include('components/summary.html.twig', {'node': constant}) }}
+    {{ include('components/constant-signature.html.twig', {'node': constant}) }}
+
+    {{ include('components/description.html.twig', {'node': constant}) }}
+    {{ include('components/description.html.twig', {'node': constant.var[0]}) }}
+    {{ include ('components/tags.html.twig', {'node': constant}) }}
+    {{ include('components/attributes.html.twig' , {'node': constant}) }}
+</article>

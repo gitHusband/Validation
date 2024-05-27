@@ -1,0 +1,13 @@
+{% set properties = properties(node)|sortByVisibility %}
+
+{% if properties is not empty %}
+    <section class="phpdocumentor-properties">
+        <h3 class="phpdocumentor-elements__header" id="properties">
+            Properties
+            {{ include('components/headerlink.html.twig', {'on': node, 'at': 'properties'}, with_context = false) }}
+        </h3>
+        {% for property in properties %}
+            {% include 'components/property.html.twig' %}
+        {% endfor %}
+    </section>
+{% endif %}

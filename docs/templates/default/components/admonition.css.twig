@@ -1,0 +1,26 @@
+.phpdocumentor-admonition {
+    border: 1px solid var(--admonition-border-color);
+    border-radius: var(--border-radius-base-size);
+    border-color: var(--primary-color-lighten);
+    background-color: var(--primary-color-lighter);
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.phpdocumentor-admonition p:last-of-type {
+    margin-bottom: 0;
+}
+
+.phpdocumentor-admonition--success,
+.phpdocumentor-admonition.-success {
+    border-color: var(--admonition-success-color);
+}
+
+.phpdocumentor-admonition__icon {
+    margin-right: var(--spacing-md);
+    color: var(--primary-color);
+    max-width: 3rem;
+}

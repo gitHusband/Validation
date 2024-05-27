@@ -1,0 +1,9 @@
+<aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="{{ node.file.path }}">{{ node.file|route('file:short') }}</abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">{{ node.line }}</span>
+
+    {% if node.file.source %}
+        <a href="{{ target_path }}#source-view.{{ node.line }}" class="phpdocumentor-element-found-in__source" data-line="{{ node.line }}" data-modal="source-view" data-src="{{ path('files/' ~ node.file.path ~ '.txt')|raw }}"></a>
+    {% endif %}
+</aside>
