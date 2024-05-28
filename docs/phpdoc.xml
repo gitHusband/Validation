@@ -6,8 +6,8 @@
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/phpDocumentor/phpDocumentor/master/data/xsd/phpdoc.xsd"
 >
     <paths>
-        <output>api</output>
-        <cache>cache</cache>
+        <output>built/api</output>
+        <cache>built/cache</cache>
     </paths>
     <version number="3.0.0">
         <api>
@@ -19,5 +19,5 @@
         </api>
     </version>
     <setting name="template.color" value="indigo"/>
-    <template name="docs/.phpdoc/template" />
+    <template name="docs/templates/default" />
 </phpdocumentor>
