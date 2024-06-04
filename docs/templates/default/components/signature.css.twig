@@ -1,4 +1,5 @@
 .phpdocumentor .phpdocumentor-signature {
+    overflow: auto;
     display: block;
     font-size: var(--text-sm);
     border: 1px solid #f0f0f0;
@@ -8,9 +9,13 @@
     text-decoration: line-through;
 }
 
+.phpdocumentor .phpdocumentor-signature__default-value {
+    display: contents;
+}
+
 @media (min-width: {{ breakpoints['md'] }}) {
     .phpdocumentor .phpdocumentor-signature {
-        margin-left: calc(var(--spacing-xl) * -1);
-        width: calc(100% + var(--spacing-xl));
+        {# margin-left: calc(var(--spacing-xl) * -1); #}
+        {# width: calc(100% + var(--spacing-xl)); #}
     }
 }
