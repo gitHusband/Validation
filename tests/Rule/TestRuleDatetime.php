@@ -5144,11 +5144,6 @@ trait TestRuledatetime
         // echo date('Y-m-d H:i:s', strtotime('+7 days')) . "\n";die;
 
         $cases = [
-            "Valid_B_datetime_2" => [
-                "data" => [
-                    "B_datetime" => date('Y-m-d H:i:s', strtotime('+7 days')),
-                ]
-            ],
             "Valid_A_datetime_1" => [
                 "data" => [
                     "A_datetime" => date('Y-m-d'),
@@ -5166,7 +5161,7 @@ trait TestRuledatetime
             ],
             "Valid_B_datetime_2" => [
                 "data" => [
-                    "B_datetime" => date('Y-m-d H:i:s', strtotime('+6 days')),
+                    "B_datetime" => date('Y-m-d H:i:s', strtotime('next week')),
                 ]
             ],
             "Valid_C_datetime_1" => [
