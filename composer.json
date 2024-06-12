@@ -47,6 +47,7 @@
     },
     "require-dev": {
         "robinvdvleuten/ulid": "^5.0",
-        "ramsey/uuid": "^3"
+        "ramsey/uuid": "^3",
+        "phpdocumentor/phpdocumentor": "^3.5"
     }
 }
