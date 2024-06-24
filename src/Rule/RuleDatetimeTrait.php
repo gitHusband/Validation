@@ -6,9 +6,9 @@ use Datetime;
 use Exception;
 use githusband\Exception\MethodException;
 
-trait RuleDatetime
+trait RuleDatetimeTrait
 {
-    protected $method_symbols_of_rule_datetime = [
+    protected $method_symbols_of_rule_datetime_trait = [
         // Datetime
         'datetime' => 'is_datetime',
         'datetime=' => 'datetime_equal',

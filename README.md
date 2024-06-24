@@ -32,7 +32,7 @@
       * [4.1 方法及其标志](#41-方法及其标志)
       * [4.2 正则表达式](#42-正则表达式)
       * [4.3 方法传参](#43-方法传参)
-      * [4.4 方法拓展](#44-方法拓展)
+      * [4.4 自定义方法](#44-自定义方法)
       * [4.5 串联并联规则](#45-串联并联规则)
       * [4.6 条件规则](#46-条件规则)
          * [When 条件规则](#when-条件规则)
@@ -287,20 +287,21 @@ $ composer run-script readme test_complete_example
     - `false` 将被转换为 `bool(false)`
     - `"true"` 将被转换为 `string(true)`
 
-### 4.4 方法拓展
+### 4.4 自定义方法
 Validation 类中内置了一些验证方法，例如 `*`，`>`, `length>=`, `ip` 等等。详见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
 
 如果验证规则比较复杂，内置方法无法满足你的需求，可以拓展你自己的方法。
 如果方法中根据不同的判断可能返回不同的错误信息，见 [4.13 错误信息模板 - 3. 在方法中直接返回模板](#413-错误信息模板) 一节。
 
-拓展方法有三种方式：
-1. **注册新的方法**：`add_method`
+拓展方法有以下几种方式：
+1. **新增方法**：`add_method`
+新增一个新的方法
 
 <details>
   <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
 
+注册一个新的方法，check_id
 ```PHP
-// 注册一个新的方法，check_id
 $validation->add_method('check_id', function ($id) {
     if ($id == 0) {
         return false;
@@ -308,8 +309,10 @@ $validation->add_method('check_id', function ($id) {
 
     return true;
 });
+```
 
-// 规则这么写
+规则这么写
+```PHP
 $rule = [
     // 必要的，且只能是数字，且必须大于 0
     "id" => "required|/^\d+$/|check_id",
@@ -317,41 +320,109 @@ $rule = [
 ```
 
 </details>
+</br>
 
-2. **拓展 `Validation` 类**
+2. **新增方法类**：`add_rule_class`
+一个方法类包含多个方法及其标志。支持静态或非静态的方法。
+由于优先级原因，如需覆盖验证类 Validation 中的原生方法，请使用新增方法类，拓展类可能无法覆盖。
+
+<details>
+  <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
+
+创建一个新的文件，`RuleClassString.php`
+```PHP
+/**
+ * 推荐用 rule class 增加验证方法
+ * 如果需要定义方法标志，将他们放在 method_symbols 属性中
+ */
+class RuleClassString
+{
+    // 方法标志
+    public static $method_symbols = [
+        'cus_str' => 'is_custom_string',
+    ];
+
+    // 方法
+    public static function is_custom_string($data)
+    {
+        return preg_match('/^[\w\d -]{8,32}$/', $data) ? true : false;
+    }
+}
+```
+
+调用 `add_rule_class` 注册一个新的方法类，RuleClassString
+```PHP
+use RuleClassString;
+
+// 注册一个新的方法类，RuleClassString
+$validation->add_rule_class(RuleClassString::class);
+```
+实际上，`add_rule_class` 也是将规则类插入到 `rule_classes` 属性中，那么我们也可以通过另一种更加直接的方法注册新的方法类：
+
+```PHP
+use githusband\Validation;
+use RuleClassString;
+
+class MyValidation extends Validation
+{
+    protected $rule_classes = [
+        RuleClassString::class
+    ];
+}
+```
+
+规则这么写
+```PHP
+$rule = [
+    // 必要的，且格式必须是 /^[\w\d -]{8,32}$/
+    "id" => "required|is_custom_string",
+];
+```
+
+</details>
+</br>
+
+3. **拓展 `Validation` 类**
 
 拓展 `Validation` 类并重写内置方法或者增加新的内置方法。推荐用 [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
 
 <details>
   <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
- 
-```PHP
-use githusband\Validation;
 
+创建一个新的文件，`RuleExtendTrait.php`
+```PHP
 /**
  * 1. 推荐用 trait 拓展验证方法
  * 如果需要定义方法标志，将他们放在属性中，属性命名规则：“method_symbols_of_” + 类名（大驼峰转下划线）
  */
-trait RuleCustome
+trait RuleExtendTrait
 {
+    // 方法标志
     protected $method_symbols_of_rule_custome = [
         '=1' => 'euqal_to_1',
     ];
 
+    // 方法
     protected function euqal_to_1($data)
     {
         return $data == 1;
     }
 }
+```
 
-/**
- * 2. 拓展类，直接增加验证方法
- * 如果需要定义方法标志，将他们放在属性 method_symbols 中
- */
+拓展类, 新增方法及其标志
+```PHP
+use githusband\Validation;
+
 class MyValidation extends Validation
 {
-    use RuleCustome;
+    // 1. 使用 Trait
+    use RuleExtendTrait;
 
+    /**
+     * 2. 直接增加验证方法及其标志
+     * 如果需要定义方法标志，将他们放在属性 method_symbols 中
+     */
     protected $method_symbols = [
         ">=1" => "grater_than_or_equal_to_1",
     ];
@@ -361,10 +432,10 @@ class MyValidation extends Validation
         return $data >= 1;
     }
 }
+```
 
-/**
- * 规则就这么写
- */
+规则就这么写
+```PHP
 $rule = [
     // id 必要的，且必须大于等于 1
     "id" => "required|>=1",
@@ -374,12 +445,13 @@ $rule = [
 ```
 
 </details>
+</br>
 
-- 3. **全局函数**
+4. **全局函数**
 包括系统自带的函数和用户自定义的全局函数。
 
-**三种函数的优先级**
-`add_method` > `内置方法` > `全局函数`
+**几种方法的优先级**
+`新增方法` > `新增方法类` > `拓展 Validation 类` > `内置方法` > `全局函数`
 
 若方法都不存在，则报错：未定义
 

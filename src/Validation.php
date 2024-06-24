@@ -2,8 +2,8 @@
 
 namespace githusband;
 
-use githusband\Rule\RuleDefault;
-use githusband\Rule\RuleDatetime;
+use githusband\Rule\RuleClassDefault;
+use githusband\Rule\RuleClassDatetime;
 use githusband\Exception\GhException;
 use githusband\Exception\RuleException;
 use Exception;
@@ -11,7 +11,7 @@ use Throwable;
 
 class Validation
 {
-    use RuleDefault, RuleDatetime;
+    // use Rule\RuleDefaultTrait, Rule\RuleDatetimeTrait;
 
     const ERROR_FORMAT_NESTED_GENERAL = 'NESTED_GENERAL';
     const ERROR_FORMAT_NESTED_DETAILED = 'NESTED_DETAILED';
@@ -185,12 +185,31 @@ class Validation
     protected $method_symbols = [];
     protected $deprecated_method_symbols = [];
     /**
-     * Flip the method symbol
+     * Reverse the method symbol
      * e.g. 'equal' => '='
      * @see static::$method_symbols
      * @var array
      */
-    protected $method_symbols_flip = [];
+    protected $method_symbols_reversed = [];
+
+    /**
+     * The rule class with your validation method.
+     * The rule class must be static class.
+     *
+     * @var array
+     */
+    protected $rule_classes = [];
+    protected $rule_class_method_symbols_reversed = [];
+
+    /**
+     * If you don't set the default rule classes into $rule_classes, they will be auto set into $rule_classes.
+     *
+     * @var array
+     */
+    protected $rule_classes_default = [
+        RuleClassDefault::class,
+        RuleClassDatetime::class,
+    ];
 
     /**
      * Language file path
@@ -227,11 +246,15 @@ class Validation
         $this->set_language($this->config['language']);
 
         $this->load_trait_data();
+
+        $this->init_rule_classes();
     }
 
     /**
-     * Set Config
-     * @var array
+     * Set config
+     *
+     * @param array $config
+     * @return static
      */
     public function set_config($config = [])
     {
@@ -245,8 +268,9 @@ class Validation
     }
 
     /**
-     * Get Config
-     * @var array
+     * Get config
+     *
+     * @return array
      */
     public function get_config()
     {
@@ -255,6 +279,8 @@ class Validation
 
     /**
      * Reset Config
+     *
+     * @return static
      */
     public function reset_config()
     {
@@ -263,6 +289,7 @@ class Validation
 
     /**
      * Get all the traits from a class and its ancestors.
+     * 
      * @return array
      */
     protected function get_all_traits()
@@ -307,7 +334,157 @@ class Validation
             }
         }
 
-        $this->method_symbols_flip = array_flip($this->method_symbols);
+        $this->method_symbols_reversed = array_flip($this->method_symbols);
+    }
+
+    /**
+     * Init all rule classes
+     * Set default rule classes, so that you can extend {$this->rule_classes} without the default rule classes.
+     *
+     * @return static
+     */
+    protected function init_rule_classes()
+    {
+        $rule_classes_default = [];
+        foreach ($this->rule_classes_default as $rule_class) {
+            if (!in_array($rule_class, $this->rule_classes)) {
+                $rule_classes_default[] = $rule_class;
+            }
+        }
+        if (!empty($rule_classes_default)) {
+            $this->rule_classes = array_merge($rule_classes_default, $this->rule_classes);
+        }
+
+        foreach ($this->rule_classes as $key => $rule_class) {
+            $this->rule_classes[$key] = $this->init_rule_class($rule_class);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Init a rule class
+     * - Set method symbols and any deprecated method symbols
+     * - Reverse method symbols in order to easily indicate a rule is a method or its symbol
+     * - Instantiate rule class if only it's a name of class 
+     *
+     * @param string|object $class Instance or name of a class
+     * @return object
+     */
+    protected function init_rule_class($rule_class)
+    {
+        if (property_exists($rule_class, 'deprecated_method_symbols')) {
+            $rule_class::$method_symbols = array_merge($rule_class::$deprecated_method_symbols, $rule_class::$method_symbols);
+        }
+
+        $this->reverse_method_symbols($rule_class);
+
+        if (is_object($rule_class)) return $rule_class;
+        return new $rule_class();
+    }
+
+    /**
+     * Reverse the method_symbols array
+     *
+     * @param class $rule_class
+     * @return void
+     */
+    protected function reverse_method_symbols($rule_class)
+    {
+        $this->rule_class_method_symbols_reversed[$rule_class] = array_flip($rule_class::$method_symbols);
+    }
+
+    /**
+     * Add a new rule class that contains multiple rule methods
+     *
+     * @param class $rule_class Instance or name of a class
+     * @return static
+     */
+    public function add_rule_class($rule_class)
+    {
+        $this->rule_classes[] = $this->init_rule_class($rule_class);
+        return $this;
+    }
+
+    /**
+     * Check if it is a symbol of method
+     *
+     * @param string $symbol
+     * @return bool
+     */
+    public function is_method_symbol($symbol)
+    {
+        if (isset($this->method_symbols[$symbol])) return true;
+
+        for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
+            $rule_class = $this->rule_classes[$i];
+            $method_symbols = $rule_class::$method_symbols;
+            if (isset($method_symbols[$symbol])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Match the method(from symbol) or symbol(from method) and return them and the rule class
+     *
+     * @param string $method
+     * @return array
+     */
+    public function match_method_and_symbol($in)
+    {
+        if ($this->is_method_symbol($in)) {
+            $by_symbol = true;
+            $symbol = $in;
+
+            if (isset($this->method_symbols[$symbol])) {
+                $class = 'static';
+                $method = $this->method_symbols[$in];
+            } else {
+                for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
+                    $rule_class = $this->rule_classes[$i];
+                    $method_symbols = $rule_class::$method_symbols;
+                    if (isset($method_symbols[$in])) {
+                        $class = $rule_class;
+                        $method = $method_symbols[$in];
+                        break;
+                    }
+                }
+
+                if (empty($class)) $class = 'static';
+                if (empty($method)) $method = $symbol;
+            }
+        } else {
+            $by_symbol = false;
+            $method = $in;
+            if (isset($this->method_symbols_reversed[$in])) {
+                $class = 'static';
+                $symbol = $this->method_symbols_reversed[$in];
+            } else {
+                for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
+                    $rule_class = $this->rule_classes[$i];
+                    $rule_class_name = get_class($rule_class);
+                    $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+                    if (isset($method_symbols_reversed[$in])) {
+                        $class = $rule_class_name;
+                        $symbol = $method_symbols_reversed[$in];
+                        break;
+                    }
+                }
+
+                if (empty($class)) $class = 'static';
+                if (empty($symbol)) $symbol = $method;
+            }
+        }
+
+        return [
+            $by_symbol,
+            $symbol,
+            $method,
+            $class
+        ];
     }
 
     /**
@@ -410,22 +587,42 @@ class Validation
 
     /**
      * Get Method Symbol
+     * - this method symbols
+     * - rule classes method symbols
      *
      * @return array
      */
     public function get_method_symbols()
     {
-        return $this->method_symbols;
+        $method_symbols = $this->method_symbols;
+        $rule_classes_length = count($this->rule_classes);
+        for ($i = 0; $i < $rule_classes_length; $i++) {
+            $rule_class = $this->rule_classes[$i];
+            $method_symbols = array_merge($method_symbols, $rule_class::$method_symbols);
+        }
+
+        return $method_symbols;
     }
 
     /**
      * Get Method Symbol that are deprecated
+     * - this deprecated method symbols
+     * - rule deprecated classes method symbols
      *
      * @return array
      */
     public function get_deprecated_method_symbols()
     {
-        return $this->deprecated_method_symbols;
+        $deprecated_method_symbols = $this->deprecated_method_symbols;
+        $rule_classes_length = count($this->rule_classes);
+        for ($i = 0; $i < $rule_classes_length; $i++) {
+            $rule_class = $this->rule_classes[$i];
+            if (property_exists($rule_class, 'deprecated_method_symbols')) {
+                $deprecated_method_symbols = array_merge($deprecated_method_symbols, $rule_class::$deprecated_method_symbols);
+            }
+        }
+
+        return $deprecated_method_symbols;
     }
 
     /**
@@ -1579,15 +1776,7 @@ class Validation
             $params = [$this->symbol_this];
         }
 
-
-        if (isset($this->method_symbols[$method])) {
-            $by_symbol = true;
-            $symbol = $method;
-            $method = $this->method_symbols[$method];
-        } else {
-            $by_symbol = false;
-            $symbol = isset($this->method_symbols_flip[$method]) ? $this->method_symbols_flip[$method] : $method;
-        }
+        list($by_symbol, $symbol, $method, $class) = $this->match_method_and_symbol($method);
 
         foreach ($params as &$param) {
             if (is_array($param)) continue;
@@ -1747,15 +1936,29 @@ class Validation
             $params = $method_rule['params'];
             if (isset($this->methods[$method_rule['method']])) {
                 $result = call_user_func_array($this->methods[$method_rule['method']], $params);
-            } else if (method_exists($this, $method_rule['method'])) {
-                $result = call_user_func_array([$this, $method_rule['method']], $params);
-            } else if (function_exists($method_rule['method'])) {
-                $result = call_user_func_array($method_rule['method'], $params);
             } else {
-                $result = [
-                    "error_type" => 'undefined_method',
-                    "message" => "TAG:call_method",
-                ];
+                $method_existed = false;
+                for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
+                    $rule_class = $this->rule_classes[$i];
+                    if (method_exists($rule_class, $method_rule['method'])) {
+                        $method_existed = true;
+                        $result = call_user_func_array([$rule_class, $method_rule['method']], $params);
+                        break;
+                    }
+                }
+
+                if (empty($method_existed)) {
+                    if (method_exists($this, $method_rule['method'])) {
+                        $result = call_user_func_array([$this, $method_rule['method']], $params);
+                    } else if (function_exists($method_rule['method'])) {
+                        $result = call_user_func_array($method_rule['method'], $params);
+                    } else {
+                        $result = [
+                            "error_type" => 'undefined_method',
+                            "message" => "TAG:call_method",
+                        ];
+                    }
+                }
             }
         } catch (Throwable $t) {
             throw GhException::extend_privious($t, $this->get_recurrence_current(), $this->config['auto_field']);
@@ -2225,5 +2428,40 @@ class Validation
     protected function is_in_method($method)
     {
         return preg_match('/^!?[\<\(][a-zA-Z0-9_\*]+[\>\)]$/', $method, $matches);
+    }
+
+    /**
+     * The field must be present and its data must not be empty string
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function required($data)
+    {
+        return $data === 0 || $data === 0.0 || $data === 0.00 || $data === '0' || $data === '0.0' || $data === '0.00' || $data === false || !empty($data);
+    }
+
+    /**
+     * The field data must be a boolean string
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function bool_string($data)
+    {
+        if (!is_string($data)) return false;
+        return in_array($data, ['true', 'TRUE', 'false', 'FALSE']);
+    }
+
+    /**
+     * The field data must be a null string
+     *
+     * @param mixed $data
+     * @return bool
+     */
+    public static function null_string($data)
+    {
+        if (!is_string($data)) return false;
+        return in_array($data, ['null', 'NULL']);
     }
 }

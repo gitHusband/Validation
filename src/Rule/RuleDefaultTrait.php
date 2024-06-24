@@ -1,16 +1,18 @@
 <?php
 
 namespace githusband\Rule;
+
+// use githusband\Validation;
 use githusband\Exception\MethodException;
 
-trait RuleDefault
+trait RuleDefaultTrait
 {
     /**
      * The method symbols of rule default.
      *
      * @var array
      */
-    protected $method_symbols_of_rule_default = [
+    protected $method_symbols_of_rule_default_trait = [
         '=' => 'equal',
         '!=' => 'not_equal',
         '==' => 'strictly_equal',
@@ -61,7 +63,7 @@ trait RuleDefault
      * @deprecated 2.3.0
      * @var array
      */
-    protected $deprecated_method_symbols_of_rule_default = [
+    protected $deprecated_method_symbols_of_rule_default_trait = [
         // '=' => 'equal',
         // '!=' => 'not_equal',
         // '==' => 'strictly_equal',
@@ -155,10 +157,10 @@ trait RuleDefault
      * @param mixed $data
      * @return bool
      */
-    public static function required($data)
+    /* public static function required($data)
     {
-        return $data === 0 || $data === 0.0 || $data === 0.00 || $data === '0' || $data === '0.0' || $data === '0.00' || $data === false || !empty($data);
-    }
+        return Validation::required($data);
+    } */
 
     /**
      * The field data must be equal to a given value
@@ -597,11 +599,10 @@ trait RuleDefault
      * @param mixed $data
      * @return bool
      */
-    public static function bool_string($data)
+    /* public static function bool_string($data)
     {
-        if (!is_string($data)) return false;
-        return in_array($data, ['true', 'TRUE', 'false', 'FALSE']);
-    }
+        return Validation::bool_string($data);
+    } */
 
     /**
      * The field data must be a boolean string and equal to a given value
@@ -623,11 +624,10 @@ trait RuleDefault
      * @param mixed $data
      * @return bool
      */
-    public static function null_string($data)
+    /* public static function null_string($data)
     {
-        if (!is_string($data)) return false;
-        return in_array($data, ['null', 'NULL']);
-    }
+        return Validation::null_string($data);
+    } */
 
     /**
      * The field data must be date of birth which is a past date

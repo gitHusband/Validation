@@ -263,3 +263,8 @@ Symbol | Old Method Name | New Method Name | Is Optimized
 `mac` | ~~mac~~ | `is_mac` | /
 `uuid` | ~~uuid~~ | `is_uuid` | Y
 `ulid` | / | `is_ulid` | /
+
+## v2.5.2
+
+- 新增一个方法去拓展验证方法：`add_rule_class`
+  或者在拓展类的时候，直接插入到属性 `$this->rule_classes`

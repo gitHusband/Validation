@@ -4,6 +4,7 @@ namespace githusband\Tests;
 
 use githusband\Tests\Rule\TestRuleDefault;
 use githusband\Tests\Rule\TestRuleDatetime;
+use githusband\Tests\Extend\Rule\RuleClassString;
 
 /**
  * 1. How to add a new unit test case?
@@ -4955,7 +4956,158 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_extend_rule()
+    protected function test_add_method()
+    {
+        $rule = [
+            "text" => "required|check_add_method['false', 'null']",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "FALSE",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "NULL",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "false",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => "null",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        $this->validation->add_method("check_add_method", function ($data, $param1, $param2) {
+            if ($data === $param1) {
+                return false;
+            } else if ($data === $param2) {
+                return false;
+            }
+
+            return true;
+        });
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_rule_classes_1()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "required|cus_str",
+            ],
+            "method" => [
+                "text" => "required|is_custom_string",
+            ],
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "Hello World",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "Hello at 2024-06-24",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "Hello World!",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => "Hello",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+        ];
+
+        $extra = [
+            "validation_class" => new MyValidation([
+                "validation_global" => false,
+            ]),
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_rule_classes_2()
+    {
+        $rules = [
+            "symbol" => [
+                "text" => "required|cus_str",
+            ],
+            "method" => [
+                "text" => "required|is_custom_string",
+            ],
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "text" => "Hello World",
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "text" => "Hello at 2024-06-24",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "text" => "Hello World!",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "text" => "Hello",
+                ],
+                "expected_msg" => ["text" => "text validation failed"]
+            ],
+        ];
+
+        $this->validation->add_rule_class(RuleClassString::class);
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_extend_rule_method()
     {
         $rule = [
             // id 必要的，且必须大于等于 1
@@ -5023,6 +5175,69 @@ class Unit extends TestCommon
             "validation_class" => new MyValidation([
                 "validation_global" => false,
             ]),
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_global_function()
+    {
+        $rule = [
+            "id" => "required|string|check_id[1,100]",
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "id" => "1",
+                ]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    "id" => "0",
+                ],
+                "expected_msg" => ["id" => "id validation failed"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    "id" => "101",
+                ],
+                "expected_msg" => ["id" => "id validation failed"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_undefined_method()
+    {
+        $rule = [
+            "text" => "check_xxxxxx",
+        ];
+
+        $cases = [
+            "Invalid_data_1" => [
+                "data" => [
+                    "id" => "0",
+                ],
+                "expected_msg" => ["text" => "check_xxxxxx is undefined"]
+            ],
+        ];
+
+        $extra = [
             "method_name" => __METHOD__,
         ];
 

@@ -3,15 +3,34 @@
 namespace githusband\Tests\Extend;
 
 use githusband\Validation;
-use githusband\Tests\Extend\Rule\RuleCustom;
+use githusband\Tests\Extend\Rule\RuleExtendTrait;
+use githusband\Tests\Extend\Rule\RuleClassString;
 
 /**
- * 2. 拓展类，直接增加验证方法
- * 如果需要定义方法标志，将他们放在属性 method_symbols 中
+ * 如何增加验证方法（同名方法优先级从高到低）：
+ * 1. 拓展 $this->methods 属性。
+ *   实例化类后可调用 $this->add_method 增加新的验证方法。这里均未演示。
+ * 
+ * 2. 拓展 $this->rule_classes 属性。
+ *   实例化类后可调用 $this->add_rule_class 增加新的验证规则类。
+ * 
+ * 3. 拓展 Validation 类，直接增加验证方法
+ * 3.1. 拓展类，直接增加验证方法
+ *   如果需要定义方法标志，将他们放在属性 method_symbols 中
+ * 
+ * 3.2. 使用 trait 拓展验证方法
+ *   如果需要定义方法标志，将他们放在属性中，属性命名规则：“method_symbols_of_” + 类名（大驼峰转下划线）
+ * 
+ * 4. 全局函数
+ *   如果以上均未找到规则集的验证方法，则从全局函数中查找方法。
  */
 class MyValidation extends Validation
 {
-    use RuleCustom;
+    use RuleExtendTrait;
+
+    protected $rule_classes = [
+        RuleClassString::class
+    ];
 
     protected $method_symbols = [
         ">=1" => "grater_than_or_equal_to_1",

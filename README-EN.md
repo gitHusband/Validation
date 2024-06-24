@@ -297,14 +297,15 @@ If the validation rules are complex and the built-in methods cannot meet your ne
 
 If the method may return different error messages based on different judgments, see the section [4.13 Error message template - 3. Return the template directly in the method](#413-error-message-template).
 
-There are three ways to extend your own methods:
-1. **Register new method by**：`add_method`
+There are several ways to extend your own methods:
+1. **Add method**：`add_method`
+Add a new method
 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
 
+Add a new method, check_id
 ```PHP
-// Register a new method, check_id
 $validation->add_method('check_id', function ($id) {
     if ($id == 0) {
         return false;
@@ -312,50 +313,120 @@ $validation->add_method('check_id', function ($id) {
 
     return true;
 });
+```
 
-// The rule is
+The rule is
+```PHP
 $rule = [
-    // Must not be empty, must be a number and must be not equal to 0
+    // Required, must be a number and must be not equal to 0
     "id" => "required|/^\d+$/|check_id",
 ];
 ```
 
 </details>
+</br>
 
-2. **Extend `Validation` class**
+2. **Add rule class**：by `add_rule_class`
+A rule class contains multiple methods and their symbols. Supports static or non-static methods.
+Due to priority reasons, if you need to override the built-in methods in the validation class Validation, please use the new rule class. The extended class may not be able to override it.
+
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
+
+Create a new file，`RuleClassString.php`
+```PHP
+/**
+ * Use rule class to add validation methods
+ * If you need to define method symbols, put them in the method_symbols attribute
+ */
+class RuleClassString
+{
+    // method symbol
+    public static $method_symbols = [
+        'cus_str' => 'is_custom_string',
+    ];
+
+    // method
+    public static function is_custom_string($data)
+    {
+        return preg_match('/^[\w\d -]{8,32}$/', $data) ? true : false;
+    }
+}
+```
+
+Call `add_rule_class` to add a new rule class，RuleClassString
+```PHP
+use RuleClassString;
+
+// Add a new rule class，RuleClassString
+$validation->add_rule_class(RuleClassString::class);
+```
+In fact, `add_rule_class` adds the rule class into the `rule_classes` attribute, so that we can add a new rule class through another more direct method:
+
+```PHP
+use githusband\Validation;
+use RuleClassString;
+
+class MyValidation extends Validation
+{
+    protected $rule_classes = [
+        RuleClassString::class
+    ];
+}
+```
+
+The rule is
+```PHP
+$rule = [
+    // Required, format must be /^[\w\d -]{8,32}$/
+    "id" => "required|is_custom_string",
+];
+```
+
+</details>
+</br>
+
+3. **Extend `Validation` class**
 
 Extend the `Validation` class and override the built-in methods or add new built-in methods. Recommended [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
- 
-```PHP
-use githusband\Validation;
 
+Create a new file，`RuleExtendTrait.php`
+```PHP
 /**
- * 1. It is recommended to use traits to extend validation methods
+ * 1. It is recommended to use traits to expand validation methods
  * If you need to define method symbols, put them in an attribute. The attribute naming rule is: "method_symbols_of_" + class name (high camel case converted to underline)
  */
-trait RuleCustome
+trait RuleExtendTrait
 {
+    // method symbol
     protected $method_symbols_of_rule_custome = [
         '=1' => 'euqal_to_1',
     ];
 
+    // method
     protected function euqal_to_1($data)
     {
         return $data == 1;
     }
 }
+```
 
-/**
- * 2. Extend the class and directly add validation methods
- * If you need to define method symbols, place them in an attribute named method_symbols
- */
+Extend the class, add new methods and their symbols
+```PHP
+use githusband\Validation;
+
 class MyValidation extends Validation
 {
-    use RuleCustome;
+    // 1. Use Trait
+    use RuleExtendTrait;
 
+    /**
+     * 2. Directly add methods and their symbols
+     * If you need to define method symbols, place them in an attribute named method_symbols
+     */
     protected $method_symbols = [
         ">=1" => "grater_than_or_equal_to_1",
     ];
@@ -365,10 +436,10 @@ class MyValidation extends Validation
         return $data >= 1;
     }
 }
+```
 
-/**
- * The rule is
- */
+The rule is
+```PHP
 $rule = [
     // id must not be empty, and must be greater than or equal to 1
     // ">=1" is a method symbols, corresponding to the method named "grater_than_or_equal_to_1"
@@ -379,12 +450,13 @@ $rule = [
 ```
 
 </details>
+</br>
 
-- 3. **Global function**
+4. **The priority of the these ways**
 Including the system functions and user-defined global functions.
 
-**The priority of the three way**
-`add_method` > `built-in methods` > `global function`
+**几种方法的优先级**
+`Add method` > `Add rule class` > `Extend Validation class` > `Built-in method` > `Global function`
 
 If the method can not be found from the three way, an error will be reported: Undefined
 
