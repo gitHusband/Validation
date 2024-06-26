@@ -566,7 +566,7 @@ class Validation
     /**
      * If false, stop validating data immediately when a field was invalid.
      *
-     * @param [type] $bool
+     * @param bool $bool
      * @return static
      */
     public function set_validation_global($bool)
@@ -657,15 +657,20 @@ class Validation
     }
 
     /**
-     * Allow user to add customized methods
+     * Add customized methods and their symbols
      *
-     * @param string $tag tag name
-     * @param string $method function definition
+     * @param string $method Method name
+     * @param callable $callable Function definition
+     * @param string $symbol Symbol of method
      * @return static
      */
-    public function add_method($tag, $method)
+    public function add_method($method, $callable, $symbol = '')
     {
-        $this->methods[$tag] = $method;
+        $this->methods[$method] = $callable;
+        if (!empty($symbol)) {
+            $this->method_symbols[$symbol] = $method;
+            $this->method_symbols_reversed[$method] = $symbol;
+        }
         return $this;
     }
 

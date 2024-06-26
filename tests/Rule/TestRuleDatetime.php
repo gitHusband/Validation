@@ -5125,7 +5125,7 @@ trait TestRuledatetime
             "symbol" => [
                 "A_datetime" => "optional|datetime>=<=[today, tomorrow]",
                 "B_datetime" => "optional|datetime>=<=[-3 days, next week, Y-m-d H:i:s]",
-                "C_datetime" => "optional|datetime>=<=[Tuesday, first day of next month, Y-m-d]",
+                "C_datetime" => "optional|datetime>=<=[Tuesday, last day of next month, Y-m-d]",
                 "A1_exc" => "optional|datetime>=<=[today1, tomorrow]",
                 "A2_exc" => "optional|datetime>=<=[to-day, tomorrow]",
                 "A3_exc" => "optional|datetime>=<=[todad, tomorrow]",
@@ -5133,7 +5133,7 @@ trait TestRuledatetime
             "method" => [
                 "A_datetime" => "optional|datetime_between[today, tomorrow]",
                 "B_datetime" => "optional|datetime_between[-3 days, next week, Y-m-d H:i:s]",
-                "C_datetime" => "optional|datetime_between[Tuesday, first day of next month, Y-m-d]",
+                "C_datetime" => "optional|datetime_between[Tuesday, last day of next month, Y-m-d]",
                 "A1_exc" => "optional|datetime_between[today1, tomorrow]",
                 "A2_exc" => "optional|datetime_between[to-day, tomorrow]",
                 "A3_exc" => "optional|datetime_between[todad, tomorrow]",
@@ -5166,17 +5166,12 @@ trait TestRuledatetime
             ],
             "Valid_C_datetime_1" => [
                 "data" => [
-                    "C_datetime" => date('Y-m-d H:i:s', strtotime('Tuesday')),
-                ]
-            ],
-            "Valid_C_datetime_1" => [
-                "data" => [
                     "C_datetime" => date('Y-m-d', strtotime('Tuesday')),
                 ]
             ],
             "Valid_C_datetime_2" => [
                 "data" => [
-                    "C_datetime" => date('Y-m-01', strtotime('next month')),
+                    "C_datetime" => date('Y-m-10', strtotime('next month')),
                 ]
             ],
 
@@ -5211,13 +5206,13 @@ trait TestRuledatetime
                 "data" => [
                     "C_datetime" => date('Y-m-d', strtotime('-4 day')),
                 ],
-                "expected_msg" => ["C_datetime" => "C_datetime datetime must be between Tuesday and first day of next month"]
+                "expected_msg" => ["C_datetime" => "C_datetime datetime must be between Tuesday and last day of next month"]
             ],
             "Invalid_C_datetime_2" => [
                 "data" => [
-                    "C_datetime" => date('Y-m-02', strtotime('next month')),
+                    "C_datetime" => date('Y-m-01', strtotime('+2 months')),
                 ],
-                "expected_msg" => ["C_datetime" => "C_datetime datetime must be between Tuesday and first day of next month"]
+                "expected_msg" => ["C_datetime" => "C_datetime datetime must be between Tuesday and last day of next month"]
             ],
 
             /**

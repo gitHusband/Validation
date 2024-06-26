@@ -4958,8 +4958,13 @@ class Unit extends TestCommon
 
     protected function test_add_method()
     {
-        $rule = [
-            "text" => "required|check_add_method['false', 'null']",
+        $rules = [
+            "symbol" => [
+                "text" => "required|c_a_m['false', 'null']",
+            ],
+            "method" => [
+                "text" => "required|check_add_method['false', 'null']",
+            ],
         ];
 
         $cases = [
@@ -4999,10 +5004,10 @@ class Unit extends TestCommon
             }
 
             return true;
-        });
+        }, 'c_a_m');
 
         return $method_info = [
-            "rule" => $rule,
+            "rules" => $rules,
             "cases" => $cases,
             "extra" => $extra
         ];
