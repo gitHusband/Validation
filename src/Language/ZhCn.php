@@ -1,7 +1,7 @@
 <?php
 
 /**
- * zh-cn
+ * Error message template of language Chinese(zh-cn).
  */
 class ZhCn
 {

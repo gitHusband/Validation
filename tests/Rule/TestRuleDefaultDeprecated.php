@@ -3,6 +3,9 @@
 namespace githusband\Tests\Rule;
 
 /**
+ * Test cases of default various format types
+ * 
+ * @package UnitTests
  * @deprecated 2.3.1
  */
 trait TestRuleDefaultDeprecated

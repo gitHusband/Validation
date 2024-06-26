@@ -2,9 +2,14 @@
 
 namespace githusband\Tests;
 
+use githusband\Validation;
+use githusband\Tests\TestCommon;
+use githusband\Tests\Extend\MyValidation;
 use githusband\Tests\Rule\TestRuleDefaultDeprecated;
 
 /**
+ * Unit Tests
+ * 
  * 1. How to add a new unit test case?
  *  To add a new method for Unit class. The method name must be starting with "test_".
  *  The method must return an array which is a unit test case.
@@ -13,7 +18,8 @@ use githusband\Tests\Rule\TestRuleDefaultDeprecated;
  * 
  * 2. What is a unit test case?
  *  - @see Unit::validate_cases() for the logic.
- *  For example:
+ * @example
+ * ```
  *  {
  *      "rule": {
  *          "id": "required|/^\d+$/"
@@ -37,13 +43,8 @@ use githusband\Tests\Rule\TestRuleDefaultDeprecated;
  *          "method_name": "githusband\Tests\Unit::test_xxx",
  *      }
  *  }
- */
-
-use githusband\Validation;
-use githusband\Tests\TestCommon;
-use githusband\Tests\Extend\MyValidation;
-
-/**
+ * ```
+ * @package UnitTests
  * @deprecated 2.3.1
  */
 class UnitDeprecated extends TestCommon

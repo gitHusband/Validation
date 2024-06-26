@@ -9,6 +9,12 @@ use githusband\Exception\RuleException;
 use Exception;
 use Throwable;
 
+/**
+ * The primary class to validate data.
+ * 
+ * It's just a framework which maintains the validation logic, including parsing rules, calling validation methods, setting error messages, etc.
+ * But it almost does not contain any validation methods.
+ */
 class Validation
 {
     // use Rule\RuleDefaultTrait, Rule\RuleDatetimeTrait;
@@ -20,26 +26,39 @@ class Validation
 
     /**
      * Validation rules. Default empty. Should be set before validation.
+     * 
+     * @see static::set_rules()
      * @var array
      */
     protected $rules = [];
 
     /**
-     * Add by users using $this->add_method
+     * The methods of user customized
+     * 
+     * @see static::add_method()
      * @var array
      */
     protected $methods = [];
 
     /**
      * Back up the original data
+     * 
+     * @see static::validate()
      * @var array
      */
     protected $data = [];
 
     /**
      * Validation result of rules.
-     * format: rule field => true | error message
-     * @var array
+     * 
+     * @example
+     * ```
+     * {
+     *      "A.1": true,
+     *      "A.2.a": "error_msg_of_A2a"
+     * }
+     * ```
+     * @var array<string, bool|string>
      */
     protected $result = [];
 
@@ -47,6 +66,7 @@ class Validation
      * Define $result format
      * If set to true, replace field value to "true" if it's valid, replace field value to error_message if it's invalid.
      * If set to false, don't replace field value if it's valid, replace field value to error_message if it's invalid.
+     * 
      * @var array
      */
     protected $result_classic = true;
@@ -54,13 +74,28 @@ class Validation
     /**
      * Contains all error messages.
      * One-dimensional array
-     * Format:
-     * {
-     *      "A.1": "error_msg_A1",
-     *      "A.2.a": "error_msg_A2a",
-     * }
      * 
-     * @var array
+     * @example
+     * ```
+     * {
+     *      "general": {
+     *          "A.1": "error_msg_of_A1",
+     *          "A.2.a": "error_msg_of_A2a",
+     *      },
+     *      "detailed": {
+     *          "A.1": {
+     *              "error_type": "required_field",
+     *              "message": "error_msg_of_A1"
+     *          },
+     *          "A.2.a": {
+     *              "error_type": "validation",
+     *              "message": "error_msg_of_A2a",
+     *              "extra": "extra_msg_of_A2a"
+     *          },
+     *      }
+     * }
+     * ```
+     * @var array{general: array<string, mixed>, detailed: array<string, mixed>}
      */
     protected $dotted_errors = [
         'general' => [],    // only message string
@@ -70,16 +105,36 @@ class Validation
     /**
      * Contains all error messages.
      * Multidimensional array
-     * Format: 
+     * 
+     * @example
+     * ```
      * {
-     *      "A": {
-     *          "1": "error_msg_A1",
-     *          "2": {
-     *              "a": "error_msg_A2a"
+     *      "general": {
+     *          "A": {
+     *              "1": "error_msg_of_A1",
+     *              "2": {
+     *                  "a": "error_msg_of_A2a"
+     *              }
+     *          }
+     *      },
+     *      "detailed": {
+     *          "A": {
+     *              "1": {
+     *                  "error_type": "required_field",
+     *                  "message": "error_msg_of_A1"
+     *              },
+     *              "2": {
+     *                  "a": {
+     *                      "error_type": "validation",
+     *                      "message": "error_msg_of_A2a",
+     *                      "extra": "extra_msg_of_A2a"
+     *                  }
+     *              }
      *          }
      *      }
      * }
-     * @var array
+     * ```
+     * @var array{general: array<string, mixed>, detailed: array<string, mixed>}
      */
     protected $nested_errors = [
         'general' => [],    // only message string
@@ -89,16 +144,24 @@ class Validation
     /**
      * Current info of the recurrence validation: field path or its rule, etc.
      * If something get wrong, we can easily know which field or rule get wrong.
-     * @var array{
-     *   field_path: string,
-     *   field_ruleset: string,
-     *   rule: string,
-     *   method: array{
-     *       method: string,
-     *       symbol: string,
-     *       params: array
-     *   },
+     * 
+     * @example
+     * ```
+     * {
+     *      "field_path": "A.1",
+     *      "field_ruleset": "required|>[100]",
+     *      "rule": "",
+     *      "method": {
+     *          "method": "greater_than",
+     *          "symbol": ">",
+     *          "params": [
+     *              200,    // Your data which needs to be validated 
+     *              100     // The parameter of >
+     *          ]
+     *      },
      * }
+     * ```
+     * @var array{field_path: string, field_ruleset: string, rule: string, method: array{method: string, symbol: string, params: array<mixed>} }
      */
     protected $recurrence_current = [
         'field_path' => '',
@@ -107,13 +170,48 @@ class Validation
         'method' => [],
     ];
 
+    /**
+     * System symbol for this
+     * - Used in ruleset as a parameter of a method: Means the value of the field which needs to be validated
+     * - Used in error message template: Means the field name
+     *
+     * @var string
+     */
     protected $symbol_this = '@this';
+    /**
+     * System symbol for root
+     * - Used in ruleset as a parameter of a method: Means the whole data which needs to be validated
+     *
+     * @var string
+     */
     protected $symbol_root = '@root';
+    /**
+     * System symbol for parent of the current field
+     * - Used in ruleset as a parameter of a method: Means the parent data of the current field
+     *
+     * @var string
+     */
     protected $symbol_parent = '@parent';
+    /**
+     * System symbol for regular expression
+     * - Used in error message template: Means the regular expression which you are validating
+     *
+     * @var string
+     */
     protected $symbol_preg = '@preg';
+    /**
+     * System symbol for method
+     * - Used in error message template: Means the mehthod name or its symbol which you are validating
+     *
+     * @var string
+     */
     protected $symbol_method = '@method';
 
-    protected $config_backup;
+    /**
+     * The configs of language, symbols or when rule etc. 
+     *
+     * @var array<string, string>
+     */
     protected $config = [
         'language' => 'en-us',                                      // Language, Default en-us
         'lang_path' => '',                                          // Customer Language file path
@@ -142,13 +240,14 @@ class Validation
         'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
         'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
     ];
+    protected $config_backup;
 
     /**
      * See $config array, there are several symbol that are not semantically explicit.
      * So I set up the related full name for them
      *
      * The $config_default can not be customized and they are always meaningful
-     * @var array
+     * @var array<string, string>
      */
     protected $config_default = [
         'symbol_required' => 'required',                            // Default symbol of required field
@@ -165,6 +264,7 @@ class Validation
 
     /**
      * While validating, if one field was invalid, set this to false;
+     * 
      * @var boolean
      */
     protected $validation_status = true;
@@ -172,6 +272,7 @@ class Validation
     /**
      * If true, validate all rules;
      * If false, stop validating when one rule was invalid.
+     * 
      * @var boolean
      */
     protected $validation_global = true;
@@ -179,14 +280,18 @@ class Validation
     /**
      * The method symbol
      * Using symbol mapped to real method. e.g. '=' => 'equal'
-     * @see githusband\Rule\RuleDefault::$method_symbols_of_rule_default
+     * 
+     * @example {"=": "equal"}
+     * @see githusband\Rule\RuleClassDefault::$method_symbols
+     * @see githusband\Rule\RuleDefaultTrait::$method_symbols_of_rule_default_trait
      * @var array
      */
     protected $method_symbols = [];
     protected $deprecated_method_symbols = [];
     /**
      * Reverse the method symbol
-     * e.g. 'equal' => '='
+     * 
+     * @example {"equal": "="}
      * @see static::$method_symbols
      * @var array
      */
@@ -196,7 +301,7 @@ class Validation
      * The rule class with your validation method.
      * The rule class must be static class.
      *
-     * @var array
+     * @var array<int, class-string|object>
      */
     protected $rule_classes = [];
     protected $rule_class_method_symbols_reversed = [];
@@ -204,7 +309,7 @@ class Validation
     /**
      * If you don't set the default rule classes into $rule_classes, they will be auto set into $rule_classes.
      *
-     * @var array
+     * @var array<int, class-string>
      */
     protected $rule_classes_default = [
         RuleClassDefault::class,
@@ -213,20 +318,24 @@ class Validation
 
     /**
      * Language file path
+     * 
      * @var string
      */
     protected $lang_path = __DIR__ . '/Language/';
 
     /**
      * Error message template of different Languaues
-     * @var array
+     * 
+     * @var array<string, array>
      */
     protected $languages = [];
 
     /**
      * If user don't set a error messgae, use this.
+     * 
      * @see ./Language/EnUs.php
-     * @see githusband\Rule\RuleDefault::$method_symbols_of_rule_default
+     * @see githusband\Rule\RuleClassDefault::$method_symbols
+     * @see githusband\Rule\RuleDefaultTrait::$method_symbols_of_rule_default_trait
      * @var array
      */
     protected $error_templates = [];
@@ -255,6 +364,7 @@ class Validation
      *
      * @param array $config
      * @return static
+     * @api
      */
     public function set_config($config = [])
     {
@@ -308,7 +418,7 @@ class Validation
 
     /**
      * Auto load traits data
-     * - method_symbols: @see static::$method_symbols
+     * - method_symbols: {@see static::$method_symbols}
      *
      * @return void
      */
@@ -386,7 +496,7 @@ class Validation
     /**
      * Reverse the method_symbols array
      *
-     * @param class $rule_class
+     * @param class $rule_class A class that contains multiple rule methods
      * @return void
      */
     protected function reverse_method_symbols($rule_class)
@@ -399,6 +509,7 @@ class Validation
      *
      * @param class $rule_class Instance or name of a class
      * @return static
+     * @api
      */
     public function add_rule_class($rule_class)
     {
@@ -430,7 +541,7 @@ class Validation
     /**
      * Match the method(from symbol) or symbol(from method) and return them and the rule class
      *
-     * @param string $method
+     * @param string $in The method or its symbol
      * @return array
      */
     public function match_method_and_symbol($in)
@@ -493,6 +604,7 @@ class Validation
      *
      * @param string $lang Languagu, suce as 'en-us'
      * @return static
+     * @api
      */
     public function set_language($lang)
     {
@@ -536,6 +648,7 @@ class Validation
      * @param object $lang_conf Object instance
      * @param string $lang_name Languagu name
      * @return static
+     * @api
      */
     public function custom_language($lang_conf, $lang_name = '')
     {
@@ -552,6 +665,7 @@ class Validation
      *
      * @param array $rules
      * @return static
+     * @api
      */
     public function set_rules($rules = [])
     {
@@ -568,6 +682,7 @@ class Validation
      *
      * @param bool $bool
      * @return static
+     * @api
      */
     public function set_validation_global($bool)
     {
@@ -663,6 +778,7 @@ class Validation
      * @param callable $callable Function definition
      * @param string $symbol Symbol of method
      * @return static
+     * @api
      */
     public function add_method($method, $callable, $symbol = '')
     {
@@ -678,7 +794,9 @@ class Validation
      * Start validating
      *
      * @param array $data The data you want to validate
-     * @return bool validation result
+     * @return bool Validation result
+     * @throws GhException
+     * @api
      */
     public function validate($data = [])
     {
@@ -702,6 +820,13 @@ class Validation
         return $this->validation_status;
     }
 
+    /**
+     * Encapsulate any errors or exceptions as GhException
+     * 
+     * @param Throwable $t
+     * @return void
+     * @throws GhException
+     */
     protected function throw_gh_exception($t)
     {
         if ($t instanceof GhException) {
@@ -2223,6 +2348,7 @@ class Validation
      * @param string|bool $error_format Recommend using format strings, not using bool
      * @param bool {@deprecated} $is_general If true, return error message for general error. If false, return error message for detailed error.
      * @return array
+     * @api
      */
     public function get_error($error_format = self::ERROR_FORMAT_DOTTED_GENERAL, $is_general = true)
     {
@@ -2299,6 +2425,7 @@ class Validation
      * Get validation result of executing the rules.
      *
      * @return bool
+     * @api
      */
     public function get_result()
     {

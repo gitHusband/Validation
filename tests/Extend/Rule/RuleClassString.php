@@ -3,8 +3,11 @@
 namespace githusband\Tests\Extend\Rule;
 
 /**
- * Rule class 增加验证方法
+ * Rule class 的方式增加验证方法
+ * 
  * 如果需要定义方法标志，将他们放在 method_symbols 属性中
+ * 
+ * @package UnitTests
  */
 class RuleClassString
 {

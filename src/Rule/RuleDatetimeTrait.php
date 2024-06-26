@@ -6,6 +6,15 @@ use Datetime;
 use Exception;
 use githusband\Exception\MethodException;
 
+/**
+ * Trait RuleDatetimeTrait contains multiple methods to validate the data in date or time format
+ * 
+ * - Methods are required to be public.
+ * - Methods are not required to be static.
+ * - You can alse set symbols of the methods.
+ * 
+ * @deprecated 2.5.2 Use class RuleClassDatetime instead
+ */
 trait RuleDatetimeTrait
 {
     protected $method_symbols_of_rule_datetime_trait = [

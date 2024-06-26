@@ -5,6 +5,13 @@ namespace githusband\Rule;
 use githusband\Validation;
 use githusband\Exception\MethodException;
 
+/**
+ * Class RuleClassDefault contains multiple methods to validate the data of various format types
+ * 
+ * - Methods are required to be public.
+ * - Methods are not required to be static.
+ * - You can alse set symbols of the methods.
+ */
 class RuleClassDefault
 {
     /**

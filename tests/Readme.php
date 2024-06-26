@@ -6,6 +6,11 @@ use githusband\Validation;
 use githusband\Tests\TestCommon;
 use githusband\Tests\Extend\MyValidation;
 
+/**
+ * 文档 README 中的相关代码
+ * 
+ * @package UnitTests
+ */
 class Readme extends TestCommon
 {
 

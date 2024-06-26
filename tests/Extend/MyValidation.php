@@ -7,6 +7,8 @@ use githusband\Tests\Extend\Rule\RuleExtendTrait;
 use githusband\Tests\Extend\Rule\RuleClassString;
 
 /**
+ * 拓展 Validation 的例子：增加验证方法。
+ * 
  * 如何增加验证方法（同名方法优先级从高到低）：
  * 1. 拓展 $this->methods 属性。
  *   实例化类后可调用 $this->add_method 增加新的验证方法。这里均未演示。
@@ -23,6 +25,8 @@ use githusband\Tests\Extend\Rule\RuleClassString;
  * 
  * 4. 全局函数
  *   如果以上均未找到规则集的验证方法，则从全局函数中查找方法。
+ * 
+ * @package UnitTests
  */
 class MyValidation extends Validation
 {

@@ -1,6 +1,8 @@
 <?php
 
 /**
+ * Unit Tests Bootstrap
+ * 
  * Run script:
  *  - php Test.php Unit run [method_name]
  *  - php Test.php Unit run [method_name]
@@ -9,6 +11,8 @@
  * 
  * If you need more debug info, run started with `VALIDATION_LOG_LEVEL=1`
  *  - VALIDATION_LOG_LEVEL=1 php Test.php Unit run
+ * 
+ * @package UnitTests
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -18,11 +22,27 @@ use githusband\Tests\UnitDeprecated;
 use githusband\Tests\Readme;
 use githusband\Tests\Demo;
 
+/**
+ * In order to test if global function works
+ *
+ * @param mixed $data
+ * @param int $min
+ * @param int $max
+ * @return bool
+ */
 function check_id($data, $min, $max)
 {
     return $data >= $min && $data <= $max;
 }
 
+/**
+ * In order to test if global function works
+ *
+ * @param int $data
+ * @param string $gender
+ * @param int $param
+ * @return bool
+ */
 function check_age($data, $gender, $param)
 {
     if ($gender == "male") {

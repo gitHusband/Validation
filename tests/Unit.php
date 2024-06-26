@@ -6,7 +6,13 @@ use githusband\Tests\Rule\TestRuleDefault;
 use githusband\Tests\Rule\TestRuleDatetime;
 use githusband\Tests\Extend\Rule\RuleClassString;
 
+use githusband\Validation;
+use githusband\Tests\TestCommon;
+use githusband\Tests\Extend\MyValidation;
+
 /**
+ * Unit Tests
+ * 
  * 1. How to add a new unit test case?
  *  To add a new method for Unit class. The method name must be starting with "test_".
  *  The method must return an array which is a unit test case.
@@ -50,12 +56,8 @@ use githusband\Tests\Extend\Rule\RuleClassString;
  *      }
  *  }
  * ```
+ * @package UnitTests
  */
-
-use githusband\Validation;
-use githusband\Tests\TestCommon;
-use githusband\Tests\Extend\MyValidation;
-
 class Unit extends TestCommon
 {
     /**
@@ -95,6 +97,7 @@ class Unit extends TestCommon
      * @param string $method_name
      * @param string $sub_method_name
      * @return array|string
+     * @api
      */
     public function run($method_name = '')
     {
@@ -112,6 +115,7 @@ class Unit extends TestCommon
      * @param int $times
      * @param string $method_name
      * @return void
+     * @api
      */
     public function performance($times = 100, $method_name = '')
     {

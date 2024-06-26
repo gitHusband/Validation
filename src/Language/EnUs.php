@@ -1,7 +1,7 @@
 <?php
 
 /**
- * zn-us
+ * Error message template of language English(zn-us).
  */
 class EnUs
 {

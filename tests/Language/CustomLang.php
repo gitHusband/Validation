@@ -1,7 +1,11 @@
 <?php
 
 /**
- * CustomLang
+ * Error message template of your customized language
+ * 
+ * You don't have to change the language, you can just change the message only.
+ * 
+ * @package UnitTests
  */
 class CustomLang
 {

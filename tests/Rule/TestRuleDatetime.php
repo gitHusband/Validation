@@ -3,7 +3,12 @@
 namespace githusband\Tests\Rule;
 
 /**
+ * Test cases of date time
+ * 
  * The default timezone is 'Asia/Shanghai', {@see tests/Test.php}
+ * 
+ * @see githusband\Rule\RuleClassDatetime
+ * @package UnitTests
  */
 trait TestRuledatetime
 {

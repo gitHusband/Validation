@@ -2,6 +2,12 @@
 
 namespace githusband\Tests\Rule;
 
+/**
+ * Test cases of default various format types
+ * 
+ * @see githusband\Rule\RuleClassDefault
+ * @package UnitTests
+ */
 trait TestRuleDefault
 {
     protected function test_method_equal()

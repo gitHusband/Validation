@@ -2,6 +2,11 @@
 
 namespace githusband\Tests;
 
+/**
+ * Unit tests common class
+ * 
+ * @package UnitTests
+ */
 class TestCommon
 {
     const LOG_LEVEL_DEBUG = 1;

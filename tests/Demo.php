@@ -5,6 +5,13 @@ namespace githusband\Tests;
 use githusband\Validation;
 use githusband\Tests\TestCommon;
 
+/**
+ * 详细复杂的测试用例
+ * 
+ * 测试数据尽量复杂，说明 Validation 能够满足各种各样的情况。
+ * 
+ * @package UnitTests
+ */
 class Demo extends TestCommon
 {
     public function __construct()
