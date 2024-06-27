@@ -1,4 +1,4 @@
 .vscode
 /vendor
 .DS_Store
-/docs/built
+/docs/template-to-php

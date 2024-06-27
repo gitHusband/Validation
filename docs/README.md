@@ -2,7 +2,11 @@
 
 # 生成 API 文档
 
-## 使用 Composer
+使用 [phpDocumentor](https://docs.phpdoc.org/3.0/guide/getting-started/index.html#getting-started) 自动生成 API 文档。
+
+生成的文档位于：`docs/built/api/index.html`。直接使用浏览器打开即可查看。
+
+## 使用 Composer 生成文档
 
 ### 安装
 
@@ -11,30 +15,30 @@
 composer require phpdocumentor/phpdocumentor --dev --ignore-platform-reqs
 ```
 
-2. 安装 phpdocumentor 依赖
+2. 安装 phpdocumentor 的依赖
 ```BASH
 cd vendor/phpdocumentor/phpdocumentor
 composer install
 ```
 
-### 生成文档
+### 生成
 
 ```BASH
 rm -rf docs/built && vendor/bin/phpdoc -c docs/phpdoc.xml
 ```
 
-## 使用 Docker
+## 使用 Docker 生成文档
 
 ### 安装 Docker
 略
 
-### 生成文档
+### 生成
 
 ```BASH
 rm -rf docs/built && docker run --rm -v $(pwd):/data phpdoc/phpdoc -c /data/docs/phpdoc.xml
 ```
 
-### 修改调试文档
+## 调试文档
 
 打开文件 `vendor/twig/twig/src/Environment.php`
 
@@ -61,5 +65,4 @@ if (!file_exists($classFile)) {
 }
 include_once $classFile;
 ```
-
-这样可以使用 XDEBUG 断点调试
+将 `tiwg` 模板转换为 `php` 文件后保存到 `docs/template-to-php/default/`, 后续直接 include 文件，这样可以使用 XDEBUG 断点调试。
