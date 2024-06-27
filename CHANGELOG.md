@@ -268,3 +268,4 @@ Symbol | Old Method Name | New Method Name | Is Optimized
 
 - 新增一个方法去拓展验证方法：`add_rule_class`
   或者在拓展类的时候，直接插入到属性 `$this->rule_classes`
+- 优化代码注释
