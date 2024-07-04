@@ -909,6 +909,10 @@ class Validation
                     $field_tmp = $this->delete_system_symbol($field, 'symbol_parallel_rule');
                     $field_tmp = $this->delete_system_symbol($field_tmp, 'symbol_index_array');
 
+                    $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_parallel_rule');
+                    $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_index_array');
+                    $this->set_current_field_path($current_field_path);
+
                     if (!static::required(isset($data[$field_tmp]) ? $data[$field_tmp] : null)) {
                         $this->set_result($current_field_path, true);
                         continue;
@@ -920,6 +924,7 @@ class Validation
                 if ($this->has_system_symbol($field, 'symbol_parallel_rule')) {
                     $field = $this->delete_system_symbol($field, 'symbol_parallel_rule');
                     $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_parallel_rule');
+                    $this->set_current_field_path($current_field_path);
 
                     $result = $this->execute_parallel_rules($data, $field, $current_field_path, $ruleset);
                 }
@@ -927,6 +932,7 @@ class Validation
                 else if ($this->has_system_symbol($field, 'symbol_index_array')) {
                     $field = $this->delete_system_symbol($field, 'symbol_index_array');
                     $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_index_array');
+                    $this->set_current_field_path($current_field_path);
 
                     $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset);
                 }
