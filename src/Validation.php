@@ -2,6 +2,8 @@
 
 namespace githusband;
 
+use githusband\Entity\RulesetEntity;
+use githusband\Entity\RuleEntity;
 use githusband\Rule\RuleClassDefault;
 use githusband\Rule\RuleClassDatetime;
 use githusband\Exception\GhException;
@@ -163,12 +165,7 @@ class Validation
      * ```
      * @var array{field_path: string, field_ruleset: string, rule: string, method: array{method: string, symbol: string, params: array<mixed>} }
      */
-    protected $recurrence_current = [
-        'field_path' => '',
-        'field_ruleset' => '',
-        'rule' => '',
-        'method' => [],
-    ];
+    protected $recurrence_current = [];
 
     /**
      * System symbol for this
@@ -215,6 +212,7 @@ class Validation
     protected $config = [
         'language' => 'en-us',                                      // Language, Default en-us
         'lang_path' => '',                                          // Customer Language file path
+        'reuse_rule' => false,                                      // Pre-parse ruleset to reuse the ruleset without re-parse
         'validation_global' => true,                                // 1. true - validate all rules even though previous rule had been failed; 2. false - stop validating when any rule is failed
         'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field as the root data field name
         'reg_msg' => '/ >> (.*)$/',                                 // Set the error message format for all the methods after a rule string
@@ -674,6 +672,12 @@ class Validation
         }
 
         $this->rules = $rules;
+
+        if (!empty($this->config['reuse_rule'])) {
+            $this->init_recurrence_current();
+            $this->parse_to_ruleset_entity($rules);
+        }
+
         return $this;
     }
 
@@ -821,6 +825,7 @@ class Validation
                 $this->result = $this->data;
             }
 
+            $this->init_recurrence_current();
             $this->execute($data, $rules);
         } catch (Throwable $t) {
             $this->throw_gh_exception($t);
@@ -1006,43 +1011,41 @@ class Validation
      * @param string $ruleset_system_symbol_string
      * @param string $symbol_name
      * @param bool $ingore_left_dot Only for symbol_index_array because symbol_index_array can ingore the left dot if it's not at the end of the field name
-     * @return bool
+     * @return int 0 - No; 1 - By Default config; 2 - By User config;
      */
     protected function has_system_symbol($ruleset_system_symbol_string, $symbol_name, $ingore_left_dot = false)
     {
         switch ($symbol_name) {
             case 'symbol_array_optional':
-                if (
-                    strpos($ruleset_system_symbol_string, $this->config['symbol_array_optional']) !== false
-                    || strpos($ruleset_system_symbol_string, $this->config_default['symbol_array_optional']) !== false
-                ) {
-                    return true;
+                if (strpos($ruleset_system_symbol_string, $this->config['symbol_array_optional']) !== false) {
+                    return 2;
+                } else if (strpos($ruleset_system_symbol_string, $this->config_default['symbol_array_optional']) !== false) {
+                    return 1;
                 }
                 break;
             case 'symbol_parallel_rule':
-                if (
-                    strpos($ruleset_system_symbol_string, $this->config['symbol_parallel_rule']) !== false
-                    || strpos($ruleset_system_symbol_string, $this->config_default['symbol_parallel_rule']) !== false
-                ) {
-                    return true;
+                if (strpos($ruleset_system_symbol_string, $this->config['symbol_parallel_rule']) !== false) {
+                    return 2;
+                } else if (strpos($ruleset_system_symbol_string, $this->config_default['symbol_parallel_rule']) !== false) {
+                    return 1;
                 }
                 break;
             case 'symbol_index_array':
                 if (strpos($ruleset_system_symbol_string, $this->config['symbol_index_array']) !== false) {
-                    return true;
+                    return 2;
                 }
 
                 if ($ingore_left_dot) {
                     if (strpos($ruleset_system_symbol_string, ltrim($this->config['symbol_index_array'], '.')) !== false) {
-                        return true;
+                        return 2;
                     }
                 }
                 break;
             default:
-                return false;
+                return 0;
         }
 
-        return false;
+        return 0;
     }
 
     /**
@@ -1055,7 +1058,7 @@ class Validation
      * @param string $replace_str Replace the symbol to this string
      * @return string
      */
-    protected function delete_system_symbol($ruleset_system_symbol_string, $symbol_name, $ingore_left_dot = false, $replace_str = '')
+    protected function delete_system_symbol($ruleset_system_symbol_string, $symbol_name, $ingore_left_dot = false)
     {
         switch ($symbol_name) {
             case 'symbol_array_optional':
@@ -1872,8 +1875,8 @@ class Validation
      * Parse method and its parameters
      *
      * @param string $rule One separation of ruleset
-     * @param array $data The parent data of the field which is related to the rule
-     * @param string $field The field which is related to the rule
+     * @param ?array $data The parent data of the field which is related to the rule
+     * @param ?string $field The field which is related to the rule
      * @return array Method detail
      */
     protected function parse_method($rule, $data, $field)
@@ -1903,6 +1906,17 @@ class Validation
             if (is_array($param)) continue;
 
             if (strpos($param, '@') !== false) {
+                if (
+                    $data === null
+                    && $field === null
+                ) {
+                    /**
+                     * When we parse the rule to rule entity, we don't need to parse the @ parameters to the real data.
+                     * Because the real data is changing when we start to validate it.
+                     */
+                    continue;
+                }
+
                 switch ($param) {
                     case $this->symbol_this:
                         $param = isset($data[$field]) ? $data[$field] : null;
@@ -2090,6 +2104,21 @@ class Validation
         }
 
         return $result;
+    }
+
+    /**
+     * Init the current info of the recurrence validation
+     *
+     * @return void
+     */
+    public function init_recurrence_current()
+    {
+        $this->recurrence_current = [
+            'field_path' => '',
+            'field_ruleset' => '',
+            'rule' => '',
+            'method' => [],
+        ];
     }
 
     /**
@@ -2586,5 +2615,414 @@ class Validation
     {
         if (!is_string($data)) return false;
         return in_array($data, ['null', 'NULL']);
+    }
+
+    /**
+     * Parse the rulesets into RulesetEntity(s)
+     *
+     * @param string|array $rules
+     * @return RulesetEntity
+     */
+    protected function parse_to_ruleset_entity($rules)
+    {
+        $rules_system_symbol = $this->get_ruleset_system_symbol($rules);
+        // If The root rules has rule_system_symbol
+        // Or The root rules is String, means root data is not an array
+        // Set root data as an array to help validate the data
+        if (!empty($rules_system_symbol) || is_string($rules)) {
+            $auto_field = $this->config['auto_field'];
+            $rules = [$auto_field => $rules];
+        }
+        
+        /**
+         * Most of the time the $rules is an associate array, so the ruleset type is RULESET_TYPE_ASSOC_ARRAY
+         * But sometimes it's for index array, we will change the ruleset type below.
+         */
+        $root_ruleset_entity = new RulesetEntity('root', $rules, '');
+        if (!empty($auto_field)) $root_ruleset_entity->set_real_root_name($auto_field);
+        $root_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_ASSOC_ARRAY);
+
+        $this->parse_ruleset_entity($root_ruleset_entity);
+
+        return $root_ruleset_entity;
+    }
+
+    /**
+     * Parse the rulesets of the parent RulesetEntity
+     *
+     * @param ?RulesetEntity $parent_ruleset_entity
+     * @return RulesetEntity
+     */
+    protected function parse_ruleset_entity(&$parent_ruleset_entity)
+    {
+        $parent_ruleset = $parent_ruleset_entity->get_value();
+        $field_path = $parent_ruleset_entity->get_path();
+
+        $ruleset_system_symbol = $this->get_ruleset_system_symbol($parent_ruleset);
+        if (!empty($ruleset_system_symbol)) {
+            $parent_ruleset_entity->set_system_symbol($ruleset_system_symbol);
+
+            // Allow array or object to be optional
+            if ($has_symbol_array_optional = $this->has_system_symbol($ruleset_system_symbol, 'symbol_array_optional')) {
+                $array_node_ruleset = [];
+                if ($has_symbol_array_optional == 1) {
+                    $array_node_ruleset[] = $this->config_default['symbol_optional'];
+                } else {
+                    $array_node_ruleset[] = $this->config['symbol_optional'];
+                }
+                $array_node_ruleset_tmp = implode($this->config['symbol_rule_separator'], $array_node_ruleset);
+                $parent_ruleset_entity->set_ruleset($array_node_ruleset_tmp);
+                $this->parse_rule_entity($parent_ruleset_entity);
+            }
+
+            // Validate parallel rules.
+            // If one of parallel rules is valid, then the field is valid.
+            if ($this->has_system_symbol($ruleset_system_symbol, 'symbol_parallel_rule')) {
+                $this->parse_parallel_ruleset_entity($parent_ruleset_entity);
+            }
+            // Validate index array
+            else if ($this->has_system_symbol($ruleset_system_symbol, 'symbol_index_array', true)) {
+                $parent_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_INDEX_ARRAY);
+                $this->parse_index_array_ruleset_entity($parent_ruleset_entity);
+            }
+            // Validate association array
+            else {
+                // Validate association array
+                if ($this->is_association_array_rule($parent_ruleset[$ruleset_system_symbol])) {
+                    $parent_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_ASSOC_ARRAY);
+                    $this->parse_ruleset_entity($parent_ruleset_entity);
+                } else {
+                    if ($has_symbol_array_optional >= 1) {
+                        $array_node_ruleset[] = $parent_ruleset[$ruleset_system_symbol];
+                        $array_node_ruleset_tmp = implode($this->config['symbol_rule_separator'], $array_node_ruleset);
+                        $parent_ruleset_entity
+                            ->reset_rule_entities()
+                            ->set_ruleset($array_node_ruleset_tmp);
+                    }
+                    $parent_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF);
+                    $this->parse_rule_entity($parent_ruleset_entity);
+                }
+            }
+
+            return $parent_ruleset_entity;
+        }
+
+// if (!is_array($parent_ruleset)) echo "+ {$field_path}: {$parent_ruleset}\n";
+
+        foreach ($parent_ruleset as $field => $ruleset) {
+            $current_field_path = '';
+            if ($field_path === '') $current_field_path = $field;
+            else $current_field_path = $field_path . $this->config['symbol_field_name_separator'] . $field;
+            $this->set_current_field_path($current_field_path);
+
+// echo "- {$current_field_path}: {$field}\n";
+
+            $ruleset_entity = new RulesetEntity($field, $ruleset, $current_field_path);
+            $ruleset_entity->set_parent($parent_ruleset_entity);
+
+            $system_symbol = '';
+            
+            // Allow array or object to be optional
+            if ($has_symbol_array_optional = $this->has_system_symbol($field, 'symbol_array_optional')) {
+                $field = $this->delete_system_symbol($field, 'symbol_array_optional');
+                $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_array_optional');
+                $this->set_current_field_path($current_field_path);
+
+                if ($has_symbol_array_optional == 1) {
+                    $system_symbol = $this->config_default['symbol_array_optional'];
+                } else {
+                    $system_symbol = $this->config['symbol_array_optional'];
+                }
+            }
+
+            // Validate parallel rules.
+            // If one of parallel rules is valid, then the field is valid.
+            if ($has_symbol_parallel_rule = $this->has_system_symbol($field, 'symbol_parallel_rule')) {
+                $field = $this->delete_system_symbol($field, 'symbol_parallel_rule');
+                $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_parallel_rule');
+                $this->set_current_field_path($current_field_path);
+
+                if ($has_symbol_parallel_rule == 1) {
+                    $system_symbol .= $this->config_default['symbol_parallel_rule'];
+                } else {
+                    $system_symbol .= $this->config['symbol_parallel_rule'];
+                }
+            }
+            // Validate index array
+            else if ($has_symbol_index_array = $this->has_system_symbol($field, 'symbol_index_array')) {
+                $field = $this->delete_system_symbol($field, 'symbol_index_array');
+                $current_field_path = $this->delete_system_symbol($current_field_path, 'symbol_index_array');
+                $this->set_current_field_path($current_field_path);
+                
+
+                if (empty($system_symbol)) {
+                    $system_symbol = ltrim($this->config['symbol_index_array'], '.');
+                } else {
+                    $system_symbol .= $this->config['symbol_index_array'];
+                }
+            }
+
+            if (!empty($system_symbol)) {
+                $current_ruleset = [
+                    $system_symbol => $ruleset
+                ];
+
+                $ruleset_entity
+                    ->set_name($field)
+                    ->set_value($current_ruleset)
+                    ->set_path($current_field_path);
+
+                $this->parse_ruleset_entity($ruleset_entity);
+            } else {
+                // Validate association array
+                if ($this->is_association_array_rule($ruleset)) {
+                    $ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_ASSOC_ARRAY);
+                    $this->parse_ruleset_entity($ruleset_entity);
+                } else {
+                    $ruleset_entity
+                        ->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF)
+                        ->set_ruleset($ruleset);
+                    $this->parse_rule_entity($ruleset_entity);
+                }
+            }
+
+            $parent_ruleset_entity->add_children($field, $ruleset_entity);
+        }
+
+        return $parent_ruleset_entity;
+    }
+
+    /**
+     * Parse a parallel ruleset into RulesetEntity(s)
+     *
+     * @param RulesetEntity $ruleset_entity
+     * @return void
+     */
+    protected function parse_parallel_ruleset_entity(&$ruleset_entity)
+    {
+        $ruleset = $ruleset_entity->get_value();
+        $ruleset = $ruleset_entity->get_value_of_system_symbol();
+        foreach ($ruleset as $key => $parallel_ruleset) {
+            $parallel_ruleset_entity = clone $ruleset_entity;
+            $parallel_ruleset_entity
+                ->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_PARALLEL)
+                ->set_value($parallel_ruleset);
+
+            $ruleset_entity->add_parallel_ruleset_entity($parallel_ruleset_entity);
+
+            $this->parse_rule_entity($parallel_ruleset_entity);
+        }
+    }
+
+    /**
+     * Parse a index array ruleset into RulesetEntity(s)
+     *
+     * @param RulesetEntity $index_array_ruleset_entity
+     * @return void
+     */
+    protected function parse_index_array_ruleset_entity(&$index_array_ruleset_entity)
+    {
+        $parent_path = $index_array_ruleset_entity->get_path();
+        $ruleset = $index_array_ruleset_entity->get_value_of_system_symbol();
+
+        $symbol_index_array_without_left_dot = ltrim($this->config['symbol_index_array'], '.');
+        $this->config['symbol_field_name_separator'];
+        $child_ruleset_entity = new RulesetEntity(
+            $symbol_index_array_without_left_dot,
+            $ruleset,
+            $parent_path . $this->config['symbol_field_name_separator'] . $symbol_index_array_without_left_dot
+        );
+        $child_ruleset_entity->set_parent($index_array_ruleset_entity);
+        $index_array_ruleset_entity->add_children($symbol_index_array_without_left_dot, $child_ruleset_entity);
+
+        $rule_system_symbol = $this->get_ruleset_system_symbol($ruleset);
+        if (!empty($rule_system_symbol)) {
+            $this->parse_ruleset_entity($child_ruleset_entity);
+        } else if ($this->is_association_array_rule($ruleset)) {
+            $child_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_ASSOC_ARRAY);
+            $this->parse_ruleset_entity($child_ruleset_entity);
+        }
+        // Validate numberic array, all the rule are the same, only use $ruleset[0]
+        else {
+            $child_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF);
+            $this->parse_rule_entity($child_ruleset_entity);
+        }
+    }
+
+    /**
+     * Parse a ruleset into RuleEntity(s)
+     *
+     * @param RulesetEntity $ruleset_entity
+     * @return void
+     */
+    protected function parse_rule_entity(&$ruleset_entity)
+    {
+        $ruleset = $ruleset_entity->get_ruleset();
+        $this->set_current_field_path($ruleset_entity->get_path())
+            ->set_current_field_ruleset($ruleset);
+
+        $ruleset = $this->parse_ruleset($ruleset_entity->get_ruleset());
+
+        if (empty($ruleset) || empty($ruleset['rules'])) {
+            return true;
+        }
+
+        $ruleset_error_templates = $ruleset['error_templates'];
+
+        foreach ($ruleset['rules'] as $rule) {
+            if (empty($rule)) {
+                continue;
+            }
+
+            $this->set_current_rule($rule);
+
+            $error_type = 'validation';
+            $error_template = '';
+            $method_rule = [];
+
+            $has_when_rule = -1;
+            $when_type = '';
+            $when_rule_entity = null;
+            /**
+             * Most of the system symbols or methods support to be append a When rule.
+             * If the condition of When rule is not met, we don't need to check the methods.
+             * 
+             * The rule is {method} + ":" + "when|when_not"
+             * For example:
+             *  - required:when
+             *  - optional:when_not
+             *  - email:when
+             */
+            if (preg_match($this->config['reg_whens'], $rule, $matches) || preg_match($this->config_default['reg_whens'], $rule, $matches)) {
+                $target_rule = $matches[1];
+                $when_rule = $matches[3];
+
+                if (preg_match($this->config['reg_when'], $rule) || preg_match($this->config_default['reg_when'], $rule)) {
+                    $has_when_rule = 1;
+                    $when_type = RuleEntity::RULE_TYPE_WHEN;
+                } else {
+                    $has_when_rule = 0;
+                    $when_type = RuleEntity::RULE_TYPE_WHEN_NOT;
+                }
+
+                $method_rule = $this->parse_method($when_rule, null, null);
+
+                $rule = $target_rule;
+
+                $when_rule_entity = new RuleEntity($when_type, $method_rule['method'], $when_rule, $method_rule['params'], $method_rule['symbol'], $method_rule['by_symbol']);
+            }
+
+            /**
+             * If rule
+             * If it's a 'If rule' or 'If Not rule' -> Means this field is conditionally optional;
+             * - If the 'If rule' validation result is true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
+             * - If the 'If Not rule' validation result is not true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
+             */
+            if (preg_match($this->config['reg_ifs'], $rule, $matches)) {
+                if (preg_match($this->config['reg_if'], $rule)) {
+                    $if_type = RulesetEntity::RULESET_TYPE_LEAF_IF;
+                } else {
+                    $if_type = RulesetEntity::RULESET_TYPE_LEAF_IF_NOT;
+                }
+
+                $rule = $matches[1];
+
+                $if_ruleset_entity = clone $ruleset_entity;
+                $condition_ruleset_entity = clone $ruleset_entity;
+                $if_ruleset_entity->set_ruleset_type($if_type)
+                    ->add_confition_ruleset_entity($condition_ruleset_entity);
+                $condition_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION)
+                    ->set_ruleset($rule);
+                $ruleset_entity->add_if_ruleset_entity($if_ruleset_entity);
+                $this->parse_rule_entity($condition_ruleset_entity);
+                continue;
+            }
+            /**
+             * - Required(*) rule
+             * - Required When rule
+             */
+            else if ($rule == $this->config['symbol_required'] || $rule == $this->config_default['symbol_required']) {
+                /**
+                 * Required(*) rule
+                 */
+                if ($has_when_rule === -1) {
+                    $error_type = $this->config_default['symbol_required'];
+                    $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_required');
+                }
+                /**
+                 * Required When rule
+                 * If it's a 'Required When rule' or 'Required When Not rule' rule -> Means this field is conditionally required;
+                 * - If the 'Required When rule' validation result is true and the field is not set or empty, then the field is invalid. Otherwise, continue to validate the subsequnse rule;
+                 * - If the 'Required When Not rule' validation result is not true and the field is not set or empty, then the field is invalid. Otherwise, continue to validate the subsequnse rule;
+                 */
+                else if ($has_when_rule !== -1) {
+                    $error_type = $this->config_default['symbol_required'] . ':' . $when_type;
+                    $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_required', $when_type);
+                }
+
+                $by_symbol = $rule == $this->config['symbol_required'];
+                $rule_entity = new RuleEntity(RuleEntity::RULE_TYPE_METHOD, $this->config_default['symbol_required'], $rule, [$this->symbol_this], $this->config['symbol_required'], $by_symbol);
+            }
+            /**
+             * - Optional(O) rule
+             * - Optional When rule
+             */
+            else if ($rule == $this->config['symbol_optional'] || $rule == $this->config_default['symbol_optional']) {
+                if ($has_when_rule !== -1) {
+                    $error_type = $this->config_default['symbol_optional'] . ':' . $when_type;
+                    $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_optional', $when_type);
+                }
+
+                $by_symbol = $rule == $this->config['symbol_optional'];
+                $rule_entity = new RuleEntity(RuleEntity::RULE_TYPE_METHOD, $this->config_default['symbol_optional'], $rule, [$this->symbol_this], $this->config['symbol_optional'], $by_symbol);
+            }
+            /**
+             * - Optional Unset(O!) rule
+             * - Optional Unset When rule
+             */
+            else if ($rule == $this->config['symbol_optional_unset'] || $rule == $this->config_default['symbol_optional_unset']) {
+                /**
+                 * Optional Unset(O!) rule
+                 */
+                if ($has_when_rule === -1) {
+                    $error_type = $this->config_default['symbol_optional_unset'];
+                    $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_optional_unset');
+                }
+                /**
+                 * Optional Unset When rule
+                 * - If met the When condition, then the field can not be empty
+                 * - If don't met the When condition, then the field is required
+                 */
+                else {
+                    $error_type = $this->config_default['symbol_optional_unset'] . ':' . $when_type;
+                    $error_template = $this->match_error_template($ruleset_error_templates, 'symbol_optional_unset', $when_type);
+                }
+
+                $by_symbol = $rule == $this->config['symbol_optional_unset'];
+                $rule_entity = new RuleEntity(RuleEntity::RULE_TYPE_METHOD, $this->config_default['symbol_optional_unset'], $rule, [$this->symbol_this], $this->config['symbol_optional_unset'], $by_symbol);
+            }
+            // Regular expression
+            else if (preg_match($this->config['reg_preg'], $rule, $matches)) {
+                $preg = isset($matches[1]) ? $matches[1] : $matches[0];
+
+                $error_template = $this->match_error_template($ruleset_error_templates, 'preg', $when_type);
+
+                $by_symbol = false;
+                $rule_entity = new RuleEntity(RuleEntity::RULE_TYPE_PREG, $preg, $rule, []);
+            }
+            // Method
+            else {
+                $method_rule = $this->parse_method($rule, null, null);
+
+                $error_template = $this->match_error_template($ruleset_error_templates, $method_rule, $when_type);
+                $rule_entity = new RuleEntity(RuleEntity::RULE_TYPE_METHOD, $method_rule['method'], $rule, $method_rule['params'], $method_rule['symbol'], $method_rule['by_symbol']);
+            }
+
+            $rule_entity->set_error_type($error_type)
+                    ->set_error_template($error_template);
+            if (!empty($when_rule_entity)) $rule_entity->add_when_rule_entity($when_rule_entity);
+            if (empty($if_ruleset_entity)) $ruleset_entity->add_rule_entity($rule_entity);
+            else $if_ruleset_entity->add_rule_entity($rule_entity);
+        }
     }
 }

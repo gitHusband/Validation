@@ -86,6 +86,7 @@ class Unit extends TestCommon
 
         $validation_conf = [
             "validation_global" => false,
+            'reuse_rule' => true,
         ];
         $this->validation = new Validation($validation_conf);
     }
@@ -262,7 +263,38 @@ class Unit extends TestCommon
     protected function validate_cases($rule, $cases, $extra)
     {
         $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
-        $validation->set_rules($rule);
+
+        try {
+            $validation->set_rules($rule);
+        } catch (\Throwable $t) {
+            $exception_message = $t->getMessage();
+            $expected_msg = isset($extra["parse_rule_exception"]) ? $extra["parse_rule_exception"] : '';
+
+            if ($exception_message != $expected_msg) {
+                $this->log_exception($t);
+                $this->set_unit_error($extra['method_name'], 'rule parser', [
+                    "exception_alert" => "Can not match the expected exception message.",
+                    "expected_msg" => $expected_msg,
+                    "exception_msg" => $exception_message
+                ], $rule, $cases);
+                return $result = false;
+            }
+        }
+        // For the PHP version < 7
+        catch (\Exception $t) {
+            $exception_message = $t->getMessage();
+            $expected_msg = isset($extra["parse_rule_exception"]) ? $extra["parse_rule_exception"] : '';
+
+            if ($exception_message != $expected_msg) {
+                $this->log_exception($t);
+                $this->set_unit_error($extra['method_name'], 'rule parser', [
+                    "exception_alert" => "Can not match the expected exception message.",
+                    "expected_msg" => $expected_msg,
+                    "exception_msg" => $exception_message
+                ], $rule, $cases);
+                return $result = false;
+            }
+        }
 
         $stop_if_failed = true;
         $result = true;
@@ -3178,6 +3210,7 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
+            "parse_rule_exception" => '@field:id, @ruleset:optional||int - Invalid Ruleset: Contiguous separator',
         ];
 
         return $method_info = [
@@ -3204,6 +3237,7 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
+            "parse_rule_exception" => '@field:id, @ruleset:optional| |int - Invalid Ruleset: Contiguous separator',
         ];
 
         return $method_info = [
@@ -3230,6 +3264,7 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
+            "parse_rule_exception" => '@field:id, @ruleset:optional|int| - Invalid Ruleset: Endding separator',
         ];
 
         return $method_info = [
@@ -3256,6 +3291,7 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
+            "parse_rule_exception" => '@field:id, @ruleset:optional|int|   - Invalid Ruleset: Endding separator',
         ];
 
         return $method_info = [
@@ -3282,6 +3318,7 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
+            "parse_rule_exception" => '@field:id, @ruleset:optional|/^[a-z|\\|\\/]+$/ |  - Invalid Ruleset: Endding separator',
         ];
 
         return $method_info = [
@@ -3308,6 +3345,7 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
+            "parse_rule_exception" => '@field:id, @ruleset:NotSet - Invalid Ruleset: Empty',
         ];
 
         return $method_info = [
@@ -3334,6 +3372,7 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
+            "parse_rule_exception" => '@field:id, @ruleset:    - Invalid Ruleset: Empty',
         ];
 
         return $method_info = [
@@ -3402,6 +3441,7 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
+            "parse_rule_exception" => '@field:parameter_1, @rule:my_method[1, 2,,3] - Invalid Parameter: Contiguous separator',
         ];
 
         return $method_info = [

@@ -34,6 +34,52 @@ class TestCommon
         if ($log_level >= $this->log_level) echo $message;
     }
 
+    /**
+     * Locate backtrace
+     *
+     * @param ?array $debug
+     * @return array
+     */
+    public function locate_backtrace($debug = null)
+    {
+        if ($debug === null) {
+            $ingore_index = 0;
+            $debug = debug_backtrace();
+        } else {
+            // Don't ingore
+            $ingore_index = -1;
+        }
+
+        $backtrace = [];
+
+        $debug_len = count($debug);
+        foreach ($debug as $index => $value) {
+            if ($index == $ingore_index) continue;
+            if (($index + 1) == $debug_len) break;
+
+            $file = isset($value['file']) ? $value['file'] : 'Unknown file';
+            $line = isset($value['line']) ? $value['line'] : 'Unknown line';
+            $backtrace[] = 'File:' . $file . ' Function:' . $value['function'] . ' Line:' . $line;
+        }
+
+        return $backtrace;
+    }
+
+    /**
+     * Log the exception details
+     *
+     * @param \Exception|\Throwable $e
+     * @return void
+     */
+    protected function log_exception($e)
+    {
+        $exception_info = "Exception - " . $e->getFile() . ":" . $e->getLine() . " - " . $e->getCode() . " - " . $e->getMessage();
+        $backtrace = $this->locate_backtrace($e->getTrace());
+        $backtrace = json_encode($backtrace, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        $message = "{$exception_info}\n{$backtrace}\n";
+        $this->write_log(static::LOG_LEVEL_ERROR, $message);
+    }
+
     public function help()
     {
         $help_data = [];
