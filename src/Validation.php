@@ -1579,11 +1579,11 @@ class Validation
      * @param array $data The parent data of the field which is related to the rule
      * @param string $field The field which is related to the rule
      * @param string $ruleset The ruleset of the field
-     * @param bool $field_path Field path, suce as fruit.apple
+     * @param string $field_path Field path, suce as fruit.apple
      * @param bool $is_parallel_rule Flag of or rule
      * @return bool The result of validation
      */
-    protected function execute_ruleset($data, $field, $ruleset, $field_path = false, $is_parallel_rule = false)
+    protected function execute_ruleset($data, $field, $ruleset, $field_path = '', $is_parallel_rule = false)
     {
         $this->set_current_field_path($field_path)
             ->set_current_field_ruleset($ruleset);
@@ -1635,13 +1635,13 @@ class Validation
 
                 $method_rule = $this->parse_method($when_rule, $data, $field);
                 $params = $method_rule['params'];
-                $if_result = $this->execute_method($method_rule, $field_path);
+                $when_result = $this->execute_method($method_rule, $field_path);
 
-                if (is_array($if_result) && !empty($if_result['error_type']) && $if_result['error_type'] == 'undefined_method') return false;
+                if (is_array($when_result) && !empty($when_result['error_type']) && $when_result['error_type'] == 'undefined_method') return false;
 
                 if (
-                    ($when_type === 'when' && $if_result === true)
-                    || ($when_type === 'when_not' && $if_result !== true)
+                    ($when_type === 'when' && $when_result === true)
+                    || ($when_type === 'when_not' && $when_result !== true)
                 ) {
                     $is_met_when_rule = true;
                 } else {
