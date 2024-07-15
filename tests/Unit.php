@@ -2336,6 +2336,185 @@ class Unit extends TestCommon
         ];
     }
 
+    protected function test_index_array_or()
+    {
+        $rule = [
+            "*" => [
+                "[or]" => [
+                    "required|bool",
+                    "required|bool_string",
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    true,
+                    false,
+                    "true",
+                    "false",
+                ]
+            ],
+            "Invalid_data_0" => [
+                "data" => [
+                    0
+                ],
+                "expected_msg" => ["data.0" => "data.0 must be boolean or data.0 must be boolean string"]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    true,
+                    false,
+                    1
+                ],
+                "expected_msg" => ["data.2" => "data.2 must be boolean or data.2 must be boolean string"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    true,
+                    false,
+                    1,
+                    "falSE"
+                ],
+                "expected_msg" => ["data.2" => "data.2 must be boolean or data.2 must be boolean string"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_2_index_array()
+    {
+        $rule = [
+            "*" => [
+                "*" => [
+                    "id" => "required|int",
+                    "name" => "required|string",
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    [
+                        [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ]
+                    ]
+                ]
+            ],
+            "Invalid_data_0" => [
+                "data" => [
+                    "data" => [
+                        [
+                            [
+                                "id" => 1,
+                                "name" => "Devin",
+                            ]
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data" => "data must be a numeric array"]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    [
+                        "1" => [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data.0" => "data.0 must be a numeric array"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    [
+                        [
+                            "id" => "",
+                            "name" => "Devin",
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data.0.0.id" => "data.0.0.id can not be empty"]
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    [
+                        [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ],
+                        [
+                            "id" => 2,
+                            "name" => "",
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data.0.1.name" => "data.0.1.name can not be empty"]
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    [
+                        [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ],
+                    ],
+                    [
+                        [
+                            "id" => null,
+                            "name" => "Devin",
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data.1.0.id" => "data.1.0.id can not be empty"]
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    [
+                        [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ],
+                    ],
+                    [
+                        [
+                            "id" => 11,
+                            "name" => "Devin",
+                        ],
+                        [
+                            "id" => 12,
+                            "name" => "",
+                        ],
+                    ]
+                ],
+                "expected_msg" => ["data.1.1.name" => "data.1.1.name can not be empty"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_root_data_rule_1()
     {
         $rule = "required|string";

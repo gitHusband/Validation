@@ -808,7 +808,20 @@ class Validation
         $this->validation_status = true;
 
         try {
-            $this->execute($data, $this->rules);
+            $rules = $this->rules;
+            $rules_system_symbol = $this->get_ruleset_system_symbol($rules);
+            // If The root rules has rule_system_symbol
+            // Or The root rules is String, means root data is not an array
+            // Set root data as an array to help validate the data
+            if (!empty($rules_system_symbol) || is_string($rules)) {
+                $auto_field = $this->config['auto_field'];
+                $data = [$auto_field => $data];
+                $rules = [$auto_field => $rules];
+                $this->data = $data;
+                $this->result = $this->data;
+            }
+
+            $this->execute($data, $rules);
         } catch (Throwable $t) {
             $this->throw_gh_exception($t);
         }
@@ -842,23 +855,10 @@ class Validation
      * @param array $data The data you want to validate
      * @param array $rules The rules you set
      * @param null|string $field_path The current field path, suce as fruit.apple
-     * @param bool $is_array_loop If the execute method is called in array loop, $is_array_loop should be true
      * @return bool
      */
-    protected function execute($data, $rules, $field_path = null, $is_array_loop = false)
+    protected function execute($data, $rules, $field_path = null)
     {
-        $rules_system_symbol = $this->get_ruleset_system_symbol($rules);
-        // If The root rules has rule_system_symbol
-        // Or The root rules is String, means root data is not an array
-        // Set root data as an array to help validate the data
-        if (!empty($rules_system_symbol) || is_string($rules)) {
-            $auto_field = $this->config['auto_field'];
-            $data = [$auto_field => $data];
-            $rules = [$auto_field => $rules];
-            $this->data = $data;
-            $this->result = $this->data;
-        }
-
         foreach ($rules as $field => $ruleset) {
             $current_field_path = '';
             if ($field_path === null) $current_field_path = $field;
@@ -884,13 +884,13 @@ class Validation
                 }
                 // Validate index array
                 else if ($this->has_system_symbol($ruleset_system_symbol, 'symbol_index_array', true)) {
-                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset[$ruleset_system_symbol], $is_array_loop);
+                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset[$ruleset_system_symbol]);
                 }
                 // Validate association array
                 else {
                     // Validate association array
                     if ($this->is_association_array_rule($ruleset[$ruleset_system_symbol])) {
-                        $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $ruleset[$ruleset_system_symbol], $current_field_path, $is_array_loop);
+                        $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $ruleset[$ruleset_system_symbol], $current_field_path);
                     } else {
                         $result = $this->execute_ruleset($data, $field, $ruleset[$ruleset_system_symbol], $current_field_path);
                         $this->set_result($current_field_path, $result);
@@ -938,7 +938,7 @@ class Validation
                 }
                 // Validate association array
                 else if ($this->is_association_array_rule($ruleset)) {
-                    $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $ruleset, $current_field_path, $is_array_loop);
+                    $result = $this->execute(isset($data[$field]) ? $data[$field] : null, $ruleset, $current_field_path);
                 } else {
                     $result = $this->execute_ruleset($data, $field, $ruleset, $current_field_path);
 
@@ -1127,10 +1127,9 @@ class Validation
      * @param string $field The field which is related to the rules
      * @param string $field_path Field path, suce as fruit.apple
      * @param array $ruleset The symbol value of the field ruleset
-     * @param bool $is_array_loop If the execute method is called in array loop, $is_array_loop should be true
      * @return bool The result of validation
      */
-    protected function execute_index_array_rules($data, $field, $field_path, $ruleset, $is_array_loop = false)
+    protected function execute_index_array_rules($data, $field, $field_path, $ruleset)
     {
         if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
             $error_template = $this->get_error_template('index_array');
@@ -1144,21 +1143,7 @@ class Validation
         } else {
             $is_all_valid = true;
             foreach ($data[$field] as $key => $value) {
-                $current_field_path = $field_path .  $this->config['symbol_field_name_separator'] . $key;
-
-                $rule_system_symbol = $this->get_ruleset_system_symbol($ruleset);
-                if (!empty($rule_system_symbol)) {
-                    // $is_array_loop is true, means parent data is numberic arrya, too
-                    $current_field_path = $is_array_loop ? $field_path : $current_field_path;
-                    $result = $this->execute($data[$field], [$key => $ruleset], $current_field_path, true);
-                } else if ($this->is_association_array_rule($ruleset)) {
-                    $result = $this->execute($data[$field][$key], $ruleset, $current_field_path, true);
-                }
-                // Validate numberic array, all the rule are the same, only use $ruleset[0]
-                else {
-                    $result = $this->execute_ruleset($data[$field], $key, $ruleset, $current_field_path);
-                    $this->set_result($current_field_path, $result);
-                }
+                $result = $this->execute($data[$field], [$key => $ruleset], $field_path, true);
 
                 $is_all_valid = $is_all_valid && $result;
 
