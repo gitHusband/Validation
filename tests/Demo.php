@@ -609,7 +609,7 @@ class Demo extends TestCommon
         return $this->validate($data, $rule, $validation_conf);
     }
 
-    public function test_reuse_rule($data = [])
+    public function test_rule_entity($data = [])
     {
         if (empty($data)) {
             $data = [
@@ -721,7 +721,7 @@ class Demo extends TestCommon
         $validation_conf = [
             'language' => 'en-us',
             'validation_global' => true,
-            'reuse_rule' => true,
+            'enable_entity' => true,
         ];
 
         return $this->validate($data, $rule, $validation_conf);

@@ -43,7 +43,7 @@ class RulesetEntity
      * $rules_index = [ "data" => [ "*" => "required|int" ] ];
      * ```
      *
-     * @var pointer
+     * @var RulesetEntity|pointer
      */
     protected $root = null;
 
@@ -59,7 +59,7 @@ class RulesetEntity
      * The parent node of the current entity.
      * If it's null, means it's the root node.
      * 
-     * @var pointer
+     * @var RulesetEntity|pointer
      */
     protected $parent = null;
 
@@ -84,7 +84,7 @@ class RulesetEntity
 
     /**
      * The name of the current node.
-     *
+     * 
      * @var string
      */
     protected $name;
@@ -126,6 +126,28 @@ class RulesetEntity
      * @var string
      */
     protected $system_symbol;
+
+    /**
+     * The symbol_index_array (e.g. "*")
+     * 
+     * It can be customized by user.
+     * The symbol_index_array is only set in the root ruleset entity.
+     *
+     * @see \githusband\Validation::$config['symbol_index_array']
+     * @var string
+     */
+    protected $symbol_index_array;
+
+    /**
+     * The error templates of the current node.
+     * 
+     * It may contains:
+     *  - "whole_ruleset": all the methods use the same error template
+     *  - "xxx": Dynamic tag of the method error template. It can be the method name or any other tag name which return from a method.
+     * @see \githusband\Validation::parse_error_templates()
+     * @var array
+     */
+    protected $error_templates = [];
 
     /**
      * The rule entities(RE) of the current node.
@@ -186,6 +208,36 @@ class RulesetEntity
     protected $parallel_ruleset_entities = [];
 
     /**
+     * The current key of the index array.
+     * 
+     * If a ruleset is RULESET_TYPE_INDEX_ARRAY, we should record the current key of the index array.
+     * Then we can use it to replace the "*" from path.
+     * The index_array_keys is only set in the root ruleset entity.
+     *
+     * @var array<index_array_deep, index_array_key>
+     */
+    protected $index_array_keys = [];
+
+    /**
+     * The deep of index array.
+     * 
+     * The index_array_deep is set in the RULESET_TYPE_INDEX_ARRAY ruleset entity
+     *
+     * @var int
+     */
+    protected $index_array_deep = 0;
+    
+    /**
+     * The thrown exception when parsing ruleset into RulesetEntity.
+     * 
+     * Sometimes the ruleset is invalid, then it will throw an exception and stop parsing.
+     * The exception is only set in the root ruleset entity.
+     *
+     * @var \Throwable|\Exception
+     */
+    protected $exception = null;
+
+    /**
      * Constructor.
      *
      * @param string $name
@@ -199,22 +251,34 @@ class RulesetEntity
         $this->path = $path;
     }
 
+    /**
+     * Clone the entity, we just need its:
+     *  - root
+     *  - name
+     *  - path
+     *
+     * @return void
+     */
     public function __clone() {
         $this->children = [];
         $this->ruleset_type = null;
         $this->value = null;
         $this->ruleset = null;
         $this->system_symbol = null;
+        $this->symbol_index_array = null;
         $this->rule_entities = [];
         $this->if_ruleset_entities = [];
         $this->confition_ruleset_entities = [];
         $this->parallel_ruleset_entities = [];
+        $this->index_array_keys = [];
+        $this->index_array_deep = 0;
+        $this->exception = null;
     }
 
     /**
      * Set the root RulesetEntity
      *
-     * @param pointer $root The pointer of the root RulesetEntity
+     * @param RulesetEntity|pointer $root The pointer of the root RulesetEntity
      * @return void
      */
     public function set_root(&$root)
@@ -225,9 +289,9 @@ class RulesetEntity
     /**
      * Get the root RulesetEntity
      *
-     * @return ?pointer
+     * @return ?RulesetEntity|pointer
      */
-    public function get_root()
+    public function &get_root()
     {
         return $this->root;
     }
@@ -257,17 +321,41 @@ class RulesetEntity
     /**
      * Set the parent RulesetEntity
      *
-     * @param pointer $parent The pointer of the parent RulesetEntity
+     * @param RulesetEntity|pointer $parent The pointer of the parent RulesetEntity
      * @return self
      */
     public function set_parent(&$parent)
     {
         $this->parent = $parent;
 
-        $root = $parent->get_root() ?? $parent;
+        $root =& $parent->get_root();
+        if ($root === null) $root =& $parent;
         $this->set_root($root);
 
         return $this;
+    }
+
+    /**
+     * Add a child node
+     *
+     * @param string $name
+     * @param RulesetEntity $child
+     * @return self
+     */
+    public function add_children($name, $child)
+    {
+        $this->children[$name] = $child;
+        return $this;
+    }
+
+    /**
+     * Get the children
+     *
+     * @return array<string,RulesetEntity>
+     */
+    public function get_children()
+    {
+        return $this->children;
     }
 
     /**
@@ -333,7 +421,16 @@ class RulesetEntity
      */
     public function get_path()
     {
-        return $this->path;
+        if ($this->has_root_index_array_key()) {
+            $path = $this->path;
+            $symbol_index_array = preg_quote($this->get_symbol_index_array());
+            foreach ($this->get_root_index_array_key() as $index_array_deep => $index_array_key) {
+                $path = preg_replace("/{$symbol_index_array}/", $index_array_key, $path, 1);
+            }
+            return $path;
+        } else {
+            return $this->path;
+        }
     }
 
     /**
@@ -422,28 +519,52 @@ class RulesetEntity
     {
         return $this->system_symbol;
     }
-    
+
     /**
-     * Add a child node
+     * Set the symbol_index_array
      *
-     * @param string $name
-     * @param RulesetEntity $child
+     * @param string $symbol_index_array
      * @return self
      */
-    public function add_children($name, $child)
+    public function set_symbol_index_array($symbol_index_array)
     {
-        $this->children[$name] = $child;
+        if ($this->root !== null) $this->root->set_symbol_index_array($symbol_index_array);
+        else $this->symbol_index_array = $symbol_index_array;
+
         return $this;
     }
 
     /**
-     * Get the children
+     * Get the symbol_index_array
      *
-     * @return array<string,RulesetEntity>
+     * @return string
      */
-    public function get_children()
+    public function get_symbol_index_array()
     {
-        return $this->children;
+        if ($this->root !== null) return $this->root->get_symbol_index_array();
+        else return $this->symbol_index_array;
+    }
+
+    /**
+     * Set error_templates
+     *
+     * @param array $error_templates
+     * @return self
+     */
+    public function set_error_templates($error_templates)
+    {
+        $this->error_templates = $error_templates;
+        return $this;
+    }
+
+    /**
+     * Get error_templates
+     *
+     * @return array
+     */
+    public function get_error_templates()
+    {
+        return $this->error_templates;
     }
 
     /**
@@ -472,6 +593,16 @@ class RulesetEntity
     {
         $this->rule_entities = [];
         return $this;
+    }
+
+    /**
+     * Check if the RSE has IRSEs.
+     *
+     * @return RuleEntity[]
+     */
+    public function has_rule_entities()
+    {
+        return !empty($this->rule_entities);
     }
 
     /**
@@ -533,7 +664,7 @@ class RulesetEntity
      *
      * @return RulesetEntity[]
      */
-    public function get_confition_ruleset_entities()
+    public function get_condition_ruleset_entities()
     {
         return $this->confition_ruleset_entities;
     }
@@ -546,6 +677,22 @@ class RulesetEntity
     public function has_confition_ruleset_entities()
     {
         return !empty($this->confition_ruleset_entities);
+    }
+
+    /**
+     * Check if the RSE is a CRSE.
+     *
+     * @return bool
+     */
+    public function is_confition_ruleset_entity()
+    {
+        return $this->ruleset_type === self::RULESET_TYPE_LEAF_CONDITION;
+    }
+
+    public function is_met_condition($condition_result)
+    {
+        return ($condition_result && $this->ruleset_type === self::RULESET_TYPE_LEAF_IF)
+            || (!$condition_result && $this->ruleset_type === self::RULESET_TYPE_LEAF_IF_NOT);
     }
 
     /**
@@ -578,5 +725,178 @@ class RulesetEntity
     public function has_parallel_ruleset_entities()
     {
         return !empty($this->parallel_ruleset_entities);
+    }
+
+    /**
+     * Check if the RSE is a PRSE.
+     *
+     * @return bool
+     */
+    public function is_parallel_ruleset_entity()
+    {
+        return $this->ruleset_type === self::RULESET_TYPE_LEAF_PARALLEL;
+    }
+
+    /**
+     * Init index array status of the root node.
+     * 
+     * Make sure they don't impact the next validation of the other data.
+     *
+     * @return self
+     */
+    public function init_root_index_array_status()
+    {
+        if ($this->root !== null) {
+            $this->root->init_index_array_status();
+        } else {
+            $this->index_array_keys = [];
+            $this->index_array_deep = 0;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Init index array status of RULESET_TYPE_INDEX_ARRAY ruleset entity
+     * 
+     * Make sure they don't impact the next validation of the other data.
+     *
+     * @return self
+     */
+    public function init_index_array_status()
+    {
+        $this->index_array_deep = 0;
+
+        return $this;
+    }
+
+    /**
+     * Generate the deep of index array from the root node.
+     *
+     * @return int
+     */
+    public function generate_root_index_array_deep()
+    {
+        if ($this->root !== null) return $this->root->generate_root_index_array_deep();
+        else return count($this->index_array_keys);
+    }
+
+    /**
+     * Set the current key of the index array into the root node.
+     *
+     * @param int $index_array_deep
+     * @param int $key
+     * @return self
+     */
+    public function set_root_index_array_key($index_array_deep, $key)
+    {
+        if ($this->root !== null) $this->root->set_root_index_array_key($index_array_deep, $key);
+        else $this->index_array_keys[$index_array_deep] = $key;
+
+        return $this;
+    }
+
+    /**
+     * Unset the current key of the index array into the root node.
+     *
+     * @param int $index_array_deep
+     * @return self
+     */
+    public function unset_root_index_array_key($index_array_deep)
+    {
+        if ($this->root !== null) $this->root->unset_root_index_array_key($index_array_deep);
+        else if (isset($this->index_array_keys[$index_array_deep])) unset($this->index_array_keys[$index_array_deep]);
+
+        return $this;
+    }
+
+    /**
+     * Get the key of the index array from the root node.
+     *
+     * @param ?int $index_array_deep
+     * @return int|array
+     */
+    public function get_root_index_array_key($index_array_deep = null)
+    {
+        if ($this->root !== null) {
+            return $this->root->get_root_index_array_key($index_array_deep);
+        } else {
+            if ($index_array_deep === null) {
+                return $this->index_array_keys;
+            } else {
+                return $this->index_array_keys[$index_array_deep];
+            }
+        }
+    }
+
+    /**
+     * Check if the root node has the current key of the index array.
+     *
+     * @return bool
+     */
+    public function has_root_index_array_key()
+    {
+        if ($this->root !== null) return $this->root->has_root_index_array_key();
+        else return !empty($this->index_array_keys);
+    }
+
+    /**
+     * Set the deep of the index array into the RULESET_TYPE_INDEX_ARRAY ruleset entity
+     *
+     * @param int $index_array_deep
+     * @return self
+     */
+    public function set_index_array_deep($index_array_deep)
+    {
+        $this->index_array_deep = $index_array_deep;
+
+        return $this;
+    }
+
+    /**
+     * Set the deep of the index array of the RULESET_TYPE_INDEX_ARRAY ruleset entity
+     *
+     * @return ?int
+     */
+    public function get_index_array_deep()
+    {
+        return $this->index_array_deep;
+    }
+
+    /**
+     * Set the thrown exception when parsing ruleset into RulesetEntity.
+     *
+     * @param \Throwable|\Exception $exception
+     * @return self
+     */
+    public function set_exception($exception)
+    {
+        $this->exception = $exception;
+
+        return $this;
+    }
+
+    /**
+     * Get the thrown exception when parsing ruleset into RulesetEntity.
+     *
+     * @return \Throwable|\Exception
+     */
+    public function get_exception()
+    {
+        return $this->exception;
+    }
+
+    /**
+     * Check the ruleset entity before validate data.
+     * 
+     * If the ruleset entity has an exception, the ruleset entity can not be used to validate data.
+     * Then we throw this exception.
+     *
+     * @return void
+     * @throws \Throwable|\Exception
+     */
+    public function before_validate()
+    {
+        if ($this->exception !== null) throw $this->exception;
     }
 }

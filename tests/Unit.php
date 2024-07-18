@@ -86,7 +86,7 @@ class Unit extends TestCommon
 
         $validation_conf = [
             "validation_global" => false,
-            'reuse_rule' => true,
+            'enable_entity' => true,
         ];
         $this->validation = new Validation($validation_conf);
     }
@@ -262,39 +262,9 @@ class Unit extends TestCommon
      */
     protected function validate_cases($rule, $cases, $extra)
     {
+        /** @var Validation */
         $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
-
-        try {
-            $validation->set_rules($rule);
-        } catch (\Throwable $t) {
-            $exception_message = $t->getMessage();
-            $expected_msg = isset($extra["parse_rule_exception"]) ? $extra["parse_rule_exception"] : '';
-
-            if ($exception_message != $expected_msg) {
-                $this->log_exception($t);
-                $this->set_unit_error($extra['method_name'], 'rule parser', [
-                    "exception_alert" => "Can not match the expected exception message.",
-                    "expected_msg" => $expected_msg,
-                    "exception_msg" => $exception_message
-                ], $rule, $cases);
-                return $result = false;
-            }
-        }
-        // For the PHP version < 7
-        catch (\Exception $t) {
-            $exception_message = $t->getMessage();
-            $expected_msg = isset($extra["parse_rule_exception"]) ? $extra["parse_rule_exception"] : '';
-
-            if ($exception_message != $expected_msg) {
-                $this->log_exception($t);
-                $this->set_unit_error($extra['method_name'], 'rule parser', [
-                    "exception_alert" => "Can not match the expected exception message.",
-                    "expected_msg" => $expected_msg,
-                    "exception_msg" => $exception_message
-                ], $rule, $cases);
-                return $result = false;
-            }
-        }
+        $validation->set_rules($rule, 'default', true);
 
         $stop_if_failed = true;
         $result = true;
@@ -3210,7 +3180,6 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
-            "parse_rule_exception" => '@field:id, @ruleset:optional||int - Invalid Ruleset: Contiguous separator',
         ];
 
         return $method_info = [
@@ -3237,7 +3206,6 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
-            "parse_rule_exception" => '@field:id, @ruleset:optional| |int - Invalid Ruleset: Contiguous separator',
         ];
 
         return $method_info = [
@@ -3264,7 +3232,6 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
-            "parse_rule_exception" => '@field:id, @ruleset:optional|int| - Invalid Ruleset: Endding separator',
         ];
 
         return $method_info = [
@@ -3291,7 +3258,6 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
-            "parse_rule_exception" => '@field:id, @ruleset:optional|int|   - Invalid Ruleset: Endding separator',
         ];
 
         return $method_info = [
@@ -3318,7 +3284,6 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
-            "parse_rule_exception" => '@field:id, @ruleset:optional|/^[a-z|\\|\\/]+$/ |  - Invalid Ruleset: Endding separator',
         ];
 
         return $method_info = [
@@ -3345,7 +3310,6 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
-            "parse_rule_exception" => '@field:id, @ruleset:NotSet - Invalid Ruleset: Empty',
         ];
 
         return $method_info = [
@@ -3372,7 +3336,6 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
-            "parse_rule_exception" => '@field:id, @ruleset:    - Invalid Ruleset: Empty',
         ];
 
         return $method_info = [
@@ -3382,16 +3345,10 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_parameter()
+    protected function test_exception_parameter_1()
     {
         $rule = [
             "parameter_1" => "optional|my_method[1, 2,,3]",
-            "parameter_2" => "optional|my_method[1, 2, ,3]",
-            "parameter_3" => "optional|my_method[1, 2, 3,]",
-            "parameter_4" => "optional|my_method[]",
-            "parameter_5" => "optional|=['']",
-            "parameter_type_json_1" => "optional|my_method[1, [1,2,[,3]",
-            "parameter_type_json_2" => "optional|my_method[1, {\"a\": {\"A\"}]",
         ];
 
         $cases = [
@@ -3401,36 +3358,156 @@ class Unit extends TestCommon
                 ],
                 "expected_msg" => '@field:parameter_1, @rule:my_method[1, 2,,3] - Invalid Parameter: Contiguous separator'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_2()
+    {
+        $rule = [
+            "parameter_2" => "optional|my_method[1, 2, ,3]",
+        ];
+
+        $cases = [
             "Exception_parameter_2" => [
                 "data" => [
                     "parameter_2" => 1,
                 ],
                 "expected_msg" => '@field:parameter_2, @rule:my_method[1, 2, ,3] - Invalid Parameter: Contiguous separator'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_3()
+    {
+        $rule = [
+            "parameter_3" => "optional|my_method[1, 2, 3,]",
+        ];
+
+        $cases = [
             "Exception_parameter_3" => [
                 "data" => [
                     "parameter_3" => 1,
                 ],
                 "expected_msg" => '@field:parameter_3, @rule:my_method[1, 2, 3,] - Invalid Parameter: Endding separator'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_4()
+    {
+        $rule = [
+            "parameter_4" => "optional|my_method[]",
+        ];
+
+        $cases = [
             "Exception_parameter_4" => [
                 "data" => [
                     "parameter_4" => 1,
                 ],
                 "expected_msg" => '@field:parameter_4, @rule:my_method[] - Invalid Parameter: Empty'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_5()
+    {
+        $rule = [
+            "parameter_5" => "optional|=['']",
+        ];
+
+        $cases = [
             "Invalid_parameter_5" => [
                 "data" => [
                     "parameter_5" => 1,
                 ],
                 "expected_msg" => ["parameter_5" => "parameter_5 must be equal to "]
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_type_json_1()
+    {
+        $rule = [
+            "parameter_type_json_1" => "optional|my_method[1, [1,2,[,3]",
+        ];
+
+        $cases = [
             "Exception_parameter_type_json_1" => [
                 "data" => [
                     "parameter_type_json_1" => 1,
                 ],
                 "expected_msg" => '@field:parameter_type_json_1, @rule:my_method[1, [1,2,[,3] - Invalid Parameter: Unclosed [ or {'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_type_json_2()
+    {
+        $rule = [
+            "parameter_type_json_2" => "optional|my_method[1, {\"a\": {\"A\"}]",
+        ];
+
+        $cases = [
             "Exception_parameter_type_json_2" => [
                 "data" => [
                     "parameter_type_json_2" => 1,
@@ -3441,7 +3518,6 @@ class Unit extends TestCommon
 
         $extra = [
             "method_name" => __METHOD__,
-            "parse_rule_exception" => '@field:parameter_1, @rule:my_method[1, 2,,3] - Invalid Parameter: Contiguous separator',
         ];
 
         return $method_info = [

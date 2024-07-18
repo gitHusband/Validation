@@ -76,6 +76,14 @@ class RuleEntity
     protected $error_template;
 
     /**
+     * The temporary error message template(EMT)(general string formatted) defined in ruleset.
+     * No matter what rules in the ruleset are invalid, return this EMT
+     *
+     * @var bool
+     */
+    protected $is_error_template_for_whole_ruleset = false;
+
+    /**
      * Indicate the rule is set from method name or its symbol.
      * 
      * Default to false - from method name
@@ -206,6 +214,28 @@ class RuleEntity
     public function get_error_template()
     {
         return $this->error_template;
+    }
+
+    /**
+     * Set is_error_template_for_whole_ruleset
+     *
+     * @param bool $is_error_template_for_whole_ruleset
+     * @return self
+     */
+    public function set_is_error_template_for_whole_ruleset($is_error_template_for_whole_ruleset)
+    {
+        $this->is_error_template_for_whole_ruleset = $is_error_template_for_whole_ruleset;
+        return $this;
+    }
+
+    /**
+     * Get is_error_template_for_whole_ruleset
+     *
+     * @return bool
+     */
+    public function is_error_template_for_whole_ruleset()
+    {
+        return $this->is_error_template_for_whole_ruleset;
     }
 
     /**
