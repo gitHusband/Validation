@@ -682,17 +682,21 @@ class Validation
      * @param array $rules
      * @param string $rule_key
      * @param bool $skip_exception If true, then return static instead of throw an exception when exception accurs.
+     * @param bool $force If false, the rule_key exists, then ingore to set it again. If true, even though the rule_key exists, update it.
      * @return static
      * @throws RuleException
      * @api
      */
-    public function set_rules($rules = [], $rule_key = 'default', $skip_exception = false)
+    public function set_rules($rules = [], $rule_key = 'default', $skip_exception = false, $force = false)
     {
         if (empty($rules)) {
             return $this;
         }
 
         $this->rule_key = $rule_key;
+        
+        if (!$force && !empty($this->rules[$rule_key])) return $this;
+
         $this->rules[$rule_key] = $rules;
 
         if (!empty($this->config['enable_entity'])) {

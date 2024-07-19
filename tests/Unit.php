@@ -80,13 +80,13 @@ class Unit extends TestCommon
 
     private $_symbol_me = "@this";
 
-    public function __construct()
+    public function __construct($enable_entity = false)
     {
         parent::__construct();
 
         $validation_conf = [
             "validation_global" => false,
-            'enable_entity' => true,
+            'enable_entity' => $enable_entity,
         ];
         $this->validation = new Validation($validation_conf);
     }
@@ -264,7 +264,7 @@ class Unit extends TestCommon
     {
         /** @var Validation */
         $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
-        $validation->set_rules($rule, 'default', true);
+        $validation->set_rules($rule, $extra['method_name'], true);
 
         $stop_if_failed = true;
         $result = true;

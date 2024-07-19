@@ -222,7 +222,7 @@ class UnitDeprecated extends TestCommon
     protected function validate_cases($rule, $cases, $extra)
     {
         $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
-        $validation->set_rules($rule);
+        $validation->set_rules($rule, $extra['method_name'], true);
 
         $stop_if_failed = true;
         $result = true;

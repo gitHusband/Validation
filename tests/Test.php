@@ -85,15 +85,32 @@ unset($arguments[0], $arguments[1], $arguments[2]);
  */
 date_default_timezone_set('Asia/Shanghai');
 
-/** @var githusband\Tests\TestCommon */
-$class = new $class_lists[$class_name]();
+$types = [
+    "default",
+    "enable_entity",
+];
 
-if (method_exists($class, $method)) {
-    $result = call_user_func_array([$class, $method], $arguments);
-} else {
-    echo "Method not existed: {$class_lists[$class_name]}::{$method}\n";
-    $class->help();
-    exit(1);
+$result = true;
+foreach ($types as $type) {
+    if ($type == 'enable_entity' && $class_name != 'Unit') continue;
+    $enable_entity = false;
+    if ($type == 'enable_entity') {
+        echo "# Test Ruleset Entity without re-parsing the ruleset!\n";
+        $enable_entity = true;
+    }
+
+    /** @var Unit|UnitDeprecated|Readme|Demo */
+    $class = new $class_lists[$class_name]($enable_entity);
+
+    if (method_exists($class, $method)) {
+        $result = call_user_func_array([$class, $method], $arguments);
+    } else {
+        echo "Method not existed: {$class_lists[$class_name]}::{$method}\n";
+        $class->help();
+        exit(1);
+    }
+
+    if ($result !== true) break;
 }
 
 if ($result === true) exit(0);
