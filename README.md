@@ -41,6 +41,7 @@
       * [4.8 可选字段](#48-可选字段)
       * [4.9 特殊的验证规则](#49-特殊的验证规则)
       * [4.10 客制化配置](#410-客制化配置)
+         * [启用实体（重点）](#启用实体重点)
       * [4.11 国际化](#411-国际化)
       * [4.12 验证全部数据](#412-验证全部数据)
       * [4.13 错误信息模板](#413-错误信息模板)
@@ -721,6 +722,7 @@ $rule = [
 $config = [
     'language' => 'en-us',                                      // Language, Default en-us
     'lang_path' => '',                                          // Customer Language file path
+    'enable_entity' => false,                                   // Pre-parse ruleset into ruleset entity to reuse the ruleset without re-parse
     'validation_global' => true,                                // 1. true - validate all rules even though previous rule had been failed; 2. false - stop validating when any rule is failed
     'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field as the root data field name
     'reg_msg' => '/ >> (.*)$/',                                 // Set the error message format for all the methods after a rule string
@@ -782,6 +784,15 @@ $rule = [
 ```
 是不是变得更加漂亮了呢？<span>&#128525;</span> <strong style="font-size: 20px">快来试试吧！</strong>
 
+#### 启用实体（重点）
+
+如你所见，规则集都是用字符串书写的，每次验证数据，我们需要将规则集解析成一个个规则，再将规则解析成方法及其参数，最后验证对应数据。
+对于 php-fpm 的请求，每一个请求都将启动一个进程，一般只需验证一个数据，结束请求后进程也销毁，所以开启实体反而浪费性能。
+但对于常驻后台的服务, 例如 [swoole](https://wiki.swoole.com/zh-cn/#/)，可以开启实体配置，将规则集解析成实体类，避免重复解析的问题。
+
+- `enable_entity`: 默认 `false`。
+
+启用实体不会影响验证数据过程产生任何变化。如果你对实体结构感兴趣，请看[这里](ENTITY.md)。
 
 ### 4.11 国际化
 

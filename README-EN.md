@@ -42,6 +42,7 @@ Table of contents
       * [4.8 Optional Field](#48-optional-field)
       * [4.9 Special Validation Rules](#49-special-validation-rules)
       * [4.10 Customized Configuration](#410-customized-configuration)
+         * [Enable Entity (emphasis)](#enable-entity-emphasis)
       * [4.11 Internationalization](#411-internationalization)
       * [4.12 Validate Whole Data](#412-validate-whole-data)
       * [4.13 Error Message Template](#413-error-message-template)
@@ -729,6 +730,7 @@ The configurations that support customization include:
 $config = [
     'language' => 'en-us',                                      // Language, Default en-us
     'lang_path' => '',                                          // Customer Language file path
+    'enable_entity' => false,                                   // Pre-parse ruleset into ruleset entity to reuse the ruleset without re-parse
     'validation_global' => true,                                // 1. true - validate all rules even though previous rule had been failed; 2. false - stop validating when any rule is failed
     'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field as the root data field name
     'reg_msg' => '/ >> (.*)$/',                                 // Set the error message format for all the methods after a rule string
@@ -789,6 +791,16 @@ $rule = [
 ];
 ```
 Has it become more beautiful? <span>&#128525;</span> <strong style="font-size: 20px">Come and try it!</strong>
+
+#### Enable Entity (emphasis)
+
+As you can see, the rulesets are written in strings. Every time we validate the data, we need to parse the ruleset into individual rules, then parse the rules into methods and their parameters, and finally validate the corresponding data.
+For php-fpm requests, each request will start a process. Generally, only one data needs to be validated. The process will be destroyed after the request is completed, so enable the entity will waste performance.
+But for services that reside in the background, such as [swoole](https://wiki.swoole.com/zh-cn/#/), you can enable entity configuration, parse the ruleset into entity classes to avoid the issue of repeated parsing.
+
+-`enable_entity`: Default `false`.
+
+Enabling entity does not affect the process of validating data in any way. If you are interested in the entity structure, please see [here](ENTITY.md).
 
 ### 4.11 Internationalization
 
