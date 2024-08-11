@@ -841,7 +841,13 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_if_rule()
+    /**
+     * Don't use this format of if rule anymore.
+     * 
+     * @deprecated v2.6.0 Use static::test_if_rule() instead.
+     * @return array
+     */
+    protected function test_if_rule_deprecated()
     {
         $rule = [
             "id" => "required|><[0,10]",
@@ -909,6 +915,1195 @@ class Unit extends TestCommon
         $extra = [
             "method_name" => __METHOD__,
             "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_if_rule()
+    {
+        $rule = [
+            "id" => "required|><[0,1000]",
+            "name_if1_t1" => "if(=(@id,10)){required|string|/^\d+[A-Z\)\(]*$/}",
+            "name_if1_t2" => "if (=(@id,20)) { required|string|/^\d+[A-Z\)\(]*$/ }",
+            "name_if1_t3" => "if (=(@id,30)) {
+                required|string|/^\d+[A-Z\)\(]*$/
+            }",
+            "name_if1_t4" => "if (=(@id,40)) {
+                required|string|/^\d[A-Z\)\(]*$/
+            } else if (>=(@id,41)|<=(@id,43)) {
+                required|string|/^\d{2}[A-Z\)\(]*$/
+            } else if (=(@id,44) || =(@id,45)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if1_t4-\d+[A-Z\)\(]*$/
+            }",
+            "name_if1_t5" => "if (>(@id,49)|<=(@id,51)) {
+                if (=(@id,50)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (=(@id,52) || =(@id,53)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if1_t5-\d+[A-Z\)\(]*$/
+            }",
+            "name_if1_t6" => "if (>(@id,59)|<=(@id,61)) {
+                if (=(@id,60)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (=(@id,62) || =(@id,63)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if1_t6-\d+[A-Z\)\(]*$/
+            } >> @this customized error message",
+            "name_if1_t7" => 'if (>(@id,69)|<=(@id,71)) {
+                if (=(@id,70)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (=(@id,72) || =(@id,73)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if1_t7-\d+[A-Z\)\(]*$/
+            } >> {
+                "required": "@this customized error message for required",
+                "string": "@this customized error message for string",
+                "preg": "@this customized error message for regular expression @preg"
+            }',
+        ];
+
+        $cases = [
+            "Valid_data_if1_t1_1" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if1_t1" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t1_2" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if1_t1" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t1_1" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if1_t1" => false
+                ],
+                "expected_msg" => ["name_if1_t1" => "name_if1_t1 must be string"]
+            ],
+            "Invalid_data_if1_t1_2" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if1_t1" => "123abc"
+                ],
+                "expected_msg" => ["name_if1_t1" => "name_if1_t1 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t2_1" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if1_t2" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t2_2" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if1_t2" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t2_1" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if1_t2" => false
+                ],
+                "expected_msg" => ["name_if1_t2" => "name_if1_t2 must be string"]
+            ],
+            "Invalid_data_if1_t2_2" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if1_t2" => "123abc"
+                ],
+                "expected_msg" => ["name_if1_t2" => "name_if1_t2 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t3_1" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if1_t3" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t3_2" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if1_t3" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t3_1" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if1_t3" => false
+                ],
+                "expected_msg" => ["name_if1_t3" => "name_if1_t3 must be string"]
+            ],
+            "Invalid_data_if1_t3_2" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if1_t3" => "123abc"
+                ],
+                "expected_msg" => ["name_if1_t3" => "name_if1_t3 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t4_c1_1" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if1_t4" => "1ABC",
+                ]
+            ],
+            "Valid_data_if1_t4_c1_2" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if1_t4" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t4_c1_1" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if1_t4" => false
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 must be string"]
+            ],
+            "Invalid_data_if1_t4_c1_2" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if1_t4" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 format is invalid, should be /^\\d[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t4_c2_1" => [
+                "data" => [
+                    "id" => 41,
+                    "name_if1_t4" => "12ABC",
+                ]
+            ],
+            "Valid_data_if1_t4_c2_2" => [
+                "data" => [
+                    "id" => 42,
+                    "name_if1_t4" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t4_c2_1" => [
+                "data" => [
+                    "id" => 43,
+                    "name_if1_t4" => false
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 must be string"]
+            ],
+            "Invalid_data_if1_t4_c2_2" => [
+                "data" => [
+                    "id" => 43,
+                    "name_if1_t4" => "12abc"
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 format is invalid, should be /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t4_c3_1" => [
+                "data" => [
+                    "id" => 44,
+                    "name_if1_t4" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t4_c3_2" => [
+                "data" => [
+                    "id" => 45,
+                    "name_if1_t4" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t4_c3_1" => [
+                "data" => [
+                    "id" => 44,
+                    "name_if1_t4" => false
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 must be string"]
+            ],
+            "Invalid_data_if1_t4_c3_2" => [
+                "data" => [
+                    "id" => 45,
+                    "name_if1_t4" => "123abc"
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 format is invalid, should be /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t4_c4_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if1_t4" => "",
+                ]
+            ],
+            "Valid_data_if1_t4_c4_2" => [
+                "data" => [
+                    "id" => 46,
+                    "name_if1_t4" => "if1_t4-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t4_c4_1" => [
+                "data" => [
+                    "id" => 47,
+                    "name_if1_t4" => false
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 must be string"]
+            ],
+            "Invalid_data_if1_t4_c4_2" => [
+                "data" => [
+                    "id" => 48,
+                    "name_if1_t4" => "t4-123abc"
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 format is invalid, should be /^if1_t4-\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t5_c1-1_1" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if1_t5" => "1ABC",
+                ]
+            ],
+            "Valid_data_if1_t5_c1-1_2" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if1_t5" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t5_c1-1_1" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if1_t5" => false
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 must be string"]
+            ],
+            "Invalid_data_if1_t5_c1-1_2" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if1_t5" => "12abc"
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 format is invalid, should be /^\\d{1}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t5_c1-2_1" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if1_t5" => "12ABC",
+                ]
+            ],
+            "Valid_data_if1_t5_c1-2_2" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if1_t5" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t5_c1-2_1" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if1_t5" => false
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 must be string"]
+            ],
+            "Invalid_data_if1_t5_c1-2_2" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if1_t5" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 format is invalid, should be /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t5_c2_1" => [
+                "data" => [
+                    "id" => 52,
+                    "name_if1_t5" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t5_c2_2" => [
+                "data" => [
+                    "id" => 53,
+                    "name_if1_t5" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t5_c2_1" => [
+                "data" => [
+                    "id" => 52,
+                    "name_if1_t5" => false
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 must be string"]
+            ],
+            "Invalid_data_if1_t5_c2_2" => [
+                "data" => [
+                    "id" => 53,
+                    "name_if1_t5" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 format is invalid, should be /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t5_c3_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if1_t5" => "if1_t5-123ABC",
+                ]
+            ],
+            "Valid_data_if1_t5_c3_2" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if1_t5" => "if1_t5-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t5_c3_1" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if1_t5" => false
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 must be string"]
+            ],
+            "Invalid_data_if1_t5_c3_2" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if1_t5" => "if_t5-123ABC"
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 format is invalid, should be /^if1_t5-\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t6_c1-1_1" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if1_t6" => "1ABC",
+                ]
+            ],
+            "Valid_data_if1_t6_c1-1_2" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if1_t6" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t6_c1-1_1" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if1_t6" => false
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            "Invalid_data_if1_t6_c1-1_2" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if1_t6" => "12abc"
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t6_c1-2_1" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if1_t6" => "12ABC",
+                ]
+            ],
+            "Valid_data_if1_t6_c1-2_2" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if1_t6" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t6_c1-2_1" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if1_t6" => false
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            "Invalid_data_if1_t6_c1-2_2" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if1_t6" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t6_c2_1" => [
+                "data" => [
+                    "id" => 62,
+                    "name_if1_t6" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t6_c2_2" => [
+                "data" => [
+                    "id" => 63,
+                    "name_if1_t6" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t6_c2_1" => [
+                "data" => [
+                    "id" => 62,
+                    "name_if1_t6" => false
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            "Invalid_data_if1_t6_c2_2" => [
+                "data" => [
+                    "id" => 63,
+                    "name_if1_t6" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t6_c3_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if1_t6" => "if1_t6-123ABC",
+                ]
+            ],
+            "Valid_data_if1_t6_c3_2" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if1_t6" => "if1_t6-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t6_c3_1" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if1_t6" => false
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            "Invalid_data_if1_t6_c3_2" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if1_t6" => "if_t6-123ABC"
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t7_c1-1_1" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => "1ABC",
+                ]
+            ],
+            "Valid_data_if1_t7_c1-1_2" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t7_c1-1_1" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => false
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for string"]
+            ],
+            "Invalid_data_if1_t7_c1-1_2" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => "12abc"
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for regular expression /^\\d{1}[A-Z\\)\\(]*$/"]
+            ],
+            "Invalid_data_if1_t7_c1-1_3" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => ""
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for required"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t7_c1-2_1" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if1_t7" => "12ABC",
+                ]
+            ],
+            "Valid_data_if1_t7_c1-2_2" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if1_t7" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t7_c1-2_1" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if1_t7" => false
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for string"]
+            ],
+            "Invalid_data_if1_t7_c1-2_2" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if1_t7" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for regular expression /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t7_c2_1" => [
+                "data" => [
+                    "id" => 72,
+                    "name_if1_t7" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t7_c2_2" => [
+                "data" => [
+                    "id" => 73,
+                    "name_if1_t7" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t7_c2_1" => [
+                "data" => [
+                    "id" => 72,
+                    "name_if1_t7" => false
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for string"]
+            ],
+            "Invalid_data_if1_t7_c2_2" => [
+                "data" => [
+                    "id" => 73,
+                    "name_if1_t7" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for regular expression /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t7_c3_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if1_t7" => "if1_t7-123ABC",
+                ]
+            ],
+            "Valid_data_if1_t7_c3_2" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if1_t7" => "if1_t7-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t7_c3_1" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if1_t7" => false
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for string"]
+            ],
+            "Invalid_data_if1_t7_c3_2" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if1_t7" => "if_t7-123ABC"
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for regular expression /^if1_t7-\\d+[A-Z\\)\\(]*$/"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_if_rule_with_operator_not()
+    {
+        $rule = [
+            "id" => "required|><[0,1000]",
+            "name_if0_t1" => "if(!>(@id,10)){required|string|/^\d+[A-Z\)\(]*$/}",
+            "name_if0_t2" => "if (!<=(@id,10)|!>(@id,20)) { required|string|/^\d+[A-Z\)\(]*$/ }",
+            "name_if0_t3" => "if (
+                !<=(@id,20) | !>(@id,30)
+            ) {
+                required|string|/^\d+[A-Z\)\(]*$/
+            }",
+            "name_if0_t4" => "if (! !=(@id,40)) {
+                required|string|/^\d[A-Z\)\(]*$/
+            } else if (!<(@id,41)|!>(@id,43)) {
+                required|string|/^\d{2}[A-Z\)\(]*$/
+            } else if (!!=(@id,44) || ! !=(@id,45)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if0_t4-\d+[A-Z\)\(]*$/
+            }",
+            "name_if0_t5" => "if (!<=(@id,49)|<=(@id,51)) {
+                if (!!=(@id,50)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (!!=(@id,52) || !!=(@id,53)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if0_t5-\d+[A-Z\)\(]*$/
+            }",
+            "name_if0_t6" => "if (!<=(@id,59)|!>(@id,61)) {
+                if (!!=(@id,60)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (! !=(@id,62) || !!=(@id,63)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if0_t6-\d+[A-Z\)\(]*$/
+            } >> @this customized error message",
+            "name_if0_t7" => 'if (!<=(@id,69)|!>(@id,71)) {
+                if (!!=(@id,70)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (!!=(@id,72) || !!=(@id,73)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if0_t7-\d+[A-Z\)\(]*$/
+            } >> {
+                "required": "@this customized error message for required",
+                "string": "@this customized error message for string",
+                "preg": "@this customized error message for regular expression @preg"
+            }',
+
+
+
+            // "name_if0_t1" => "if(!=(@id,1)){required|string|/^\d+[A-Z\)\(]*$/}",
+            // "name_if0_t2" => "if(! =(@id,1)|string || int|>[5]){required|string|/^\d+[A-Z\)\(]*$/}",
+            // "name_if0_t3" => "if(! (=(@id,1)|string) || int|>[5]){required|string|/^\d+[A-Z\)\(]*$/}",
+            // "name_if0_t4" => "if(!! (!=(@id,1)|string) || !int|>[5]){required|string|/^\d+[A-Z\)\(]*$/}",
+        ];
+
+        $cases = [
+            "Valid_data_if0_t1_1" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if0_t1" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t1_2" => [
+                "data" => [
+                    "id" => 9,
+                    "name_if0_t1" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t1_1" => [
+                "data" => [
+                    "id" => 8,
+                    "name_if0_t1" => false
+                ],
+                "expected_msg" => ["name_if0_t1" => "name_if0_t1 must be string"]
+            ],
+            "Invalid_data_if0_t1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if0_t1" => "123abc"
+                ],
+                "expected_msg" => ["name_if0_t1" => "name_if0_t1 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t2_1" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if0_t2" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t2_2" => [
+                "data" => [
+                    "id" => 19,
+                    "name_if0_t2" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t2_1" => [
+                "data" => [
+                    "id" => 18,
+                    "name_if0_t2" => false
+                ],
+                "expected_msg" => ["name_if0_t2" => "name_if0_t2 must be string"]
+            ],
+            "Invalid_data_if0_t2_2" => [
+                "data" => [
+                    "id" => 11,
+                    "name_if0_t2" => "123abc"
+                ],
+                "expected_msg" => ["name_if0_t2" => "name_if0_t2 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t3_1" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if0_t3" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t3_2" => [
+                "data" => [
+                    "id" => 29,
+                    "name_if0_t3" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t3_1" => [
+                "data" => [
+                    "id" => 28,
+                    "name_if0_t3" => false
+                ],
+                "expected_msg" => ["name_if0_t3" => "name_if0_t3 must be string"]
+            ],
+            "Invalid_data_if0_t3_2" => [
+                "data" => [
+                    "id" => 21,
+                    "name_if0_t3" => "123abc"
+                ],
+                "expected_msg" => ["name_if0_t3" => "name_if0_t3 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t4_c1_1" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if0_t4" => "1ABC",
+                ]
+            ],
+            "Valid_data_if0_t4_c1_2" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if0_t4" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t4_c1_1" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if0_t4" => false
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 must be string"]
+            ],
+            "Invalid_data_if0_t4_c1_2" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if0_t4" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 format is invalid, should be /^\\d[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t4_c2_1" => [
+                "data" => [
+                    "id" => 41,
+                    "name_if0_t4" => "12ABC",
+                ]
+            ],
+            "Valid_data_if0_t4_c2_2" => [
+                "data" => [
+                    "id" => 42,
+                    "name_if0_t4" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t4_c2_1" => [
+                "data" => [
+                    "id" => 43,
+                    "name_if0_t4" => false
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 must be string"]
+            ],
+            "Invalid_data_if0_t4_c2_2" => [
+                "data" => [
+                    "id" => 43,
+                    "name_if0_t4" => "12abc"
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 format is invalid, should be /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t4_c3_1" => [
+                "data" => [
+                    "id" => 44,
+                    "name_if0_t4" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t4_c3_2" => [
+                "data" => [
+                    "id" => 45,
+                    "name_if0_t4" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t4_c3_1" => [
+                "data" => [
+                    "id" => 44,
+                    "name_if0_t4" => false
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 must be string"]
+            ],
+            "Invalid_data_if0_t4_c3_2" => [
+                "data" => [
+                    "id" => 45,
+                    "name_if0_t4" => "123abc"
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 format is invalid, should be /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t4_c4_1" => [
+                "data" => [
+                    "id" => 999,
+                    "name_if0_t4" => "",
+                ]
+            ],
+            "Valid_data_if0_t4_c4_2" => [
+                "data" => [
+                    "id" => 46,
+                    "name_if0_t4" => "if0_t4-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t4_c4_1" => [
+                "data" => [
+                    "id" => 47,
+                    "name_if0_t4" => false
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 must be string"]
+            ],
+            "Invalid_data_if0_t4_c4_2" => [
+                "data" => [
+                    "id" => 48,
+                    "name_if0_t4" => "t4-123abc"
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 format is invalid, should be /^if0_t4-\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t5_c1-1_1" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if0_t5" => "1ABC",
+                ]
+            ],
+            "Valid_data_if0_t5_c1-1_2" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if0_t5" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t5_c1-1_1" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if0_t5" => false
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 must be string"]
+            ],
+            "Invalid_data_if0_t5_c1-1_2" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if0_t5" => "12abc"
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 format is invalid, should be /^\\d{1}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t5_c1-2_1" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if0_t5" => "12ABC",
+                ]
+            ],
+            "Valid_data_if0_t5_c1-2_2" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if0_t5" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t5_c1-2_1" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if0_t5" => false
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 must be string"]
+            ],
+            "Invalid_data_if0_t5_c1-2_2" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if0_t5" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 format is invalid, should be /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t5_c2_1" => [
+                "data" => [
+                    "id" => 52,
+                    "name_if0_t5" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t5_c2_2" => [
+                "data" => [
+                    "id" => 53,
+                    "name_if0_t5" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t5_c2_1" => [
+                "data" => [
+                    "id" => 52,
+                    "name_if0_t5" => false
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 must be string"]
+            ],
+            "Invalid_data_if0_t5_c2_2" => [
+                "data" => [
+                    "id" => 53,
+                    "name_if0_t5" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 format is invalid, should be /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t5_c3_1" => [
+                "data" => [
+                    "id" => 999,
+                    "name_if0_t5" => "if0_t5-123ABC",
+                ]
+            ],
+            "Valid_data_if0_t5_c3_2" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if0_t5" => "if0_t5-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t5_c3_1" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if0_t5" => false
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 must be string"]
+            ],
+            "Invalid_data_if0_t5_c3_2" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if0_t5" => "if_t5-123ABC"
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 format is invalid, should be /^if0_t5-\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t6_c1-1_1" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if0_t6" => "1ABC",
+                ]
+            ],
+            "Valid_data_if0_t6_c1-1_2" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if0_t6" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t6_c1-1_1" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if0_t6" => false
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            "Invalid_data_if0_t6_c1-1_2" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if0_t6" => "12abc"
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t6_c1-2_1" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if0_t6" => "12ABC",
+                ]
+            ],
+            "Valid_data_if0_t6_c1-2_2" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if0_t6" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t6_c1-2_1" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if0_t6" => false
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            "Invalid_data_if0_t6_c1-2_2" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if0_t6" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t6_c2_1" => [
+                "data" => [
+                    "id" => 62,
+                    "name_if0_t6" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t6_c2_2" => [
+                "data" => [
+                    "id" => 63,
+                    "name_if0_t6" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t6_c2_1" => [
+                "data" => [
+                    "id" => 62,
+                    "name_if0_t6" => false
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            "Invalid_data_if0_t6_c2_2" => [
+                "data" => [
+                    "id" => 63,
+                    "name_if0_t6" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t6_c3_1" => [
+                "data" => [
+                    "id" => 999,
+                    "name_if0_t6" => "if0_t6-123ABC",
+                ]
+            ],
+            "Valid_data_if0_t6_c3_2" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if0_t6" => "if0_t6-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t6_c3_1" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if0_t6" => false
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            "Invalid_data_if0_t6_c3_2" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if0_t6" => "if_t6-123ABC"
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t7_c1-1_1" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => "1ABC",
+                ]
+            ],
+            "Valid_data_if0_t7_c1-1_2" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t7_c1-1_1" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => false
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for string"]
+            ],
+            "Invalid_data_if0_t7_c1-1_2" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => "12abc"
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for regular expression /^\\d{1}[A-Z\\)\\(]*$/"]
+            ],
+            "Invalid_data_if0_t7_c1-1_3" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => ""
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for required"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t7_c1-2_1" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if0_t7" => "12ABC",
+                ]
+            ],
+            "Valid_data_if0_t7_c1-2_2" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if0_t7" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t7_c1-2_1" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if0_t7" => false
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for string"]
+            ],
+            "Invalid_data_if0_t7_c1-2_2" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if0_t7" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for regular expression /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t7_c2_1" => [
+                "data" => [
+                    "id" => 72,
+                    "name_if0_t7" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t7_c2_2" => [
+                "data" => [
+                    "id" => 73,
+                    "name_if0_t7" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t7_c2_1" => [
+                "data" => [
+                    "id" => 72,
+                    "name_if0_t7" => false
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for string"]
+            ],
+            "Invalid_data_if0_t7_c2_2" => [
+                "data" => [
+                    "id" => 73,
+                    "name_if0_t7" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for regular expression /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t7_c3_1" => [
+                "data" => [
+                    "id" => 999,
+                    "name_if0_t7" => "if0_t7-123ABC",
+                ]
+            ],
+            "Valid_data_if0_t7_c3_2" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if0_t7" => "if0_t7-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t7_c3_1" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if0_t7" => false
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for string"]
+            ],
+            "Invalid_data_if0_t7_c3_2" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if0_t7" => "if_t7-123ABC"
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for regular expression /^if0_t7-\\d+[A-Z\\)\\(]*$/"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
         ];
 
         return $method_info = [
@@ -4763,6 +5958,7 @@ class Unit extends TestCommon
         ];
         $this->validation->custom_language($lang_config);
         $result = $this->validate_cases($rule, $cases, $extra);
+        $this->validation->set_language($this->validation->get_config()['language']);
 
         return $result;
     }
@@ -4982,9 +6178,11 @@ class Unit extends TestCommon
             'reg_msg' => '/ >>>(.*)$/',                                 // Set special error msg by user 
             'reg_preg' => '/^Reg:(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
             // 'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if the regular expression is valid
-            'reg_ifs' => '/^IF[yn]?\?(.*)$/',                           // A regular expression to match both reg_if and reg_if_not
-            'reg_if' => '/^IFy?\?/',                                    // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-            'reg_if_not' => '/^IFn\?/',                                 // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+            'reg_ifs' => '/^!?IF\((.*)\)/',                             // {@deprecated v2.6.0} A regular expression to match both reg_if and reg_if_not
+            'reg_if' => '/^IF\((.*)\)/',                                // {@deprecated v2.6.0} If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+            'reg_if_not' => '/^!IF\((.*)\)/',                           // {@deprecated v2.6.0} If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+            'symbol_if' => 'IF',                                        // The start of IF construct. e.g. `if ( expr ) { statement }`
+            // 'symbol_else' => 'ELSE',                                    // The else part of IF construct. e.g. `else { statement }`. Then the elseif part is `else if ( expr ) { statement }`
             'symbol_rule_separator' => '&&',                            // Rule reqarator for one field
             'symbol_method_omit_this' => '/^(.*)~(.*)$/',             // If set function by this symbol, will add a @this parameter at first 
             'symbol_method_standard' => '/^(.*)~~(.*)$/',                // If set function by this symbol, will not add a @this parameter at first 
@@ -5015,8 +6213,8 @@ class Unit extends TestCommon
             "education" => [
                 "primary_school" => "!*&&=~Qiankeng Xiaoxue",
                 "junior_middle_school" => "!*&&!=~Foshan Zhongxue",
-                "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&length>~10",
-                "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&length>~10",
+                "high_school" => "IF(=~~@junior_middle_school,Mianhu Zhongxue)&&!*&&length>~10",
+                "university" => "!IF(=~~@junior_middle_school,Qiankeng Zhongxue)&&!*&&length>~10",
             ],
             "company" => [
                 "name" => "!*&&length><=~8,64",

@@ -22,8 +22,8 @@ flowchart LR
     %% rse_ruleset_type --x rse_rst_leaf{{RULESET_TYPE_LEAF}}
     %% rse_ruleset_type --x rse_rst_leaf_parallel{{RULESET_TYPE_LEAF_PARALLEL}}
     %% rse_ruleset_type --x rse_rst_leaf_if{{RULESET_TYPE_LEAF_IF}}
-    %% rse_ruleset_type --x rse_rst_leaf_if_not{{RULESET_TYPE_LEAF_IF_NOT}}
     %% rse_ruleset_type --x rse_rst_leaf_condition{{RULESET_TYPE_LEAF_CONDITION}}
+    %% rse_ruleset_type --x rse_rst_leaf_condition_serial{{RULESET_TYPE_LEAF_CONDITION_SERIAL}}
 
     %% re_rule_type --x re_rt_method{{RULE_TYPE_METHOD}}
     %% re_rule_type --x re_rt_preg{{RULE_TYPE_PREG}}
@@ -35,6 +35,7 @@ flowchart LR
     RE --> re_value[Value];
     RE --> re_symbol[Symbol];
     RE --> re_parameters[Parameters];
+    RE --> re_operator[Operator];
     RE --> re_error_type[Error Type];
     RE --> re_error_template[Error Template];
     RE --> re_is_error_template_for_whole_ruleset[Is Error template For Whole Ruleset];
@@ -56,6 +57,7 @@ flowchart LR
     RSE --> rse_rule_entities[Rule Entities];
     RSE --> rse_if_ruleset_entities[If RSEs];
     RSE --> rse_condition_ruleset_entities["Condition RSEs(If RSE Only)"];
+    RSE --> rse_operator["Operator(Condition RSE Only)"];
     RSE --> rse_parallel_ruleset_entities[Parallel RSEs];
     RSE --> rse_index_array_keys["Current Index Array Keys For All RSEs(Root Only)"];
     RSE --> rse_index_array_deep["Index Array Deep of the RSE(Index Array Only)"];
@@ -79,8 +81,8 @@ flowchart LR
  - `RULESET_TYPE_LEAF`: "rst_leaf"
  - `RULESET_TYPE_LEAF_PARALLEL`: "rst_leaf_parallel"
  - `RULESET_TYPE_LEAF_IF`: "rst_leaf_if"
- - `RULESET_TYPE_LEAF_IF_NOT`: "rst_leaf_if_not"
  - `RULESET_TYPE_LEAF_CONDITION`: "rst_leaf_condition"
+ - `RULESET_TYPE_LEAF_CONDITION_SERIAL`: "rst_leaf_condition_serial"
 
 **Rule Type:**
  - `RULE_TYPE_METHOD`: "method"

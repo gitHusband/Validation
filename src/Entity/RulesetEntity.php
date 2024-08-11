@@ -23,8 +23,8 @@ class RulesetEntity
     const RULESET_TYPE_LEAF = "rst_leaf";
     const RULESET_TYPE_LEAF_PARALLEL = "rst_leaf_parallel";
     const RULESET_TYPE_LEAF_IF = "rst_leaf_if";
-    const RULESET_TYPE_LEAF_IF_NOT = "rst_leaf_if_not";
     const RULESET_TYPE_LEAF_CONDITION = "rst_leaf_condition";
+    const RULESET_TYPE_LEAF_CONDITION_SERIAL = "rst_leaf_condition_serial";
 
     /**
      * The root node of the all entities.
@@ -77,6 +77,7 @@ class RulesetEntity
      *  - RULESET_TYPE_LEAF
      *  - RULESET_TYPE_LEAF_PARALLEL
      *  - RULESET_TYPE_LEAF_IF
+     *  - RULESET_TYPE_LEAF_CONDITION
      * 
      * @var int
      */
@@ -190,7 +191,17 @@ class RulesetEntity
      *
      * @var RuleEntity[]
      */
-    protected $confition_ruleset_entities = [];
+    protected $condition_ruleset_entities = [];
+    
+    /**
+     * The logical operator of a CRSE.
+     * 
+     * NOTE: Only the CRSE may have a logical operator and only the logical operator not(`!`) is supported.
+     * 
+     * @example `!` Logical operator not
+     * @var string
+     */
+    protected $operator = '';
 
     /**
      * The "parallel ruleset entities"(PRSE) of the current node.
@@ -268,7 +279,8 @@ class RulesetEntity
         $this->symbol_index_array = null;
         $this->rule_entities = [];
         $this->if_ruleset_entities = [];
-        $this->confition_ruleset_entities = [];
+        $this->condition_ruleset_entities = [];
+        $this->operator = '';
         $this->parallel_ruleset_entities = [];
         $this->index_array_keys = [];
         $this->index_array_deep = 0;
@@ -650,12 +662,12 @@ class RulesetEntity
     /**
      * Add a "condition ruleset entity"(CRSE)
      *
-     * @param RulesetEntity $confition_ruleset_entity
+     * @param RulesetEntity $condition_ruleset_entity
      * @return self
      */
-    public function add_confition_ruleset_entity($confition_ruleset_entity)
+    public function add_condition_ruleset_entity($condition_ruleset_entity)
     {
-        $this->confition_ruleset_entities[] = $confition_ruleset_entity;
+        $this->condition_ruleset_entities[] = $condition_ruleset_entity;
         return $this;
     }
 
@@ -666,7 +678,7 @@ class RulesetEntity
      */
     public function get_condition_ruleset_entities()
     {
-        return $this->confition_ruleset_entities;
+        return $this->condition_ruleset_entities;
     }
 
     /**
@@ -674,9 +686,9 @@ class RulesetEntity
      *
      * @return RulesetEntity[]
      */
-    public function has_confition_ruleset_entities()
+    public function has_condition_ruleset_entities()
     {
-        return !empty($this->confition_ruleset_entities);
+        return !empty($this->condition_ruleset_entities);
     }
 
     /**
@@ -684,15 +696,44 @@ class RulesetEntity
      *
      * @return bool
      */
-    public function is_confition_ruleset_entity()
+    public function is_condition_ruleset_entity()
     {
-        return $this->ruleset_type === self::RULESET_TYPE_LEAF_CONDITION;
+        return $this->ruleset_type === self::RULESET_TYPE_LEAF_CONDITION || $this->ruleset_type === self::RULESET_TYPE_LEAF_CONDITION_SERIAL;
     }
 
-    public function is_met_condition($condition_result)
+    /**
+     * Set operator of a CRSE
+     *
+     * @param string $operator
+     * @return self
+     */
+    public function set_operator($operator)
     {
-        return ($condition_result && $this->ruleset_type === self::RULESET_TYPE_LEAF_IF)
-            || (!$condition_result && $this->ruleset_type === self::RULESET_TYPE_LEAF_IF_NOT);
+        $this->operator = $operator;
+        return $this;
+    }
+
+    /**
+     * Get operator of a CRSE
+     *
+     * @return string
+     */
+    public function get_operator()
+    {
+        return $this->operator;
+    }
+
+    /**
+     * Check the condition result is met the expected result.
+     *
+     * @param mixed $condition_result
+     * @param string $logical_operator_not Default to '!'
+     * @return bool
+     */
+    public function is_met_condition($condition_result, $logical_operator_not = '!')
+    {
+        return ($this->operator == '' && $condition_result === true)
+            || ($this->operator == $logical_operator_not && $condition_result !== true);
     }
 
     /**

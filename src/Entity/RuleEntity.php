@@ -62,6 +62,30 @@ class RuleEntity
     protected $parameters = [];
 
     /**
+     * The logical operator of the current rule.
+     * 
+     * Some of the method symbol may start with the operator `!`. In this case, we treat the `!` as part of the symbol instead of a operator.
+     * So if you change the method symbol map, you should re-parse the entities to ensure they are correct.
+     * 
+     * NOTE: Currently, only the logical operator not(`!`) is supported.
+     * 
+     * @example `!` Logical operator not
+     * @var string
+     * @todo Supports comparison operators, e.g. `==`, `!=`
+     */
+    protected $operator = '';
+
+    /**
+     * The compared value for the comparison operator of the current rule.
+     * 
+     * Due to we only support `!` currently, so the compared value is useless
+     * 
+     * @var string
+     * @todo Supports compared values
+     */
+    // protected $compared_value = true;
+
+    /**
      * The error type if the validation of the current rule is failed.
      *
      * @var string
@@ -195,6 +219,28 @@ class RuleEntity
     }
 
     /**
+     * Set operator
+     *
+     * @param string $operator
+     * @return self
+     */
+    public function set_operator($operator)
+    {
+        $this->operator = $operator;
+        return $this;
+    }
+
+    /**
+     * Get operator
+     *
+     * @return string
+     */
+    public function get_operator()
+    {
+        return $this->operator;
+    }
+
+    /**
      * Set error_template
      *
      * @param string $error_template
@@ -282,6 +328,7 @@ class RuleEntity
             'method' => $this->name,
             'symbol' => $this->symbol,
             'by_symbol' => $this->by_symbol,
+            'operator' => $this->operator,
             'params' => $this->parameters,
         ];
     }

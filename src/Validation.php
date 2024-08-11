@@ -233,12 +233,16 @@ class Validation
         'enable_entity' => false,                                   // Pre-parse ruleset into ruleset entity to reuse the ruleset without re-parse
         'validation_global' => true,                                // 1. true - validate all rules even though previous rule had been failed; 2. false - stop validating when any rule is failed
         'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field as the root data field name
-        'reg_msg' => '/ >> (.*)$/',                                 // Set the error message format for all the methods after a rule string
+        'reg_msg' => '/ >> (.*)$/sm',                               // Set the error message format for all the methods after a rule string
         'reg_preg' => '/^(\/.+\/.*)$/',                             // If a rule match reg_preg, indicates it's a regular expression instead of method
         'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if a regular expression is valid
-        'reg_ifs' => '/^!?if\((.*)\)/',                             // A regular expression to match both reg_if and reg_if_not
-        'reg_if' => '/^if\((.*)\)/',                                // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-        'reg_if_not' => '/^!if\((.*)\)/',                           // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+        'reg_ifs' => '/^!?if\((.*)\)/',                             // {@deprecated v2.6.0} A regular expression to match both reg_if and reg_if_not
+        'reg_if' => '/^if\((.*)\)/',                                // {@deprecated v2.6.0} If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+        'reg_if_not' => '/^!if\((.*)\)/',                           // {@deprecated v2.6.0} If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+        'symbol_if' => 'if',                                        // The start of IF construct. e.g. `if ( expr ) { statement }`
+        'symbol_else' => 'else',                                    // The else part of IF construct. e.g. `else { statement }`. Then the elseif part is `else if ( expr ) { statement }`
+        'symbol_logical_operator_not' => '!',                       // The logical operator not. e.g. `if ( !expr ) { statement }`
+        'symbol_logical_operator_or' => '||',                       // The logical operator or. e.g. `if ( expr || expr ) { statement }`
         'symbol_rule_separator' => '|',                             // Serial rules seqarator to split a rule into multiple methods
         'symbol_parallel_rule' => '[||]',                           // Symbol of the parallel rule, Same as "[or]"
         'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)
@@ -558,12 +562,22 @@ class Validation
      * Match the method(from symbol) or symbol(from method) and return them and the rule class
      *
      * @param string $in The method or its symbol
+     * @param string $operator The logical operator. e.g. `!`
      * @return array
      */
-    public function match_method_and_symbol($in)
+    public function match_method_and_symbol($in, $operator)
     {
-        if ($this->is_method_symbol($in)) {
+        $by_symbol = false;
+
+        if (!empty($operator) && $this->is_method_symbol($operator . $in)) {
             $by_symbol = true;
+            $in = $operator . $in;
+            $operator = '';
+        } else if ($this->is_method_symbol($in)) {
+            $by_symbol = true;
+        }
+
+        if ($by_symbol) {
             $symbol = $in;
 
             if (isset($this->method_symbols[$symbol])) {
@@ -584,7 +598,6 @@ class Validation
                 if (empty($method)) $method = $symbol;
             }
         } else {
-            $by_symbol = false;
             $method = $in;
             if (isset($this->method_symbols_reversed[$in])) {
                 $class = 'static';
@@ -610,6 +623,7 @@ class Validation
             $by_symbol,
             $symbol,
             $method,
+            $operator,
             $class
         ];
     }
@@ -1316,11 +1330,11 @@ class Validation
 
             if (preg_match($this->config['reg_msg'], $ruleset, $matches)) {
                 $error_templates = $matches[1];
-                $ruleset = preg_replace($this->config['reg_msg'], '', $ruleset);
+                $ruleset = str_replace($matches[0], '', $ruleset);
             }
         }
 
-        $rules = $this->parse_serial_ruleset($ruleset);
+        $rules = $this->parse_if_ruleset($ruleset);
 
         return [
             'rules' => $rules,
@@ -1329,21 +1343,534 @@ class Validation
     }
 
     /**
-     * Split a serial ruleset into multiple rules(methods or regular expression) by using the separator |
-     * NOTE: 
-     * - The regular expression may cantain the character(|) which is the same as rule separator(|)
-     * - Multiple regular expressions are allowed in one serial rule
-     *
+     * It's allowed to set the if construct ruleset like PHP if ... else ...
+     * 
+     * A if construct contains:
+     *  - condition
+     *  - statement
+     * 
+     * @example 
+     * ```
+     * $rule = [
+     *      "id" => "required|><[0,10]",
+     *      "name_1_5" => "if (<(@id,5)) {
+     *          if (<(@id,3)) {
+     *              required|string|/^\d{1,3}\w+/
+     *          } else {
+     *              required|string|/^\d{4,5}\w+/
+     *          }
+     *      } else if (optional|=(@id,5)) {
+     *          optional|string|/^\d{1,5}\w+/
+     *      } else {
+     *          optional|string
+     *      }"
+     * ]
+     * ```
      * @param string $ruleset
      * @return array
      */
-    protected function parse_serial_ruleset($ruleset)
+    protected function parse_if_ruleset($ruleset)
+    {
+        $symbol_if = $this->config['symbol_if'];
+        $symbol_else = $this->config['symbol_else'];
+
+        $symbol_if_length = strlen($symbol_if);
+        $symbol_else_length = strlen($symbol_else);
+
+        /**
+         * Options:
+         *  - ''
+         *  - IF_CONDITION
+         *  - IF_STATEMENT
+         *  - IF_END
+         *  - ELSE
+         */
+        $current_if_flag = '';
+
+        $if_ruleset = '';
+        $if_condition_ruleset = '';
+
+        $left_bracket = '(';
+        $right_bracket = ')';
+        $left_bracket_count = 0;
+
+        $left_curly_bracket = '{';
+        $right_curly_bracket = '}';
+        $left_curly_bracket_count = 0;
+
+        /**
+         * - 0: if;
+         * - ...n: elseif or else;
+         */
+        $if_branch_index = 0;
+        $if_branch_ruleset = '';
+        $rules = [
+            'text' => $ruleset,
+            'type' => 'IF',
+            'result' => [],
+        ];
+
+        $ruleset_length = strlen($ruleset);
+        $is_start = true;
+
+        /** @deprecated v2.6.0 */
+        $deprecated_if_not_operator = '';
+
+        for ($i = 0; $i < $ruleset_length; $i++) {
+            $char = $ruleset[$i];
+
+            /**
+             * Ignore the spaces( \n\r\t):
+             * - The spaces at the beginning
+             * - The spaces of "if ( xxx ) { xxx } else if ( xxx ) { xxx } else { xxx }"
+             */
+            if ($is_start == true) {
+                if (ctype_space($char)) {
+                    continue;
+                } else {
+                    $is_start = false;
+
+                    /**
+                     * Supprot the old version of "!if" rule.
+                     * Note that it would not work if you customed the "!if" rule config.
+                     * 
+                     * @deprecated v2.6.0
+                     */
+                    if (
+                        $char == $this->config['symbol_logical_operator_not'] && $ruleset[$i+1] == $symbol_if[0] && $ruleset[$i+2] == $symbol_if[1]
+                    ) {
+                        $deprecated_if_not_operator = $char;
+                        continue;
+                    }
+                }
+            }
+            $if_branch_ruleset .= $char;
+
+            /**
+             * Check if it's:
+             *  1. "IF" rule
+             *  2. "ELSEIF" rule after 1
+             *  3. "ELSE" rule after 1 or 2
+             */
+            if ($current_if_flag === '') {
+                /**
+                 * 1. IF
+                 * 2. ELSEIF: The ELSE part is checked before here, see IF_END block below.
+                 */
+                if (
+                    ($symbol_if_length == 1 && $char == $symbol_if)
+                    || ($symbol_if_length > 1 && $char == $symbol_if[0])
+                ) {
+                    $current_if_flag = 'IF_CONDITION';
+    
+                    $ij = $i;
+                    if ($symbol_if_length > 1) {
+                        $ij++;
+                        for ($j = 1; $j < $symbol_if_length; $j++) {
+                            if ($symbol_if[$j] != $ruleset[$ij]) {
+                                $current_if_flag = '';
+                                break;
+                            }
+                            $if_branch_ruleset .= $ruleset[$ij];
+                            $ij++;
+                        }
+                    }
+    
+                    $ik = $ij;
+                    if ($current_if_flag === 'IF_CONDITION') {
+                        for ($ik; $ik < $ruleset_length; $ik++) {
+                            if (ctype_space($ruleset[$ik])) {
+                                continue;
+                            }
+                            // If the first char after the symbol_if(and any space) is not left bracket("("), then it's not if rule.
+                            else if ($ruleset[$ik] === $left_bracket) {
+                                $if_branch_ruleset .= $ruleset[$ik];
+                                $left_bracket_count++;
+                                $ik++;
+                                break;
+                            } else {
+                                $if_branch_ruleset .= $ruleset[$ik];
+                                $current_if_flag = '';
+                                $ik++;
+                                break;
+                            }
+                        }
+    
+                        if ($current_if_flag === 'IF_CONDITION') {
+                            $i = $ik;
+                            $char = $ruleset[$i];
+                            $if_branch_ruleset .= $char;
+                        }
+                    }
+                    
+                    if ($current_if_flag === '' && $if_branch_index > 0) {
+                        throw RuleException::ruleset('Invalid ELSEIF ruleset', $this->get_recurrence_current(), $this->config['auto_field']);
+                    }
+                }
+                /**
+                 * 3. ELSE: The last part of the "if" rule.
+                 */ 
+                else if ($if_branch_index > 0) {
+                    if ($char === $left_curly_bracket) {
+                        $current_if_flag = 'ELSE';
+                        $left_curly_bracket_count = 1;
+                        continue;
+                    } else {
+                        throw RuleException::ruleset('Invalid ELSE ruleset', $this->get_recurrence_current(), $this->config['auto_field']);
+                    }
+                }
+            }
+            /**
+             * After parsing a IF or ELSEIF is completed: That means after the "}"
+             * For example:
+             *  - After if (xxx) {xxx}
+             *  - After else if (xxx) {xxx}
+             */
+            else if ($current_if_flag === 'IF_END') {
+                if (
+                    ($symbol_else_length == 1 && $char == $symbol_else)
+                    || ($symbol_else_length > 1 && $char == $symbol_else[0])
+                ) {
+                    $ij = $i;
+                    if ($symbol_else_length > 1) {
+                        $ij++;
+                        for ($j = 1; $j < $symbol_else_length; $j++) {
+                            if ($symbol_else[$j] != $ruleset[$ij]) {
+                                throw RuleException::ruleset('Invalid ELSE symbol', $this->get_recurrence_current(), $this->config['auto_field']);
+                                break;
+                            }
+                            $if_branch_ruleset .= $ruleset[$ij];
+                            $ij++;
+                        }
+                    }
+    
+                    // Start a next IF or ELSE only
+                    $current_if_flag = '';
+                    $i = $ij;
+                    continue;
+                } else {
+                    throw RuleException::ruleset('Extra ending of IF ruleset', $this->get_recurrence_current(), $this->config['auto_field']);
+                }
+            }
+
+            /**
+             * It's not a if ruleset, stop and return the result of parsing serial ruleset
+             */
+            if ($current_if_flag === '') {
+                $rules = $this->parse_serial_ruleset($ruleset);
+                break;
+            }
+            /**
+             * The condition ruleset between the parentheses ()
+             * For example:
+             * - The xxx of "if ( xxx ) { ... }"
+             * - The xxx of "else if ( xxx ) { ... }"
+             */
+            else if ($current_if_flag === 'IF_CONDITION') {
+                if ($char === $left_bracket) $left_bracket_count++;
+                else if ($char === $right_bracket) $left_bracket_count--;
+
+                if ($left_bracket_count > 0) {
+                    $if_condition_ruleset .= $char;
+                } else {
+                    $current_if_flag = 'IF_STATEMENT';
+                    $rules['result'][$if_branch_index]['result']['if_condition_rules'] = $this->parse_if_condition_ruleset($if_condition_ruleset);
+
+                    // Ignore the spaces after the right boundary(")") of IF_CONDITION and before the left boundary("{") of the IF
+                    $is_start = true;
+                    $if_condition_ruleset = '';
+                }
+            }
+            /**
+             * The if ruleset between the curly braces {}
+             */
+            else if (
+                $current_if_flag === 'IF_STATEMENT'
+                || $current_if_flag === 'ELSE'
+            ) {
+                if ($left_curly_bracket_count === 0) {
+                    if ($char !== "{") {
+                        /**
+                         * Supprot the old version of "if" rule.
+                         * Note that it would not work if you customed the "if" rule config.
+                         * 
+                         * @deprecated v2.6.0
+                         */
+                        if ($char === $this->config['symbol_rule_separator'][0]) {
+                            $symbol_rule_separator = $this->config['symbol_rule_separator'];
+                            $symbol_rule_separator_length = strlen($symbol_rule_separator);
+                            if ($symbol_rule_separator_length > 1 && $char == $symbol_rule_separator[0]) {
+                                $ij = $i + 1;
+                                $is_symbol_rule_separator = true;
+                                for ($j = 1; $j < $symbol_rule_separator_length; $j++) {
+                                    if ($symbol_rule_separator[$j] != $ruleset[$ij]) {
+                                        $is_symbol_rule_separator = false;
+                                        break;
+                                    }
+                                    $ij++;
+                                }
+                                if ($is_symbol_rule_separator) {
+                                    $i = $i + $symbol_rule_separator_length - 1;
+                                    $char = $symbol_rule_separator;
+                                }
+                            }
+                            if ($char === $symbol_rule_separator) {
+                                $if_ruleset = substr($ruleset, $i+1);
+                                $rules['result'][$if_branch_index]['result']['if_statement_rules'] = $this->parse_if_ruleset($if_ruleset);
+                                if (!empty($deprecated_if_not_operator)) $rules['result'][$if_branch_index]['result']['if_condition_rules']['operator'] = $deprecated_if_not_operator;
+                                // echo "{$ruleset} - {$if_ruleset}\n"; print_r($rules['result'][$if_branch_index]['result']); die;
+                                return $rules;
+                            }
+                        }
+
+                        throw RuleException::ruleset('Missing left curly bracket', $this->get_recurrence_current(), $this->config['auto_field']);
+                    } else {
+                        $left_curly_bracket_count++;
+                        continue;
+                    }
+                }
+
+                if ($char === $left_curly_bracket) $left_curly_bracket_count++;
+                else if ($char === $right_curly_bracket) $left_curly_bracket_count--;
+
+                if ($left_curly_bracket_count > 0) {
+                    $if_ruleset .= $char;
+                } else {
+                    $current_if_flag = 'IF_END';
+                    $if_ruleset = trim($if_ruleset);
+                    $rules['result'][$if_branch_index]['result']['if_statement_rules'] = $this->parse_if_ruleset($if_ruleset);
+                    $rules['result'][$if_branch_index] = [
+                        'text' => $if_branch_ruleset,
+                        'result' => $rules['result'][$if_branch_index]['result']
+                    ];
+                    $if_branch_ruleset = '';
+
+                    // Ignore the spaces after the right boundary("}") of IF and before the left boundary(elseif or else) of the ELSE_CONDITION
+                    $is_start = true;
+                    $if_ruleset = '';
+                    $if_branch_index++;
+                }
+            }
+        }
+
+        if ($left_bracket_count > 0) {
+            throw RuleException::ruleset('Unclosed left bracket "("', $this->get_recurrence_current(), $this->config['auto_field']);
+        } else if ($left_curly_bracket_count > 0) {
+            throw RuleException::ruleset('Unclosed left curly bracket "{"', $this->get_recurrence_current(), $this->config['auto_field']);
+        }
+
+        if (empty($rules['result'])) {
+            throw RuleException::ruleset('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Parse the if condition.
+     * 
+     * The condition looks like the serial ruleset. But it's allowed to add Not Operator("!")
+     * @example
+     * ```
+     * - length=[@id, 36]|!uuid
+     * - !(length=[@id, 36]|uuid)
+     * - !(length=[@id, 36]|uuid) || !(length=[@id, 26]|ulid)
+     * ```
+     * @param string $ruleset
+     * @return array
+     */
+    protected function parse_if_condition_ruleset($ruleset)
+    {
+        $logical_operator_not = $this->config['symbol_logical_operator_not'];   // Default to '!'
+        $logical_operator_or = $this->config['symbol_logical_operator_or'];     // Default to '||'
+        $logical_operator_or_length = strlen($logical_operator_or);
+
+        $rules = [
+            'text' => $ruleset,
+            'type' => 'IF_CONDITION',
+            /**
+             * Logical Operators(e.g. !)
+             * @todo To support Comparison Operators(e.g. ==, !=)
+             * */ 
+            'operator' => '',               
+            // 'compared_value' => NULL,       /** @todo The compared value of the comparison operator. */
+            'result' => [],
+        ];
+
+        $left_bracket = '(';
+        $right_bracket = ')';
+
+        $has_left_bracket = false;              // If a or branch doesn't have a prefix left bracket, that indicates we or branch doesn't have a sub-or branch 
+        $left_bracket_count = 0;                // If matching a left bracket, then +1, if matching a right bracket, then -1.
+        $or_branch_ruleset = '';                // A if condition may have `||` operators, the part divided by it is called "or branch ruleset".
+        $or_branch_ruleset_index = 0;           // The index of "or branch ruleset".
+        $can_ingore_space = true;               // If true, ignore the next spaces.
+        $is_start_of_or_branch = true;          // Indicates if it's the start of "or branch ruleset".
+        $current_logical_operator_not = '';     // The logical operator not(!) of the "or branch ruleset".
+
+        $ruleset_length = strlen($ruleset);
+        for ($i = 0; $i < $ruleset_length; $i++) {
+            $char = $ruleset[$i];
+            if ($can_ingore_space == true) {
+                if (ctype_space($char)) {
+                    continue;
+                }
+            }
+
+            if ($is_start_of_or_branch == true) {
+                if ($char == $logical_operator_not) {
+                    $current_logical_operator_not .= $char;
+                    /**
+                     * Only one logical operator not(`!`) is supported currently.
+                     * We may support multiple operators(`!!`) in the future.
+                     */
+                    continue;
+                }
+                /**
+                 * Have left bracket at the start of the ruleset, then
+                 * 1. If have logical operator not before the left bracket, the operator is for a ruleset, not only a single method.
+                 * 2. If DON't have logical operator not before the left bracket, it's not necessary if no sub or branch ruleset.
+                 */
+                else if ($char == $left_bracket) {
+                    /**
+                     * Only one logical operator not(`!`) is supported currently.
+                     * We may support multiple operators(`!!`) in the future.
+                     */
+                    if (strlen($current_logical_operator_not) > 1) {
+                        throw RuleException::ruleset("Multiple operator not({$current_logical_operator_not})", $this->get_recurrence_current(), $this->config['auto_field']);
+                    }
+                    
+                    $is_start_of_or_branch = false;
+                    $has_left_bracket = true;
+                    $left_bracket_count++;
+                }
+                /**
+                 * No left bracket at the start of the ruleset, then
+                 * 1. If have logical operator not, the operator is for one single method only, not for a ruleset.
+                 */
+                else {
+                    $or_branch_ruleset .= $current_logical_operator_not;
+                    $or_branch_ruleset .= $char;
+                    $is_start_of_or_branch = false;
+                    $can_ingore_space = false;
+                }
+
+                continue;
+            }
+
+            /**
+             * `\` is an escape character, and any character after it is part of the regular expression.
+             * For example: `\/`, `\|`
+             */
+            if ($char === '\\') {
+                $i++;
+                $or_branch_ruleset .= $ruleset[$i];
+                continue;
+            }
+
+            if ($char == $left_bracket) {
+                $left_bracket_count++;
+            } else if ($char == $right_bracket) {
+                $left_bracket_count--;
+                if ($left_bracket_count == 0) {
+                    $can_ingore_space = true;
+                    // Ignore the last right bracket
+                    if ($has_left_bracket == true) continue;
+                }
+            }
+            /**
+             * If left_bracket_count >= 0, that indicates the left bracket is not closed, we should find the corresponding right bracket first.
+             */
+            else if ($left_bracket_count == 0) {
+                if (
+                    ($logical_operator_or_length == 1 && $char == $logical_operator_or)
+                    || ($logical_operator_or_length > 1 && $char == $logical_operator_or[0])
+                ) {
+                    $is_logical_operator_or = true;
+                    $ij = $i;
+                    if ($logical_operator_or_length > 1) {
+                        $ij++;
+                        for ($j = 1; $j < $logical_operator_or_length; $j++) {
+                            if ($logical_operator_or[$j] != $ruleset[$ij]) {
+                                $is_logical_operator_or = false;
+                                break;
+                            }
+                            $ij++;
+                        }
+                    }
+
+                    if ($is_logical_operator_or == true) {
+                        /**
+                         * Parse the current or branch ruleset
+                         * If the current or branch ruleset is enclosed in parentheses, that means it may have sub or branches.
+                         */
+                        if ($has_left_bracket == true) {
+                            $rules['result'][$or_branch_ruleset_index] = $this->parse_if_condition_ruleset($or_branch_ruleset);
+                            $rules['result'][$or_branch_ruleset_index]['operator'] = $current_logical_operator_not;
+                        } else {
+                            $rules['result'][$or_branch_ruleset_index] = $this->parse_serial_ruleset($or_branch_ruleset, true);
+                        }
+
+                        /**
+                         * Start a next or branch
+                         */
+                        $has_left_bracket = false;
+                        $left_bracket_count = 0;
+                        $or_branch_ruleset = '';
+                        $or_branch_ruleset_index++;
+                        $can_ingore_space = true;
+                        $is_start_of_or_branch = true;
+                        $current_logical_operator_not = '';
+                        $i = $ij;
+
+                        continue;
+                    }
+                } else if ($has_left_bracket == true) {
+                    $has_left_bracket = false;
+                    $or_branch_ruleset = $current_logical_operator_not . $or_branch_ruleset;
+                    // We don't treat it as an error because it may be a serial ruleset. e.g. `if(!(>(@id,10))|int){ xxx }`
+                    // throw RuleException::ruleset('Invalid logical operator OR', $this->get_recurrence_current(), $this->config['auto_field']);
+                }
+            }
+
+            $or_branch_ruleset .= $char;
+        }
+
+        if ($left_bracket_count > 0) {
+            throw RuleException::ruleset('Unclosed left bracket "("', $this->get_recurrence_current(), $this->config['auto_field']);
+        }
+
+        if ($has_left_bracket == true) {
+            $rules['result'][$or_branch_ruleset_index] = $this->parse_if_condition_ruleset($or_branch_ruleset);
+            $rules['result'][$or_branch_ruleset_index]['operator'] = $current_logical_operator_not;
+        } else {
+            $rules['result'][$or_branch_ruleset_index] = $this->parse_serial_ruleset($or_branch_ruleset, true);
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Split a serial ruleset into multiple rules(methods or regular expression) by using the separator |
+     * 
+     * NOTE: 
+     * - The regular expression may cantain the character(|) which is the same as rule separator(|)
+     * - Multiple regular expressions are allowed in one serial rule
+     * @example `required|>[10]`
+     * @param string $ruleset
+     * @param bool $is_if_condition
+     * @return array
+     */
+    protected function parse_serial_ruleset($ruleset, $is_if_condition = false)
     {
         $symbol_rule_separator = $this->config['symbol_rule_separator'];
         $symbol_rule_separator_length = strlen($symbol_rule_separator);
+        $logical_operator_not = $this->config['symbol_logical_operator_not'];   // Default to '!'
 
         $rules = [];
         $current_rule = '';
+        $operator = '';
+        $is_rule_start = true;
         $is_next_method_flag = 0;
         $is_reg_flag = 0;
 
@@ -1351,24 +1878,31 @@ class Validation
         for ($i = 0; $i < $ruleset_length; $i++) {
             $char = $ruleset[$i];
 
-            // 支持自定义配置 symbol_rule_separator 为多个字符
-            if ($symbol_rule_separator_length > 1 && $char == $symbol_rule_separator[0]) {
-                $ii = $i + 1;
-                $is_symbol_rule_separator = true;
-                for ($j = 1; $j < $symbol_rule_separator_length; $j++) {
-                    if ($symbol_rule_separator[$j] != $ruleset[$ii]) {
-                        $is_symbol_rule_separator = false;
-                        break;
+            if ($is_rule_start == true) {
+                if (ctype_space($char)) {
+                    continue;
+                } else if ($char == $logical_operator_not) {
+                    /**
+                     * Only one logical operator not(`!`) is supported currently.
+                     * We may support multiple operators(`!!`) in the future.
+                     */
+                    if ($operator == $logical_operator_not) {
+                        $is_rule_start = false;
+                        $current_rule .= $char;
+                        continue;
                     }
-                }
-                if ($is_symbol_rule_separator) {
-                    $i = $i + $symbol_rule_separator_length - 1;
-                    $char = $symbol_rule_separator;
+
+                    $operator .= $char;
+                    continue;
+                } else {
+                    $is_rule_start = false;
                 }
             }
 
-            // \ 是转义字符，在它之后的任意一个字符，都是正则表达式的一部分。
-            // 例如：\/, \| 
+            /**
+             * `\` is an escape character, and any character after it is part of the regular expression.
+             * For example: `\/`, `\|`
+             */
             if ($char === '\\') {
                 $current_rule .= $char;
                 $current_rule .= $ruleset[$i + 1];
@@ -1376,12 +1910,31 @@ class Validation
                 continue;
             }
 
-            // 首次正则表达式开头 /，表明接下来是正则表达式。此为 正则阶段 1
-            // 直到匹配到下一个 /，表明正则表达式即将结束。此为 正则阶段 2
-            // 在此之后，匹配的字符都当作是正则表达式的模式修饰符。直到匹配到 |，表示正则表达式完全结束
+            // Support custom configuration symbol_rule_separator for multiple characters
+            if ($symbol_rule_separator_length > 1 && $char == $symbol_rule_separator[0]) {
+                $ij = $i + 1;
+                $is_symbol_rule_separator = true;
+                for ($j = 1; $j < $symbol_rule_separator_length; $j++) {
+                    if ($symbol_rule_separator[$j] != $ruleset[$ij]) {
+                        $is_symbol_rule_separator = false;
+                        break;
+                    }
+                    $ij++;
+                }
+                if ($is_symbol_rule_separator) {
+                    $i = $i + $symbol_rule_separator_length - 1;
+                    $char = $symbol_rule_separator;
+                }
+            }
+
+            /**
+             * The first match of a regular expression starting with `/`, indicates that the following characters are part of the regular expression. This is the stage 1 of regular expression.
+             * Until the next `/` is matched, indicating that the regular expression is about to end. This is the stage 2 of regular expression.
+             * After stage 2, the matching characters are treated as pattern modifiers of the regular expression. Until `|` is matched, indicating that the regular expression has completely ended
+             */
             if ($char === '/') {
                 if ($is_reg_flag == 0) {
-                    // 第一个字符不是 /，表明不是正则表达式
+                    // The first character is not `/`, indicating that it is not a regular expression
                     if ($current_rule == '') {
                         $is_reg_flag = 1;
                     }
@@ -1389,8 +1942,10 @@ class Validation
                     $is_reg_flag = 2;
                 }
             }
-            // 一般非正则表达式的方法中，不会包含 |，所以匹配到它则表明接下来是下一个方法
-            // 在正则表达式的方法中，可能包含 |，所以必须在正则阶段 2 后，匹配到它才表明接下来是下一个方法
+            /**
+             * Generally, non-regular expression methods do not contain `|`, so matching it indicates that the next method is comming.
+             * The regular expression method may contain `|`, so it must be matched after the stage 2 of regular expression to indicate that the next method is comming.
+             */
             else if ($char === $symbol_rule_separator) {
                 if ($is_reg_flag == 0) {
                     $is_next_method_flag = 1;
@@ -1405,15 +1960,20 @@ class Validation
             } else {
                 $is_next_method_flag = 0;
                 // Remove the whitespace on the left and right
-                $current_rule = trim($current_rule, ' ');
+                $current_rule = trim($current_rule);
                 if ($current_rule === '') throw RuleException::ruleset('Contiguous separator', $this->get_recurrence_current(), $this->config['auto_field']);
-                if (!empty($current_rule)) $rules[] = $current_rule;
+                if (!empty($current_rule)) $rules[] = [
+                    'rule' => $current_rule,
+                    'operator' => $operator
+                ];
                 $current_rule = '';
+                $operator = '';
+                $is_rule_start = true;
                 $is_reg_flag = 0;
             }
         }
 
-        $current_rule = trim($current_rule, ' ');
+        $current_rule = trim($current_rule);
         if ($current_rule === '') {
             if (empty($rules)) {
                 throw RuleException::ruleset('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
@@ -1421,8 +1981,16 @@ class Validation
                 throw RuleException::ruleset('Endding separator', $this->get_recurrence_current(), $this->config['auto_field']);
             }
         }
-        if (!empty($current_rule)) $rules[] = $current_rule;
-        return $rules;
+        if (!empty($current_rule)) $rules[] = [
+            'rule' => $current_rule,
+            'operator' => $operator
+        ];
+        return [
+            'text' => $ruleset,
+            'type' => 'SERIAL',
+            'is_if_condition' => $is_if_condition,
+            'result' => $rules,
+        ];
     }
 
     /**
@@ -1668,14 +2236,15 @@ class Validation
     }
 
     /**
-     * Execute validation with the field and its ruleset. Contains cases:
-     * 1. If rule
-     * 2. Required(*) rule
-     * 3. Optional(O) rule
-     * 4. Optional Unset(O!) rule
-     * 5. When rule
-     * 6. Regular Expression
-     * 7. Method
+     * Execute validation with the field and its ruleset.
+     * 
+     * A ruleset may contains:
+     * 1. Required(*) rule
+     * 2. Optional(O) rule
+     * 3. Optional Unset(O!) rule
+     * 4. When rule
+     * 5. Regular Expression
+     * 6. Method
      *
      * @param array $data The parent data of the field which is related to the rule
      * @param string $field The field which is related to the rule
@@ -1691,13 +2260,143 @@ class Validation
 
         $ruleset = $this->parse_ruleset($ruleset);
 
-        if (empty($ruleset) || empty($ruleset['rules'])) {
+        if (empty($ruleset) || empty($ruleset['rules']['result'])) {
             return true;
         }
 
+        return $this->execute_if_ruleset($data, $field, $ruleset, $field_path, $is_parallel_rule);
+    }
+
+    /**
+     * A ruleset may contains if construct(condition ruleset and statement ruleset).
+     * 
+     * 1. If not contain if construct, treat it as serial ruleset.
+     * 2. If contains if construct, 
+     *    - If condition ruleset evaluates to true, we will execute statement ruleset.
+     *    - If condition ruleset evaluates to false, we will ignore statement ruleset.
+     *    - If all condition rulesets evaluates to false, we will ignore all statement ruleset and treat the result as true.
+     *
+     * @see static::parse_if_ruleset()
+     * @param array $data The parent data of the field which is related to the rule
+     * @param string $field The field which is related to the rule
+     * @param array $ruleset The ruleset of the field that has been parsed
+     * @param string $field_path Field path, suce as fruit.apple
+     * @param bool $is_parallel_rule Flag of or rule
+     * @return bool The result of validation
+     */
+    protected function execute_if_ruleset($data, $field, $ruleset, $field_path = '', $is_parallel_rule = false)
+    {
+        $result = true;
+        if ($ruleset['rules']['type'] == 'IF') {
+            foreach ($ruleset['rules']['result'] as $if_ruleset) {
+                if (
+                    empty($if_ruleset['result']['if_condition_rules'])
+                    || $this->execute_if_condition_ruleset($data, $field, [
+                        'error_templates' => $ruleset['error_templates'],
+                        'rules' => $if_ruleset['result']['if_condition_rules'],
+                    ], $field_path, false, true)
+                ) {
+                    $next_if_ruleset = [
+                        'error_templates' => $ruleset['error_templates'],
+                        'rules' => $if_ruleset['result']['if_statement_rules'],
+                    ];
+                    $result = $this->execute_if_ruleset($data, $field, $next_if_ruleset, $field_path);
+
+                    // One of the condition is met, we just execute its statement ruleset and ignore the others.
+                    break;
+                }
+            }
+        } else {
+            $result = $this->execute_serial_ruleset($data, $field, $ruleset, $field_path, $is_parallel_rule);
+        }
+
+        return $result;
+    }
+
+    /**
+     * A condition may contains multiple "or branch ruleset" and logical operator not(!)
+     * 
+     * - If one of the "or branch ruleset" evaluates to true, the condition result is true
+     * - If all the "or branch ruleset" evaluates to false, the condition result is false
+     * - If contains logical operator not(!), we will reverse the result.
+     *
+     * @see static::parse_if_condition_ruleset()
+     * @param array $data The parent data of the field which is related to the rule
+     * @param string $field The field which is related to the rule
+     * @param array $ruleset The ruleset of the field that has been parsed
+     * @param string $field_path Field path, suce as fruit.apple
+     * @return bool
+     */
+    protected function execute_if_condition_ruleset($data, $field, $ruleset, $field_path = '')
+    {
+        $result = true;
+        foreach ($ruleset['rules']['result'] as $if_condition_ruleset) {
+            if ($if_condition_ruleset['type'] == 'IF_CONDITION') {
+                $result = $this->execute_if_condition_ruleset($data, $field, [
+                    'error_templates' => $ruleset['error_templates'],
+                    'rules' => $if_condition_ruleset,
+                ], $field_path);
+            } else {
+                $result = $this->execute_serial_ruleset($data, $field, [
+                    'error_templates' => $ruleset['error_templates'],
+                    'rules' => $if_condition_ruleset,
+                ], $field_path, false, true);
+            }
+
+            /**
+             * One of the or branch ruleset result is true, indicates the if condition result is true.
+             * We don't have to validate other or branch.
+             */
+            if ($result === true) break;
+        }
+
+        return $this->is_met_condition($ruleset['rules'], $result);
+    }
+
+    /**
+     * Check the condition result is met the expected result.
+     *
+     * @see RulesetEntity::is_met_condition()
+     * @param array $ruleset_obj
+     * @param mixed $executed_result
+     * @return bool
+     */
+    protected function is_met_condition($ruleset_obj, $executed_result)
+    {
+        if (empty($ruleset_obj['operator'])) return $executed_result;
+
+        return ($ruleset_obj['operator'] == '' && $executed_result === true)
+            || ($ruleset_obj['operator'] == $this->config['symbol_logical_operator_not'] && $executed_result !== true);
+    }
+
+    /**
+     * Execute validation with the field and its ruleset.
+     * 
+     * A ruleset may contains:
+     * 1. Required(*) rule
+     * 2. Optional(O) rule
+     * 3. Optional Unset(O!) rule
+     * 4. When rule
+     * 5. Regular Expression
+     * 6. Method
+     *
+     * @see static::parse_serial_ruleset()
+     * @param array $data The parent data of the field which is related to the rule
+     * @param string $field The field which is related to the rule
+     * @param array $ruleset The ruleset of the field that has been parsed
+     * @param string $field_path Field path, suce as fruit.apple
+     * @param bool $is_parallel_rule Flag of or rule
+     * @param bool $is_condition_rule
+     * @return bool The result of validation
+     */
+    protected function execute_serial_ruleset($data, $field, $ruleset, $field_path = '', $is_parallel_rule = false, $is_condition_rule = false)
+    {
         $ruleset_error_templates = $ruleset['error_templates'];
 
-        foreach ($ruleset['rules'] as $rule) {
+        foreach ($ruleset['rules']['result'] as $rule_obj) {
+            $rule = $rule_obj['rule'];
+            $operator = $rule_obj['operator'];
+
             if (empty($rule)) {
                 continue;
             }
@@ -1734,7 +2433,7 @@ class Validation
                     $when_type = 'when_not';
                 }
 
-                $method_rule = $this->parse_method($when_rule, $data, $field);
+                $method_rule = $this->parse_method($when_rule, '', $data, $field);
                 $params = $method_rule['params'];
                 $when_result = $this->execute_method($method_rule, $field_path);
 
@@ -1757,6 +2456,9 @@ class Validation
              * If it's a 'If rule' or 'If Not rule' -> Means this field is conditionally optional;
              * - If the 'If rule' validation result is true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
              * - If the 'If Not rule' validation result is not true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
+             * 
+             * @see static::execute_if_ruleset()
+             * @deprecated v2.6.0
              */
             if (preg_match($this->config['reg_ifs'], $rule, $matches)) {
                 if (preg_match($this->config['reg_if'], $rule)) {
@@ -1767,7 +2469,7 @@ class Validation
 
                 $rule = $matches[1];
 
-                $method_rule = $this->parse_method($rule, $data, $field);
+                $method_rule = $this->parse_method($rule, '', $data, $field);
                 $params = $method_rule['params'];
                 $result = $this->execute_method($method_rule, $field_path);
 
@@ -1919,7 +2621,7 @@ class Validation
             }
             // Method
             else {
-                $method_rule = $this->parse_method($rule, $data, $field);
+                $method_rule = $this->parse_method($rule, $operator, $data, $field);
                 $params = $method_rule['params'];
                 $result = $this->execute_method($method_rule, $field_path);
 
@@ -1940,12 +2642,21 @@ class Validation
             }
 
             /**
+             * If it's the condition rules of a "if" ruleset,
+             * We just try to match the condition without setting any error result.
+             */
+            if ($is_condition_rule) {
+                if ($result !== true) {
+                    return false;
+                }
+            }
+            /**
              * Inject variables into error message template
              * For example:
              * - @this
              * - @p1
              */
-            if ($result !== true) {
+            else if ($result !== true) {
                 // Replace symbol to field name and parameter value
                 $error_template = str_replace($this->symbol_this, $field_path, $error_template);
                 $error_msg = $this->inject_parameters_to_error_template($error_template, $params, $method_rule);
@@ -1973,11 +2684,12 @@ class Validation
      * Parse method and its parameters
      *
      * @param string $rule One separation of ruleset
+     * @param string $operator Logical operator of the separation. e.g. `!`
      * @param ?array $data The parent data of the field which is related to the rule
      * @param ?string $field The field which is related to the rule
      * @return array Method detail
      */
-    protected function parse_method($rule, $data, $field)
+    protected function parse_method($rule, $operator, $data, $field)
     {
         // If force parameter, will not add the field value as the first parameter even though no the field parameter
         if (preg_match($this->config['symbol_method_standard'], $rule, $matches)) {
@@ -1998,7 +2710,7 @@ class Validation
             $params = [$this->symbol_this];
         }
 
-        list($by_symbol, $symbol, $method, $class) = $this->match_method_and_symbol($method);
+        list($by_symbol, $symbol, $method, $operator, $class) = $this->match_method_and_symbol($method, $operator);
 
         foreach ($params as &$param) {
             if (is_array($param)) continue;
@@ -2050,6 +2762,7 @@ class Validation
             'method' => $method,
             'symbol' => $symbol,
             'by_symbol' => $by_symbol,
+            'operator' => $operator,
             'params' => $params,
         ];
 
@@ -2201,7 +2914,7 @@ class Validation
             throw GhException::extend_privious($t, $this->get_recurrence_current(), $this->config['auto_field']);
         }
 
-        return $result;
+        return $this->is_met_condition($method_rule, $result);
     }
 
     /**
@@ -2980,9 +3693,102 @@ class Validation
 
         $ruleset = $this->parse_ruleset($ruleset_entity->get_ruleset());
 
-        if (empty($ruleset) || empty($ruleset['rules'])) {
+        if (empty($ruleset) || empty($ruleset['rules']['result'])) {
             return true;
         }
+
+        $ruleset_entity->set_error_templates($ruleset['error_templates']);
+
+        $this->parse_if_rule_entity($ruleset_entity, $ruleset);
+    }
+
+    /**
+     * Parse a ruleset into RuleEntity(s)
+     *
+     * @see static::parse_if_ruleset()
+     * @param RulesetEntity $ruleset_entity
+     * @param array $ruleset
+     * @return void
+     */
+    protected function parse_if_rule_entity(&$ruleset_entity, $ruleset)
+    {
+        if ($ruleset['rules']['type'] == 'IF') {
+            foreach ($ruleset['rules']['result'] as $if_ruleset) {
+                $if_ruleset_entity = clone $ruleset_entity;
+                $if_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_IF)
+                    ->set_value($if_ruleset['result']['if_statement_rules']['text']);
+                $ruleset_entity->add_if_ruleset_entity($if_ruleset_entity);
+                $current_if_ruleset = [
+                    'error_templates' => $ruleset['error_templates'],
+                    'rules' => $if_ruleset['result']['if_statement_rules'],
+                ];
+                $this->parse_if_rule_entity($if_ruleset_entity, $current_if_ruleset);
+                
+                if (!empty($if_ruleset['result']['if_condition_rules'])) {
+                    $this->parse_if_condition_rule_entity($if_ruleset_entity, [
+                        'error_templates' => $ruleset['error_templates'],
+                        'rules' => $if_ruleset['result']['if_condition_rules'],
+                    ]);
+                }
+            }
+        } else {
+            $this->parse_serial_rule_entity($ruleset_entity, $ruleset);
+        }
+    }
+
+    /**
+     * Parse a if condition ruleset into RuleEntity(s)
+     *
+     * @see static::parse_if_condition_ruleset()
+     * @param RulesetEntity $ruleset_entity
+     * @param array $ruleset
+     * @return void
+     */
+    protected function parse_if_condition_rule_entity(&$ruleset_entity, $ruleset)
+    {
+        if ($ruleset_entity->get_ruleset_type() === RulesetEntity::RULESET_TYPE_LEAF_IF) {
+            $root_if_condition_ruleset_entity = clone $ruleset_entity;
+            $root_if_condition_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION)
+                ->set_value($ruleset['rules']['text']);
+            if (!empty($ruleset['rules']['operator'])) $root_if_condition_ruleset_entity->set_operator($ruleset['rules']['operator']);
+            $ruleset_entity->add_condition_ruleset_entity($root_if_condition_ruleset_entity);
+            $ruleset_entity = &$root_if_condition_ruleset_entity;
+        }
+
+        foreach ($ruleset['rules']['result'] as $if_condition_ruleset) {
+            $condition_ruleset_entity = clone $ruleset_entity;
+            $condition_ruleset_entity->set_ruleset($if_condition_ruleset['text']);
+            if (!empty($if_condition_ruleset['operator'])) $root_if_condition_ruleset_entity->set_operator($if_condition_ruleset['operator']);
+            $ruleset_entity->add_condition_ruleset_entity($condition_ruleset_entity);
+
+            if ($if_condition_ruleset['type'] == 'IF_CONDITION') {
+                $condition_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION);
+                $this->parse_if_condition_rule_entity($condition_ruleset_entity, [
+                    'error_templates' => $ruleset['error_templates'],
+                    'rules' => $if_condition_ruleset,
+                ]);
+            } else {
+                $condition_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION_SERIAL);
+                $this->parse_serial_rule_entity($condition_ruleset_entity, [
+                    'error_templates' => $ruleset['error_templates'],
+                    'rules' => $if_condition_ruleset,
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Parse a serial ruleset into RuleEntity(s)
+     *
+     * @see static::parse_serial_ruleset()
+     * @param RulesetEntity $ruleset_entity
+     * @param array $ruleset
+     * @return void
+     */
+    protected function parse_serial_rule_entity(&$ruleset_entity, $ruleset)
+    {
+        $this->set_current_field_path($ruleset_entity->get_path())
+            ->set_current_field_ruleset($ruleset);
 
         $ruleset_error_templates = $ruleset['error_templates'];
         $is_error_template_for_whole_ruleset = false;
@@ -2991,7 +3797,10 @@ class Validation
         }
         $ruleset_entity->set_error_templates($ruleset_error_templates);
 
-        foreach ($ruleset['rules'] as $rule) {
+        foreach ($ruleset['rules']['result'] as $rule_obj) {
+            $rule = $rule_obj['rule'];
+            $operator = $rule_obj['operator'];
+
             if (empty($rule)) {
                 continue;
             }
@@ -3027,7 +3836,7 @@ class Validation
                     $when_type = RuleEntity::RULE_TYPE_WHEN_NOT;
                 }
 
-                $method_rule = $this->parse_method($when_rule, null, null);
+                $method_rule = $this->parse_method($when_rule, '', null, null);
 
                 $rule = $target_rule;
 
@@ -3039,24 +3848,33 @@ class Validation
              * If it's a 'If rule' or 'If Not rule' -> Means this field is conditionally optional;
              * - If the 'If rule' validation result is true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
              * - If the 'If Not rule' validation result is not true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
+             * 
+             * @deprecated v2.6.0
              */
             if (preg_match($this->config['reg_ifs'], $rule, $matches)) {
                 if (preg_match($this->config['reg_if'], $rule)) {
-                    $if_type = RulesetEntity::RULESET_TYPE_LEAF_IF;
+                    $operator = '';
                 } else {
-                    $if_type = RulesetEntity::RULESET_TYPE_LEAF_IF_NOT;
+                    $operator = $this->config['symbol_logical_operator_not'];
                 }
-
-                $rule = $matches[1];
 
                 $if_ruleset_entity = clone $ruleset_entity;
                 $condition_ruleset_entity = clone $ruleset_entity;
-                $if_ruleset_entity->set_ruleset_type($if_type)
-                    ->add_confition_ruleset_entity($condition_ruleset_entity);
-                $condition_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION)
-                    ->set_ruleset($rule);
+                $condition_serial_ruleset_entity = clone $ruleset_entity;
+
                 $ruleset_entity->add_if_ruleset_entity($if_ruleset_entity);
-                $this->parse_rule_entity($condition_ruleset_entity);
+                $if_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_IF)
+                    ->set_ruleset($ruleset['rules']['text'])
+                    ->add_condition_ruleset_entity($condition_ruleset_entity);
+                $condition_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION)
+                    ->set_ruleset($rule)
+                    ->set_operator($operator)
+                    ->add_condition_ruleset_entity($condition_serial_ruleset_entity);
+                $rule = $matches[1];
+                $condition_serial_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION_SERIAL)
+                    ->set_ruleset($rule);
+                $this->parse_rule_entity($condition_serial_ruleset_entity);
+                $ruleset_entity = &$if_ruleset_entity;
                 continue;
             }
             /**
@@ -3141,12 +3959,13 @@ class Validation
             }
             // Method
             else {
-                $method_rule = $this->parse_method($rule, null, null);
+                $method_rule = $this->parse_method($rule, $operator, null, null);
 
                 $error_template = $this->match_error_template($ruleset_error_templates, $method_rule, $when_type);
                 if (empty($method_rule['by_symbol'])) $error_template = str_replace($this->symbol_method, $method_rule['method'], $error_template);
                 else $error_template = str_replace($this->symbol_method, $method_rule['symbol'], $error_template);
                 $rule_entity = new RuleEntity(RuleEntity::RULE_TYPE_METHOD, $method_rule['method'], $rule, $method_rule['params'], $method_rule['symbol'], $method_rule['by_symbol']);
+                $rule_entity->set_operator($method_rule['operator']);
             }
 
             $rule_entity->set_error_type($error_type)
@@ -3180,15 +3999,15 @@ class Validation
             switch ($ruleset_type) {
                 case RulesetEntity::RULESET_TYPE_ASSOC_ARRAY:
                 case RulesetEntity::RULESET_TYPE_INDEX_ARRAY:
-                    $hasStaticRuleset = false;
+                    $has_static_ruleset = false;
                     if ($ruleset_entity->has_if_ruleset_entities()) {
-                        $hasStaticRuleset = true;
+                        $has_static_ruleset = true;
                         $result = $this->execute_if_ruleset_entities($data, $field, $ruleset_entity);
                     } else if ($ruleset_entity->has_parallel_ruleset_entities()) {
-                        $hasStaticRuleset = true;
+                        $has_static_ruleset = true;
                         $result = $this->execute_parallel_ruleset_entities($data, $field, $ruleset_entity);
                     } else if ($ruleset_entity->has_rule_entities()) {
-                        $hasStaticRuleset = true;
+                        $has_static_ruleset = true;
                         $result = $this->execute_ruleset_entity($data, $field, $ruleset_entity, $current_field_path);
                     } else {
                         $result = true;
@@ -3198,7 +4017,7 @@ class Validation
                         !$result
                         || (
                             $result
-                            && $hasStaticRuleset
+                            && $has_static_ruleset
                             && empty($data[$field])
                         )
                     ) {
@@ -3297,15 +4116,51 @@ class Validation
             $this->set_current_field_path($current_field_path);
 
             $condition_ruleset_entities = $if_ruleset_entity->get_condition_ruleset_entities();
-            $condition_result = $this->execute_ruleset_entity($data, $field, $condition_ruleset_entities[0], $current_field_path, true);
-            if (!$if_ruleset_entity->is_met_condition($condition_result)) continue;
+            if (!empty($condition_ruleset_entities)) {
+                $condition_result = $this->execute_if_condition_ruleset_entities($data, $field, $condition_ruleset_entities[0]);
+                if ($condition_result != true) continue;
+            }
             
-            $result = $this->execute_ruleset_entity($data, $field, $if_ruleset_entity, $current_field_path);
-            $this->set_result($current_field_path, $result);
+            if ($if_ruleset_entity->has_if_ruleset_entities()) {
+                $result = $this->execute_if_ruleset_entities($data, $field, $if_ruleset_entity);
+            } else {
+                $result = $this->execute_ruleset_entity($data, $field, $if_ruleset_entity, $current_field_path);
+                $this->set_result($current_field_path, $result);
+            }
             break;
         }
 
         return $result;
+    }
+
+    /**
+     * Execute validation with all data and the "if condition ruleset entities"
+     *
+     * @param array $data The parent data of the field which is related to the rule
+     * @param string $field The field which is related to the rule
+     * @param RulesetEntity $ruleset_entity The if condition ruleset of the field
+     * @return bool The result of validation
+     */
+    protected function execute_if_condition_ruleset_entities($data, $field, $ruleset_entity)
+    {
+        // If no condition is matched, default to false.
+        $result = false;
+
+        foreach ($ruleset_entity->get_condition_ruleset_entities() as $condition_ruleset_entity) {
+            if ($condition_ruleset_entity->get_ruleset_type() == RulesetEntity::RULESET_TYPE_LEAF_CONDITION) {
+                $result = $this->execute_if_condition_ruleset_entities($data, $field, $condition_ruleset_entity);
+            } else {
+                $result = $this->execute_ruleset_entity($data, $field, $condition_ruleset_entity, $ruleset_entity->get_path(), true);
+            }
+
+            /**
+             * One of the or branch ruleset result is true, indicates the if condition result is true.
+             * We don't have to validate other or branch.
+             */
+            if ($result === true) break;
+        }
+
+        return $ruleset_entity->is_met_condition($result, $this->config['symbol_logical_operator_not']);
     }
 
     /**
@@ -3551,7 +4406,7 @@ class Validation
              * - @p1
              */
             if ($result !== true) {
-                if ($ruleset_entity->is_confition_ruleset_entity()) return false; 
+                if ($ruleset_entity->is_condition_ruleset_entity()) return false; 
 
                 // Replace symbol to field name and parameter value
                 $error_template = str_replace($this->symbol_this, $field_path, $error_template);

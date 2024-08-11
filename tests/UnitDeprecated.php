@@ -4006,9 +4006,12 @@ class UnitDeprecated extends TestCommon
             'reg_msg' => '/ >>>(.*)$/',                                 // Set special error msg by user 
             'reg_preg' => '/^Reg:(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
             // 'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if the regular expression is valid
-            'reg_ifs' => '/^IF[yn]?\?(.*)$/',                           // A regular expression to match both reg_if and reg_if_not
-            'reg_if' => '/^IFy?\?/',                                    // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-            'reg_if_not' => '/^IFn\?/',                                 // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+            'reg_ifs' => '/^!?IF\((.*)\)/',                             // {@deprecated v2.6.0} A regular expression to match both reg_if and reg_if_not
+            'reg_if' => '/^IF\((.*)\)/',                                // {@deprecated v2.6.0} If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
+            'reg_if_not' => '/^!IF\((.*)\)/',                           // {@deprecated v2.6.0} If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+            'symbol_if' => 'IF',                                        // The start of IF construct. e.g. `if ( expr ) { statement }`
+            // 'symbol_else' => 'ELSE',                                    // The else part of IF construct. e.g. `else { statement }`. Then the elseif part is `else if ( expr ) { statement }`
+
             'symbol_rule_separator' => '&&',                            // Rule reqarator for one field
             'symbol_method_omit_this' => '/^(.*)~(.*)$/',             // If set function by this symbol, will add a @this parameter at first 
             'symbol_method_standard' => '/^(.*)~~(.*)$/',                // If set function by this symbol, will not add a @this parameter at first 
@@ -4039,8 +4042,8 @@ class UnitDeprecated extends TestCommon
             "education" => [
                 "primary_school" => "!*&&=~Qiankeng Xiaoxue",
                 "junior_middle_school" => "!*&&!=~Foshan Zhongxue",
-                "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&len>~10",
-                "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&len>~10",
+                "high_school" => "IF(=~~@junior_middle_school,Mianhu Zhongxue)&&!*&&len>~10",
+                "university" => "!IF(=~~@junior_middle_school,Qiankeng Zhongxue)&&!*&&len>~10",
             ],
             "company" => [
                 "name" => "!*&&len<=>~8,64",
