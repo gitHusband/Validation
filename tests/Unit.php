@@ -1521,7 +1521,7 @@ class Unit extends TestCommon
             "name_if0_t1" => "if(!>(@id,10)){required|string|/^\d+[A-Z\)\(]*$/}",
             "name_if0_t2" => "if (!<=(@id,10)|!>(@id,20)) { required|string|/^\d+[A-Z\)\(]*$/ }",
             "name_if0_t3" => "if (
-                !<=(@id,20) | !>(@id,30)
+                !(<=(@id,20)) | !>(@id,30)
             ) {
                 required|string|/^\d+[A-Z\)\(]*$/
             }",
@@ -1562,7 +1562,7 @@ class Unit extends TestCommon
                 } else {
                     required|string|/^\d{2}[A-Z\)\(]*$/
                 }
-            } else if (!!=(@id,72) || !!=(@id,73)) {
+            } else if (!(!=(@id,72) | !=(@id,73))) {
                 required|string|/^\d{3}[A-Z\)\(]*$/
             } else {
                 optional|string|/^if0_t7-\d+[A-Z\)\(]*$/
@@ -4526,6 +4526,370 @@ class Unit extends TestCommon
                     "id" => 1,
                 ],
                 "expected_msg" => '@field:id, @ruleset:    - Invalid Ruleset: Empty'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_1()
+    {
+        $rule = [
+            "id" => "if (int)",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if (int) - Invalid Ruleset: Missing statement ruleset of if construct'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_2()
+    {
+        $rule = [
+            "id" => "if ( expr ) then: >[100]",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) then: >[100] - Invalid Ruleset: Missing left curly bracket'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_3()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } a",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } a - Invalid Ruleset: Extra ending of IF ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_4()
+    {
+        $rule = [
+            "id" => "if (( expr ) { statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if (( expr ) { statement } - Invalid Ruleset: Unclosed left bracket "("'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_5()
+    {
+        $rule = [
+            "id" => "if ( expr ) {{ statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) {{ statement } - Invalid Ruleset: Unclosed left curly bracket "{"'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_7()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else ( expr ) { statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else ( expr ) { statement } - Invalid Ruleset: Invalid ELSE ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_8()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else if  expr ) { statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else if  expr ) { statement } - Invalid Ruleset: Invalid ELSEIF ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_9()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else if (( expr ) { statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else if (( expr ) { statement } - Invalid Ruleset: Unclosed left bracket "("'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_10()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else if ( expr )",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else if ( expr ) - Invalid Ruleset: Missing statement ruleset of if construct'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_11()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } els",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } els - Invalid Ruleset: Invalid ELSE symbol'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_12()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } elseif",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } elseif - Invalid Ruleset: Invalid end of if ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_13()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else (",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else ( - Invalid Ruleset: Invalid ELSE ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_14()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else - Invalid Ruleset: Missing statement ruleset of else construct'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_6()
+    {
+        $rule = [
+            "id" => "if (int) { xxx }}",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if (int) { xxx }} - Invalid Ruleset: Extra ending of IF ruleset'
             ],
         ];
 

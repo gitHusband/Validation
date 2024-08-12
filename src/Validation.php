@@ -1467,7 +1467,7 @@ class Validation
                     if ($symbol_if_length > 1) {
                         $ij++;
                         for ($j = 1; $j < $symbol_if_length; $j++) {
-                            if ($symbol_if[$j] != $ruleset[$ij]) {
+                            if ($ij >= $ruleset_length || $symbol_if[$j] != $ruleset[$ij]) {
                                 $current_if_flag = '';
                                 break;
                             }
@@ -1497,6 +1497,7 @@ class Validation
                         }
     
                         if ($current_if_flag === 'IF_CONDITION') {
+                            if ($ik >= $ruleset_length) throw RuleException::ruleset('Invalid end of if ruleset', $this->get_recurrence_current(), $this->config['auto_field']);
                             $i = $ik;
                             $char = $ruleset[$i];
                             $if_branch_ruleset .= $char;
@@ -1535,7 +1536,7 @@ class Validation
                     if ($symbol_else_length > 1) {
                         $ij++;
                         for ($j = 1; $j < $symbol_else_length; $j++) {
-                            if ($symbol_else[$j] != $ruleset[$ij]) {
+                            if ($ij >= $ruleset_length || $symbol_else[$j] != $ruleset[$ij]) {
                                 throw RuleException::ruleset('Invalid ELSE symbol', $this->get_recurrence_current(), $this->config['auto_field']);
                                 break;
                             }
@@ -1546,7 +1547,8 @@ class Validation
     
                     // Start a next IF or ELSE only
                     $current_if_flag = '';
-                    $i = $ij;
+                    $i = $ij - 1;
+                    $is_start = true;
                     continue;
                 } else {
                     throw RuleException::ruleset('Extra ending of IF ruleset', $this->get_recurrence_current(), $this->config['auto_field']);
@@ -1573,11 +1575,12 @@ class Validation
                 if ($left_bracket_count > 0) {
                     $if_condition_ruleset .= $char;
                 } else {
-                    $current_if_flag = 'IF_STATEMENT';
+                    if (empty($if_condition_ruleset)) throw RuleException::ruleset('Empty if condition ruleset', $this->get_recurrence_current(), $this->config['auto_field']);
                     $rules['result'][$if_branch_index]['result']['if_condition_rules'] = $this->parse_if_condition_ruleset($if_condition_ruleset);
 
                     // Ignore the spaces after the right boundary(")") of IF_CONDITION and before the left boundary("{") of the IF
                     $is_start = true;
+                    $current_if_flag = 'IF_STATEMENT';
                     $if_condition_ruleset = '';
                 }
             }
@@ -1616,7 +1619,7 @@ class Validation
                             }
                             if ($char === $symbol_rule_separator) {
                                 $if_ruleset = substr($ruleset, $i+1);
-                                $rules['result'][$if_branch_index]['result']['if_statement_rules'] = $this->parse_if_ruleset($if_ruleset);
+                                $rules['result'][$if_branch_index]['result']['if_statement_rules'] = $this->parse_serial_ruleset($if_ruleset);
                                 if (!empty($deprecated_if_not_operator)) $rules['result'][$if_branch_index]['result']['if_condition_rules']['operator'] = $deprecated_if_not_operator;
                                 // echo "{$ruleset} - {$if_ruleset}\n"; print_r($rules['result'][$if_branch_index]['result']); die;
                                 return $rules;
@@ -1653,14 +1656,25 @@ class Validation
             }
         }
 
+        /** @example `if (( expr ) { statement }` */
         if ($left_bracket_count > 0) {
             throw RuleException::ruleset('Unclosed left bracket "("', $this->get_recurrence_current(), $this->config['auto_field']);
-        } else if ($left_curly_bracket_count > 0) {
+        }
+        /** @example `if ( expr ) {{ statement }` */
+        else if ($left_curly_bracket_count > 0) {
             throw RuleException::ruleset('Unclosed left curly bracket "{"', $this->get_recurrence_current(), $this->config['auto_field']);
         }
-
-        if (empty($rules['result'])) {
+        /** @example `if ( expr ) { statement } else if ( expr )` */
+        else if (($current_if_flag === 'IF_STATEMENT' || $current_if_flag === 'ELSE') && empty($if_ruleset)) {
+            throw RuleException::ruleset('Missing statement ruleset of if construct', $this->get_recurrence_current(), $this->config['auto_field']);
+        }
+        /** @example `` Empty ruleset */
+        else if (empty($rules['result'])) {
             throw RuleException::ruleset('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
+        }
+        /** @example `if ( expr ) { statement } else` */
+        else if ($rules['type'] === 'IF' && $current_if_flag === '' && empty($if_ruleset)) {
+            throw RuleException::ruleset('Missing statement ruleset of else construct', $this->get_recurrence_current(), $this->config['auto_field']);
         }
 
         return $rules;
