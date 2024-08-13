@@ -2005,6 +2005,195 @@ class Validation
     }
 
     /**
+     * Parse method and its parameters
+     *
+     * @param string $rule One separation of ruleset
+     * @param string $operator Logical operator of the separation. e.g. `!`
+     * @param ?array $data The parent data of the field which is related to the rule
+     * @param ?string $field The field which is related to the rule
+     * @return array Method detail
+     */
+    protected function parse_method($rule, $operator, $data, $field)
+    {
+        // If force parameter, will not add the field value as the first parameter even though no the field parameter
+        if (preg_match($this->config['symbol_method_standard'], $rule, $matches)) {
+            $method = $matches[1];
+            $params = $matches[2];
+            $params = $this->parse_parameters_strict($params);
+            // If classic parameter, will add the field value as the first parameter if no the field parameter
+        } else if (preg_match($this->config['symbol_method_omit_this'], $rule, $matches)) {
+            $method = $matches[1];
+            $params = $matches[2];
+            $params = $this->parse_parameters_strict($params);
+            if (!in_array($this->symbol_this, $params)) {
+                array_unshift($params, $this->symbol_this);
+            }
+            // If no parameter, will add the field value as the first parameter
+        } else {
+            $method = $rule;
+            $params = [$this->symbol_this];
+        }
+
+        list($by_symbol, $symbol, $method, $operator, $class) = $this->match_method_and_symbol($method, $operator);
+
+        foreach ($params as &$param) {
+            if (is_array($param)) continue;
+
+            if (strpos($param, '@') !== false) {
+                if (
+                    $data === null
+                    && $field === null
+                ) {
+                    /**
+                     * When we parse the rule to rule entity, we don't need to parse the @ parameters to the real data.
+                     * Because the real data is changing when we start to validate it.
+                     */
+                    continue;
+                }
+
+                switch ($param) {
+                    case $this->symbol_this:
+                        $param = isset($data[$field]) ? $data[$field] : null;
+                        break;
+                    case $this->symbol_parent:
+                        $param = $data;
+                        break;
+                    case $this->symbol_root:
+                        $param = $this->data;
+                        break;
+                    default:
+                        $param_field = substr($param, 1);
+                        $param = $this->get_field($data, $param_field);
+                        if ($param === null) $param = $this->get_field($this->data, $param_field);
+                        break;
+                }
+            } else {
+                $param = static::parse_strict_data_type($param);
+            }
+        }
+
+        // "in" method, all the parameters are treated as the second parameter.
+        if ($this->is_in_method($symbol)) {
+            $field_name = $params[0];
+            array_shift($params);
+            $params = [
+                $field_name,
+                $params
+            ];
+        }
+
+        $method_rule = [
+            'method' => $method,
+            'symbol' => $symbol,
+            'by_symbol' => $by_symbol,
+            'operator' => $operator,
+            'params' => $params,
+        ];
+
+        $this->set_current_method($method_rule);
+
+        return $method_rule;
+    }
+
+    /**
+     * Parse parameters from string to array
+     * - The symbol_parameter_separator(e.g. ",") is allowed in parameter
+     * - Supports One-dimensional Array which look like this [1,2,3],a,b
+     *
+     * @param string $parameter
+     * @return array
+     */
+    protected function parse_parameters_strict($parameter)
+    {
+        $symbol_parameter_separator = $this->config['symbol_parameter_separator'];
+        $symbol_parameter_separator_length = strlen($symbol_parameter_separator);
+
+        $parameters = [];
+        $current_parameter = '';
+        $is_next_parameter_flag = 0;
+        $is_array_flag = 0;
+        $array_flags = [];
+
+        $parameter_length = strlen($parameter);
+        for ($i = 0; $i < $parameter_length; $i++) {
+            $char = $parameter[$i];
+
+            // 支持自定义配置 symbol_parameter_separator 为多个字符
+            if ($symbol_parameter_separator_length > 1 && $char == $symbol_parameter_separator[0]) {
+                $ii = $i + 1;
+                $is_symbol_parameter_separator = true;
+                for ($j = 1; $j < $symbol_parameter_separator_length; $j++) {
+                    if ($symbol_parameter_separator[$j] != $parameter[$ii]) {
+                        $is_symbol_parameter_separator = false;
+                        break;
+                    }
+                }
+                if ($is_symbol_parameter_separator) {
+                    $i = $i + $symbol_parameter_separator_length - 1;
+                    $char = $symbol_parameter_separator;
+                }
+            }
+
+            // \ 是转义字符，在它之后的任意一个字符，都不能被当做是参数分隔符
+            // 例如：`\,` 表示字符串 `,`
+            if ($char === '\\') {
+                $current_parameter .= $parameter[$i + 1];
+                $i++;
+                continue;
+            }
+
+            /**
+             * 首次数组开头 [ 或者 {，表明接下来是数组。
+             */
+            if ($char == '[' || $char == '{') {
+                $is_array_flag++;
+                $array_flags[$is_array_flag] = $char;
+            }
+            // 数组阶段中，任意字符都是当前参数的一部分
+            // 直到匹配到下一个 ] 或者 }，表明数组结束。
+            else if ($is_array_flag > 0) {
+                if (
+                    ($char == ']' && $array_flags[$is_array_flag] == '[')
+                    || ($char == '}' && $array_flags[$is_array_flag] == '{')
+                ) {
+                    unset($array_flags[$is_array_flag]);
+                    $is_array_flag--;
+                }
+            }
+            // 一般非数组的参数中，不会包含 ","，所以匹配到它则表明接下来是下一个参数
+            // 在数组中，可能包含 ","，所以必须在数组结束后，匹配到它才表明接下来是下一个参数
+            else if ($char === $symbol_parameter_separator) {
+                $is_next_parameter_flag = 1;
+            }
+
+            if ($is_next_parameter_flag == 0) {
+                $current_parameter .= $char;
+            } else {
+                $is_next_parameter_flag = 0;
+                // Remove the whitespace on the left and right
+                $current_parameter = trim($current_parameter, ' ');
+                if ($current_parameter === '') throw RuleException::parameter('Contiguous separator', $this->get_recurrence_current(), $this->config['auto_field']);
+                $parameters[] = $current_parameter;
+                $current_parameter = '';
+                $is_array_flag = 0;
+            }
+        }
+
+        if ($is_array_flag > 0) throw RuleException::parameter('Unclosed [ or {', $this->get_recurrence_current(), $this->config['auto_field']);
+        // Remove the whitespace on the left and right
+        $current_parameter = trim($current_parameter, ' ');
+        if ($current_parameter === '') {
+            if (empty($parameters)) {
+                throw RuleException::parameter('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
+            } else {
+                throw RuleException::parameter('Endding separator', $this->get_recurrence_current(), $this->config['auto_field']);
+            }
+        }
+        if (!empty($current_parameter)) $parameters[] = $current_parameter;
+        return $parameters;
+    }
+
+    /**
      * Parse error message template of the ruleset
      * 1. Simple string - show this error message if anything is invalid
      * 2. Json string - show one of the error message which is related to the invalid method
@@ -2657,195 +2846,6 @@ class Validation
         }
 
         return true;
-    }
-
-    /**
-     * Parse method and its parameters
-     *
-     * @param string $rule One separation of ruleset
-     * @param string $operator Logical operator of the separation. e.g. `!`
-     * @param ?array $data The parent data of the field which is related to the rule
-     * @param ?string $field The field which is related to the rule
-     * @return array Method detail
-     */
-    protected function parse_method($rule, $operator, $data, $field)
-    {
-        // If force parameter, will not add the field value as the first parameter even though no the field parameter
-        if (preg_match($this->config['symbol_method_standard'], $rule, $matches)) {
-            $method = $matches[1];
-            $params = $matches[2];
-            $params = $this->parse_parameters_strict($params);
-            // If classic parameter, will add the field value as the first parameter if no the field parameter
-        } else if (preg_match($this->config['symbol_method_omit_this'], $rule, $matches)) {
-            $method = $matches[1];
-            $params = $matches[2];
-            $params = $this->parse_parameters_strict($params);
-            if (!in_array($this->symbol_this, $params)) {
-                array_unshift($params, $this->symbol_this);
-            }
-            // If no parameter, will add the field value as the first parameter
-        } else {
-            $method = $rule;
-            $params = [$this->symbol_this];
-        }
-
-        list($by_symbol, $symbol, $method, $operator, $class) = $this->match_method_and_symbol($method, $operator);
-
-        foreach ($params as &$param) {
-            if (is_array($param)) continue;
-
-            if (strpos($param, '@') !== false) {
-                if (
-                    $data === null
-                    && $field === null
-                ) {
-                    /**
-                     * When we parse the rule to rule entity, we don't need to parse the @ parameters to the real data.
-                     * Because the real data is changing when we start to validate it.
-                     */
-                    continue;
-                }
-
-                switch ($param) {
-                    case $this->symbol_this:
-                        $param = isset($data[$field]) ? $data[$field] : null;
-                        break;
-                    case $this->symbol_parent:
-                        $param = $data;
-                        break;
-                    case $this->symbol_root:
-                        $param = $this->data;
-                        break;
-                    default:
-                        $param_field = substr($param, 1);
-                        $param = $this->get_field($data, $param_field);
-                        if ($param === null) $param = $this->get_field($this->data, $param_field);
-                        break;
-                }
-            } else {
-                $param = static::parse_strict_data_type($param);
-            }
-        }
-
-        // "in" method, all the parameters are treated as the second parameter.
-        if ($this->is_in_method($symbol)) {
-            $field_name = $params[0];
-            array_shift($params);
-            $params = [
-                $field_name,
-                $params
-            ];
-        }
-
-        $method_rule = [
-            'method' => $method,
-            'symbol' => $symbol,
-            'by_symbol' => $by_symbol,
-            'operator' => $operator,
-            'params' => $params,
-        ];
-
-        $this->set_current_method($method_rule);
-
-        return $method_rule;
-    }
-
-    /**
-     * Parse parameters from string to array
-     * - The symbol_parameter_separator(e.g. ",") is allowed in parameter
-     * - Supports One-dimensional Array which look like this [1,2,3],a,b
-     *
-     * @param string $parameter
-     * @return array
-     */
-    protected function parse_parameters_strict($parameter)
-    {
-        $symbol_parameter_separator = $this->config['symbol_parameter_separator'];
-        $symbol_parameter_separator_length = strlen($symbol_parameter_separator);
-
-        $parameters = [];
-        $current_parameter = '';
-        $is_next_parameter_flag = 0;
-        $is_array_flag = 0;
-        $array_flags = [];
-
-        $parameter_length = strlen($parameter);
-        for ($i = 0; $i < $parameter_length; $i++) {
-            $char = $parameter[$i];
-
-            // 支持自定义配置 symbol_parameter_separator 为多个字符
-            if ($symbol_parameter_separator_length > 1 && $char == $symbol_parameter_separator[0]) {
-                $ii = $i + 1;
-                $is_symbol_parameter_separator = true;
-                for ($j = 1; $j < $symbol_parameter_separator_length; $j++) {
-                    if ($symbol_parameter_separator[$j] != $parameter[$ii]) {
-                        $is_symbol_parameter_separator = false;
-                        break;
-                    }
-                }
-                if ($is_symbol_parameter_separator) {
-                    $i = $i + $symbol_parameter_separator_length - 1;
-                    $char = $symbol_parameter_separator;
-                }
-            }
-
-            // \ 是转义字符，在它之后的任意一个字符，都不能被当做是参数分隔符
-            // 例如：`\,` 表示字符串 `,`
-            if ($char === '\\') {
-                $current_parameter .= $parameter[$i + 1];
-                $i++;
-                continue;
-            }
-
-            /**
-             * 首次数组开头 [ 或者 {，表明接下来是数组。
-             */
-            if ($char == '[' || $char == '{') {
-                $is_array_flag++;
-                $array_flags[$is_array_flag] = $char;
-            }
-            // 数组阶段中，任意字符都是当前参数的一部分
-            // 直到匹配到下一个 ] 或者 }，表明数组结束。
-            else if ($is_array_flag > 0) {
-                if (
-                    ($char == ']' && $array_flags[$is_array_flag] == '[')
-                    || ($char == '}' && $array_flags[$is_array_flag] == '{')
-                ) {
-                    unset($array_flags[$is_array_flag]);
-                    $is_array_flag--;
-                }
-            }
-            // 一般非数组的参数中，不会包含 ","，所以匹配到它则表明接下来是下一个参数
-            // 在数组中，可能包含 ","，所以必须在数组结束后，匹配到它才表明接下来是下一个参数
-            else if ($char === $symbol_parameter_separator) {
-                $is_next_parameter_flag = 1;
-            }
-
-            if ($is_next_parameter_flag == 0) {
-                $current_parameter .= $char;
-            } else {
-                $is_next_parameter_flag = 0;
-                // Remove the whitespace on the left and right
-                $current_parameter = trim($current_parameter, ' ');
-                if ($current_parameter === '') throw RuleException::parameter('Contiguous separator', $this->get_recurrence_current(), $this->config['auto_field']);
-                $parameters[] = $current_parameter;
-                $current_parameter = '';
-                $is_array_flag = 0;
-            }
-        }
-
-        if ($is_array_flag > 0) throw RuleException::parameter('Unclosed [ or {', $this->get_recurrence_current(), $this->config['auto_field']);
-        // Remove the whitespace on the left and right
-        $current_parameter = trim($current_parameter, ' ');
-        if ($current_parameter === '') {
-            if (empty($parameters)) {
-                throw RuleException::parameter('Empty', $this->get_recurrence_current(), $this->config['auto_field']);
-            } else {
-                throw RuleException::parameter('Endding separator', $this->get_recurrence_current(), $this->config['auto_field']);
-            }
-        }
-        if (!empty($current_parameter)) $parameters[] = $current_parameter;
-        return $parameters;
     }
 
     /**
