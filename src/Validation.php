@@ -236,9 +236,6 @@ class Validation
         'reg_msg' => '/ >> (.*)$/sm',                               // Set the error message format for all the methods after a rule string
         'reg_preg' => '/^(\/.+\/.*)$/',                             // If a rule match reg_preg, indicates it's a regular expression instead of method
         'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if a regular expression is valid
-        'reg_ifs' => '/^!?if\((.*)\)/',                             // {@deprecated v2.6.0} A regular expression to match both reg_if and reg_if_not
-        'reg_if' => '/^if\((.*)\)/',                                // {@deprecated v2.6.0} If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-        'reg_if_not' => '/^!if\((.*)\)/',                           // {@deprecated v2.6.0} If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
         'symbol_if' => 'if',                                        // The start of IF construct. e.g. `if ( expr ) { statement }`
         'symbol_else' => 'else',                                    // The else part of IF construct. e.g. `else { statement }`. Then the elseif part is `else if ( expr ) { statement }`
         'symbol_logical_operator_not' => '!',                       // The logical operator not. e.g. `if ( !expr ) { statement }`
@@ -2466,42 +2463,10 @@ class Validation
             }
 
             /**
-             * If rule
-             * If it's a 'If rule' or 'If Not rule' -> Means this field is conditionally optional;
-             * - If the 'If rule' validation result is true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
-             * - If the 'If Not rule' validation result is not true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
-             * 
-             * @see static::execute_if_ruleset()
-             * @deprecated v2.6.0
-             */
-            if (preg_match($this->config['reg_ifs'], $rule, $matches)) {
-                if (preg_match($this->config['reg_if'], $rule)) {
-                    $if_type = 'if';
-                } else {
-                    $if_type = 'if_not';
-                }
-
-                $rule = $matches[1];
-
-                $method_rule = $this->parse_method($rule, '', $data, $field);
-                $params = $method_rule['params'];
-                $result = $this->execute_method($method_rule, $field_path);
-
-                if (is_array($result) && !empty($result['error_type']) && $result['error_type'] == 'undefined_method') return false;
-                if (
-                    ($if_type === 'if' && $result !== true)
-                    || ($if_type === 'if_not' && $result === true)
-                ) {
-                    return true;
-                }
-
-                $result = true;
-            }
-            /**
              * - Required(*) rule
              * - Required When rule
              */
-            else if ($rule == $this->config['symbol_required'] || $rule == $this->config_default['symbol_required']) {
+            if ($rule == $this->config['symbol_required'] || $rule == $this->config_default['symbol_required']) {
                 if (!static::required(isset($data[$field]) ? $data[$field] : null)) {
                     /**
                      * Required(*) rule
@@ -3858,44 +3823,10 @@ class Validation
             }
 
             /**
-             * If rule
-             * If it's a 'If rule' or 'If Not rule' -> Means this field is conditionally optional;
-             * - If the 'If rule' validation result is true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
-             * - If the 'If Not rule' validation result is not true, continue to validate the subsequnse rule; Otherwise, skip validating the subsequnse rule
-             * 
-             * @deprecated v2.6.0
-             */
-            if (preg_match($this->config['reg_ifs'], $rule, $matches)) {
-                if (preg_match($this->config['reg_if'], $rule)) {
-                    $operator = '';
-                } else {
-                    $operator = $this->config['symbol_logical_operator_not'];
-                }
-
-                $if_ruleset_entity = clone $ruleset_entity;
-                $condition_ruleset_entity = clone $ruleset_entity;
-                $condition_serial_ruleset_entity = clone $ruleset_entity;
-
-                $ruleset_entity->add_if_ruleset_entity($if_ruleset_entity);
-                $if_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_IF)
-                    ->set_ruleset($ruleset['rules']['text'])
-                    ->add_condition_ruleset_entity($condition_ruleset_entity);
-                $condition_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION)
-                    ->set_ruleset($rule)
-                    ->set_operator($operator)
-                    ->add_condition_ruleset_entity($condition_serial_ruleset_entity);
-                $rule = $matches[1];
-                $condition_serial_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_LEAF_CONDITION_SERIAL)
-                    ->set_ruleset($rule);
-                $this->parse_rule_entity($condition_serial_ruleset_entity);
-                $ruleset_entity = &$if_ruleset_entity;
-                continue;
-            }
-            /**
              * - Required(*) rule
              * - Required When rule
              */
-            else if ($rule == $this->config['symbol_required'] || $rule == $this->config_default['symbol_required']) {
+            if ($rule == $this->config['symbol_required'] || $rule == $this->config_default['symbol_required']) {
                 /**
                  * Required(*) rule
                  */
