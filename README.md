@@ -36,7 +36,7 @@
       * [4.5 串联并联规则](#45-串联并联规则)
       * [4.6 条件规则](#46-条件规则)
          * [When 条件规则](#when-条件规则)
-         * [标准条件规则](#标准条件规则)
+         * [IF 条件规则](#if-条件规则)
       * [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
       * [4.8 可选字段](#48-可选字段)
       * [4.9 特殊的验证规则](#49-特殊的验证规则)
@@ -549,40 +549,61 @@ $rule = [
 ];
 ```
 
-#### 标准条件规则
+#### IF 条件规则
 
-标准条件规则的写法跟 `PHP` 语法差不多，`if()` 和 `!if()`
+IF 条件规则的写法跟 `PHP` 的 `if 结构` 语法差不多, 例如：
+- `if ( expr ) { statement }`
+- `if ( !expr ) { statement }`
+- `if ( expr1 || !expr2 ) { statement1 } else { statement2 }`
 
-- **标准正条件**：`if()`
+**支持的逻辑操作符：**
+- `!`：逻辑操作符否。
+  - 条件中不包含 `!`: 表示当条件结果与布尔值 `true` 严格相同(`===`)，则条件成立。
+  - 条件中包含 `!`: 表示当条件结果与布尔值 `true` 不严格相同(`!==`)，则条件成立。
+- `||`：逻辑操作符或。表示其中一个条件成立即可。
 
-1. 如果条件成立，则继续验证后续方法
-2. 如果条件不成立，则不继续验证后续方法
+**执行逻辑是：**
+1. 如果条件成立，则继续验证后续方法。
+2. 如果条件不成立，则不继续验证后续方法，立即返回成功。
 
+**例子 1：**
 ```PHP
 $rule = [
     // 特征是必要的，且只能是 height(身高) 或 weight(体重)
     "attribute" => "required|<string>[height,weight]",
     // 若属性是 height, 则 centimeter 是必要的，且必须大于 180
     // 若不是 height，则不继续验证后续规则，即 centimeter 为任何值都可以。
-    "centimeter" => "if(=(@attribute,height))|required|>[180]",
+    "centimeter" => "if(=(@attribute,height)){required|>[180]}",
 ];
 ```
-- **标准否条件**：`!if()`
-
-1. 如果条件不成立，则继续验证后续方法
-2. 如果条件成立，则不继续验证后续方法
-
+**例子 2：**
 ```PHP
 $rule = [
     // 特征是必要的，且只能是 height(身高) 或 weight(体重)
     "attribute" => "required|<string>[height,weight]",
     // 若属性不是 weight, 则 centimeter 是必要的，且必须大于 180
     // 若是 weight，则不继续验证后续规则，即 centimeter 为任何值都可以。
-    "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
+    "centimeter" => "if ( !=(@attribute,weight) ) { required|>[180] }",
 ];
 ```
-
-抱歉，*标准条件规则暂不支持 `else` 和 `else if`，将在后续版本中支持。*
+**例子 3：**
+```PHP
+$rule = [
+    "id" => "required|><[0,1000]",
+    "name" => "if (!<=(@id,49)|<=(@id,51)) {
+        if (!!=(@id,50)) {
+            required|string|/^\d{1}[A-Z\)\(]*$/
+        } else {
+            required|string|/^\d{2}[A-Z\)\(]*$/
+        }
+    } else if (!(!=(@id,52)) || =(@id,53)) {
+        required|string|/^\d{3}[A-Z\)\(]*$/
+    } else {
+        optional|string|/^if-\d+[A-Z\)\(]*$/
+    }"
+];
+```
+对于例子 3 ，需要说明的是，我们只支持一个逻辑否 `!`, `!!=(@id,50)` 其实是两个部分，逻辑否 `!` 和 方法 `not_equal` 的标志 `!=`。标志见 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
 
 ### 4.7 无限嵌套的数据结构
 
@@ -725,12 +746,13 @@ $config = [
     'enable_entity' => false,                                   // Pre-parse ruleset into ruleset entity to reuse the ruleset without re-parse
     'validation_global' => true,                                // 1. true - validate all rules even though previous rule had been failed; 2. false - stop validating when any rule is failed
     'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field as the root data field name
-    'reg_msg' => '/ >> (.*)$/',                                 // Set the error message format for all the methods after a rule string
+    'reg_msg' => '/ >> (.*)$/sm',                               // Set the error message format for all the methods after a rule string
     'reg_preg' => '/^(\/.+\/.*)$/',                             // If a rule match reg_preg, indicates it's a regular expression instead of method
     'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if a regular expression is valid
-    'reg_ifs' => '/^!?if\((.*)\)/',                             // A regular expression to match both reg_if and reg_if_not
-    'reg_if' => '/^if\((.*)\)/',                                // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-    'reg_if_not' => '/^!if\((.*)\)/',                           // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+    'symbol_if' => 'if',                                        // The start of IF construct. e.g. `if ( expr ) { statement }`
+    'symbol_else' => 'else',                                    // The else part of IF construct. e.g. `else { statement }`. Then the elseif part is `else if ( expr ) { statement }`
+    'symbol_logical_operator_not' => '!',                       // The logical operator not. e.g. `if ( !expr ) { statement }`
+    'symbol_logical_operator_or' => '||',                       // The logical operator or. e.g. `if ( expr || expr ) { statement }`
     'symbol_rule_separator' => '|',                             // Serial rules seqarator to split a rule into multiple methods
     'symbol_parallel_rule' => '[||]',                           // Symbol of the parallel rule, Same as "[or]"
     'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)

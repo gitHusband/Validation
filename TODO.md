@@ -22,7 +22,7 @@
 2. 修复当 is_strict_parameter_separator = true 并且 is_strict_parameter_type = true 时，`in_number[[1,2]]` 报错的 bug
 
 
-### 增加真正的 "条件规则"
+### ~~增加真正的 "条件规则"~~(完成)
 
 例如 `"data" => "if(...) {required|int} elseif(...) {required|int} else {optional|/^[a-zA-Z0-9]+$/}"`
 

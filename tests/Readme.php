@@ -250,7 +250,11 @@ class Readme extends TestCommon
         return $this->validate($data, $rule);
     }
 
-    public function test_condition_if()
+    /**
+     * @deprecated v2.6.0
+     * @return array
+     */
+    public function test_deprecated_condition_if()
     {
         $data = [
             "attribute" => "height",
@@ -268,7 +272,11 @@ class Readme extends TestCommon
         return $this->validate($data, $rule);
     }
 
-    public function test_condition_if_not()
+    /**
+     * @deprecated v2.6.0
+     * @return array
+     */
+    public function test_deprecated_condition_if_not()
     {
         $data = [
             "attribute" => "weight",
@@ -284,6 +292,93 @@ class Readme extends TestCommon
         ];
 
         return $this->validate($data, $rule);
+    }
+
+    public function test_condition_if()
+    {
+        $data = [
+            "attribute" => "height",
+            "centimeter" => ''
+        ];
+
+        $rule = [
+            // 特征是必要的，且只能是 height(身高) 或 weight(体重)
+            "attribute" => "required|<string>[height,weight]",
+            // 若属性是 height, 则 centimeter 是必要的，且必须大于 180
+            // 若不是 height，则不继续验证后续规则，即 centimeter 为任何值都可以。
+            "centimeter" => "if(=(@attribute,height)){required|>[180]}",
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
+    public function test_condition_if_not()
+    {
+        $data = [
+            "attribute" => "weight",
+            "centimeter" => '1'
+        ];
+
+        $rule = [
+            // 特征是必要的，且只能是 height(身高) 或 weight(体重)
+            "attribute" => "required|<string>[height,weight]",
+            // 若属性不是 weight, 则 centimeter 是必要的，且必须大于 180
+            // 若是 weight，则不继续验证后续规则，即 centimeter 为任何值都可以。
+            "centimeter" => "if( !(=(@attribute,weight)) ) { required|>[180] }",
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
+    public function test_condition_if_complicated()
+    {
+        $data_lists = [
+            "id-50" => [
+                "id" => 50,
+                "name" => '1(A)'
+            ],
+            "id-51" => [
+                "id" => 51,
+                "name" => '12(B)'
+            ],
+            "id-52" => [
+                "id" => 52,
+                "name" => '123(C)'
+            ],
+            "id-53" => [
+                "id" => 53,
+                "name" => '123(C)'
+            ],
+            "id-54-1" => [
+                "id" => 54,
+                "name" => ''
+            ],
+            "id-54-2" => [
+                "id" => 54,
+                "name" => 'if-123(C)'
+            ],
+            "id-54-3" => [
+                "id" => 54,
+                "name" => '123(C)'
+            ],
+        ];
+
+        $rule = [
+            "id" => "required|><[0,1000]",
+            "name" => "if (!<=(@id,49)|<=(@id,51)) {
+                if (!!=(@id,50)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (!(!=(@id,52)) || =(@id,53)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if-\d+[A-Z\)\(]*$/
+            }"
+        ];
+
+        return $this->validate_data_lists($data_lists, $rule);
     }
 
     public function test_infinite_nested_associative_array()
@@ -681,5 +776,15 @@ class Readme extends TestCommon
         } else {
             return $validation->get_error();
         }
+    }
+
+    protected function validate_data_lists($data_list, $rule, $validation_conf = [])
+    {
+        $result_lists = [];
+        foreach ($data_list as $key => $data) {
+            $result_lists['result-of_'.$key] = $this->validate($data, $rule, $validation_conf);
+        }
+
+        return $result_lists;
     }
 }

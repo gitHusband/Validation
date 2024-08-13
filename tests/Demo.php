@@ -99,8 +99,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
@@ -216,8 +216,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
@@ -343,8 +343,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[18]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
@@ -470,8 +470,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[18]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
@@ -689,8 +689,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
