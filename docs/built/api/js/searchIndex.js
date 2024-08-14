@@ -1,6 +1,441 @@
 Search.appendIndex(
     [
                 {
+            "fqsen": "\\githusband\\Entity\\RuleEntity",
+            "name": "RuleEntity",
+            "summary": "To\u0020parse\u0020rule\u0020from\u0020string\u0020to\u0020entity.",
+            "url": "classes/githusband-Entity-RuleEntity.html"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "Constructor.",
+            "url": "classes/githusband-Entity-RuleEntity.html#method___construct"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_rule_type\u0028\u0029",
+            "name": "get_rule_type",
+            "summary": "Get\u0020the\u0020rule_type",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_rule_type"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_name\u0028\u0029",
+            "name": "get_name",
+            "summary": "Get\u0020the\u0020name",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_name"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_value\u0028\u0029",
+            "name": "get_value",
+            "summary": "Get\u0020the\u0020value",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_value"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_symbol\u0028\u0029",
+            "name": "get_symbol",
+            "summary": "Get\u0020the\u0020symbol",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_symbol"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_parameters\u0028\u0029",
+            "name": "get_parameters",
+            "summary": "Get\u0020the\u0020parameters",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_parameters"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aset_error_type\u0028\u0029",
+            "name": "set_error_type",
+            "summary": "Set\u0020error_type",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_set_error_type"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_error_type\u0028\u0029",
+            "name": "get_error_type",
+            "summary": "Get\u0020error_type",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_error_type"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aset_operator\u0028\u0029",
+            "name": "set_operator",
+            "summary": "Set\u0020operator",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_set_operator"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_operator\u0028\u0029",
+            "name": "get_operator",
+            "summary": "Get\u0020operator",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_operator"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aset_error_template\u0028\u0029",
+            "name": "set_error_template",
+            "summary": "Set\u0020error_template",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_set_error_template"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_error_template\u0028\u0029",
+            "name": "get_error_template",
+            "summary": "Get\u0020error_template",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_error_template"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aset_is_error_template_for_whole_ruleset\u0028\u0029",
+            "name": "set_is_error_template_for_whole_ruleset",
+            "summary": "Set\u0020is_error_template_for_whole_ruleset",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_set_is_error_template_for_whole_ruleset"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Ais_error_template_for_whole_ruleset\u0028\u0029",
+            "name": "is_error_template_for_whole_ruleset",
+            "summary": "Get\u0020is_error_template_for_whole_ruleset",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_is_error_template_for_whole_ruleset"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_by_symbol\u0028\u0029",
+            "name": "get_by_symbol",
+            "summary": "Get\u0020by_symbol",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_by_symbol"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aadd_when_rule_entity\u0028\u0029",
+            "name": "add_when_rule_entity",
+            "summary": "Add\u0020a\u0020when\u0020RuleEntity",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_add_when_rule_entity"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_when_rule_entities\u0028\u0029",
+            "name": "get_when_rule_entities",
+            "summary": "Get\u0020all\u0020when\u0020RuleEntities",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_when_rule_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_method_rule\u0028\u0029",
+            "name": "get_method_rule",
+            "summary": "Get\u0020method\u0020rule",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_method_rule"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003ARULE_TYPE_METHOD",
+            "name": "RULE_TYPE_METHOD",
+            "summary": "The\u0020rule\u0020types",
+            "url": "classes/githusband-Entity-RuleEntity.html#constant_RULE_TYPE_METHOD"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003ARULE_TYPE_PREG",
+            "name": "RULE_TYPE_PREG",
+            "summary": "",
+            "url": "classes/githusband-Entity-RuleEntity.html#constant_RULE_TYPE_PREG"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003ARULE_TYPE_WHEN",
+            "name": "RULE_TYPE_WHEN",
+            "summary": "",
+            "url": "classes/githusband-Entity-RuleEntity.html#constant_RULE_TYPE_WHEN"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003ARULE_TYPE_WHEN_NOT",
+            "name": "RULE_TYPE_WHEN_NOT",
+            "summary": "",
+            "url": "classes/githusband-Entity-RuleEntity.html#constant_RULE_TYPE_WHEN_NOT"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity",
+            "name": "RulesetEntity",
+            "summary": "To\u0020parse\u0020ruleset\u0020from\u0020string\u0020to\u0020entity.",
+            "url": "classes/githusband-Entity-RulesetEntity.html"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003A__construct\u0028\u0029",
+            "name": "__construct",
+            "summary": "Constructor.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method___construct"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003A__clone\u0028\u0029",
+            "name": "__clone",
+            "summary": "Clone\u0020the\u0020entity,\u0020we\u0020just\u0020need\u0020its\u003A\n\u0020\u002D\u0020root\n\u0020\u002D\u0020name\n\u0020\u002D\u0020path",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method___clone"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_root\u0028\u0029",
+            "name": "set_root",
+            "summary": "Set\u0020the\u0020root\u0020RulesetEntity",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_root"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_root\u0028\u0029",
+            "name": "get_root",
+            "summary": "Get\u0020the\u0020root\u0020RulesetEntity",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_root"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_real_root_name\u0028\u0029",
+            "name": "set_real_root_name",
+            "summary": "Set\u0020the\u0020real\u0020root\u0020name",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_real_root_name"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_real_root_name\u0028\u0029",
+            "name": "get_real_root_name",
+            "summary": "Get\u0020the\u0020real\u0020root\u0020name",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_real_root_name"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_parent\u0028\u0029",
+            "name": "set_parent",
+            "summary": "Set\u0020the\u0020parent\u0020RulesetEntity",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_parent"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aadd_children\u0028\u0029",
+            "name": "add_children",
+            "summary": "Add\u0020a\u0020child\u0020node",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_add_children"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_children\u0028\u0029",
+            "name": "get_children",
+            "summary": "Get\u0020the\u0020children",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_children"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_ruleset_type\u0028\u0029",
+            "name": "set_ruleset_type",
+            "summary": "Set\u0020the\u0020ruleset_type",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_ruleset_type"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_ruleset_type\u0028\u0029",
+            "name": "get_ruleset_type",
+            "summary": "Get\u0020the\u0020ruleset_type",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_ruleset_type"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_name\u0028\u0029",
+            "name": "set_name",
+            "summary": "Set\u0020the\u0020name",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_name"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_name\u0028\u0029",
+            "name": "get_name",
+            "summary": "Get\u0020the\u0020name",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_name"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_path\u0028\u0029",
+            "name": "set_path",
+            "summary": "Set\u0020the\u0020path",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_path"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_path\u0028\u0029",
+            "name": "get_path",
+            "summary": "Get\u0020the\u0020path",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_path"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_value\u0028\u0029",
+            "name": "set_value",
+            "summary": "Set\u0020the\u0020value",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_value"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_value\u0028\u0029",
+            "name": "get_value",
+            "summary": "Get\u0020the\u0020value",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_value"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_value_of_system_symbol\u0028\u0029",
+            "name": "get_value_of_system_symbol",
+            "summary": "Get\u0020the\u0020value\u0020of\u0020the\u0020system_symbol",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_value_of_system_symbol"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_ruleset\u0028\u0029",
+            "name": "set_ruleset",
+            "summary": "Set\u0020the\u0020ruleset",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_ruleset"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_ruleset\u0028\u0029",
+            "name": "get_ruleset",
+            "summary": "Get\u0020the\u0020ruleset",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_ruleset"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_system_symbol\u0028\u0029",
+            "name": "set_system_symbol",
+            "summary": "Set\u0020the\u0020system_symbol",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_system_symbol"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_system_symbol\u0028\u0029",
+            "name": "get_system_symbol",
+            "summary": "Get\u0020the\u0020system_symbol",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_system_symbol"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_symbol_index_array\u0028\u0029",
+            "name": "set_symbol_index_array",
+            "summary": "Set\u0020the\u0020symbol_index_array",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_symbol_index_array"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_symbol_index_array\u0028\u0029",
+            "name": "get_symbol_index_array",
+            "summary": "Get\u0020the\u0020symbol_index_array",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_symbol_index_array"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_error_templates\u0028\u0029",
+            "name": "set_error_templates",
+            "summary": "Set\u0020error_templates",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_error_templates"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_error_templates\u0028\u0029",
+            "name": "get_error_templates",
+            "summary": "Get\u0020error_templates",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_error_templates"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aadd_rule_entity\u0028\u0029",
+            "name": "add_rule_entity",
+            "summary": "Add\u0020a\u0020RuleEntity",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_add_rule_entity"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Areset_rule_entities\u0028\u0029",
+            "name": "reset_rule_entities",
+            "summary": "Reset\u0020the\u0020rule_entities",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_reset_rule_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ahas_rule_entities\u0028\u0029",
+            "name": "has_rule_entities",
+            "summary": "Check\u0020if\u0020the\u0020RSE\u0020has\u0020IRSEs.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_has_rule_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_rule_entities\u0028\u0029",
+            "name": "get_rule_entities",
+            "summary": "Get\u0020all\u0020the\u0020rule\u0020entities",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_rule_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aadd_if_ruleset_entity\u0028\u0029",
+            "name": "add_if_ruleset_entity",
+            "summary": "Add\u0020a\u0020\u0022if\u0020ruleset\u0020entity\u0022\u0028IRSE\u0029",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_add_if_ruleset_entity"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_if_ruleset_entities\u0028\u0029",
+            "name": "get_if_ruleset_entities",
+            "summary": "Get\u0020all\u0020\u0022if\u0020ruleset\u0020entity\u0022\u0028IRSE\u0029",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_if_ruleset_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ahas_if_ruleset_entities\u0028\u0029",
+            "name": "has_if_ruleset_entities",
+            "summary": "Check\u0020if\u0020the\u0020RSE\u0020has\u0020IRSEs.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_has_if_ruleset_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aadd_condition_ruleset_entity\u0028\u0029",
+            "name": "add_condition_ruleset_entity",
+            "summary": "Add\u0020a\u0020\u0022condition\u0020ruleset\u0020entity\u0022\u0028CRSE\u0029",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_add_condition_ruleset_entity"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_condition_ruleset_entities\u0028\u0029",
+            "name": "get_condition_ruleset_entities",
+            "summary": "Get\u0020all\u0020\u0022condition\u0020ruleset\u0020entity\u0022\u0028CRSE\u0029",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_condition_ruleset_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ahas_condition_ruleset_entities\u0028\u0029",
+            "name": "has_condition_ruleset_entities",
+            "summary": "Check\u0020if\u0020the\u0020IRSE\u0020has\u0020CRSE.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_has_condition_ruleset_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ais_condition_ruleset_entity\u0028\u0029",
+            "name": "is_condition_ruleset_entity",
+            "summary": "Check\u0020if\u0020the\u0020RSE\u0020is\u0020a\u0020CRSE.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_is_condition_ruleset_entity"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_operator\u0028\u0029",
+            "name": "set_operator",
+            "summary": "Set\u0020operator\u0020of\u0020a\u0020CRSE",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_operator"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_operator\u0028\u0029",
+            "name": "get_operator",
+            "summary": "Get\u0020operator\u0020of\u0020a\u0020CRSE",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_operator"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ais_met_condition\u0028\u0029",
+            "name": "is_met_condition",
+            "summary": "Check\u0020the\u0020condition\u0020result\u0020is\u0020met\u0020the\u0020expected\u0020result.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_is_met_condition"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aadd_parallel_ruleset_entity\u0028\u0029",
+            "name": "add_parallel_ruleset_entity",
+            "summary": "Add\u0020a\u0020\u0022parallel\u0020ruleset\u0020entity\u0022\u0028PRSE\u0029",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_add_parallel_ruleset_entity"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_parallel_ruleset_entities\u0028\u0029",
+            "name": "get_parallel_ruleset_entities",
+            "summary": "Get\u0020all\u0020\u0022parallel\u0020ruleset\u0020entity\u0022\u0028PRSE\u0029",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_parallel_ruleset_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ahas_parallel_ruleset_entities\u0028\u0029",
+            "name": "has_parallel_ruleset_entities",
+            "summary": "Check\u0020if\u0020the\u0020RSE\u0020has\u0020PRSEs.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_has_parallel_ruleset_entities"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ais_parallel_ruleset_entity\u0028\u0029",
+            "name": "is_parallel_ruleset_entity",
+            "summary": "Check\u0020if\u0020the\u0020RSE\u0020is\u0020a\u0020PRSE.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_is_parallel_ruleset_entity"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ainit_root_index_array_status\u0028\u0029",
+            "name": "init_root_index_array_status",
+            "summary": "Init\u0020index\u0020array\u0020status\u0020of\u0020the\u0020root\u0020node.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_init_root_index_array_status"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ainit_index_array_status\u0028\u0029",
+            "name": "init_index_array_status",
+            "summary": "Init\u0020index\u0020array\u0020status\u0020of\u0020RULESET_TYPE_INDEX_ARRAY\u0020ruleset\u0020entity",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_init_index_array_status"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Agenerate_root_index_array_deep\u0028\u0029",
+            "name": "generate_root_index_array_deep",
+            "summary": "Generate\u0020the\u0020deep\u0020of\u0020index\u0020array\u0020from\u0020the\u0020root\u0020node.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_generate_root_index_array_deep"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_root_index_array_key\u0028\u0029",
+            "name": "set_root_index_array_key",
+            "summary": "Set\u0020the\u0020current\u0020key\u0020of\u0020the\u0020index\u0020array\u0020into\u0020the\u0020root\u0020node.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_root_index_array_key"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aunset_root_index_array_key\u0028\u0029",
+            "name": "unset_root_index_array_key",
+            "summary": "Unset\u0020the\u0020current\u0020key\u0020of\u0020the\u0020index\u0020array\u0020into\u0020the\u0020root\u0020node.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_unset_root_index_array_key"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_root_index_array_key\u0028\u0029",
+            "name": "get_root_index_array_key",
+            "summary": "Get\u0020the\u0020key\u0020of\u0020the\u0020index\u0020array\u0020from\u0020the\u0020root\u0020node.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_root_index_array_key"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Ahas_root_index_array_key\u0028\u0029",
+            "name": "has_root_index_array_key",
+            "summary": "Check\u0020if\u0020the\u0020root\u0020node\u0020has\u0020the\u0020current\u0020key\u0020of\u0020the\u0020index\u0020array.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_has_root_index_array_key"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_index_array_deep\u0028\u0029",
+            "name": "set_index_array_deep",
+            "summary": "Set\u0020the\u0020deep\u0020of\u0020the\u0020index\u0020array\u0020into\u0020the\u0020RULESET_TYPE_INDEX_ARRAY\u0020ruleset\u0020entity",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_index_array_deep"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_index_array_deep\u0028\u0029",
+            "name": "get_index_array_deep",
+            "summary": "Set\u0020the\u0020deep\u0020of\u0020the\u0020index\u0020array\u0020of\u0020the\u0020RULESET_TYPE_INDEX_ARRAY\u0020ruleset\u0020entity",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_index_array_deep"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aset_exception\u0028\u0029",
+            "name": "set_exception",
+            "summary": "Set\u0020the\u0020thrown\u0020exception\u0020when\u0020parsing\u0020ruleset\u0020into\u0020RulesetEntity.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_set_exception"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Aget_exception\u0028\u0029",
+            "name": "get_exception",
+            "summary": "Get\u0020the\u0020thrown\u0020exception\u0020when\u0020parsing\u0020ruleset\u0020into\u0020RulesetEntity.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_get_exception"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003Abefore_validate\u0028\u0029",
+            "name": "before_validate",
+            "summary": "Check\u0020the\u0020ruleset\u0020entity\u0020before\u0020validate\u0020data.",
+            "url": "classes/githusband-Entity-RulesetEntity.html#method_before_validate"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003ARULESET_TYPE_INDEX_ARRAY",
+            "name": "RULESET_TYPE_INDEX_ARRAY",
+            "summary": "The\u0020ruleset\u0020types",
+            "url": "classes/githusband-Entity-RulesetEntity.html#constant_RULESET_TYPE_INDEX_ARRAY"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003ARULESET_TYPE_ASSOC_ARRAY",
+            "name": "RULESET_TYPE_ASSOC_ARRAY",
+            "summary": "",
+            "url": "classes/githusband-Entity-RulesetEntity.html#constant_RULESET_TYPE_ASSOC_ARRAY"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003ARULESET_TYPE_LEAF",
+            "name": "RULESET_TYPE_LEAF",
+            "summary": "",
+            "url": "classes/githusband-Entity-RulesetEntity.html#constant_RULESET_TYPE_LEAF"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003ARULESET_TYPE_LEAF_PARALLEL",
+            "name": "RULESET_TYPE_LEAF_PARALLEL",
+            "summary": "",
+            "url": "classes/githusband-Entity-RulesetEntity.html#constant_RULESET_TYPE_LEAF_PARALLEL"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003ARULESET_TYPE_LEAF_IF",
+            "name": "RULESET_TYPE_LEAF_IF",
+            "summary": "",
+            "url": "classes/githusband-Entity-RulesetEntity.html#constant_RULESET_TYPE_LEAF_IF"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003ARULESET_TYPE_LEAF_CONDITION",
+            "name": "RULESET_TYPE_LEAF_CONDITION",
+            "summary": "",
+            "url": "classes/githusband-Entity-RulesetEntity.html#constant_RULESET_TYPE_LEAF_CONDITION"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RulesetEntity\u003A\u003ARULESET_TYPE_LEAF_CONDITION_SERIAL",
+            "name": "RULESET_TYPE_LEAF_CONDITION_SERIAL",
+            "summary": "",
+            "url": "classes/githusband-Entity-RulesetEntity.html#constant_RULESET_TYPE_LEAF_CONDITION_SERIAL"
+        },                {
             "fqsen": "\\githusband\\Exception\\GhException",
             "name": "GhException",
             "summary": "Injecting\u0020recurrence\u0020details\u0028field,\u0020method\u0020etc\u0029\u0020into\u0020an\u0020exception\nIn\u0020order\u0020to\u0020help\u0020debugging",
@@ -1236,6 +1671,16 @@ Search.appendIndex(
             "summary": "Set\u0020validation\u0020rules",
             "url": "classes/githusband-Validation.html#method_set_rules"
         },                {
+            "fqsen": "\\githusband\\Validation\u003A\u003Aget_rules\u0028\u0029",
+            "name": "get_rules",
+            "summary": "Get\u0020validation\u0020rules",
+            "url": "classes/githusband-Validation.html#method_get_rules"
+        },                {
+            "fqsen": "\\githusband\\Validation\u003A\u003Aget_ruleset_entity\u0028\u0029",
+            "name": "get_ruleset_entity",
+            "summary": "Get\u0020validation\u0020ruleset\u0020entity",
+            "url": "classes/githusband-Validation.html#method_get_ruleset_entity"
+        },                {
             "fqsen": "\\githusband\\Validation\u003A\u003Aset_validation_global\u0028\u0029",
             "name": "set_validation_global",
             "summary": "If\u0020false,\u0020stop\u0020validating\u0020data\u0020immediately\u0020when\u0020a\u0020field\u0020was\u0020invalid.",
@@ -1280,6 +1725,11 @@ Search.appendIndex(
             "name": "validate",
             "summary": "Start\u0020validating",
             "url": "classes/githusband-Validation.html#method_validate"
+        },                {
+            "fqsen": "\\githusband\\Validation\u003A\u003Ainit_recurrence_current\u0028\u0029",
+            "name": "init_recurrence_current",
+            "summary": "Init\u0020the\u0020current\u0020info\u0020of\u0020the\u0020recurrence\u0020validation",
+            "url": "classes/githusband-Validation.html#method_init_recurrence_current"
         },                {
             "fqsen": "\\githusband\\Validation\u003A\u003Aget_recurrence_current\u0028\u0029",
             "name": "get_recurrence_current",
@@ -1406,6 +1856,11 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/githusband-Tests-Demo.html#method_test_readme_case"
         },                {
+            "fqsen": "\\githusband\\Tests\\Demo\u003A\u003Atest_rule_entity\u0028\u0029",
+            "name": "test_rule_entity",
+            "summary": "",
+            "url": "classes/githusband-Tests-Demo.html#method_test_rule_entity"
+        },                {
             "fqsen": "\\githusband\\Tests\\Extend\\MyValidation",
             "name": "MyValidation",
             "summary": "\u62D3\u5C55\u0020Validation\u0020\u7684\u4F8B\u5B50\uFF1A\u589E\u52A0\u9A8C\u8BC1\u65B9\u6CD5\u3002",
@@ -1501,6 +1956,16 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/githusband-Tests-Readme.html#method_test_condition_required_when_not"
         },                {
+            "fqsen": "\\githusband\\Tests\\Readme\u003A\u003Atest_deprecated_condition_if\u0028\u0029",
+            "name": "test_deprecated_condition_if",
+            "summary": "",
+            "url": "classes/githusband-Tests-Readme.html#method_test_deprecated_condition_if"
+        },                {
+            "fqsen": "\\githusband\\Tests\\Readme\u003A\u003Atest_deprecated_condition_if_not\u0028\u0029",
+            "name": "test_deprecated_condition_if_not",
+            "summary": "",
+            "url": "classes/githusband-Tests-Readme.html#method_test_deprecated_condition_if_not"
+        },                {
             "fqsen": "\\githusband\\Tests\\Readme\u003A\u003Atest_condition_if\u0028\u0029",
             "name": "test_condition_if",
             "summary": "",
@@ -1510,6 +1975,11 @@ Search.appendIndex(
             "name": "test_condition_if_not",
             "summary": "",
             "url": "classes/githusband-Tests-Readme.html#method_test_condition_if_not"
+        },                {
+            "fqsen": "\\githusband\\Tests\\Readme\u003A\u003Atest_condition_if_complicated\u0028\u0029",
+            "name": "test_condition_if_complicated",
+            "summary": "",
+            "url": "classes/githusband-Tests-Readme.html#method_test_condition_if_complicated"
         },                {
             "fqsen": "\\githusband\\Tests\\Readme\u003A\u003Atest_infinite_nested_associative_array\u0028\u0029",
             "name": "test_infinite_nested_associative_array",
@@ -1580,6 +2050,11 @@ Search.appendIndex(
             "name": "__construct",
             "summary": "",
             "url": "classes/githusband-Tests-TestCommon.html#method___construct"
+        },                {
+            "fqsen": "\\githusband\\Tests\\TestCommon\u003A\u003Alocate_backtrace\u0028\u0029",
+            "name": "locate_backtrace",
+            "summary": "Locate\u0020backtrace",
+            "url": "classes/githusband-Tests-TestCommon.html#method_locate_backtrace"
         },                {
             "fqsen": "\\githusband\\Tests\\TestCommon\u003A\u003Ahelp\u0028\u0029",
             "name": "help",
@@ -1655,6 +2130,11 @@ Search.appendIndex(
             "name": "\\",
             "summary": "",
             "url": "namespaces/default.html"
+        },                {
+            "fqsen": "\\githusband\\Entity",
+            "name": "Entity",
+            "summary": "",
+            "url": "namespaces/githusband-entity.html"
         },                {
             "fqsen": "\\githusband\\Exception",
             "name": "Exception",
