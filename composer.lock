@@ -2013,16 +2013,16 @@
         },
         {
             "name": "phpdocumentor/phpdocumentor",
-            "version": "v3.5.0",
+            "version": "v3.5.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpDocumentor/phpDocumentor.git",
-                "reference": "1ac9307a9521620dd7538438c78dc578c92fe740"
+                "reference": "10b8a769ab326434b1d450c907dd32b6a85788c1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpDocumentor/phpDocumentor/zipball/1ac9307a9521620dd7538438c78dc578c92fe740",
-                "reference": "1ac9307a9521620dd7538438c78dc578c92fe740",
+                "url": "https://api.github.com/repos/phpDocumentor/phpDocumentor/zipball/10b8a769ab326434b1d450c907dd32b6a85788c1",
+                "reference": "10b8a769ab326434b1d450c907dd32b6a85788c1",
                 "shasum": ""
             },
             "require": {
@@ -2142,9 +2142,9 @@
             ],
             "support": {
                 "issues": "https://github.com/phpDocumentor/phpDocumentor/issues",
-                "source": "https://github.com/phpDocumentor/phpDocumentor/tree/v3.5.0"
+                "source": "https://github.com/phpDocumentor/phpDocumentor/tree/v3.5.3"
             },
-            "time": "2024-05-24T14:10:17+00:00"
+            "time": "2024-07-18T21:03:09+00:00"
         },
         {
             "name": "phpdocumentor/reflection",

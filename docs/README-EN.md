@@ -11,6 +11,12 @@ The generated documentation is located at: `docs/built/api/index.html`. You can 
 ### Install
 
 1. Install phpdocumentor
+
+Install the current version
+```BASH
+composer install --ignore-platform-reqs
+```
+Or install the latest version
 ```BASH
 composer require phpdocumentor/phpdocumentor --dev --ignore-platform-reqs
 ```
@@ -21,8 +27,13 @@ cd vendor/phpdocumentor/phpdocumentor
 composer install
 ```
 
-### Generate
+### Generate documentation
 
+Because of step 2, jump back to the project root directory first
+```BASH
+cd ../../../
+```
+Generate documentation
 ```BASH
 rm -rf docs/built && vendor/bin/phpdoc -c docs/phpdoc.xml
 ```

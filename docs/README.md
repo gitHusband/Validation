@@ -11,6 +11,12 @@
 ### 安装
 
 1. 安装 phpdocumentor
+
+安装当前版本
+```BASH
+composer install --ignore-platform-reqs
+```
+或者安装最新版本
 ```BASH
 composer require phpdocumentor/phpdocumentor --dev --ignore-platform-reqs
 ```
@@ -21,8 +27,13 @@ cd vendor/phpdocumentor/phpdocumentor
 composer install
 ```
 
-### 生成
+### 生成文档
 
+由于步骤 2， 先跳回项目根目录
+```BASH
+cd ../../../
+```
+生成文档
 ```BASH
 rm -rf docs/built && vendor/bin/phpdoc -c docs/phpdoc.xml
 ```
