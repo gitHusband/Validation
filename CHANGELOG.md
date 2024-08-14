@@ -269,3 +269,16 @@ Symbol | Old Method Name | New Method Name | Is Optimized
 - 新增一个方法去拓展验证方法：`add_rule_class`
   或者在拓展类的时候，直接插入到属性 `$this->rule_classes`
 - 优化代码注释
+
+## v2.6.0
+
+### Bugs
+
+- 当字段名中包含系统标志(`.*`等)，设置当前字段路径错误的 bug。
+- 优化验证索引数组的相关代码。
+
+### 功能
+
+- **支持规则实体（RuleEntity）**。解析一次规则到实体类，多次验证不同数据，无需重复解析。
+- **支持标准 IF 结构**。例如: `if ( expr1 ) { statement1 } else if ( expr2 || !expr2 ) { statement2 } else { statement3 }`
+  - 旧的 IF 结构已弃用。例如 `if(expr)|statement1|statement2`。后续将会完全移除该写法的支持。

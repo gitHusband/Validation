@@ -5161,7 +5161,7 @@ trait TestRuledatetime
             ],
             "Valid_B_datetime_1" => [
                 "data" => [
-                    "B_datetime" => date('Y-m-d H:i:s', strtotime('-3 days')),
+                    "B_datetime" => date('Y-m-d H:i:s', strtotime('-3 days') + 1),
                 ]
             ],
             "Valid_B_datetime_2" => [
@@ -5296,7 +5296,7 @@ trait TestRuledatetime
             ],
             "Valid_C_time_1" => [
                 "data" => [
-                    "C_time" => date('H:i:s', strtotime('-1 hour')),
+                    "C_time" => date('H:i:s', strtotime('-1 hour') + 1),
                 ]
             ],
             "Valid_C_time_2" => [

@@ -17,38 +17,88 @@
 
 任意规则或方法都支持 `when` 和 `when_not`
 
-### 优化 ruleDefault 并为其添加单元测试
+### ~~优化 ruleDefault 并为其添加单元测试~~
 1. ~~修复当 is_strict_parameter_type = true 时，`strictly_equal` 和 `not_strictly_equal` 等以及以后可能增加的这种验证严格数据格式的方法，由于两次解析数据格式，导致结果不正确的 bug~~
-2. 修复当 is_strict_parameter_separator = true 并且 is_strict_parameter_type = true 时，`in_number[[1,2]]` 报错的 bug
+2. ~~修复当 is_strict_parameter_separator = true 并且 is_strict_parameter_type = true 时，`in_number[[1,2]]` 报错的 bug~~
 
 
-### 增加真正的 "条件规则"
+### ~~增加真正的 "条件规则"~~(完成)
 
 例如 `"data" => "if(...) {required|int} elseif(...) {required|int} else {optional|/^[a-zA-Z0-9]+$/}"`
 
 ## 优化方法的标志
 希望所有标志能够达到既简洁又明了的效果。明了应该是第一要义。
 
+### ~~优化标志名~~
 比如，`len=`, `arr`, `(n)` 等标志可能过于精简，导致不能够清晰地表达出其含义。
 考虑优化成:
 - `len=` -> `length=`
 - `arr` -> `array`
-- `(n)` -> `(number)[1,2,3]` 或者 `in:number[1,2,3]`
+- `(n)` -> `<number>[1,2,3]`
+- `(s)` -> `<string>[a,b,c]`
 
-**如果要加入更多的方法呢？**
-1. 严格验证数据格式的规则：
-- 等于其中之一，且必须是 int: `(int)` 显然是不够的，因为 `1` 和 `"1"` 都能通过验证。
-  那么 `(int:strict)` 或者 `(int):strict` 或者 `in:int:strict` 或者 `int:strict:in` 或者 `in_int_strict`
+### ~~如何支持旧的标志，又增加新的标志呢？~~
 
-**这将是一个破坏性的更新。**
-如何支持旧的标志，又增加新的标志呢？
+优化方法标志已完成。且支持旧的标志。旧的标志不再建议使用，且在后续版本可能被删除。
+
+### 严格验证数据
+
+- 验证字段值是否是数字且等于某个数组其中之一: 例如 `<number>[1,2,3]`，`1` 和 `"1"` 都能通过验证。那如果要求字符串类型的数字不能通过验证呢？
+  那么怎么设计更好呢？
+  - `<number:strict>[1,2,3]`
+  - `<number>:strict[1,2,3]`
+  - `in:number:strict[1,2,3]`
+  - `number:strict:in[1,2,3]`
+  - `in_number_strict[1,2,3]`
+
+类似的，还有 `>`, `<`, `>=`, `<=`, `><`, `>=<`, `><=`, `>=<=` 等可能需要严格验证数据类型的方法。
+
+## 优化规则实体（RulesetEntity）
+
+### 支持碎片化方式实例化字段实体，再自由组合，实现复用
+```PHP
+// 当前规则写法
+$rule = [
+    "id" => "required|/^\d+$/",
+    "name" => "required|length><=[3,32]",
+    "favorite_animation" => [
+        "name" => "required|length><=[1,64]",
+        "release_date" => "optional|length><=[4,64]",
+    ]
+];
+
+// 优化后可支持的写法
+$id_ruleset_entity = Validation::new_ruleset_entity("required|/^\d+$/");
+$favorite_animation_ruleset_entity = Validation::new_ruleset_entity([
+    "name" => "required|length><=[1,64]",
+    "release_date" => "optional|length><=[4,64]",
+]);
+$rule = [
+    "id" => $id_ruleset_entity,
+    "name" => "required|length><=[3,32]",
+    "favorite_animation" => $favorite_animation_ruleset_entity
+];
+```
+
+### 方法定点
+
+对于一个方法，我们可能需要从多个不同的位置查找方法是否存在，存在则运行对应方法：
+`新增方法` > `新增方法类` > `拓展 Validation 类` > `内置方法` > `全局函数`
+
+对于实体，可以考虑一旦查找到到方法的位置，立即保存到实体中。后续则不再需要重新查找方法所在位置。
+*这需要考虑 `新增方法` 和 `新增方法类` 的情况。即一开始位置在 `内置方法`，但后续 `新增方法` 应该如何应对？*
+
+## 正则
+
+### 多个正则的错误信息模板
+
+我们已然支持在一个规则集中同时使用多个正则表达式，但只支持自定义相同的错误模板。
+希望不同正则可以支持不同的错误信息模板。
 
 ## 修复方法
 
 ### 方法 `dob`
 ### 方法 `file_base64` 返回不同的错误。当格式正确但尺寸不符合的时候
-
-
 
 ## 增加更多的验证方法
 

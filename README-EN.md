@@ -37,11 +37,12 @@ Table of contents
       * [4.5 Series And Parallel Rules](#45-series-and-parallel-rules)
       * [4.6 Conditional Rules](#46-conditional-rules)
          * [The When Conditional Rules](#the-when-conditional-rules)
-         * [Standard Conditional Rules](#standard-conditional-rules)
+         * [IF Rules](#if-rules)
       * [4.7 Infinitely Nested Data Structures](#47-infinitely-nested-data-structures)
       * [4.8 Optional Field](#48-optional-field)
       * [4.9 Special Validation Rules](#49-special-validation-rules)
       * [4.10 Customized Configuration](#410-customized-configuration)
+         * [Enable Entity (emphasis)](#enable-entity-emphasis)
       * [4.11 Internationalization](#411-internationalization)
       * [4.12 Validate Whole Data](#412-validate-whole-data)
       * [4.13 Error Message Template](#413-error-message-template)
@@ -553,40 +554,63 @@ $rule = [
 ];
 ```
 
-#### Standard Conditional Rules
+#### IF Rules
 
-The usage of standard conditional rules is similar to PHP syntax, `if()` and `!if()`
+The usage of if rules is similar to PHP `if structure` syntax, for example:
+- `if ( expr ) { statement }`
+- `if ( !expr ) { statement }`
+- `if ( expr1 || !expr2 ) { statement1 } else { statement2 }`
 
-- **Positive standard conditional rule**: `if()`
+**Supported logical operators:**
+- `!`: Logical Operator Not.
+  - The condition does not contain `!`: It means that when the condition result is strictly the same as the Boolean value `true` (`===`), the condition is true.
+  - The condition contains `!`: It means that when the condition result is not strictly the same as the Boolean value `true` (`!==`), the condition is true.
+- `||`：Logical Operator Or. It just means that if one of the conditions is true, the conditions is true.
 
-1. If the condition is met, continue to validate subsequent methods
-2. If the condition is not met, don't continue to validate subsequent methods
+**The validation logic is:**
+1. If the conditions is true, continue to validate subsequent methods
+2. If the conditions is not true, don't continue to validate subsequent methods
 
+**Example 1:**
 ```PHP
 $rule = [
     // The attribute must not be empty, and it must be "height" or "weight"
     "attribute" => "required|<string>[height,weight]",
     // If the attribute is height, then the centimeter must not be empty and must be greater than 180
     // If the attribute is not height，then the subsequent rules will not be validated, that is, the centimeter can be any value.
-    "centimeter" => "if(=(@attribute,height))|required|>[180]",
+    "centimeter" => "if(=(@attribute,height)){required|>[180]}",
 ];
 ```
-- **Negative standard conditional rule**: `!if()`
 
-1. If the condition is not met, continue to validate subsequent methods
-2. If the condition is met, don't continue to validate subsequent methods
-
+**Example 2:**
 ```PHP
 $rule = [
     // The attribute must not be empty, and it must be "height" or "weight"
     "attribute" => "required|<string>[height,weight]",
     // If the attribute is not weight, then the centimeter must not be empty and must be greater than 180
     // If the attribute is weight，then the subsequent rules will not be validated, that is, the centimeter can be any value.
-    "centimeter" => "!if(=(@attribute,weight))|required|>[180]",
+    "centimeter" => "if ( !=(@attribute,weight) ) { required|>[180] }",
 ];
 ```
 
-Apologize, *Standard Conditional Rules does not currently support `else` and `else if`, it will be supported in subsequent versions.*
+**Example 3：**
+```PHP
+$rule = [
+    "id" => "required|><[0,1000]",
+    "name" => "if (!<=(@id,49)|<=(@id,51)) {
+        if (!!=(@id,50)) {
+            required|string|/^\d{1}[A-Z\)\(]*$/
+        } else {
+            required|string|/^\d{2}[A-Z\)\(]*$/
+        }
+    } else if (!(!=(@id,52)) || =(@id,53)) {
+        required|string|/^\d{3}[A-Z\)\(]*$/
+    } else {
+        optional|string|/^if-\d+[A-Z\)\(]*$/
+    }"
+];
+```
+For example 3, it should be noted that we only support one logical not `!`. The `!!=(@id,50)`, which is actually two parts, the logical not `!` and the method `not_equal` symbol `!=`. For the symbol, see [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
 
 ### 4.7 Infinitely Nested Data Structures
 
@@ -729,14 +753,16 @@ The configurations that support customization include:
 $config = [
     'language' => 'en-us',                                      // Language, Default en-us
     'lang_path' => '',                                          // Customer Language file path
+    'enable_entity' => false,                                   // Pre-parse ruleset into ruleset entity to reuse the ruleset without re-parse
     'validation_global' => true,                                // 1. true - validate all rules even though previous rule had been failed; 2. false - stop validating when any rule is failed
     'auto_field' => "data",                                     // If root data is string or numberic array, add the auto_field as the root data field name
-    'reg_msg' => '/ >> (.*)$/',                                 // Set the error message format for all the methods after a rule string
+    'reg_msg' => '/ >> (.*)$/sm',                               // Set the error message format for all the methods after a rule string
     'reg_preg' => '/^(\/.+\/.*)$/',                             // If a rule match reg_preg, indicates it's a regular expression instead of method
     'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if a regular expression is valid
-    'reg_ifs' => '/^!?if\((.*)\)/',                             // A regular expression to match both reg_if and reg_if_not
-    'reg_if' => '/^if\((.*)\)/',                                // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-    'reg_if_not' => '/^!if\((.*)\)/',                           // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+    'symbol_if' => 'if',                                        // The start of IF construct. e.g. `if ( expr ) { statement }`
+    'symbol_else' => 'else',                                    // The else part of IF construct. e.g. `else { statement }`. Then the elseif part is `else if ( expr ) { statement }`
+    'symbol_logical_operator_not' => '!',                       // The logical operator not. e.g. `if ( !expr ) { statement }`
+    'symbol_logical_operator_or' => '||',                       // The logical operator or. e.g. `if ( expr || expr ) { statement }`
     'symbol_rule_separator' => '|',                             // Serial rules seqarator to split a rule into multiple methods
     'symbol_parallel_rule' => '[||]',                           // Symbol of the parallel rule, Same as "[or]"
     'symbol_method_standard' => '/^([^\\(]*)\\((.*)\\)$/',      // Standard method format, e.g. equal(@this,1)
@@ -789,6 +815,16 @@ $rule = [
 ];
 ```
 Has it become more beautiful? <span>&#128525;</span> <strong style="font-size: 20px">Come and try it!</strong>
+
+#### Enable Entity (emphasis)
+
+As you can see, the rulesets are written in strings. Every time we validate the data, we need to parse the ruleset into individual rules, then parse the rules into methods and their parameters, and finally validate the corresponding data.
+For php-fpm requests, each request will start a process. Generally, only one data needs to be validated. The process will be destroyed after the request is completed, so enable the entity will waste performance.
+But for services that reside in the background, such as [swoole](https://wiki.swoole.com/zh-cn/#/), you can enable entity configuration, parse the ruleset into entity classes to avoid the issue of repeated parsing.
+
+-`enable_entity`: Default `false`.
+
+Enabling entity does not affect the process of validating data in any way. If you are interested in the entity structure, please see [here](ENTITY.md).
 
 ### 4.11 Internationalization
 

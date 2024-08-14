@@ -80,12 +80,13 @@ class Unit extends TestCommon
 
     private $_symbol_me = "@this";
 
-    public function __construct()
+    public function __construct($enable_entity = false)
     {
         parent::__construct();
 
         $validation_conf = [
             "validation_global" => false,
+            'enable_entity' => $enable_entity,
         ];
         $this->validation = new Validation($validation_conf);
     }
@@ -261,8 +262,9 @@ class Unit extends TestCommon
      */
     protected function validate_cases($rule, $cases, $extra)
     {
+        /** @var Validation */
         $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
-        $validation->set_rules($rule);
+        $validation->set_rules($rule, $extra['method_name'], true);
 
         $stop_if_failed = true;
         $result = true;
@@ -839,7 +841,13 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_if_rule()
+    /**
+     * Don't use this format of if rule anymore.
+     * 
+     * @deprecated v2.6.0 Use static::test_if_rule() instead.
+     * @return array
+     */
+    protected function test_if_rule_deprecated()
     {
         $rule = [
             "id" => "required|><[0,10]",
@@ -907,6 +915,1188 @@ class Unit extends TestCommon
         $extra = [
             "method_name" => __METHOD__,
             "field_path" => "name",
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_if_rule()
+    {
+        $rule = [
+            "id" => "required|><[0,1000]",
+            "name_if1_t1" => "if(=(@id,10)){required|string|/^\d+[A-Z\)\(]*$/}",
+            "name_if1_t2" => "if (=(@id,20)) { required|string|/^\d+[A-Z\)\(]*$/ }",
+            "name_if1_t3" => "if (=(@id,30)) {
+                required|string|/^\d+[A-Z\)\(]*$/
+            }",
+            "name_if1_t4" => "if (=(@id,40)) {
+                required|string|/^\d[A-Z\)\(]*$/
+            } else if (>=(@id,41)|<=(@id,43)) {
+                required|string|/^\d{2}[A-Z\)\(]*$/
+            } else if (=(@id,44) || =(@id,45)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if1_t4-\d+[A-Z\)\(]*$/
+            }",
+            "name_if1_t5" => "if (>(@id,49)|<=(@id,51)) {
+                if (=(@id,50)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (=(@id,52) || =(@id,53)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if1_t5-\d+[A-Z\)\(]*$/
+            }",
+            "name_if1_t6" => "if (>(@id,59)|<=(@id,61)) {
+                if (=(@id,60)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (=(@id,62) || =(@id,63)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if1_t6-\d+[A-Z\)\(]*$/
+            } >> @this customized error message",
+            "name_if1_t7" => 'if (>(@id,69)|<=(@id,71)) {
+                if (=(@id,70)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (=(@id,72) || =(@id,73)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if1_t7-\d+[A-Z\)\(]*$/
+            } >> {
+                "required": "@this customized error message for required",
+                "string": "@this customized error message for string",
+                "preg": "@this customized error message for regular expression @preg"
+            }',
+        ];
+
+        $cases = [
+            "Valid_data_if1_t1_1" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if1_t1" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t1_2" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if1_t1" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t1_1" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if1_t1" => false
+                ],
+                "expected_msg" => ["name_if1_t1" => "name_if1_t1 must be string"]
+            ],
+            "Invalid_data_if1_t1_2" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if1_t1" => "123abc"
+                ],
+                "expected_msg" => ["name_if1_t1" => "name_if1_t1 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t2_1" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if1_t2" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t2_2" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if1_t2" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t2_1" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if1_t2" => false
+                ],
+                "expected_msg" => ["name_if1_t2" => "name_if1_t2 must be string"]
+            ],
+            "Invalid_data_if1_t2_2" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if1_t2" => "123abc"
+                ],
+                "expected_msg" => ["name_if1_t2" => "name_if1_t2 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t3_1" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if1_t3" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t3_2" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if1_t3" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t3_1" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if1_t3" => false
+                ],
+                "expected_msg" => ["name_if1_t3" => "name_if1_t3 must be string"]
+            ],
+            "Invalid_data_if1_t3_2" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if1_t3" => "123abc"
+                ],
+                "expected_msg" => ["name_if1_t3" => "name_if1_t3 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t4_c1_1" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if1_t4" => "1ABC",
+                ]
+            ],
+            "Valid_data_if1_t4_c1_2" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if1_t4" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t4_c1_1" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if1_t4" => false
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 must be string"]
+            ],
+            "Invalid_data_if1_t4_c1_2" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if1_t4" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 format is invalid, should be /^\\d[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t4_c2_1" => [
+                "data" => [
+                    "id" => 41,
+                    "name_if1_t4" => "12ABC",
+                ]
+            ],
+            "Valid_data_if1_t4_c2_2" => [
+                "data" => [
+                    "id" => 42,
+                    "name_if1_t4" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t4_c2_1" => [
+                "data" => [
+                    "id" => 43,
+                    "name_if1_t4" => false
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 must be string"]
+            ],
+            "Invalid_data_if1_t4_c2_2" => [
+                "data" => [
+                    "id" => 43,
+                    "name_if1_t4" => "12abc"
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 format is invalid, should be /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t4_c3_1" => [
+                "data" => [
+                    "id" => 44,
+                    "name_if1_t4" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t4_c3_2" => [
+                "data" => [
+                    "id" => 45,
+                    "name_if1_t4" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t4_c3_1" => [
+                "data" => [
+                    "id" => 44,
+                    "name_if1_t4" => false
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 must be string"]
+            ],
+            "Invalid_data_if1_t4_c3_2" => [
+                "data" => [
+                    "id" => 45,
+                    "name_if1_t4" => "123abc"
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 format is invalid, should be /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t4_c4_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if1_t4" => "",
+                ]
+            ],
+            "Valid_data_if1_t4_c4_2" => [
+                "data" => [
+                    "id" => 46,
+                    "name_if1_t4" => "if1_t4-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t4_c4_1" => [
+                "data" => [
+                    "id" => 47,
+                    "name_if1_t4" => false
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 must be string"]
+            ],
+            "Invalid_data_if1_t4_c4_2" => [
+                "data" => [
+                    "id" => 48,
+                    "name_if1_t4" => "t4-123abc"
+                ],
+                "expected_msg" => ["name_if1_t4" => "name_if1_t4 format is invalid, should be /^if1_t4-\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t5_c1-1_1" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if1_t5" => "1ABC",
+                ]
+            ],
+            "Valid_data_if1_t5_c1-1_2" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if1_t5" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t5_c1-1_1" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if1_t5" => false
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 must be string"]
+            ],
+            "Invalid_data_if1_t5_c1-1_2" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if1_t5" => "12abc"
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 format is invalid, should be /^\\d{1}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t5_c1-2_1" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if1_t5" => "12ABC",
+                ]
+            ],
+            "Valid_data_if1_t5_c1-2_2" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if1_t5" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t5_c1-2_1" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if1_t5" => false
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 must be string"]
+            ],
+            "Invalid_data_if1_t5_c1-2_2" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if1_t5" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 format is invalid, should be /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t5_c2_1" => [
+                "data" => [
+                    "id" => 52,
+                    "name_if1_t5" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t5_c2_2" => [
+                "data" => [
+                    "id" => 53,
+                    "name_if1_t5" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t5_c2_1" => [
+                "data" => [
+                    "id" => 52,
+                    "name_if1_t5" => false
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 must be string"]
+            ],
+            "Invalid_data_if1_t5_c2_2" => [
+                "data" => [
+                    "id" => 53,
+                    "name_if1_t5" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 format is invalid, should be /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t5_c3_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if1_t5" => "if1_t5-123ABC",
+                ]
+            ],
+            "Valid_data_if1_t5_c3_2" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if1_t5" => "if1_t5-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t5_c3_1" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if1_t5" => false
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 must be string"]
+            ],
+            "Invalid_data_if1_t5_c3_2" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if1_t5" => "if_t5-123ABC"
+                ],
+                "expected_msg" => ["name_if1_t5" => "name_if1_t5 format is invalid, should be /^if1_t5-\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t6_c1-1_1" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if1_t6" => "1ABC",
+                ]
+            ],
+            "Valid_data_if1_t6_c1-1_2" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if1_t6" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t6_c1-1_1" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if1_t6" => false
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            "Invalid_data_if1_t6_c1-1_2" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if1_t6" => "12abc"
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t6_c1-2_1" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if1_t6" => "12ABC",
+                ]
+            ],
+            "Valid_data_if1_t6_c1-2_2" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if1_t6" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t6_c1-2_1" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if1_t6" => false
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            "Invalid_data_if1_t6_c1-2_2" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if1_t6" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t6_c2_1" => [
+                "data" => [
+                    "id" => 62,
+                    "name_if1_t6" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t6_c2_2" => [
+                "data" => [
+                    "id" => 63,
+                    "name_if1_t6" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t6_c2_1" => [
+                "data" => [
+                    "id" => 62,
+                    "name_if1_t6" => false
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            "Invalid_data_if1_t6_c2_2" => [
+                "data" => [
+                    "id" => 63,
+                    "name_if1_t6" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t6_c3_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if1_t6" => "if1_t6-123ABC",
+                ]
+            ],
+            "Valid_data_if1_t6_c3_2" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if1_t6" => "if1_t6-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t6_c3_1" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if1_t6" => false
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            "Invalid_data_if1_t6_c3_2" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if1_t6" => "if_t6-123ABC"
+                ],
+                "expected_msg" => ["name_if1_t6" => "name_if1_t6 customized error message"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if1_t7_c1-1_1" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => "1ABC",
+                ]
+            ],
+            "Valid_data_if1_t7_c1-1_2" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t7_c1-1_1" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => false
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for string"]
+            ],
+            "Invalid_data_if1_t7_c1-1_2" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => "12abc"
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for regular expression /^\\d{1}[A-Z\\)\\(]*$/"]
+            ],
+            "Invalid_data_if1_t7_c1-1_3" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if1_t7" => ""
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for required"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t7_c1-2_1" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if1_t7" => "12ABC",
+                ]
+            ],
+            "Valid_data_if1_t7_c1-2_2" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if1_t7" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t7_c1-2_1" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if1_t7" => false
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for string"]
+            ],
+            "Invalid_data_if1_t7_c1-2_2" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if1_t7" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for regular expression /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t7_c2_1" => [
+                "data" => [
+                    "id" => 72,
+                    "name_if1_t7" => "123ABC",
+                ]
+            ],
+            "Valid_data_if1_t7_c2_2" => [
+                "data" => [
+                    "id" => 73,
+                    "name_if1_t7" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t7_c2_1" => [
+                "data" => [
+                    "id" => 72,
+                    "name_if1_t7" => false
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for string"]
+            ],
+            "Invalid_data_if1_t7_c2_2" => [
+                "data" => [
+                    "id" => 73,
+                    "name_if1_t7" => "1abc"
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for regular expression /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if1_t7_c3_1" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if1_t7" => "if1_t7-123ABC",
+                ]
+            ],
+            "Valid_data_if1_t7_c3_2" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if1_t7" => "if1_t7-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if1_t7_c3_1" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if1_t7" => false
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for string"]
+            ],
+            "Invalid_data_if1_t7_c3_2" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if1_t7" => "if_t7-123ABC"
+                ],
+                "expected_msg" => ["name_if1_t7" => "name_if1_t7 customized error message for regular expression /^if1_t7-\\d+[A-Z\\)\\(]*$/"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_if_rule_with_operator_not()
+    {
+        $rule = [
+            "id" => "required|><[0,1000]",
+            "name_if0_t1" => "if(!>(@id,10)){required|string|/^\d+[A-Z\)\(]*$/}",
+            "name_if0_t2" => "if (!<=(@id,10)|!>(@id,20)) { required|string|/^\d+[A-Z\)\(]*$/ }",
+            "name_if0_t3" => "if (
+                !(<=(@id,20)) | !>(@id,30)
+            ) {
+                required|string|/^\d+[A-Z\)\(]*$/
+            }",
+            "name_if0_t4" => "if (! !=(@id,40)) {
+                required|string|/^\d[A-Z\)\(]*$/
+            } else if (!<(@id,41)|!>(@id,43)) {
+                required|string|/^\d{2}[A-Z\)\(]*$/
+            } else if (!!=(@id,44) || ! !=(@id,45)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if0_t4-\d+[A-Z\)\(]*$/
+            }",
+            "name_if0_t5" => "if (!<=(@id,49)|<=(@id,51)) {
+                if (!!=(@id,50)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (!!=(@id,52) || !!=(@id,53)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if0_t5-\d+[A-Z\)\(]*$/
+            }",
+            "name_if0_t6" => "if (!<=(@id,59)|!>(@id,61)) {
+                if (!!=(@id,60)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (! !=(@id,62) || !!=(@id,63)) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if0_t6-\d+[A-Z\)\(]*$/
+            } >> @this customized error message",
+            "name_if0_t7" => 'if (!<=(@id,69)|!>(@id,71)) {
+                if (!!=(@id,70)) {
+                    required|string|/^\d{1}[A-Z\)\(]*$/
+                } else {
+                    required|string|/^\d{2}[A-Z\)\(]*$/
+                }
+            } else if (!(!=(@id,72) | !=(@id,73))) {
+                required|string|/^\d{3}[A-Z\)\(]*$/
+            } else {
+                optional|string|/^if0_t7-\d+[A-Z\)\(]*$/
+            } >> {
+                "required": "@this customized error message for required",
+                "string": "@this customized error message for string",
+                "preg": "@this customized error message for regular expression @preg"
+            }',
+        ];
+
+        $cases = [
+            "Valid_data_if0_t1_1" => [
+                "data" => [
+                    "id" => 10,
+                    "name_if0_t1" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t1_2" => [
+                "data" => [
+                    "id" => 9,
+                    "name_if0_t1" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t1_1" => [
+                "data" => [
+                    "id" => 8,
+                    "name_if0_t1" => false
+                ],
+                "expected_msg" => ["name_if0_t1" => "name_if0_t1 must be string"]
+            ],
+            "Invalid_data_if0_t1_2" => [
+                "data" => [
+                    "id" => 1,
+                    "name_if0_t1" => "123abc"
+                ],
+                "expected_msg" => ["name_if0_t1" => "name_if0_t1 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t2_1" => [
+                "data" => [
+                    "id" => 20,
+                    "name_if0_t2" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t2_2" => [
+                "data" => [
+                    "id" => 19,
+                    "name_if0_t2" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t2_1" => [
+                "data" => [
+                    "id" => 18,
+                    "name_if0_t2" => false
+                ],
+                "expected_msg" => ["name_if0_t2" => "name_if0_t2 must be string"]
+            ],
+            "Invalid_data_if0_t2_2" => [
+                "data" => [
+                    "id" => 11,
+                    "name_if0_t2" => "123abc"
+                ],
+                "expected_msg" => ["name_if0_t2" => "name_if0_t2 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t3_1" => [
+                "data" => [
+                    "id" => 30,
+                    "name_if0_t3" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t3_2" => [
+                "data" => [
+                    "id" => 29,
+                    "name_if0_t3" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t3_1" => [
+                "data" => [
+                    "id" => 28,
+                    "name_if0_t3" => false
+                ],
+                "expected_msg" => ["name_if0_t3" => "name_if0_t3 must be string"]
+            ],
+            "Invalid_data_if0_t3_2" => [
+                "data" => [
+                    "id" => 21,
+                    "name_if0_t3" => "123abc"
+                ],
+                "expected_msg" => ["name_if0_t3" => "name_if0_t3 format is invalid, should be /^\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t4_c1_1" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if0_t4" => "1ABC",
+                ]
+            ],
+            "Valid_data_if0_t4_c1_2" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if0_t4" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t4_c1_1" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if0_t4" => false
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 must be string"]
+            ],
+            "Invalid_data_if0_t4_c1_2" => [
+                "data" => [
+                    "id" => 40,
+                    "name_if0_t4" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 format is invalid, should be /^\\d[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t4_c2_1" => [
+                "data" => [
+                    "id" => 41,
+                    "name_if0_t4" => "12ABC",
+                ]
+            ],
+            "Valid_data_if0_t4_c2_2" => [
+                "data" => [
+                    "id" => 42,
+                    "name_if0_t4" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t4_c2_1" => [
+                "data" => [
+                    "id" => 43,
+                    "name_if0_t4" => false
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 must be string"]
+            ],
+            "Invalid_data_if0_t4_c2_2" => [
+                "data" => [
+                    "id" => 43,
+                    "name_if0_t4" => "12abc"
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 format is invalid, should be /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t4_c3_1" => [
+                "data" => [
+                    "id" => 44,
+                    "name_if0_t4" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t4_c3_2" => [
+                "data" => [
+                    "id" => 45,
+                    "name_if0_t4" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t4_c3_1" => [
+                "data" => [
+                    "id" => 44,
+                    "name_if0_t4" => false
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 must be string"]
+            ],
+            "Invalid_data_if0_t4_c3_2" => [
+                "data" => [
+                    "id" => 45,
+                    "name_if0_t4" => "123abc"
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 format is invalid, should be /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t4_c4_1" => [
+                "data" => [
+                    "id" => 999,
+                    "name_if0_t4" => "",
+                ]
+            ],
+            "Valid_data_if0_t4_c4_2" => [
+                "data" => [
+                    "id" => 46,
+                    "name_if0_t4" => "if0_t4-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t4_c4_1" => [
+                "data" => [
+                    "id" => 47,
+                    "name_if0_t4" => false
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 must be string"]
+            ],
+            "Invalid_data_if0_t4_c4_2" => [
+                "data" => [
+                    "id" => 48,
+                    "name_if0_t4" => "t4-123abc"
+                ],
+                "expected_msg" => ["name_if0_t4" => "name_if0_t4 format is invalid, should be /^if0_t4-\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t5_c1-1_1" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if0_t5" => "1ABC",
+                ]
+            ],
+            "Valid_data_if0_t5_c1-1_2" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if0_t5" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t5_c1-1_1" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if0_t5" => false
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 must be string"]
+            ],
+            "Invalid_data_if0_t5_c1-1_2" => [
+                "data" => [
+                    "id" => 50,
+                    "name_if0_t5" => "12abc"
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 format is invalid, should be /^\\d{1}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t5_c1-2_1" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if0_t5" => "12ABC",
+                ]
+            ],
+            "Valid_data_if0_t5_c1-2_2" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if0_t5" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t5_c1-2_1" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if0_t5" => false
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 must be string"]
+            ],
+            "Invalid_data_if0_t5_c1-2_2" => [
+                "data" => [
+                    "id" => 51,
+                    "name_if0_t5" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 format is invalid, should be /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t5_c2_1" => [
+                "data" => [
+                    "id" => 52,
+                    "name_if0_t5" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t5_c2_2" => [
+                "data" => [
+                    "id" => 53,
+                    "name_if0_t5" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t5_c2_1" => [
+                "data" => [
+                    "id" => 52,
+                    "name_if0_t5" => false
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 must be string"]
+            ],
+            "Invalid_data_if0_t5_c2_2" => [
+                "data" => [
+                    "id" => 53,
+                    "name_if0_t5" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 format is invalid, should be /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t5_c3_1" => [
+                "data" => [
+                    "id" => 999,
+                    "name_if0_t5" => "if0_t5-123ABC",
+                ]
+            ],
+            "Valid_data_if0_t5_c3_2" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if0_t5" => "if0_t5-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t5_c3_1" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if0_t5" => false
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 must be string"]
+            ],
+            "Invalid_data_if0_t5_c3_2" => [
+                "data" => [
+                    "id" => 54,
+                    "name_if0_t5" => "if_t5-123ABC"
+                ],
+                "expected_msg" => ["name_if0_t5" => "name_if0_t5 format is invalid, should be /^if0_t5-\\d+[A-Z\\)\\(]*$/"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t6_c1-1_1" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if0_t6" => "1ABC",
+                ]
+            ],
+            "Valid_data_if0_t6_c1-1_2" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if0_t6" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t6_c1-1_1" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if0_t6" => false
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            "Invalid_data_if0_t6_c1-1_2" => [
+                "data" => [
+                    "id" => 60,
+                    "name_if0_t6" => "12abc"
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t6_c1-2_1" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if0_t6" => "12ABC",
+                ]
+            ],
+            "Valid_data_if0_t6_c1-2_2" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if0_t6" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t6_c1-2_1" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if0_t6" => false
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            "Invalid_data_if0_t6_c1-2_2" => [
+                "data" => [
+                    "id" => 61,
+                    "name_if0_t6" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t6_c2_1" => [
+                "data" => [
+                    "id" => 62,
+                    "name_if0_t6" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t6_c2_2" => [
+                "data" => [
+                    "id" => 63,
+                    "name_if0_t6" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t6_c2_1" => [
+                "data" => [
+                    "id" => 62,
+                    "name_if0_t6" => false
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            "Invalid_data_if0_t6_c2_2" => [
+                "data" => [
+                    "id" => 63,
+                    "name_if0_t6" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t6_c3_1" => [
+                "data" => [
+                    "id" => 999,
+                    "name_if0_t6" => "if0_t6-123ABC",
+                ]
+            ],
+            "Valid_data_if0_t6_c3_2" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if0_t6" => "if0_t6-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t6_c3_1" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if0_t6" => false
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            "Invalid_data_if0_t6_c3_2" => [
+                "data" => [
+                    "id" => 64,
+                    "name_if0_t6" => "if_t6-123ABC"
+                ],
+                "expected_msg" => ["name_if0_t6" => "name_if0_t6 customized error message"]
+            ],
+            // --------------------------------------------------  //
+            "Valid_data_if0_t7_c1-1_1" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => "1ABC",
+                ]
+            ],
+            "Valid_data_if0_t7_c1-1_2" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => "1(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t7_c1-1_1" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => false
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for string"]
+            ],
+            "Invalid_data_if0_t7_c1-1_2" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => "12abc"
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for regular expression /^\\d{1}[A-Z\\)\\(]*$/"]
+            ],
+            "Invalid_data_if0_t7_c1-1_3" => [
+                "data" => [
+                    "id" => 70,
+                    "name_if0_t7" => ""
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for required"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t7_c1-2_1" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if0_t7" => "12ABC",
+                ]
+            ],
+            "Valid_data_if0_t7_c1-2_2" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if0_t7" => "12(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t7_c1-2_1" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if0_t7" => false
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for string"]
+            ],
+            "Invalid_data_if0_t7_c1-2_2" => [
+                "data" => [
+                    "id" => 71,
+                    "name_if0_t7" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for regular expression /^\\d{2}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t7_c2_1" => [
+                "data" => [
+                    "id" => 72,
+                    "name_if0_t7" => "123ABC",
+                ]
+            ],
+            "Valid_data_if0_t7_c2_2" => [
+                "data" => [
+                    "id" => 73,
+                    "name_if0_t7" => "123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t7_c2_1" => [
+                "data" => [
+                    "id" => 72,
+                    "name_if0_t7" => false
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for string"]
+            ],
+            "Invalid_data_if0_t7_c2_2" => [
+                "data" => [
+                    "id" => 73,
+                    "name_if0_t7" => "1abc"
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for regular expression /^\\d{3}[A-Z\\)\\(]*$/"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Valid_data_if0_t7_c3_1" => [
+                "data" => [
+                    "id" => 999,
+                    "name_if0_t7" => "if0_t7-123ABC",
+                ]
+            ],
+            "Valid_data_if0_t7_c3_2" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if0_t7" => "if0_t7-123(ABC)",
+                ]
+            ],
+            "Invalid_data_if0_t7_c3_1" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if0_t7" => false
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for string"]
+            ],
+            "Invalid_data_if0_t7_c3_2" => [
+                "data" => [
+                    "id" => 74,
+                    "name_if0_t7" => "if_t7-123ABC"
+                ],
+                "expected_msg" => ["name_if0_t7" => "name_if0_t7 customized error message for regular expression /^if0_t7-\\d+[A-Z\\)\\(]*$/"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
         ];
 
         return $method_info = [
@@ -2336,6 +3526,185 @@ class Unit extends TestCommon
         ];
     }
 
+    protected function test_index_array_or()
+    {
+        $rule = [
+            "*" => [
+                "[or]" => [
+                    "required|bool",
+                    "required|bool_string",
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    true,
+                    false,
+                    "true",
+                    "false",
+                ]
+            ],
+            "Invalid_data_0" => [
+                "data" => [
+                    0
+                ],
+                "expected_msg" => ["data.0" => "data.0 must be boolean or data.0 must be boolean string"]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    true,
+                    false,
+                    1
+                ],
+                "expected_msg" => ["data.2" => "data.2 must be boolean or data.2 must be boolean string"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    true,
+                    false,
+                    1,
+                    "falSE"
+                ],
+                "expected_msg" => ["data.2" => "data.2 must be boolean or data.2 must be boolean string"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_2_index_array()
+    {
+        $rule = [
+            "*" => [
+                "*" => [
+                    "id" => "required|int",
+                    "name" => "required|string",
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Valid_data" => [
+                "data" => [
+                    [
+                        [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ]
+                    ]
+                ]
+            ],
+            "Invalid_data_0" => [
+                "data" => [
+                    "data" => [
+                        [
+                            [
+                                "id" => 1,
+                                "name" => "Devin",
+                            ]
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data" => "data must be a numeric array"]
+            ],
+            "Invalid_data_1" => [
+                "data" => [
+                    [
+                        "1" => [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data.0" => "data.0 must be a numeric array"]
+            ],
+            "Invalid_data_2" => [
+                "data" => [
+                    [
+                        [
+                            "id" => "",
+                            "name" => "Devin",
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data.0.0.id" => "data.0.0.id can not be empty"]
+            ],
+            "Invalid_data_3" => [
+                "data" => [
+                    [
+                        [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ],
+                        [
+                            "id" => 2,
+                            "name" => "",
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data.0.1.name" => "data.0.1.name can not be empty"]
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    [
+                        [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ],
+                    ],
+                    [
+                        [
+                            "id" => null,
+                            "name" => "Devin",
+                        ]
+                    ]
+                ],
+                "expected_msg" => ["data.1.0.id" => "data.1.0.id can not be empty"]
+            ],
+            "Invalid_data_4" => [
+                "data" => [
+                    [
+                        [
+                            "id" => 1,
+                            "name" => "Devin",
+                        ],
+                    ],
+                    [
+                        [
+                            "id" => 11,
+                            "name" => "Devin",
+                        ],
+                        [
+                            "id" => 12,
+                            "name" => "",
+                        ],
+                    ]
+                ],
+                "expected_msg" => ["data.1.1.name" => "data.1.1.name can not be empty"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_root_data_rule_1()
     {
         $rule = "required|string";
@@ -3164,16 +4533,374 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_exception_parameter()
+    protected function test_exception_ruleset_if_1()
+    {
+        $rule = [
+            "id" => "if (int)",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if (int) - Invalid Ruleset: Missing statement ruleset of if construct'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_2()
+    {
+        $rule = [
+            "id" => "if ( expr ) then: >[100]",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) then: >[100] - Invalid Ruleset: Missing left curly bracket'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_3()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } a",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } a - Invalid Ruleset: Extra ending of IF ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_4()
+    {
+        $rule = [
+            "id" => "if (( expr ) { statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if (( expr ) { statement } - Invalid Ruleset: Unclosed left bracket "("'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_5()
+    {
+        $rule = [
+            "id" => "if ( expr ) {{ statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) {{ statement } - Invalid Ruleset: Unclosed left curly bracket "{"'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_7()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else ( expr ) { statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else ( expr ) { statement } - Invalid Ruleset: Invalid ELSE ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_8()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else if  expr ) { statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else if  expr ) { statement } - Invalid Ruleset: Invalid ELSEIF ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_9()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else if (( expr ) { statement }",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else if (( expr ) { statement } - Invalid Ruleset: Unclosed left bracket "("'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_10()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else if ( expr )",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else if ( expr ) - Invalid Ruleset: Missing statement ruleset of if construct'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_11()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } els",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } els - Invalid Ruleset: Invalid ELSE symbol'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_12()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } elseif",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } elseif - Invalid Ruleset: Invalid end of if ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_13()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else (",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else ( - Invalid Ruleset: Invalid ELSE ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_14()
+    {
+        $rule = [
+            "id" => "if ( expr ) { statement } else",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if ( expr ) { statement } else - Invalid Ruleset: Missing statement ruleset of else construct'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_ruleset_if_6()
+    {
+        $rule = [
+            "id" => "if (int) { xxx }}",
+        ];
+
+        $cases = [
+            "Exception_ruleset_if" => [
+                "data" => [
+                    "id" => 1,
+                ],
+                "expected_msg" => '@field:id, @ruleset:if (int) { xxx }} - Invalid Ruleset: Extra ending of IF ruleset'
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_1()
     {
         $rule = [
             "parameter_1" => "optional|my_method[1, 2,,3]",
-            "parameter_2" => "optional|my_method[1, 2, ,3]",
-            "parameter_3" => "optional|my_method[1, 2, 3,]",
-            "parameter_4" => "optional|my_method[]",
-            "parameter_5" => "optional|=['']",
-            "parameter_type_json_1" => "optional|my_method[1, [1,2,[,3]",
-            "parameter_type_json_2" => "optional|my_method[1, {\"a\": {\"A\"}]",
         ];
 
         $cases = [
@@ -3183,36 +4910,156 @@ class Unit extends TestCommon
                 ],
                 "expected_msg" => '@field:parameter_1, @rule:my_method[1, 2,,3] - Invalid Parameter: Contiguous separator'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_2()
+    {
+        $rule = [
+            "parameter_2" => "optional|my_method[1, 2, ,3]",
+        ];
+
+        $cases = [
             "Exception_parameter_2" => [
                 "data" => [
                     "parameter_2" => 1,
                 ],
                 "expected_msg" => '@field:parameter_2, @rule:my_method[1, 2, ,3] - Invalid Parameter: Contiguous separator'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_3()
+    {
+        $rule = [
+            "parameter_3" => "optional|my_method[1, 2, 3,]",
+        ];
+
+        $cases = [
             "Exception_parameter_3" => [
                 "data" => [
                     "parameter_3" => 1,
                 ],
                 "expected_msg" => '@field:parameter_3, @rule:my_method[1, 2, 3,] - Invalid Parameter: Endding separator'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_4()
+    {
+        $rule = [
+            "parameter_4" => "optional|my_method[]",
+        ];
+
+        $cases = [
             "Exception_parameter_4" => [
                 "data" => [
                     "parameter_4" => 1,
                 ],
                 "expected_msg" => '@field:parameter_4, @rule:my_method[] - Invalid Parameter: Empty'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_5()
+    {
+        $rule = [
+            "parameter_5" => "optional|=['']",
+        ];
+
+        $cases = [
             "Invalid_parameter_5" => [
                 "data" => [
                     "parameter_5" => 1,
                 ],
                 "expected_msg" => ["parameter_5" => "parameter_5 must be equal to "]
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_type_json_1()
+    {
+        $rule = [
+            "parameter_type_json_1" => "optional|my_method[1, [1,2,[,3]",
+        ];
+
+        $cases = [
             "Exception_parameter_type_json_1" => [
                 "data" => [
                     "parameter_type_json_1" => 1,
                 ],
                 "expected_msg" => '@field:parameter_type_json_1, @rule:my_method[1, [1,2,[,3] - Invalid Parameter: Unclosed [ or {'
             ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_exception_parameter_type_json_2()
+    {
+        $rule = [
+            "parameter_type_json_2" => "optional|my_method[1, {\"a\": {\"A\"}]",
+        ];
+
+        $cases = [
             "Exception_parameter_type_json_2" => [
                 "data" => [
                     "parameter_type_json_2" => 1,
@@ -4468,6 +6315,7 @@ class Unit extends TestCommon
         ];
         $this->validation->custom_language($lang_config);
         $result = $this->validate_cases($rule, $cases, $extra);
+        $this->validation->set_language($this->validation->get_config()['language']);
 
         return $result;
     }
@@ -4687,9 +6535,8 @@ class Unit extends TestCommon
             'reg_msg' => '/ >>>(.*)$/',                                 // Set special error msg by user 
             'reg_preg' => '/^Reg:(\/.+\/.*)$/',                         // If match this, using regular expression instead of method
             // 'reg_preg_strict' => '/^(\/.+\/[imsxADSUXJun]*)$/',         // Verify if the regular expression is valid
-            'reg_ifs' => '/^IF[yn]?\?(.*)$/',                           // A regular expression to match both reg_if and reg_if_not
-            'reg_if' => '/^IFy?\?/',                                    // If match reg_if, validate this condition first, if true, then continue to validate the subsequnse rule
-            'reg_if_not' => '/^IFn\?/',                                 // If match reg_if_not, validate this condition first, if false, then continue to validate the subsequnse rule
+            'symbol_if' => 'IF',                                        // The start of IF construct. e.g. `if ( expr ) { statement }`
+            // 'symbol_else' => 'ELSE',                                    // The else part of IF construct. e.g. `else { statement }`. Then the elseif part is `else if ( expr ) { statement }`
             'symbol_rule_separator' => '&&',                            // Rule reqarator for one field
             'symbol_method_omit_this' => '/^(.*)~(.*)$/',             // If set function by this symbol, will add a @this parameter at first 
             'symbol_method_standard' => '/^(.*)~~(.*)$/',                // If set function by this symbol, will not add a @this parameter at first 
@@ -4720,8 +6567,8 @@ class Unit extends TestCommon
             "education" => [
                 "primary_school" => "!*&&=~Qiankeng Xiaoxue",
                 "junior_middle_school" => "!*&&!=~Foshan Zhongxue",
-                "high_school" => "IF?=~~@junior_middle_school,Mianhu Zhongxue&&!*&&length>~10",
-                "university" => "IFn?=~~@junior_middle_school,Qiankeng Zhongxue&&!*&&length>~10",
+                "high_school" => "IF(=~~@junior_middle_school,Mianhu Zhongxue)&&!*&&length>~10",
+                "university" => "!IF(=~~@junior_middle_school,Qiankeng Zhongxue)&&!*&&length>~10",
             ],
             "company" => [
                 "name" => "!*&&length><=~8,64",

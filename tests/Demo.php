@@ -99,8 +99,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
@@ -216,8 +216,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
@@ -343,8 +343,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[18]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
@@ -470,8 +470,8 @@ class Demo extends TestCommon
             "education" => [
                 "primary_school" => "required|=[Qiankeng Xiaoxue]",
                 "junior_middle_school" => "required|!=[Foshan Zhongxue]",
-                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[18]",
-                "university" => "!if(=(@junior_middle_school,Mianhu Zhongxue))|required|length>[8]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
             ],
             "company" => [
                 "name" => "required|length><=[8,64]",
@@ -604,6 +604,124 @@ class Demo extends TestCommon
         $validation_conf = [
             'language' => 'zh-cn',
             'validation_global' => true,
+        ];
+
+        return $this->validate($data, $rule, $validation_conf);
+    }
+
+    public function test_rule_entity($data = [])
+    {
+        if (empty($data)) {
+            $data = [
+                "id" => 12,
+                "name" => "LinJunjie",
+                "gender" => "female",
+                "dob" => "2000-01-01",
+                "age" => 30,
+                "height" => 165,
+                "height_unit" => "cm",
+                "weight" => 80,
+                "weight_unit" => "kg",
+                "email" => "10000@qq.com",
+                "phone" => "15620004000",
+                "ip" => "192.168.1.1",
+                "mac" => "06:19:C2:FA:36:2B",
+                "education" => [
+                    "primary_school" => "Qiankeng Xiaoxue",
+                    "junior_middle_school" => "Qiankeng Zhongxue",
+                    "high_school" => "Mianhu Gaozhong",
+                    "university" => "Foshan University",
+                ],
+                "company" => [
+                    "name" => "Qiankeng Company",
+                    "website" => "https://www.qiankeng.com",
+                    "country" => "China",
+                    "addr" => "Foshan Nanhai Guicheng",
+                    "postcode" => "532000",
+                    "colleagues" => [
+                        [
+                            "name" => "Judy",
+                            "position" => "Reception"
+                        ],
+                        [
+                            "name" => "Sian",
+                            "position" => "Financial"
+                        ],
+                        [
+                            "name" => "Brook",
+                            "position" => "JAVA"
+                        ],
+                        [
+                            "name" => "Kurt",
+                            "position" => "PHP"
+                        ],
+                    ],
+                    "boss" => [
+                        "Mike",
+                        "David",
+                        "Johnny",
+                        "Extra",
+                    ]
+                ]
+            ];
+        }
+
+        $rule = [
+            "id" => "required|/^\d+$/",
+            "name" => "required|string|length><=[8,32]",
+            "gender" => "required|<string>[male,female]",
+            "dob" => "required|dob",
+            "age" => "required|check_age[@gender,30] >> @this is wrong",
+            "height[or]" => [
+                "required|=(@height_unit,cm)|>=<=[100,200] >> @this should be in [100,200] when height_unit is cm",
+                "required|=(@height_unit,m)|>=<=[1,2] >> @this should be in [1,2] when height_unit is m",
+            ],
+            "height_unit" => "required|<string>[cm,m]",
+            "weight[or]" => [
+                "required|=(@weight_unit,kg)|>=<=[40,100]",
+                "required|=(@weight_unit,lb)|><=[88,220]",
+            ],
+            "weight_unit" => "required|<string>[kg,lb]",
+            "email" => "required|email",
+            "phone" => "required|/(^1[3|4|5|6|7|8|9]\d{9}$)|(^09\d{8}$)/ >> phone number error",
+            "ip" => "optional|ip",
+            "mac" => "optional|mac",
+            "education" => [
+                "primary_school" => "required|=[Qiankeng Xiaoxue]",
+                "junior_middle_school" => "required|!=[Foshan Zhongxue]",
+                "high_school" => "if(=(@junior_middle_school,Mianhu Zhongxue)){required|length>[8]}",
+                "university" => "if ( !(=(@junior_middle_school,Mianhu Zhongxue)) ) { required|length>[8] }",
+            ],
+            "company" => [
+                "name" => "required|length><=[8,64]",
+                "website" => "required|url",
+                "country" => "optional|length<=[32]",
+                "addr" => "required|length>[16]",
+                "postcode" => "optional|length<[16]|check_postcode(@parent)",
+                "colleagues.*" => [
+                    "name" => "required|string|length><=[3,32]",
+                    "position" => "required|<string>[Reception,Financial,PHP,JAVA]"
+                ],
+                "boss" => [
+                    "required|=[Mike]",
+                    "required|<string>[Johnny,David]",
+                    "optional|<string>[Johnny,David]"
+                ]
+            ],
+            "favourite_food[optional].*" => [
+                "name" => "required|string",
+                "place_name" => "optional|string"
+            ]
+        ];
+
+        $rule = [
+            "id" => "required|/^\d+$/",
+        ];
+
+        $validation_conf = [
+            'language' => 'en-us',
+            'validation_global' => true,
+            'enable_entity' => true,
         ];
 
         return $this->validate($data, $rule, $validation_conf);
