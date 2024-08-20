@@ -296,9 +296,10 @@ class Validation
 
     /**
      * The method symbol
-     * Using symbol mapped to real method. e.g. '=' => 'equal'
+     * Using symbol mapped to real method. e.g. 'equal' => '='
      * 
-     * @example {"=": "equal"}
+     * @example `{"equal": "="}`
+     * @example `{"equal": {"symbols": ["=", "EQUAL"]}}` Multiple symbols of one method.
      * @see githusband\Rule\RuleClassDefault::$method_symbols
      * @see githusband\Rule\RuleDefaultTrait::$method_symbols_of_rule_default_trait
      * @var array
@@ -308,7 +309,8 @@ class Validation
     /**
      * Reverse the method symbol
      * 
-     * @example {"equal": "="}
+     * @example {"=": "equal"}
+     * @example `{"=": "equal", "EQUAL": "equal"}` Multiple symbols of one method.
      * @see static::$method_symbols
      * @var array
      */
@@ -451,17 +453,104 @@ class Validation
 
             $deprecated_trait_method_symbols = "deprecated_method_symbols_of_{$trait_name_uncamelized}";
             if (property_exists($this, $deprecated_trait_method_symbols)) {
-                $this->method_symbols = array_merge($this->method_symbols, $this->{$deprecated_trait_method_symbols});
-                $this->deprecated_method_symbols = array_merge($this->deprecated_method_symbols, $this->{$deprecated_trait_method_symbols});
+                $this->method_symbols = $this->merge_method_symbols($this->method_symbols, $this->{$deprecated_trait_method_symbols});
+                $this->deprecated_method_symbols = $this->merge_method_symbols($this->deprecated_method_symbols, $this->{$deprecated_trait_method_symbols});
             }
 
             $trait_method_symbols = "method_symbols_of_{$trait_name_uncamelized}";
             if (property_exists($this, $trait_method_symbols)) {
-                $this->method_symbols = array_merge($this->method_symbols, $this->{$trait_method_symbols});
+                $this->method_symbols = $this->merge_method_symbols($this->method_symbols, $this->{$trait_method_symbols});
             }
         }
 
-        $this->method_symbols_reversed = array_flip($this->method_symbols);
+        $this->method_symbols_reversed = $this->reverse_method_symbols($this->method_symbols);
+    }
+
+    /**
+     * Merge two method symbols array
+     * 
+     * @example
+     * ```
+     * #1. First Method Symbol
+     * `{"equal": "="}`
+     * #2. Next Method Symbol
+     * `{"equal": "EQUAL"}`
+     * #3. Merged Method Symbol
+     * {"equal": {"symbols": ["=", "EQUAL"]}}
+     * ```
+     * @param array $first_method_symbols
+     * @param array $next_method_symbols
+     * @return array
+     */
+    protected function merge_method_symbols($first_method_symbols, $next_method_symbols)
+    {
+        foreach ($next_method_symbols as $method => $method_data) {
+            if (isset($first_method_symbols[$method])) {
+                $first_method_symbols[$method] = $this->merge_symbol_of_method($first_method_symbols[$method], $method_data);
+            } else {
+                $first_method_symbols[$method] = $method_data;
+            }
+        }
+
+        return $first_method_symbols;
+    }
+
+    /**
+     * Merge two symbols of a same method
+     *
+     * @param string|array $first
+     * @param string|array $next
+     * @return array
+     */
+    protected function merge_symbol_of_method($first, $next)
+    {
+        $method_data = [];
+        if (is_string($first)) {
+            $method_data['symbols'] = [$first];
+        } else {
+            $method_data = $first;
+        }
+
+        if (is_string($next)) {
+            $method_data['symbols'][] = $next;
+        } else {
+            foreach ($next as $nk => $nv) {
+                if ($nk == 'symbols') {
+                    $method_data[$nk] = array_merge($method_data[$nk], $next[$nk]);
+                } else {
+                    $method_data[$nk] = $nv;
+                }
+            }
+        }
+
+        return $method_data;
+    }
+
+    /**
+     * Reverse the method_symbols array
+     *
+     * @param array $method_symbols
+     * @return array
+     */
+    protected function reverse_method_symbols($method_symbols)
+    {
+        $method_symbols_reversed = [];
+        foreach ($method_symbols as $method => $method_data) {
+            if (is_string($method_data)) {
+                $method_symbols_reversed[$method_data] = $method;
+            } else {
+                $symbols = $method_data['symbols'];
+                unset($method_data['symbols']);
+                $method_tmp = array_merge([
+                    'method' => $method
+                ], $method_data);
+                foreach ($symbols as $symbol) {
+                    $method_symbols_reversed[$symbol] = $method_tmp;
+                }
+            }
+        }
+
+        return $method_symbols_reversed;
     }
 
     /**
@@ -501,24 +590,24 @@ class Validation
     protected function init_rule_class($rule_class)
     {
         if (property_exists($rule_class, 'deprecated_method_symbols')) {
-            $rule_class::$method_symbols = array_merge($rule_class::$deprecated_method_symbols, $rule_class::$method_symbols);
+            $rule_class::$method_symbols = $this->merge_method_symbols($rule_class::$deprecated_method_symbols, $rule_class::$method_symbols);
         }
 
-        $this->reverse_method_symbols($rule_class);
+        $this->reverse_rule_class_method_symbols($rule_class);
 
         if (is_object($rule_class)) return $rule_class;
         return new $rule_class();
     }
 
     /**
-     * Reverse the method_symbols array
+     * Reverse the method_symbols array of a rule class
      *
      * @param class $rule_class A class that contains multiple rule methods
      * @return void
      */
-    protected function reverse_method_symbols($rule_class)
+    protected function reverse_rule_class_method_symbols($rule_class)
     {
-        $this->rule_class_method_symbols_reversed[$rule_class] = array_flip($rule_class::$method_symbols);
+        $this->rule_class_method_symbols_reversed[$rule_class] = $this->reverse_method_symbols($rule_class::$method_symbols);
     }
 
     /**
@@ -540,14 +629,15 @@ class Validation
      * @param string $symbol
      * @return bool
      */
-    public function is_method_symbol($symbol)
+    public function is_symbol_of_method($symbol)
     {
-        if (isset($this->method_symbols[$symbol])) return true;
+        if (isset($this->method_symbols_reversed[$symbol])) return true;
 
         for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
             $rule_class = $this->rule_classes[$i];
-            $method_symbols = $rule_class::$method_symbols;
-            if (isset($method_symbols[$symbol])) {
+            $rule_class_name = get_class($rule_class);
+            $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+            if (isset($method_symbols_reversed[$symbol])) {
                 return true;
             }
         }
@@ -566,53 +656,69 @@ class Validation
     {
         $by_symbol = false;
 
-        if (!empty($operator) && $this->is_method_symbol($operator . $in)) {
+        $in_with_operator = $operator . $in;
+        if (!empty($operator) && isset($this->method_symbols_reversed[$in_with_operator])) {
             $by_symbol = true;
             $in = $operator . $in;
             $operator = '';
-        } else if ($this->is_method_symbol($in)) {
+            $class = 'static';
+            $symbol_data = $this->method_symbols_reversed[$in_with_operator];
+        } else if (isset($this->method_symbols_reversed[$in])) {
             $by_symbol = true;
+            $class = 'static';
+            $symbol_data = $this->method_symbols_reversed[$in];
+        } else {
+            for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
+                $rule_class = $this->rule_classes[$i];
+                $rule_class_name = get_class($rule_class);
+                $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+                if (!empty($operator) && isset($method_symbols_reversed[$in_with_operator])) {
+                    $by_symbol = true;
+                    $in = $operator . $in;
+                    $operator = '';
+                    $class = $rule_class;
+                    $symbol_data = $method_symbols_reversed[$in_with_operator];
+                    break;
+                } else if (isset($method_symbols_reversed[$in])) {
+                    $by_symbol = true;
+                    $class = $rule_class;
+                    $symbol_data = $method_symbols_reversed[$in];
+                    break;
+                }
+            }
         }
 
         if ($by_symbol) {
             $symbol = $in;
-
-            if (isset($this->method_symbols[$symbol])) {
+            if (is_array($symbol_data)) {
+                $method = $symbol_data['method'];
+            } else {
+                $method = $symbol_data;
+            }
+        } else {
+            $method = $in;
+            if (isset($this->method_symbols[$in])) {
                 $class = 'static';
-                $method = $this->method_symbols[$in];
+                $method_data = $this->method_symbols[$in];
             } else {
                 for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
                     $rule_class = $this->rule_classes[$i];
                     $method_symbols = $rule_class::$method_symbols;
                     if (isset($method_symbols[$in])) {
-                        $class = $rule_class;
-                        $method = $method_symbols[$in];
-                        break;
-                    }
-                }
-
-                if (empty($class)) $class = 'static';
-                if (empty($method)) $method = $symbol;
-            }
-        } else {
-            $method = $in;
-            if (isset($this->method_symbols_reversed[$in])) {
-                $class = 'static';
-                $symbol = $this->method_symbols_reversed[$in];
-            } else {
-                for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
-                    $rule_class = $this->rule_classes[$i];
-                    $rule_class_name = get_class($rule_class);
-                    $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
-                    if (isset($method_symbols_reversed[$in])) {
                         $class = $rule_class_name;
-                        $symbol = $method_symbols_reversed[$in];
+                        $method_data = $method_symbols[$in];
                         break;
                     }
                 }
 
                 if (empty($class)) $class = 'static';
-                if (empty($symbol)) $symbol = $method;
+                if (empty($method_data)) $method_data = $method;
+            }
+
+            if (is_array($method_data)) {
+                $symbol = $method_data['symbols'][0];
+            } else {
+                $symbol = $method_data;
             }
         }
 
@@ -773,18 +879,31 @@ class Validation
      * - this method symbols
      * - rule classes method symbols
      *
+     * @param bool $is_reversed
      * @return array
      */
-    public function get_method_symbols()
+    public function get_method_symbols($is_reversed = false)
     {
-        $method_symbols = $this->method_symbols;
-        $rule_classes_length = count($this->rule_classes);
-        for ($i = 0; $i < $rule_classes_length; $i++) {
-            $rule_class = $this->rule_classes[$i];
-            $method_symbols = array_merge($method_symbols, $rule_class::$method_symbols);
-        }
+        if (!$is_reversed) {
+            $method_symbols = $this->method_symbols;
+            $rule_classes_length = count($this->rule_classes);
+            for ($i = 0; $i < $rule_classes_length; $i++) {
+                $rule_class = $this->rule_classes[$i];
+                $method_symbols = array_merge($method_symbols, $rule_class::$method_symbols);
+            }
 
-        return $method_symbols;
+            return $method_symbols;
+        } else {
+            $method_symbols_reversed = $this->method_symbols_reversed;
+
+            for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
+                $rule_class = $this->rule_classes[$i];
+                $rule_class_name = get_class($rule_class);
+                $method_symbols_reversed = array_merge($method_symbols_reversed, $this->rule_class_method_symbols_reversed[$rule_class_name]);
+            }
+
+            return $method_symbols_reversed;
+        }
     }
 
     /**
@@ -792,9 +911,10 @@ class Validation
      * - this deprecated method symbols
      * - rule deprecated classes method symbols
      *
+     * @param bool $is_reversed
      * @return array
      */
-    public function get_deprecated_method_symbols()
+    public function get_deprecated_method_symbols($is_reversed = false)
     {
         $deprecated_method_symbols = $this->deprecated_method_symbols;
         $rule_classes_length = count($this->rule_classes);
@@ -804,6 +924,8 @@ class Validation
                 $deprecated_method_symbols = array_merge($deprecated_method_symbols, $rule_class::$deprecated_method_symbols);
             }
         }
+
+        if ($is_reversed) $deprecated_method_symbols = $this->reverse_method_symbols($deprecated_method_symbols);
 
         return $deprecated_method_symbols;
     }
@@ -852,8 +974,8 @@ class Validation
     {
         $this->methods[$method] = $callable;
         if (!empty($symbol)) {
-            $this->method_symbols[$symbol] = $method;
-            $this->method_symbols_reversed[$method] = $symbol;
+            $this->method_symbols[$method] = $symbol;
+            $this->method_symbols_reversed[$symbol] = $method;
         }
         return $this;
     }

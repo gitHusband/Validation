@@ -37,7 +37,7 @@ class MyValidation extends Validation
     ];
 
     protected $method_symbols = [
-        ">=1" => "grater_than_or_equal_to_1",
+        'grater_than_or_equal_to_1' => '>=1',
     ];
 
     /**

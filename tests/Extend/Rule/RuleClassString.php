@@ -13,7 +13,7 @@ class RuleClassString
 {
     // 方法标志
     public static $method_symbols = [
-        'cus_str' => 'is_custom_string',
+        'is_custom_string' => 'cus_str',
     ];
 
     // 方法

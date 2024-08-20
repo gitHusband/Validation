@@ -674,8 +674,8 @@ class Readme extends TestCommon
 
         $validation_config = $validation->get_config();
         $config_default = $validation->get_config_default();
-        $method_symbols = $validation->get_method_symbols();
-        $deprecated_method_symbols = $validation->get_deprecated_method_symbols();
+        $method_symbols_reversed = $validation->get_method_symbols(true);
+        $deprecated_method_symbols_reversed = $validation->get_deprecated_method_symbols(true);
         $error_templates = $validation->get_error_templates();
 
         /**
@@ -709,7 +709,7 @@ class Readme extends TestCommon
         $method_symbol_table = $header;
 
         foreach ($error_templates as $symbol => $method_error_template) {
-            $is_deprecated = isset($deprecated_method_symbols[$symbol]);
+            $is_deprecated = isset($deprecated_method_symbols_reversed[$symbol]);
             if ($is_deprecated && $skip_deprecated) continue;
             /**
              * Every method supports "when" or "when not" rule.
@@ -719,19 +719,19 @@ class Readme extends TestCommon
              */
             if (preg_match("/^(.*)({$config_default['symbol_when']}|{$config_default['symbol_when_not']})$/", $symbol, $matches)) {
                 $symbol_1 = $matches[1];
-                $method_and_symbol_1 = $this->get_method_and_symbol($symbol_1, $built_in_methods, $validation_config, $method_symbols);
+                $method_and_symbol_1 = $this->get_method_and_symbol($symbol_1, $built_in_methods, $validation_config, $method_symbols_reversed);
                 // $method_1 = $method_and_symbol_1['method'];
                 $symbol_1 = $method_and_symbol_1['symbol'];
 
                 if ($matches[2] == $config_default['symbol_when']) $symbol_when_type = 'when';
                 else $symbol_when_type = 'when_not';
-                $method_and_symbol_2 = $this->get_method_and_symbol($symbol_when_type, $built_in_methods, $validation_config, $method_symbols);
+                $method_and_symbol_2 = $this->get_method_and_symbol($symbol_when_type, $built_in_methods, $validation_config, $method_symbols_reversed);
                 // $method_2 = $method_and_symbol_2['method'];
                 $symbol_2 = $method_and_symbol_2['symbol'];
                 $method = $symbol;
                 $symbol = "{$symbol_1}{$symbol_2}";
             } else {
-                $method_and_symbol = $this->get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbols);
+                $method_and_symbol = $this->get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbols_reversed);
                 $method = $method_and_symbol['method'];
                 $symbol = $method_and_symbol['symbol'];
             }
@@ -741,6 +741,9 @@ class Readme extends TestCommon
             } else if (!empty($symbol) && !in_array($symbol, ['/'])) {
                 $symbol = "`{$symbol}`";
             }
+
+            if (is_array($method)) $method = $method['method'];
+
             $method_symbol_table .= "{$symbol} | `{$method}` | {$method_error_template}\n";
         }
 

@@ -13,7 +13,7 @@ trait RuleExtendTrait
 {
     // 方法标志
     protected $method_symbols_of_rule_extend_trait = [
-        '=1' => 'euqal_to_1',
+        'euqal_to_1' => '=1',
     ];
 
     // 方法
