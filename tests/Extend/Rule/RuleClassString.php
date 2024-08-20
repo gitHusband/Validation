@@ -11,7 +11,16 @@ namespace githusband\Tests\Extend\Rule;
  */
 class RuleClassString
 {
-    // 方法标志
+    /**
+     * 方法标志：
+     * - 如果值为字符串，则表示标志。
+     * - 如果值为数组，则支持一下字段:
+     *   - 'symbols': 表示标志
+     *   - ‘is_variable_length_argument’: 表示方法第二个参数为可变长度参数，规则集 中的第一个参数之后的所有参数都会被第二个参数的子元素。参考 `githusband\Validation\RuleClassDefault::$method_symbols`
+     * 
+     * @example `in_number_array[1,2,3]` 第二个参数是一个数组 `[1,2,3]`
+     * @var array<string, string|array>
+     */
     public static $method_symbols = [
         'is_custom_string' => 'cus_str',
     ];

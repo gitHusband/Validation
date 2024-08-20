@@ -342,9 +342,18 @@ Create a new file，`RuleClassString.php`
  */
 class RuleClassString
 {
-    // method symbol
+    /**
+     * Method Symbol:
+     * - If the value is a string, it represents the Symbol
+     * - If the value is an array, the following fields are supported:
+     *   - 'symbols': It represents the Symbol
+     *   - ‘is_variable_length_argument’: The second parameter of the method is a variable-length parameter, that means all parameters after the first parameter in the ruleset will be treated as the child elements of the second parameter. See `githusband\Validation\RuleClassDefault::$method_symbols`
+     * 
+     * @example `in_number_array[1,2,3]` The second parameter is an array `[1,2,3]`
+     * @var array<string, string|array>
+     */
     public static $method_symbols = [
-        'cus_str' => 'is_custom_string',
+        'is_custom_string' => 'cus_str',
     ];
 
     // method
@@ -404,7 +413,7 @@ trait RuleExtendTrait
 {
     // method symbol
     protected $method_symbols_of_rule_custome = [
-        '=1' => 'euqal_to_1',
+        'euqal_to_1' => '=1',
     ];
 
     // method
@@ -429,7 +438,7 @@ class MyValidation extends Validation
      * If you need to define method symbols, place them in an attribute named method_symbols
      */
     protected $method_symbols = [
-        ">=1" => "grater_than_or_equal_to_1",
+        'grater_than_or_equal_to_1' => '>=1',
     ];
 
     protected function grater_than_or_equal_to_1($data)

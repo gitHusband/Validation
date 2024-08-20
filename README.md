@@ -338,9 +338,18 @@ $rule = [
  */
 class RuleClassString
 {
-    // 方法标志
+    /**
+     * 方法标志：
+     * - 如果值为字符串，则表示标志。
+     * - 如果值为数组，则支持以下字段:
+     *   - 'symbols': 表示标志
+     *   - ‘is_variable_length_argument’: 表示方法第二个参数为可变长度参数，规则集 中的第一个参数之后的所有参数都会被第二个参数的子元素。参考 `githusband\Validation\RuleClassDefault::$method_symbols`
+     * 
+     * @example `in_number_array[1,2,3]` 第二个参数是一个数组 `[1,2,3]`
+     * @var array<string, string|array>
+     */
     public static $method_symbols = [
-        'cus_str' => 'is_custom_string',
+        'is_custom_string' => 'cus_str',
     ];
 
     // 方法
@@ -400,7 +409,7 @@ trait RuleExtendTrait
 {
     // 方法标志
     protected $method_symbols_of_rule_custome = [
-        '=1' => 'euqal_to_1',
+        'euqal_to_1' => '=1',
     ];
 
     // 方法
@@ -425,7 +434,7 @@ class MyValidation extends Validation
      * 如果需要定义方法标志，将他们放在属性 method_symbols 中
      */
     protected $method_symbols = [
-        ">=1" => "grater_than_or_equal_to_1",
+        'grater_than_or_equal_to_1' => '>=1',
     ];
 
     protected function grater_than_or_equal_to_1($data)

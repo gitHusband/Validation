@@ -516,6 +516,8 @@ class Validation
         } else {
             foreach ($next as $nk => $nv) {
                 if ($nk == 'symbols') {
+                    if (is_string($method_data[$nk])) $method_data[$nk] = [$method_data[$nk]];
+                    if (is_string($next[$nk])) $next[$nk] = [$next[$nk]];
                     $method_data[$nk] = array_merge($method_data[$nk], $next[$nk]);
                 } else {
                     $method_data[$nk] = $nv;
@@ -544,8 +546,12 @@ class Validation
                 $method_tmp = array_merge([
                     'method' => $method
                 ], $method_data);
-                foreach ($symbols as $symbol) {
-                    $method_symbols_reversed[$symbol] = $method_tmp;
+                if (is_array($symbols)) {
+                    foreach ($symbols as $symbol) {
+                        $method_symbols_reversed[$symbol] = $method_tmp;
+                    }
+                } else {
+                    $method_symbols_reversed[$symbols] = $method_tmp;
                 }
             }
         }
@@ -662,11 +668,11 @@ class Validation
             $in = $operator . $in;
             $operator = '';
             $class = 'static';
-            $symbol_data = $this->method_symbols_reversed[$in_with_operator];
+            $method_data = $this->method_symbols_reversed[$in_with_operator];
         } else if (isset($this->method_symbols_reversed[$in])) {
             $by_symbol = true;
             $class = 'static';
-            $symbol_data = $this->method_symbols_reversed[$in];
+            $method_data = $this->method_symbols_reversed[$in];
         } else {
             for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
                 $rule_class = $this->rule_classes[$i];
@@ -677,12 +683,12 @@ class Validation
                     $in = $operator . $in;
                     $operator = '';
                     $class = $rule_class;
-                    $symbol_data = $method_symbols_reversed[$in_with_operator];
+                    $method_data = $method_symbols_reversed[$in_with_operator];
                     break;
                 } else if (isset($method_symbols_reversed[$in])) {
                     $by_symbol = true;
                     $class = $rule_class;
-                    $symbol_data = $method_symbols_reversed[$in];
+                    $method_data = $method_symbols_reversed[$in];
                     break;
                 }
             }
@@ -690,42 +696,50 @@ class Validation
 
         if ($by_symbol) {
             $symbol = $in;
-            if (is_array($symbol_data)) {
-                $method = $symbol_data['method'];
-            } else {
-                $method = $symbol_data;
-            }
         } else {
             $method = $in;
             if (isset($this->method_symbols[$in])) {
                 $class = 'static';
-                $method_data = $this->method_symbols[$in];
+                $symbol_data = $this->method_symbols[$in];
+                if (is_array($symbol_data)) {
+                    $symbol = $symbol_data['symbols'][0];
+                } else {
+                    $symbol = $symbol_data;
+                }
+                $method_data = $this->method_symbols_reversed[$symbol];
             } else {
                 for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
                     $rule_class = $this->rule_classes[$i];
                     $method_symbols = $rule_class::$method_symbols;
                     if (isset($method_symbols[$in])) {
-                        $class = $rule_class_name;
-                        $method_data = $method_symbols[$in];
+                        $class = $rule_class;
+                        $symbol_data = $method_symbols[$in];
+                        if (is_array($symbol_data)) {
+                            $symbol = $symbol_data['symbols'][0];
+                        } else {
+                            $symbol = $symbol_data;
+                        }
+                        $rule_class_name = get_class($rule_class);
+                        $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+                        $method_data = $method_symbols_reversed[$symbol];
                         break;
                     }
                 }
 
-                if (empty($class)) $class = 'static';
-                if (empty($method_data)) $method_data = $method;
-            }
-
-            if (is_array($method_data)) {
-                $symbol = $method_data['symbols'][0];
-            } else {
-                $symbol = $method_data;
+                if (empty($class)) {
+                    $class = 'global';
+                    $symbol = $method;
+                    $method_data = [
+                        'method' => $method
+                    ];
+                }
             }
         }
 
         return [
             $by_symbol,
             $symbol,
-            $method,
+            $method_data,
             $operator,
             $class
         ];
@@ -921,7 +935,7 @@ class Validation
         for ($i = 0; $i < $rule_classes_length; $i++) {
             $rule_class = $this->rule_classes[$i];
             if (property_exists($rule_class, 'deprecated_method_symbols')) {
-                $deprecated_method_symbols = array_merge($deprecated_method_symbols, $rule_class::$deprecated_method_symbols);
+                $deprecated_method_symbols = $this->merge_method_symbols($deprecated_method_symbols, $rule_class::$deprecated_method_symbols);
             }
         }
 
@@ -2156,7 +2170,14 @@ class Validation
             $params = [$this->symbol_this];
         }
 
-        list($by_symbol, $symbol, $method, $operator, $class) = $this->match_method_and_symbol($method, $operator);
+        list($by_symbol, $symbol, $method_data, $operator, $class) = $this->match_method_and_symbol($method, $operator);
+        $is_variable_length_argument = false;
+        if (is_array($method_data)) {
+            $method = $method_data['method'];
+            $is_variable_length_argument = !empty($method_data['is_variable_length_argument']);
+        } else {
+            $method = $method_data;
+        }
 
         foreach ($params as &$param) {
             if (is_array($param)) continue;
@@ -2195,7 +2216,7 @@ class Validation
         }
 
         // "in" method, all the parameters are treated as the second parameter.
-        if ($this->is_in_method($symbol)) {
+        if ($is_variable_length_argument) {
             $field_name = $params[0];
             array_shift($params);
             $params = [
@@ -2209,6 +2230,7 @@ class Validation
             'symbol' => $symbol,
             'by_symbol' => $by_symbol,
             'operator' => $operator,
+            'is_variable_length_argument' => $is_variable_length_argument,
             'params' => $params,
         ];
 
@@ -2539,7 +2561,7 @@ class Validation
     protected function inject_parameter_to_error_template($error_template, $key, $value, $method_rule)
     {
         if (is_array($value) || is_object($value)) {
-            if ($this->is_in_method($method_rule['symbol'])) {
+            if ($method_rule['is_variable_length_argument']) {
                 $value = implode(',', $value);
             } else {
                 return $error_template;
@@ -3483,18 +3505,6 @@ class Validation
     }
 
     /**
-     * Check if it's an "in" type method name or not.
-     * For example, "in_array" method
-     *
-     * @param string $method
-     * @return bool
-     */
-    protected function is_in_method($method)
-    {
-        return preg_match('/^!?[\<\(][a-zA-Z0-9_\*]+[\>\)]$/', $method, $matches);
-    }
-
-    /**
      * The field must be present and its data must not be empty string
      *
      * @param mixed $data
@@ -4032,7 +4042,8 @@ class Validation
                 if (empty($method_rule['by_symbol'])) $error_template = str_replace($this->symbol_method, $method_rule['method'], $error_template);
                 else $error_template = str_replace($this->symbol_method, $method_rule['symbol'], $error_template);
                 $rule_entity = new RuleEntity(RuleEntity::RULE_TYPE_METHOD, $method_rule['method'], $rule, $method_rule['params'], $method_rule['symbol'], $method_rule['by_symbol']);
-                $rule_entity->set_operator($method_rule['operator']);
+                $rule_entity->set_operator($method_rule['operator'])
+                    ->set_is_variable_length_argument($method_rule['is_variable_length_argument']);
             }
 
             $rule_entity->set_error_type($error_type)

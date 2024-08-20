@@ -32,10 +32,22 @@ class RuleClassDefault
         'greater_lessequal' => '><=',
         'greaterequal_less' => '>=<',
         'between' => '>=<=',
-        'in_number_array' => '<number>',
-        'not_in_number_array' => '!<number>',
-        'in_string_array' => '<string>',
-        'not_in_string_array' => '!<string>',
+        'in_number_array' => [
+            'symbols' => '<number>',
+            'is_variable_length_argument' => true,
+        ],
+        'not_in_number_array' => [
+            'symbols' => '!<number>',
+            'is_variable_length_argument' => true,
+        ],
+        'in_string_array' => [
+            'symbols' => '<string>',
+            'is_variable_length_argument' => true,
+        ],
+        'not_in_string_array' => [
+            'symbols' => '!<string>',
+            'is_variable_length_argument' => true,
+        ],
         'length_equal' => 'length=',
         'length_not_equal' => 'length!=',
         'length_greater_than' => 'length>',
@@ -83,10 +95,22 @@ class RuleClassDefault
         'greater_lessequal' => '<=>',
         'greaterequal_less' => '<>=',
         'between' => '<=>=',
-        'in_number_array' => '(n)',
-        'not_in_number_array' => '!(n)',
-        'in_string_array' => '(s)',
-        'not_in_string_array' => '!(s)',
+        'in_number_array' => [
+            'symbols' => '(n)',
+            'is_variable_length_argument' => true,
+        ],
+        'not_in_number_array' => [
+            'symbols' => '!(n)',
+            'is_variable_length_argument' => true,
+        ],
+        'in_string_array' => [
+            'symbols' => '(s)',
+            'is_variable_length_argument' => true,
+        ],
+        'not_in_string_array' => [
+            'symbols' => '!(s)',
+            'is_variable_length_argument' => true,
+        ],
         'length_equal' => 'len=',
         'length_not_equal' => 'len!=',
         'length_greater_than' => 'len>',
