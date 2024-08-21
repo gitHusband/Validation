@@ -1095,140 +1095,144 @@ For details, see [Appendix 3 -Error Message Format](#Appendix-3---Error Message 
 
 ## Appendix 1 - Methods And Symbols
 
-Symbol | Method | Error Message Template
----|---|---
-`*` | `required` | @this can not be empty
-`O:?` | `optional:when` | @this can be empty only when certain circumstances are met
-`uuid` | `is_uuid` | @this must be a UUID
-`length>=<=` | `length_between` | @this length must be greater than or equal to @p1 and less than or equal to @p2
-`date>` | `date_greater_than` | @this must be a valid date and greater than @p1
+Symbol | Method | Variable-Length Arguments | Error Message Template
+---|---|:---:|---
+`*` | `required` | No | @this can not be empty
+`O:?` | `optional:when` | No | @this can be empty only when certain circumstances are met
+`uuid` | `is_uuid` | No | @this must be a UUID
+`>` | `greater_than` | No | @this must be greater than @p1
+`length>=<=` | `length_between` | No | @this length must be greater than or equal to @p1 and less than or equal to @p2
+`<number>` | `in_number_array` | **Yes** | @this must be numeric and in @p1
+`date>` | `date_greater_than` | No | @this must be a valid date and greater than @p1
+
+- `is_variable_length_argument`: The second parameter of the method is a [variable-length parameter](https://www.php.net/manual/en/functions.arguments.php#functions.variable-arg-list), that means all parameters after the first parameter in the ruleset will be treated as the child elements of the second parameter.
 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view Appendix 1 - Methods And Symbols</strong></summary>
 
-Symbol | Method | Error Message Template
----|---|---
-/ | `default` | @this validation failed
-`.*` | `index_array` | @this must be a numeric array
-`:?` | `when` | Under certain circumstances, 
-`:!?` | `when_not` | When certain circumstances are not met, 
-`*` | `required` | @this can not be empty
-`*:?` | `required:when` | Under certain circumstances, @this can not be empty
-`*:!?` | `required:when_not` | When certain circumstances are not met, @this can not be empty
-`O` | `optional` | @this never go wrong
-`O:?` | `optional:when` | @this can be empty only when certain circumstances are met
-`O:!?` | `optional:when_not` | @this can be empty only when certain circumstances are not met
-`O!` | `optional_unset` | @this must be unset or must not be empty if it's set
-`O!:?` | `optional_unset:when` | Under certain circumstances, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
-`O!:!?` | `optional_unset:when_not` | When certain circumstances are not met, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
-/ | `preg` | @this format is invalid, should be @preg
-/ | `preg_format` | @this method @preg is not a valid regular expression
-/ | `call_method` | @method is undefined
-`=` | `equal` | @this must be equal to @p1
-`!=` | `not_equal` | @this must be not equal to @p1
-`==` | `strictly_equal` | @this must be strictly equal to @t1(@p1)
-`!==` | `not_strictly_equal` | @this must not be strictly equal to @t1(@p1)
-`>` | `greater_than` | @this must be greater than @p1
-`<` | `less_than` | @this must be less than @p1
-`>=` | `greater_equal` | @this must be greater than or equal to @p1
-`<=` | `less_equal` | @this must be less than or equal to @p1
-`><` | `greater_less` | @this must be greater than @p1 and less than @p2
-`><=` | `greater_lessequal` | @this must be greater than @p1 and less than or equal to @p2
-`>=<` | `greaterequal_less` | @this must be greater than or equal to @p1 and less than @p2
-`>=<=` | `between` | @this must be greater than or equal to @p1 and less than or equal to @p2
-`<number>` | `in_number_array` | @this must be numeric and in @p1
-`!<number>` | `not_in_number_array` | @this must be numeric and can not be in @p1
-`<string>` | `in_string_array` | @this must be string and in @p1
-`!<string>` | `not_in_string_array` | @this must be string and can not be in @p1
-`length=` | `length_equal` | @this length must be equal to @p1
-`length!=` | `length_not_equal` | @this length must be not equal to @p1
-`length>` | `length_greater_than` | @this length must be greater than @p1
-`length<` | `length_less_than` | @this length must be less than @p1
-`length>=` | `length_greater_equal` | @this length must be greater than or equal to @p1
-`length<=` | `length_less_equal` | @this length must be less than or equal to @p1
-`length><` | `length_greater_less` | @this length must be greater than @p1 and less than @p2
-`length><=` | `length_greater_lessequal` | @this length must be greater than @p1 and less than or equal to @p2
-`length>=<` | `length_greaterequal_less` | @this length must be greater than or equal to @p1 and less than @p2
-`length>=<=` | `length_between` | @this length must be greater than or equal to @p1 and less than or equal to @p2
-`int` | `integer` | @this must be integer
-/ | `float` | @this must be float
-/ | `string` | @this must be string
-`array` | `is_array` | @this must be array
-/ | `bool` | @this must be boolean
-`bool=` | `bool_equal` | @this must be boolean @p1
-/ | `bool_str` | @this must be boolean string
-/ | `bool_string` | @this must be boolean string
-`bool_string=` | `bool_string_equal` | @this must be boolean string @p1
-/ | `file_base64` | @this must be a valid file base64
-/ | `file_base64:mime` | @this file mine must be euqal to @p1
-/ | `file_base64:size` | @this file size must be less than @p2kb
-/ | `oauth2_grant_type` | @this is not a valid OAuth2 grant type
-`email` | `is_email` | @this must be email
-`url` | `is_url` | @this must be url
-`ip` | `is_ip` | @this must be IP address
-`ipv4` | `is_ipv4` | @this must be IPv4 address
-`ipv6` | `is_ipv6` | @this must be IPv6 address
-`mac` | `is_mac` | @this must be MAC address
-/ | `dob` | @this must be a valid date
-`uuid` | `is_uuid` | @this must be a UUID
-`ulid` | `is_ulid` | @this must be a ULID
-`alpha` | `is_alpha` | @this must only contain letters
-`alpha_ext` | `is_alpha_ext` | @this must only contain letters and _-
-/ | `alpha_ext:@p2` | @this must only contain letters and @p2
-`alphanumeric` | `is_alphanumeric` | @this must only contain letters and numbers
-`alphanumeric_ext` | `is_alphanumeric_ext` | @this must only contain letters and numbers and _-
-/ | `alphanumeric_ext:@p2` | @this must only contain letters and numbers and @p2
-`datetime` | `is_datetime` | @this must be a valid datetime
-/ | `datetime:format:@p1` | @this must be a valid datetime in format @p1
-/ | `datetime:format:@p2` | @this must be a valid datetime in format @p2
-/ | `datetime:format:@p3` | @this must be a valid datetime in format @p3
-/ | `datetime:invalid_format:@p1` | @this format @p1 is not a valid datetime format
-/ | `datetime:invalid_format:@p2` | @this format @p2 is not a valid datetime format
-/ | `datetime:invalid_format:@p3` | @this format @p3 is not a valid datetime format
-`datetime=` | `datetime_equal` | @this must be a valid datetime and equal to @p1
-`datetime!=` | `datetime_not_equal` | @this must be a valid datetime and not equal to @p1
-`datetime>` | `datetime_greater_than` | @this must be a valid datetime and greater than @p1
-`datetime>=` | `datetime_greater_equal` | @this must be a valid datetime and greater than or equal to @p1
-`datetime<` | `datetime_less_than` | @this must be a valid datetime and less than @p1
-`datetime<=` | `datetime_less_equal` | @this must be a valid datetime and less than or equal to @p1
-`datetime><` | `datetime_greater_less` | @this must be a valid datetime and greater than @p1 and less than @p2
-`datetime>=<` | `datetime_greaterequal_less` | @this must be a valid datetime and greater than or equal to @p1 and less than @p2
-`datetime><=` | `datetime_greater_lessequal` | @this must be a valid datetime and greater than @p1 and less than or equal to @p2
-`datetime>=<=` | `datetime_between` | @this datetime must be between @p1 and @p2
-`date` | `is_date` | @this must be a valid date in format Y-m-d
-/ | `date:format:@p1` | @this must be a valid date in format @p1
-/ | `date:format:@p2` | @this must be a valid date in format @p2
-/ | `date:format:@p3` | @this must be a valid date in format @p3
-/ | `date:invalid_format:@p1` | @this format @p1 is not a valid date format
-/ | `date:invalid_format:@p2` | @this format @p2 is not a valid date format
-/ | `date:invalid_format:@p3` | @this format @p3 is not a valid date format
-`date=` | `date_equal` | @this must be a valid date and equal to @p1
-`date!=` | `date_not_equal` | @this must be a valid date and not equal to @p1
-`date>` | `date_greater_than` | @this must be a valid date and greater than @p1
-`date>=` | `date_greater_equal` | @this must be a valid date and greater than or equal to @p1
-`date<` | `date_less_than` | @this must be a valid date and less than @p1
-`date<=` | `date_less_equal` | @this must be a valid date and less than or equal to @p1
-`date><` | `date_greater_less` | @this must be a valid date and greater than @p1 and less than @p2
-`date>=<` | `date_greaterequal_less` | @this must be a valid date and greater than or equal to @p1 and less than @p2
-`date><=` | `date_greater_lessequal` | @this must be a valid date and greater than @p1 and less than or equal to @p2
-`date>=<=` | `date_between` | @this date must be between @p1 and @p2
-`time` | `is_time` | @this must be a valid time in format H:i:s
-/ | `time:format:@p1` | @this must be a valid time in format @p1
-/ | `time:format:@p2` | @this must be a valid time in format @p2
-/ | `time:format:@p3` | @this must be a valid time in format @p3
-/ | `time:invalid_format:@p1` | @this format @p1 is not a valid time format
-/ | `time:invalid_format:@p2` | @this format @p2 is not a valid time format
-/ | `time:invalid_format:@p3` | @this format @p3 is not a valid time format
-`time=` | `time_equal` | @this must be a valid time and equal to @p1
-`time!=` | `time_not_equal` | @this must be a valid time and not equal to @p1
-`time>` | `time_greater_than` | @this must be a valid time and greater than @p1
-`time>=` | `time_greater_equal` | @this must be a valid time and greater than or equal to @p1
-`time<` | `time_less_than` | @this must be a valid time and less than @p1
-`time<=` | `time_less_equal` | @this must be a valid time and less than or equal to @p1
-`time><` | `time_greater_less` | @this must be a valid time and greater than @p1 and less than @p2
-`time>=<` | `time_greaterequal_less` | @this must be a valid time and greater than or equal to @p1 and less than @p2
-`time><=` | `time_greater_lessequal` | @this must be a valid time and greater than @p1 and less than or equal to @p2
-`time>=<=` | `time_between` | @this time must be between @p1 and @p2
+Symbol | Method | Variable-Length Arguments | Error Message Template
+---|---|:---:|---
+/ | `default` | No | @this validation failed
+`.*` | `index_array` | No | @this must be a numeric array
+`:?` | `when` | No | Under certain circumstances, 
+`:!?` | `when_not` | No | When certain circumstances are not met, 
+`*` | `required` | No | @this can not be empty
+`*:?` | `required:when` | No | Under certain circumstances, @this can not be empty
+`*:!?` | `required:when_not` | No | When certain circumstances are not met, @this can not be empty
+`O` | `optional` | No | @this never go wrong
+`O:?` | `optional:when` | No | @this can be empty only when certain circumstances are met
+`O:!?` | `optional:when_not` | No | @this can be empty only when certain circumstances are not met
+`O!` | `optional_unset` | No | @this must be unset or must not be empty if it's set
+`O!:?` | `optional_unset:when` | No | Under certain circumstances, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
+`O!:!?` | `optional_unset:when_not` | No | When certain circumstances are not met, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
+/ | `preg` | No | @this format is invalid, should be @preg
+/ | `preg_format` | No | @this method @preg is not a valid regular expression
+/ | `call_method` | No | @method is undefined
+`=` | `equal` | No | @this must be equal to @p1
+`!=` | `not_equal` | No | @this must be not equal to @p1
+`==` | `strictly_equal` | No | @this must be strictly equal to @t1(@p1)
+`!==` | `not_strictly_equal` | No | @this must not be strictly equal to @t1(@p1)
+`>` | `greater_than` | No | @this must be greater than @p1
+`<` | `less_than` | No | @this must be less than @p1
+`>=` | `greater_equal` | No | @this must be greater than or equal to @p1
+`<=` | `less_equal` | No | @this must be less than or equal to @p1
+`><` | `greater_less` | No | @this must be greater than @p1 and less than @p2
+`><=` | `greater_lessequal` | No | @this must be greater than @p1 and less than or equal to @p2
+`>=<` | `greaterequal_less` | No | @this must be greater than or equal to @p1 and less than @p2
+`>=<=` | `between` | No | @this must be greater than or equal to @p1 and less than or equal to @p2
+`<number>` | `in_number_array` | **Yes** | @this must be numeric and in @p1
+`!<number>` | `not_in_number_array` | **Yes** | @this must be numeric and can not be in @p1
+`<string>` | `in_string_array` | **Yes** | @this must be string and in @p1
+`!<string>` | `not_in_string_array` | **Yes** | @this must be string and can not be in @p1
+`length=` | `length_equal` | No | @this length must be equal to @p1
+`length!=` | `length_not_equal` | No | @this length must be not equal to @p1
+`length>` | `length_greater_than` | No | @this length must be greater than @p1
+`length<` | `length_less_than` | No | @this length must be less than @p1
+`length>=` | `length_greater_equal` | No | @this length must be greater than or equal to @p1
+`length<=` | `length_less_equal` | No | @this length must be less than or equal to @p1
+`length><` | `length_greater_less` | No | @this length must be greater than @p1 and less than @p2
+`length><=` | `length_greater_lessequal` | No | @this length must be greater than @p1 and less than or equal to @p2
+`length>=<` | `length_greaterequal_less` | No | @this length must be greater than or equal to @p1 and less than @p2
+`length>=<=` | `length_between` | No | @this length must be greater than or equal to @p1 and less than or equal to @p2
+`int` | `integer` | No | @this must be integer
+/ | `float` | No | @this must be float
+/ | `string` | No | @this must be string
+`array` | `is_array` | No | @this must be array
+/ | `bool` | No | @this must be boolean
+`bool=` | `bool_equal` | No | @this must be boolean @p1
+/ | `bool_str` | No | @this must be boolean string
+/ | `bool_string` | No | @this must be boolean string
+`bool_string=` | `bool_string_equal` | No | @this must be boolean string @p1
+/ | `file_base64` | No | @this must be a valid file base64
+/ | `file_base64:mime` | No | @this file mine must be euqal to @p1
+/ | `file_base64:size` | No | @this file size must be less than @p2kb
+/ | `oauth2_grant_type` | No | @this is not a valid OAuth2 grant type
+`email` | `is_email` | No | @this must be email
+`url` | `is_url` | No | @this must be url
+`ip` | `is_ip` | No | @this must be IP address
+`ipv4` | `is_ipv4` | No | @this must be IPv4 address
+`ipv6` | `is_ipv6` | No | @this must be IPv6 address
+`mac` | `is_mac` | No | @this must be MAC address
+/ | `dob` | No | @this must be a valid date
+`uuid` | `is_uuid` | No | @this must be a UUID
+`ulid` | `is_ulid` | No | @this must be a ULID
+`alpha` | `is_alpha` | No | @this must only contain letters
+`alpha_ext` | `is_alpha_ext` | No | @this must only contain letters and _-
+/ | `alpha_ext:@p2` | No | @this must only contain letters and @p2
+`alphanumeric` | `is_alphanumeric` | No | @this must only contain letters and numbers
+`alphanumeric_ext` | `is_alphanumeric_ext` | No | @this must only contain letters and numbers and _-
+/ | `alphanumeric_ext:@p2` | No | @this must only contain letters and numbers and @p2
+`datetime` | `is_datetime` | No | @this must be a valid datetime
+/ | `datetime:format:@p1` | No | @this must be a valid datetime in format @p1
+/ | `datetime:format:@p2` | No | @this must be a valid datetime in format @p2
+/ | `datetime:format:@p3` | No | @this must be a valid datetime in format @p3
+/ | `datetime:invalid_format:@p1` | No | @this format @p1 is not a valid datetime format
+/ | `datetime:invalid_format:@p2` | No | @this format @p2 is not a valid datetime format
+/ | `datetime:invalid_format:@p3` | No | @this format @p3 is not a valid datetime format
+`datetime=` | `datetime_equal` | No | @this must be a valid datetime and equal to @p1
+`datetime!=` | `datetime_not_equal` | No | @this must be a valid datetime and not equal to @p1
+`datetime>` | `datetime_greater_than` | No | @this must be a valid datetime and greater than @p1
+`datetime>=` | `datetime_greater_equal` | No | @this must be a valid datetime and greater than or equal to @p1
+`datetime<` | `datetime_less_than` | No | @this must be a valid datetime and less than @p1
+`datetime<=` | `datetime_less_equal` | No | @this must be a valid datetime and less than or equal to @p1
+`datetime><` | `datetime_greater_less` | No | @this must be a valid datetime and greater than @p1 and less than @p2
+`datetime>=<` | `datetime_greaterequal_less` | No | @this must be a valid datetime and greater than or equal to @p1 and less than @p2
+`datetime><=` | `datetime_greater_lessequal` | No | @this must be a valid datetime and greater than @p1 and less than or equal to @p2
+`datetime>=<=` | `datetime_between` | No | @this datetime must be between @p1 and @p2
+`date` | `is_date` | No | @this must be a valid date in format Y-m-d
+/ | `date:format:@p1` | No | @this must be a valid date in format @p1
+/ | `date:format:@p2` | No | @this must be a valid date in format @p2
+/ | `date:format:@p3` | No | @this must be a valid date in format @p3
+/ | `date:invalid_format:@p1` | No | @this format @p1 is not a valid date format
+/ | `date:invalid_format:@p2` | No | @this format @p2 is not a valid date format
+/ | `date:invalid_format:@p3` | No | @this format @p3 is not a valid date format
+`date=` | `date_equal` | No | @this must be a valid date and equal to @p1
+`date!=` | `date_not_equal` | No | @this must be a valid date and not equal to @p1
+`date>` | `date_greater_than` | No | @this must be a valid date and greater than @p1
+`date>=` | `date_greater_equal` | No | @this must be a valid date and greater than or equal to @p1
+`date<` | `date_less_than` | No | @this must be a valid date and less than @p1
+`date<=` | `date_less_equal` | No | @this must be a valid date and less than or equal to @p1
+`date><` | `date_greater_less` | No | @this must be a valid date and greater than @p1 and less than @p2
+`date>=<` | `date_greaterequal_less` | No | @this must be a valid date and greater than or equal to @p1 and less than @p2
+`date><=` | `date_greater_lessequal` | No | @this must be a valid date and greater than @p1 and less than or equal to @p2
+`date>=<=` | `date_between` | No | @this date must be between @p1 and @p2
+`time` | `is_time` | No | @this must be a valid time in format H:i:s
+/ | `time:format:@p1` | No | @this must be a valid time in format @p1
+/ | `time:format:@p2` | No | @this must be a valid time in format @p2
+/ | `time:format:@p3` | No | @this must be a valid time in format @p3
+/ | `time:invalid_format:@p1` | No | @this format @p1 is not a valid time format
+/ | `time:invalid_format:@p2` | No | @this format @p2 is not a valid time format
+/ | `time:invalid_format:@p3` | No | @this format @p3 is not a valid time format
+`time=` | `time_equal` | No | @this must be a valid time and equal to @p1
+`time!=` | `time_not_equal` | No | @this must be a valid time and not equal to @p1
+`time>` | `time_greater_than` | No | @this must be a valid time and greater than @p1
+`time>=` | `time_greater_equal` | No | @this must be a valid time and greater than or equal to @p1
+`time<` | `time_less_than` | No | @this must be a valid time and less than @p1
+`time<=` | `time_less_equal` | No | @this must be a valid time and less than or equal to @p1
+`time><` | `time_greater_less` | No | @this must be a valid time and greater than @p1 and less than @p2
+`time>=<` | `time_greaterequal_less` | No | @this must be a valid time and greater than or equal to @p1 and less than @p2
+`time><=` | `time_greater_lessequal` | No | @this must be a valid time and greater than @p1 and less than or equal to @p2
+`time>=<=` | `time_between` | No | @this time must be between @p1 and @p2
 
 </details>
 </br>

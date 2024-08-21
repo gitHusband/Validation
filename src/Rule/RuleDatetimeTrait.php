@@ -17,6 +17,12 @@ use githusband\Exception\MethodException;
  */
 trait RuleDatetimeTrait
 {
+    /**
+     * The method symbols of rule datetime.
+     *
+     * @see githusband\Rule::$method_symbols About validated format
+     * @var array
+     */
     protected $method_symbols_of_rule_datetime_trait = [
         // Datetime
         'is_datetime' => 'datetime',

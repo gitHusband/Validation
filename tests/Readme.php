@@ -701,11 +701,11 @@ class Readme extends TestCommon
 
         $header = "";
         if ($language == 'zh-cn') {
-            $header = "标志 | 方法 | 错误消息模板\n";
+            $header = "标志 | 方法 | 可变长度参数 | 错误消息模板\n";
         } else if ($language == 'en-us') {
-            $header = "Symbol | Method | Error Message Template\n";
+            $header = "Symbol | Method | Variable-Length Arguments | Error Message Template\n";
         }
-        $header .= "---|---|---\n";
+        $header .= "---|---|:---:|---\n";
         $method_symbol_table = $header;
 
         foreach ($error_templates as $symbol => $method_error_template) {
@@ -742,22 +742,32 @@ class Readme extends TestCommon
                 $symbol = "`{$symbol}`";
             }
 
-            if (is_array($method)) $method = $method['method'];
+            $is_variable_length_argument = false;
+            if (is_array($method)) {
+                $is_variable_length_argument = !empty($method['is_variable_length_argument']);
+                $method = $method['method'];
+            }
+            if ($is_variable_length_argument) {
+                $ivla_message = $this->translate($language, 'Yes');
+                $ivla_message = "**$ivla_message**";
+            } else {
+                $ivla_message = $this->translate($language, 'No');
+            }
 
-            $method_symbol_table .= "{$symbol} | `{$method}` | {$method_error_template}\n";
+            $method_symbol_table .= "{$symbol} | `{$method}` | {$ivla_message} | {$method_error_template}\n";
         }
 
         $this->write_log(static::LOG_LEVEL_INFO, "\n{$method_symbol_table}");
     }
 
-    protected function get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbol)
+    protected function get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbol_reversed)
     {
         if (isset($built_in_methods[$symbol])) {
             $method = $symbol;
             $symbol = $validation_config[$built_in_methods[$method]] ?? $built_in_methods[$method];
         } else {
-            if (isset($method_symbol[$symbol])) {
-                $method = $method_symbol[$symbol];
+            if (isset($method_symbol_reversed[$symbol])) {
+                $method = $method_symbol_reversed[$symbol];
             } else {
                 $method = $symbol;
                 $symbol = '/';
@@ -768,6 +778,20 @@ class Readme extends TestCommon
             'method' => $method,
             'symbol' => $symbol
         ];
+    }
+
+    protected function translate($language, $message)
+    {
+        if ($language == 'en-us') return $message;
+
+        static $translation = [
+            'zh-cn' => [
+                'Yes' => '是',
+                'No' => '否'
+            ]
+        ];
+
+        return $translation[$language][$message];
     }
 
     protected function validate($data, $rule, $validation_conf = [])

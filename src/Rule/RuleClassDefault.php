@@ -16,8 +16,12 @@ class RuleClassDefault
 {
     /**
      * The method symbols of rule default.
+     * 
+     * Method Data Fields:
+     * - symbols: The symbols of a method.
+     * - is_variable_length_argument: Whether the second parameter of the current rule is variable length argument or not
      *
-     * @var array
+     * @var array<string, string|array{symbols: string|string[], is_variable_length_argument: bool}>
      */
     public static $method_symbols = [
         'equal' => '=',

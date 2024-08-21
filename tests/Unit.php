@@ -6807,7 +6807,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_add_method()
+    protected function test_add_method_with_symbol_string()
     {
         $rules = [
             "symbol" => [
@@ -6856,6 +6856,248 @@ class Unit extends TestCommon
 
             return true;
         }, 'c_a_m');
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_add_method_with_symbol_array()
+    {
+        $rules = [
+            "symbol" => [
+                "animail_a" => "optional|c_a['A']",
+                "animail_ab" => "optional|c_a[A, B]",
+                "animail_bc" => "optional|c_a[B, C]",
+            ],
+            "method" => [
+                "animail_a" => "optional|check_animails['A']",
+                "animail_ab" => "optional|check_animails[A, B]",
+                "animail_bc" => "optional|check_animails[B, C]",
+            ],
+        ];
+
+        $cases = [
+            "Valid_data_a_1" => [
+                "data" => [
+                    "animail_a" => "Ape",
+                ]
+            ],
+            "Valid_data_a_2" => [
+                "data" => [
+                    "animail_a" => "Ant",
+                ]
+            ],
+            "Invalid_data_a_1" => [
+                "data" => [
+                    "animail_a" => "Bear",
+                ],
+                "expected_msg" => ["animail_a" => "animail_a validation failed"]
+            ],
+            "Valid_data_ab_1" => [
+                "data" => [
+                    "animail_ab" => "Ape",
+                ]
+            ],
+            "Valid_data_ab_2" => [
+                "data" => [
+                    "animail_ab" => "Ant",
+                ]
+            ],
+            "Valid_data_ab_3" => [
+                "data" => [
+                    "animail_ab" => "Bird",
+                ]
+            ],
+            "Valid_data_ab_4" => [
+                "data" => [
+                    "animail_ab" => "Bear",
+                ]
+            ],
+            "Invalid_data_ab_1" => [
+                "data" => [
+                    "animail_ab" => "Cat",
+                ],
+                "expected_msg" => ["animail_ab" => "animail_ab validation failed"]
+            ],
+            "Valid_data_bc_1" => [
+                "data" => [
+                    "animail_bc" => "Bird",
+                ]
+            ],
+            "Valid_data_bc_2" => [
+                "data" => [
+                    "animail_bc" => "Bear",
+                ]
+            ],
+            "Valid_data_bc_3" => [
+                "data" => [
+                    "animail_bc" => "Cat",
+                ]
+            ],
+            "Valid_data_bc_4" => [
+                "data" => [
+                    "animail_bc" => "Crab",
+                ]
+            ],
+            "Invalid_data_bc_1" => [
+                "data" => [
+                    "animail_bc" => "Ape",
+                ],
+                "expected_msg" => ["animail_bc" => "animail_bc validation failed"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        $this->validation->add_method("check_animails", function ($data, $list) {
+            $animals = [];
+            if (in_array('A', $list)) {
+                $animals[] = 'Ape';
+                $animals[] = 'Ant';
+            }
+
+            if (in_array('B', $list)) {
+                $animals[] = 'Bird';
+                $animals[] = 'Bear';
+            }
+
+            if (in_array('C', $list)) {
+                $animals[] = 'Cat';
+                $animals[] = 'Crab';
+                $animals[] = 'Camel';
+            }
+
+            return in_array($data, $animals);
+        }, [
+            'symbols' => 'c_a',
+            'is_variable_length_argument' => true,
+        ]);
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_add_method_without_symbol()
+    {
+        $rules = [
+            // "symbol" => [
+            //     "animail_a" => "optional|c_a['A']",
+            //     "animail_ab" => "optional|c_a[A, B]",
+            //     "animail_bc" => "optional|c_a[B, C]",
+            // ],
+            "method" => [
+                "animail_a" => "optional|check_animails['A']",
+                "animail_ab" => "optional|check_animails[A, B]",
+                "animail_bc" => "optional|check_animails[B, C]",
+            ],
+        ];
+
+        $cases = [
+            "Valid_data_a_1" => [
+                "data" => [
+                    "animail_a" => "Ape",
+                ]
+            ],
+            "Valid_data_a_2" => [
+                "data" => [
+                    "animail_a" => "Ant",
+                ]
+            ],
+            "Invalid_data_a_1" => [
+                "data" => [
+                    "animail_a" => "Bear",
+                ],
+                "expected_msg" => ["animail_a" => "animail_a validation failed"]
+            ],
+            "Valid_data_ab_1" => [
+                "data" => [
+                    "animail_ab" => "Ape",
+                ]
+            ],
+            "Valid_data_ab_2" => [
+                "data" => [
+                    "animail_ab" => "Ant",
+                ]
+            ],
+            "Valid_data_ab_3" => [
+                "data" => [
+                    "animail_ab" => "Bird",
+                ]
+            ],
+            "Valid_data_ab_4" => [
+                "data" => [
+                    "animail_ab" => "Bear",
+                ]
+            ],
+            "Invalid_data_ab_1" => [
+                "data" => [
+                    "animail_ab" => "Cat",
+                ],
+                "expected_msg" => ["animail_ab" => "animail_ab validation failed"]
+            ],
+            "Valid_data_bc_1" => [
+                "data" => [
+                    "animail_bc" => "Bird",
+                ]
+            ],
+            "Valid_data_bc_2" => [
+                "data" => [
+                    "animail_bc" => "Bear",
+                ]
+            ],
+            "Valid_data_bc_3" => [
+                "data" => [
+                    "animail_bc" => "Cat",
+                ]
+            ],
+            "Valid_data_bc_4" => [
+                "data" => [
+                    "animail_bc" => "Crab",
+                ]
+            ],
+            "Invalid_data_bc_1" => [
+                "data" => [
+                    "animail_bc" => "Ape",
+                ],
+                "expected_msg" => ["animail_bc" => "animail_bc validation failed"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        $this->validation->add_method("check_animails", function ($data, $list) {
+            $animals = [];
+            if (in_array('A', $list)) {
+                $animals[] = 'Ape';
+                $animals[] = 'Ant';
+            }
+
+            if (in_array('B', $list)) {
+                $animals[] = 'Bird';
+                $animals[] = 'Bear';
+            }
+
+            if (in_array('C', $list)) {
+                $animals[] = 'Cat';
+                $animals[] = 'Crab';
+                $animals[] = 'Camel';
+            }
+
+            return in_array($data, $animals);
+        }, [
+            // 'symbols' => 'c_a',
+            'is_variable_length_argument' => true,
+        ]);
 
         return $method_info = [
             "rules" => $rules,

@@ -307,7 +307,9 @@ class Validation
     protected $method_symbols = [];
     protected $deprecated_method_symbols = [];
     /**
-     * Reverse the method symbol
+     * Reversed method symbol.
+     * 
+     * Why reverse the method symbol? The purpose is that for easily to check if a rule is symbol or method.
      * 
      * @example {"=": "equal"}
      * @example `{"=": "equal", "EQUAL": "equal"}` Multiple symbols of one method.
@@ -469,15 +471,6 @@ class Validation
     /**
      * Merge two method symbols array
      * 
-     * @example
-     * ```
-     * #1. First Method Symbol
-     * `{"equal": "="}`
-     * #2. Next Method Symbol
-     * `{"equal": "EQUAL"}`
-     * #3. Merged Method Symbol
-     * {"equal": {"symbols": ["=", "EQUAL"]}}
-     * ```
      * @param array $first_method_symbols
      * @param array $next_method_symbols
      * @return array
@@ -497,7 +490,18 @@ class Validation
 
     /**
      * Merge two symbols of a same method
+     * 
+     * When you want to add new symbol for a same method to deprecate it old symbol, you 
      *
+     * @example
+     * ```
+     * #1. First Method Symbol
+     * `{"equal": "="}`
+     * #2. Next Method Symbol
+     * `{"equal": "EQUAL"}`
+     * #3. Merged Method Symbol
+     * {"equal": {"symbols": ["=", "EQUAL"]}}
+     * ```
      * @param string|array $first
      * @param string|array $next
      * @return array
@@ -538,25 +542,52 @@ class Validation
     {
         $method_symbols_reversed = [];
         foreach ($method_symbols as $method => $method_data) {
-            if (is_string($method_data)) {
-                $method_symbols_reversed[$method_data] = $method;
-            } else {
-                $symbols = $method_data['symbols'];
-                unset($method_data['symbols']);
-                $method_tmp = array_merge([
-                    'method' => $method
-                ], $method_data);
-                if (is_array($symbols)) {
-                    foreach ($symbols as $symbol) {
-                        $method_symbols_reversed[$symbol] = $method_tmp;
-                    }
-                } else {
-                    $method_symbols_reversed[$symbols] = $method_tmp;
-                }
-            }
+            $this->reverse_one_method_symbol($method, $method_data, $method_symbols_reversed);
         }
 
         return $method_symbols_reversed;
+    }
+
+    /**
+     * Reverse one of the method_symbols
+     *
+     * @example
+     * ```
+     * #1. Method Symbol
+     * `{"equal": "="}`
+     * #2. Reversed Method Symbol
+     * `{"=": "equal"}`
+     * ```
+     * @example
+     * ```
+     * #1. Method Symbol
+     * {"equal": {"symbols": ["=", "EQUAL"]}}
+     * #2. Reversed Method Symbol
+     * `{"=": "equal", "EQUAL": "equal"}`
+     * ```
+     * @see static::merge_symbol_of_method()
+     * @param string $method
+     * @param string|array $method_data
+     * @param array $method_symbols_reversed The target you want to save the reversed data into.
+     * @return void
+     */
+    protected function reverse_one_method_symbol($method, $method_data, &$method_symbols_reversed) {
+        if (is_string($method_data)) {
+            $method_symbols_reversed[$method_data] = $method;
+        } else if (!empty($method_data['symbols'])) {
+            $symbols = $method_data['symbols'];
+            unset($method_data['symbols']);
+            $method_tmp = array_merge([
+                'method' => $method
+            ], $method_data);
+            if (is_array($symbols)) {
+                foreach ($symbols as $symbol) {
+                    $method_symbols_reversed[$symbol] = $method_tmp;
+                }
+            } else {
+                $method_symbols_reversed[$symbols] = $method_tmp;
+            }
+        }
     }
 
     /**
@@ -662,8 +693,18 @@ class Validation
     {
         $by_symbol = false;
 
+        /**
+         * Step 1. Check if the {$in} is a symbol.
+         * If yes, then get its method.
+         * If not, then treat it as a method and start step 2.
+         */
         $in_with_operator = $operator . $in;
         if (!empty($operator) && isset($this->method_symbols_reversed[$in_with_operator])) {
+            /**
+             * Check if the {$operator + $in} symbol is existed
+             * Because we support the operator to be a part of the symbol.
+             * For example, `!=` is the symbol of method `not_equal`, so we don't treat the `!` as a operator.
+             */
             $by_symbol = true;
             $in = $operator . $in;
             $operator = '';
@@ -674,6 +715,11 @@ class Validation
             $class = 'static';
             $method_data = $this->method_symbols_reversed[$in];
         } else {
+            /**
+             * Check if it's the symbol which set in extended rule classes.
+             * @see static::$rule_classes_default
+             * @see static::init_rule_classes()
+             */
             for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
                 $rule_class = $this->rule_classes[$i];
                 $rule_class_name = get_class($rule_class);
@@ -696,18 +742,40 @@ class Validation
 
         if ($by_symbol) {
             $symbol = $in;
-        } else {
+        }
+        /**
+         * Step 2. Get the symbol for the method.
+         * NOTE:
+         * - One method may have not set a symbol.
+         * - One method may have set multiple symbols.
+         */
+        else {
             $method = $in;
             if (isset($this->method_symbols[$in])) {
                 $class = 'static';
                 $symbol_data = $this->method_symbols[$in];
                 if (is_array($symbol_data)) {
-                    $symbol = $symbol_data['symbols'][0];
+                    /** Why 'symbols'? @see static::merge_symbol_of_method() */
+                    if (empty($symbol_data['symbols'])) {
+                        // Only set the method data(e.g. is_variable_length_argument) without setting a symbol
+                        $symbol = $method;
+                        $method_data = $symbol_data;
+                        $method_data['method'] = $method;
+                    } else {
+                        $symbol = $symbol_data['symbols'];
+                        if (is_array($symbol)) $symbol = $symbol[0];
+                        $method_data = $this->method_symbols_reversed[$symbol];
+                    }
                 } else {
                     $symbol = $symbol_data;
+                    $method_data = $this->method_symbols_reversed[$symbol];
                 }
-                $method_data = $this->method_symbols_reversed[$symbol];
             } else {
+                /**
+                 * Check if it's the method which set in extended rule classes.
+                 * @see static::$rule_classes_default
+                 * @see static::init_rule_classes()
+                 */
                 for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
                     $rule_class = $this->rule_classes[$i];
                     $method_symbols = $rule_class::$method_symbols;
@@ -715,13 +783,25 @@ class Validation
                         $class = $rule_class;
                         $symbol_data = $method_symbols[$in];
                         if (is_array($symbol_data)) {
-                            $symbol = $symbol_data['symbols'][0];
+                            /** Why 'symbols'? @see static::merge_symbol_of_method() */
+                            if (empty($symbol_data['symbols'])) {
+                                // Only set the method data(e.g. is_variable_length_argument) without setting a symbol
+                                $symbol = $method;
+                                $method_data = $symbol_data;
+                                $method_data['method'] = $method;
+                            } else {
+                                $symbol = $symbol_data['symbols'];
+                                if (is_array($symbol)) $symbol = $symbol[0];
+                                $rule_class_name = get_class($rule_class);
+                                $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+                                $method_data = $method_symbols_reversed[$symbol];
+                            }
                         } else {
                             $symbol = $symbol_data;
+                            $rule_class_name = get_class($rule_class);
+                            $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+                            $method_data = $method_symbols_reversed[$symbol];
                         }
-                        $rule_class_name = get_class($rule_class);
-                        $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
-                        $method_data = $method_symbols_reversed[$symbol];
                         break;
                     }
                 }
@@ -729,6 +809,7 @@ class Validation
                 if (empty($class)) {
                     $class = 'global';
                     $symbol = $method;
+                    /** Why 'method'? @see static::reverse_method_symbols() */
                     $method_data = [
                         'method' => $method
                     ];
@@ -980,7 +1061,7 @@ class Validation
      *
      * @param string $method Method name
      * @param callable $callable Function definition
-     * @param string $symbol Symbol of method
+     * @param string|array $symbol Symbol of method
      * @return static
      * @api
      */
@@ -989,7 +1070,7 @@ class Validation
         $this->methods[$method] = $callable;
         if (!empty($symbol)) {
             $this->method_symbols[$method] = $symbol;
-            $this->method_symbols_reversed[$symbol] = $method;
+            $this->reverse_one_method_symbol($method, $symbol, $this->method_symbols_reversed);
         }
         return $this;
     }
@@ -2215,7 +2296,10 @@ class Validation
             }
         }
 
-        // "in" method, all the parameters are treated as the second parameter.
+        /**
+         * Check whether the second parameter of the current rule is variable length argument or not
+         * If true, all the parameters are treated as the second parameter.
+         */
         if ($is_variable_length_argument) {
             $field_name = $params[0];
             array_shift($params);

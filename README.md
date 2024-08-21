@@ -1086,141 +1086,144 @@ function check_animal($animal) {
 
 ## 附录 1 - 方法标志及其含义
 
-标志 | 方法 | 错误消息模板
----|---|---
-`*` | `required` | @this 不能为空
-`O:?` | `optional:when` | 在特定情况下，@this 才能为空
-`uuid` | `is_uuid` | @this 必须是 UUID
-`length>=<=` | `length_between` | @this 长度必须大于等于 @p1 且小于等于 @p2
-`date>` | `date_greater_than` | @this 日期必须大于 @p1
+标志 | 方法 | 可变长度参数 | 错误消息模板
+---|---|:---:|---
+`*` | `required` | 否 | @this 不能为空
+`O:?` | `optional:when` | 否 | 在特定情况下，@this 才能为空
+`uuid` | `is_uuid` | 否 | @this 必须是 UUID
+`>` | `greater_than` | 否 | @this 必须大于 @p1
+`length>=<=` | `length_between` | 否 | @this 长度必须大于等于 @p1 且小于等于 @p2
+`<number>` | `in_number_array` | **是** | @this 必须是数字且在此之内 @p1
+`date>` | `date_greater_than` | 否 | @this 日期必须大于 @p1
 
+- `is_variable_length_argument`: 表示方法第二个参数是否为[可变长度参数](https://www.php.net/manual/en/functions.arguments.php#functions.variable-arg-list)。即方法第二个参数为数组，规则集中第一个参数之后的所有参数，都被视为方法的第二个参数的子元素。
 
 <details>
   <summary><span>&#128071;</span> <strong>点击查看 附录 1 - 方法标志及其含义</strong></summary>
 
-标志 | 方法 | 错误消息模板
----|---|---
-/ | `default` | @this 验证错误
-`.*` | `index_array` | @this 必须是索引数组
-`:?` | `when` | 在特定情况下，
-`:!?` | `when_not` | 在非特定情况下，
-`*` | `required` | @this 不能为空
-`*:?` | `required:when` | 在特定情况下，@this 不能为空
-`*:!?` | `required:when_not` | 在非特定情况下，@this 不能为空
-`O` | `optional` | @this 永远不会出错
-`O:?` | `optional:when` | 在特定情况下，@this 才能为空
-`O:!?` | `optional:when_not` | 在非特定情况下，@this 才能为空
-`O!` | `optional_unset` | @this 允许不设置，且一旦设置则不能为空
-`O!:?` | `optional_unset:when` | 在特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
-`O!:!?` | `optional_unset:when_not` | 在非特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
-/ | `preg` | @this 格式错误，必须是 @preg
-/ | `preg_format` | @this 方法 @preg 不是合法的正则表达式
-/ | `call_method` | @method 未定义
-`=` | `equal` | @this 必须等于 @p1
-`!=` | `not_equal` | @this 必须不等于 @p1
-`==` | `strictly_equal` | @this 必须严格等于 @t1(@p1)
-`!==` | `not_strictly_equal` | @this 必须严格不等于 @t1(@p1)
-`>` | `greater_than` | @this 必须大于 @p1
-`<` | `less_than` | @this 必须小于 @p1
-`>=` | `greater_equal` | @this 必须大于等于 @p1
-`<=` | `less_equal` | @this 必须小于等于 @p1
-`><` | `greater_less` | @this 必须大于 @p1 且小于 @p2
-`><=` | `greater_lessequal` | @this 必须大于 @p1 且小于等于 @p2
-`>=<` | `greaterequal_less` | @this 必须大于等于 @p1 且小于 @p2
-`>=<=` | `between` | @this 必须大于等于 @p1 且小于等于 @p2
-`<number>` | `in_number_array` | @this 必须是数字且在此之内 @p1
-`!<number>` | `not_in_number_array` | @this 必须是数字且不在此之内 @p1
-`<string>` | `in_string_array` | @this 必须是字符串且在此之内 @p1
-`!<string>` | `not_in_string_array` | @this 必须是字符串且不在此之内 @p1
-`length=` | `length_equal` | @this 长度必须等于 @p1
-`length!=` | `length_not_equal` | @this 长度必须不等于 @p1
-`length>` | `length_greater_than` | @this 长度必须大于 @p1
-`length<` | `length_less_than` | @this 长度必须小于 @p1
-`length>=` | `length_greater_equal` | @this 长度必须大于等于 @p1
-`length<=` | `length_less_equal` | @this 长度必须小于等于 @p1
-`length><` | `length_greater_less` | @this 长度必须大于 @p1 且小于 @p2
-`length><=` | `length_greater_lessequal` | @this 长度必须大于 @p1 且小于等于 @p2
-`length>=<` | `length_greaterequal_less` | @this 长度必须大于等于 @p1 且小于 @p2
-`length>=<=` | `length_between` | @this 长度必须大于等于 @p1 且小于等于 @p2
-`int` | `integer` | @this 必须是整型
-/ | `float` | @this 必须是小数
-/ | `string` | @this 必须是字符串
-`array` | `is_array` | @this 必须是数组
-/ | `bool` | @this 必须是布尔型
-`bool=` | `bool_equal` | @this 必须是布尔型且等于 @p1
-/ | `bool_str` | @this 必须是布尔型字符串
-/ | `bool_string` | @this 必须是布尔型字符串
-`bool_string=` | `bool_string_equal` | @this 必须是布尔型字符串且等于 @p1
-/ | `dob` | @this 必须是正确的日期
-/ | `file_base64` | @this 必须是正确的文件的base64码
-/ | `file_base64:mime` | @this 文件类型必须是 @p1
-/ | `file_base64:size` | @this 文件尺寸必须小于 @p2kb
-/ | `oauth2_grant_type` | @this 必须是合法的 OAuth2 授权类型
-`email` | `is_email` | @this 必须是邮箱
-`url` | `is_url` | @this 必须是网址
-`ip` | `is_ip` | @this 必须是IP地址
-`ipv4` | `is_ipv4` | @this 必须是IPv6地址
-`ipv6` | `is_ipv6` | @this 必须是IPv6地址
-`mac` | `is_mac` | @this 必须是MAC地址
-`uuid` | `is_uuid` | @this 必须是 UUID
-`ulid` | `is_ulid` | @this 必须是 ULID
-`alpha` | `is_alpha` | @this 只能包含字母
-`alpha_ext` | `is_alpha_ext` | @this 只能包含字母和_-
-/ | `alpha_ext:@p2` | @this 只能包含字母和@p2
-`alphanumeric` | `is_alphanumeric` | @this 只能包含字母和数字
-`alphanumeric_ext` | `is_alphanumeric_ext` | @this 只能包含字母，数字和_-
-/ | `alphanumeric_ext:@p2` | @this 只能包含字母，数字和@p2
-`datetime` | `is_datetime` | @this 必须是格式正确的日期时间
-/ | `datetime:format:@p1` | @this 必须是日期时间且格式为 @p1
-/ | `datetime:format:@p2` | @this 必须是日期时间且格式为 @p2
-/ | `datetime:format:@p3` | @this 必须是日期时间且格式为 @p3
-/ | `datetime:invalid_format:@p1` | @this 格式 @p1 不是合法的日期时间格式
-/ | `datetime:invalid_format:@p2` | @this 格式 @p2 不是合法的日期时间格式
-/ | `datetime:invalid_format:@p3` | @this 格式 @p3 不是合法的日期时间格式
-`datetime=` | `datetime_equal` | @this 日期时间必须等于 @p1
-`datetime!=` | `datetime_not_equal` | @this 日期时间必须不等于 @p1
-`datetime>` | `datetime_greater_than` | @this 日期时间必须大于 @p1
-`datetime>=` | `datetime_greater_equal` | @this 日期时间必须大于等于 @p1
-`datetime<` | `datetime_less_than` | @this 日期时间必须小于 @p1
-`datetime<=` | `datetime_less_equal` | @this 日期时间必须小于等于 @p1
-`datetime><` | `datetime_greater_less` | @this 日期时间必须大于 @p1 且小于 @p2
-`datetime>=<` | `datetime_greaterequal_less` | @this 日期时间必须大于等于 @p1 且小于 @p2
-`datetime><=` | `datetime_greater_lessequal` | @this 日期时间必须大于 @p1 且小于等于 @p2
-`datetime>=<=` | `datetime_between` | @this 日期时间必须在 @p1 和 @p2 之间
-`date` | `is_date` | @this 必须是日期且格式为 Y-m-d
-/ | `date:format:@p1` | @this 必须是日期且格式为 @p1
-/ | `date:format:@p2` | @this 必须是日期且格式为 @p2
-/ | `date:format:@p3` | @this 必须是日期且格式为 @p3
-/ | `date:invalid_format:@p1` | @this 格式 @p1 不是合法的日期格式
-/ | `date:invalid_format:@p2` | @this 格式 @p2 不是合法的日期格式
-/ | `date:invalid_format:@p3` | @this 格式 @p3 不是合法的日期格式
-`date=` | `date_equal` | @this 日期必须等于 @p1
-`date!=` | `date_not_equal` | @this 日期必须不等于 @p1
-`date>` | `date_greater_than` | @this 日期必须大于 @p1
-`date>=` | `date_greater_equal` | @this 日期必须大于等于 @p1
-`date<` | `date_less_than` | @this 日期必须小于 @p1
-`date<=` | `date_less_equal` | @this 日期必须小于等于 @p1
-`date><` | `date_greater_less` | @this 日期必须大于 @p1 且小于 @p2
-`date>=<` | `date_greaterequal_less` | @this 日期必须大于等于 @p1 且小于 @p2
-`date><=` | `date_greater_lessequal` | @this 日期必须大于 @p1 且小于等于 @p2
-`date>=<=` | `date_between` | @this 日期必须在 @p1 和 @p2 之间
-`time` | `is_time` | @this 必须是时间且格式为 H:i:s
-/ | `time:format:@p1` | @this 必须是时间且格式为 @p1
-/ | `time:format:@p2` | @this 必须是时间且格式为 @p2
-/ | `time:format:@p3` | @this 必须是时间且格式为 @p3
-/ | `time:invalid_format:@p1` | @this 格式 @p1 不是合法的时间格式
-/ | `time:invalid_format:@p2` | @this 格式 @p2 不是合法的时间格式
-/ | `time:invalid_format:@p3` | @this 格式 @p3 不是合法的时间格式
-`time=` | `time_equal` | @this 时间必须等于 @p1
-`time!=` | `time_not_equal` | @this 时间必须不等于 @p1
-`time>` | `time_greater_than` | @this 时间必须大于 @p1
-`time>=` | `time_greater_equal` | @this 时间必须大于等于 @p1
-`time<` | `time_less_than` | @this 时间必须小于 @p1
-`time<=` | `time_less_equal` | @this 时间必须小于等于 @p1
-`time><` | `time_greater_less` | @this 时间必须大于 @p1 且小于 @p2
-`time>=<` | `time_greaterequal_less` | @this 时间必须大于等于 @p1 且小于 @p2
-`time><=` | `time_greater_lessequal` | @this 时间必须大于 @p1 且小于等于 @p2
-`time>=<=` | `time_between` | @this 时间必须在 @p1 和 @p2 之间
+标志 | 方法 | 可变长度参数 | 错误消息模板
+---|---|:---:|---
+/ | `default` | 否 | @this 验证错误
+`.*` | `index_array` | 否 | @this 必须是索引数组
+`:?` | `when` | 否 | 在特定情况下，
+`:!?` | `when_not` | 否 | 在非特定情况下，
+`*` | `required` | 否 | @this 不能为空
+`*:?` | `required:when` | 否 | 在特定情况下，@this 不能为空
+`*:!?` | `required:when_not` | 否 | 在非特定情况下，@this 不能为空
+`O` | `optional` | 否 | @this 永远不会出错
+`O:?` | `optional:when` | 否 | 在特定情况下，@this 才能为空
+`O:!?` | `optional:when_not` | 否 | 在非特定情况下，@this 才能为空
+`O!` | `optional_unset` | 否 | @this 允许不设置，且一旦设置则不能为空
+`O!:?` | `optional_unset:when` | 否 | 在特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
+`O!:!?` | `optional_unset:when_not` | 否 | 在非特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
+/ | `preg` | 否 | @this 格式错误，必须是 @preg
+/ | `preg_format` | 否 | @this 方法 @preg 不是合法的正则表达式
+/ | `call_method` | 否 | @method 未定义
+`=` | `equal` | 否 | @this 必须等于 @p1
+`!=` | `not_equal` | 否 | @this 必须不等于 @p1
+`==` | `strictly_equal` | 否 | @this 必须严格等于 @t1(@p1)
+`!==` | `not_strictly_equal` | 否 | @this 必须严格不等于 @t1(@p1)
+`>` | `greater_than` | 否 | @this 必须大于 @p1
+`<` | `less_than` | 否 | @this 必须小于 @p1
+`>=` | `greater_equal` | 否 | @this 必须大于等于 @p1
+`<=` | `less_equal` | 否 | @this 必须小于等于 @p1
+`><` | `greater_less` | 否 | @this 必须大于 @p1 且小于 @p2
+`><=` | `greater_lessequal` | 否 | @this 必须大于 @p1 且小于等于 @p2
+`>=<` | `greaterequal_less` | 否 | @this 必须大于等于 @p1 且小于 @p2
+`>=<=` | `between` | 否 | @this 必须大于等于 @p1 且小于等于 @p2
+`<number>` | `in_number_array` | **是** | @this 必须是数字且在此之内 @p1
+`!<number>` | `not_in_number_array` | **是** | @this 必须是数字且不在此之内 @p1
+`<string>` | `in_string_array` | **是** | @this 必须是字符串且在此之内 @p1
+`!<string>` | `not_in_string_array` | **是** | @this 必须是字符串且不在此之内 @p1
+`length=` | `length_equal` | 否 | @this 长度必须等于 @p1
+`length!=` | `length_not_equal` | 否 | @this 长度必须不等于 @p1
+`length>` | `length_greater_than` | 否 | @this 长度必须大于 @p1
+`length<` | `length_less_than` | 否 | @this 长度必须小于 @p1
+`length>=` | `length_greater_equal` | 否 | @this 长度必须大于等于 @p1
+`length<=` | `length_less_equal` | 否 | @this 长度必须小于等于 @p1
+`length><` | `length_greater_less` | 否 | @this 长度必须大于 @p1 且小于 @p2
+`length><=` | `length_greater_lessequal` | 否 | @this 长度必须大于 @p1 且小于等于 @p2
+`length>=<` | `length_greaterequal_less` | 否 | @this 长度必须大于等于 @p1 且小于 @p2
+`length>=<=` | `length_between` | 否 | @this 长度必须大于等于 @p1 且小于等于 @p2
+`int` | `integer` | 否 | @this 必须是整型
+/ | `float` | 否 | @this 必须是小数
+/ | `string` | 否 | @this 必须是字符串
+`array` | `is_array` | 否 | @this 必须是数组
+/ | `bool` | 否 | @this 必须是布尔型
+`bool=` | `bool_equal` | 否 | @this 必须是布尔型且等于 @p1
+/ | `bool_str` | 否 | @this 必须是布尔型字符串
+/ | `bool_string` | 否 | @this 必须是布尔型字符串
+`bool_string=` | `bool_string_equal` | 否 | @this 必须是布尔型字符串且等于 @p1
+/ | `dob` | 否 | @this 必须是正确的日期
+/ | `file_base64` | 否 | @this 必须是正确的文件的base64码
+/ | `file_base64:mime` | 否 | @this 文件类型必须是 @p1
+/ | `file_base64:size` | 否 | @this 文件尺寸必须小于 @p2kb
+/ | `oauth2_grant_type` | 否 | @this 必须是合法的 OAuth2 授权类型
+`email` | `is_email` | 否 | @this 必须是邮箱
+`url` | `is_url` | 否 | @this 必须是网址
+`ip` | `is_ip` | 否 | @this 必须是IP地址
+`ipv4` | `is_ipv4` | 否 | @this 必须是IPv6地址
+`ipv6` | `is_ipv6` | 否 | @this 必须是IPv6地址
+`mac` | `is_mac` | 否 | @this 必须是MAC地址
+`uuid` | `is_uuid` | 否 | @this 必须是 UUID
+`ulid` | `is_ulid` | 否 | @this 必须是 ULID
+`alpha` | `is_alpha` | 否 | @this 只能包含字母
+`alpha_ext` | `is_alpha_ext` | 否 | @this 只能包含字母和_-
+/ | `alpha_ext:@p2` | 否 | @this 只能包含字母和@p2
+`alphanumeric` | `is_alphanumeric` | 否 | @this 只能包含字母和数字
+`alphanumeric_ext` | `is_alphanumeric_ext` | 否 | @this 只能包含字母，数字和_-
+/ | `alphanumeric_ext:@p2` | 否 | @this 只能包含字母，数字和@p2
+`datetime` | `is_datetime` | 否 | @this 必须是格式正确的日期时间
+/ | `datetime:format:@p1` | 否 | @this 必须是日期时间且格式为 @p1
+/ | `datetime:format:@p2` | 否 | @this 必须是日期时间且格式为 @p2
+/ | `datetime:format:@p3` | 否 | @this 必须是日期时间且格式为 @p3
+/ | `datetime:invalid_format:@p1` | 否 | @this 格式 @p1 不是合法的日期时间格式
+/ | `datetime:invalid_format:@p2` | 否 | @this 格式 @p2 不是合法的日期时间格式
+/ | `datetime:invalid_format:@p3` | 否 | @this 格式 @p3 不是合法的日期时间格式
+`datetime=` | `datetime_equal` | 否 | @this 日期时间必须等于 @p1
+`datetime!=` | `datetime_not_equal` | 否 | @this 日期时间必须不等于 @p1
+`datetime>` | `datetime_greater_than` | 否 | @this 日期时间必须大于 @p1
+`datetime>=` | `datetime_greater_equal` | 否 | @this 日期时间必须大于等于 @p1
+`datetime<` | `datetime_less_than` | 否 | @this 日期时间必须小于 @p1
+`datetime<=` | `datetime_less_equal` | 否 | @this 日期时间必须小于等于 @p1
+`datetime><` | `datetime_greater_less` | 否 | @this 日期时间必须大于 @p1 且小于 @p2
+`datetime>=<` | `datetime_greaterequal_less` | 否 | @this 日期时间必须大于等于 @p1 且小于 @p2
+`datetime><=` | `datetime_greater_lessequal` | 否 | @this 日期时间必须大于 @p1 且小于等于 @p2
+`datetime>=<=` | `datetime_between` | 否 | @this 日期时间必须在 @p1 和 @p2 之间
+`date` | `is_date` | 否 | @this 必须是日期且格式为 Y-m-d
+/ | `date:format:@p1` | 否 | @this 必须是日期且格式为 @p1
+/ | `date:format:@p2` | 否 | @this 必须是日期且格式为 @p2
+/ | `date:format:@p3` | 否 | @this 必须是日期且格式为 @p3
+/ | `date:invalid_format:@p1` | 否 | @this 格式 @p1 不是合法的日期格式
+/ | `date:invalid_format:@p2` | 否 | @this 格式 @p2 不是合法的日期格式
+/ | `date:invalid_format:@p3` | 否 | @this 格式 @p3 不是合法的日期格式
+`date=` | `date_equal` | 否 | @this 日期必须等于 @p1
+`date!=` | `date_not_equal` | 否 | @this 日期必须不等于 @p1
+`date>` | `date_greater_than` | 否 | @this 日期必须大于 @p1
+`date>=` | `date_greater_equal` | 否 | @this 日期必须大于等于 @p1
+`date<` | `date_less_than` | 否 | @this 日期必须小于 @p1
+`date<=` | `date_less_equal` | 否 | @this 日期必须小于等于 @p1
+`date><` | `date_greater_less` | 否 | @this 日期必须大于 @p1 且小于 @p2
+`date>=<` | `date_greaterequal_less` | 否 | @this 日期必须大于等于 @p1 且小于 @p2
+`date><=` | `date_greater_lessequal` | 否 | @this 日期必须大于 @p1 且小于等于 @p2
+`date>=<=` | `date_between` | 否 | @this 日期必须在 @p1 和 @p2 之间
+`time` | `is_time` | 否 | @this 必须是时间且格式为 H:i:s
+/ | `time:format:@p1` | 否 | @this 必须是时间且格式为 @p1
+/ | `time:format:@p2` | 否 | @this 必须是时间且格式为 @p2
+/ | `time:format:@p3` | 否 | @this 必须是时间且格式为 @p3
+/ | `time:invalid_format:@p1` | 否 | @this 格式 @p1 不是合法的时间格式
+/ | `time:invalid_format:@p2` | 否 | @this 格式 @p2 不是合法的时间格式
+/ | `time:invalid_format:@p3` | 否 | @this 格式 @p3 不是合法的时间格式
+`time=` | `time_equal` | 否 | @this 时间必须等于 @p1
+`time!=` | `time_not_equal` | 否 | @this 时间必须不等于 @p1
+`time>` | `time_greater_than` | 否 | @this 时间必须大于 @p1
+`time>=` | `time_greater_equal` | 否 | @this 时间必须大于等于 @p1
+`time<` | `time_less_than` | 否 | @this 时间必须小于 @p1
+`time<=` | `time_less_equal` | 否 | @this 时间必须小于等于 @p1
+`time><` | `time_greater_less` | 否 | @this 时间必须大于 @p1 且小于 @p2
+`time>=<` | `time_greaterequal_less` | 否 | @this 时间必须大于等于 @p1 且小于 @p2
+`time><=` | `time_greater_lessequal` | 否 | @this 时间必须大于 @p1 且小于等于 @p2
+`time>=<=` | `time_between` | 否 | @this 时间必须在 @p1 和 @p2 之间
 
 </details>
 </br>
