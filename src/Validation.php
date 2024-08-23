@@ -6,6 +6,7 @@ use githusband\Entity\RulesetEntity;
 use githusband\Entity\RuleEntity;
 use githusband\Rule\RuleClassDefault;
 use githusband\Rule\RuleClassDatetime;
+use githusband\Rule\RuleClassArray;
 use githusband\Exception\GhException;
 use githusband\Exception\RuleException;
 use Exception;
@@ -256,6 +257,7 @@ class Validation
         'symbol_when' => ':?',                                      // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
         'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
         'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+        'self_ruleset_key' => '__self__',                           // If an array has such a subfield with the same name as {self_ruleset_key}, then the ruleset of this subfield is the ruleset of the array.
     ];
     protected $config_backup;
 
@@ -335,6 +337,7 @@ class Validation
     protected $rule_classes_default = [
         RuleClassDefault::class,
         RuleClassDatetime::class,
+        RuleClassArray::class,
     ];
 
     /**
@@ -1187,6 +1190,10 @@ class Validation
      */
     protected function execute($data, $rules, $field_path = null)
     {
+        $self_result = $this->execute_self_rules($data, $rules, $field_path);
+        if ($self_result == 0) return false;
+        else if ($self_result == 1 && empty($data)) return true;     // optional
+
         foreach ($rules as $field => $ruleset) {
             $current_field_path = '';
             if ($field_path === null) $current_field_path = $field;
@@ -1212,7 +1219,11 @@ class Validation
                 }
                 // Validate index array
                 else if ($this->has_system_symbol($ruleset_system_symbol, 'symbol_index_array', true)) {
-                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset[$ruleset_system_symbol]);
+                    $current_data = isset($data[$field]) ? $data[$field] : null;
+                    $self_result = $this->execute_self_rules($current_data, $ruleset, $current_field_path);
+                    if ($self_result == 0) $result = false;
+                    else if ($self_result == 1 && empty($current_data)) $result = true;     // optional
+                    else $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset[$ruleset_system_symbol]);
                 }
                 // Validate association array
                 else {
@@ -1298,6 +1309,9 @@ class Validation
     protected function get_ruleset_system_symbol($ruleset)
     {
         if (!is_array($ruleset)) return false;
+
+        // self ruleset of index array
+        if (isset($ruleset[$this->config['self_ruleset_key']])) unset($ruleset[$this->config['self_ruleset_key']]);
 
         $keys = array_keys($ruleset);
 
@@ -1404,6 +1418,44 @@ class Validation
         }
 
         return $ruleset_system_symbol_string;
+    }
+
+    /**
+     * Execute validation of self rules of a array node.
+     * 
+     * Result:
+     *  - -1: No self ruleset
+     *  -  0: Validate self ruleset but failed.
+     *  -  1: Validate self ruleset and success.
+     * 
+     * @example
+     * ```
+     * $rule => [
+     *      "person" => [
+     *          "__self__" => "optional|<keys>[id, name]",
+     *          "id" => "required|int|>=[1]|<=[100]",
+     *          "name" => "required|string|/^[A-Z]+-\d+/"
+     *      ]
+     * ];
+     * ```
+     * @param array $data The parent data of the field which is related to the rules
+     * @param string $field The field which is related to the rules
+     * @param string $field_path Field path, suce as fruit.apple
+     * @return int The result of validation
+     */
+    protected function execute_self_rules($data, &$rules, $field_path)
+    {
+        if (isset($rules[$this->config['self_ruleset_key']])) {
+            $field = $this->get_path_final_field($field_path);
+            $result = $this->execute_ruleset([
+                $field => $data
+            ], $field, $rules[$this->config['self_ruleset_key']], $field_path);
+            unset($rules[$this->config['self_ruleset_key']]);
+            $this->set_result($field_path, $result);
+            return $result ? 1 : 0;
+        }
+
+        return -1;
     }
 
     /**
@@ -2646,18 +2698,27 @@ class Validation
     {
         if (is_array($value) || is_object($value)) {
             if ($method_rule['is_variable_length_argument']) {
-                $value = implode(',', $value);
+                $value_max_index = count($value) - 1;
+                $index = 0;
+                $serialized_value = '';
+                foreach ($value as $k => $v) {
+                    if (is_array($v)) {
+                        $v = $k;
+                    } else if (!is_string($v)) {
+                        $v = $this->var_export($v, true);
+                    }
+                    $serialized_value .= "$v";
+                    if ($index != $value_max_index) $serialized_value .= ",";
+                    $index++;
+                }
+                $value = $serialized_value;
             } else {
                 return $error_template;
             }
         }
 
         $p = $value;
-        if (!isset($value)) {
-            $p = "NULL";
-        } else if (is_bool($value)) {
-            $p = $value ? 'true' : 'false';
-        }
+        if (!is_string($value)) $p = $this->var_export($value, true);
         $error_template = str_replace('@p' . $key, $p, $error_template);
         $error_template = str_replace('@t' . $key, $this->get_parameter_type($value), $error_template);
         return $error_template;
@@ -2863,7 +2924,7 @@ class Validation
 
                 $method_rule = $this->parse_method($when_rule, '', $data, $field);
                 $params = $method_rule['params'];
-                $when_result = $this->execute_method($method_rule, $field_path);
+                $when_result = $this->execute_method($method_rule);
 
                 if (is_array($when_result) && !empty($when_result['error_type']) && $when_result['error_type'] == 'undefined_method') return false;
 
@@ -3019,7 +3080,7 @@ class Validation
             else {
                 $method_rule = $this->parse_method($rule, $operator, $data, $field);
                 $params = $method_rule['params'];
-                $result = $this->execute_method($method_rule, $field_path);
+                $result = $this->execute_method($method_rule);
 
                 /**
                  * If method validation is success. should return true.
@@ -3080,10 +3141,9 @@ class Validation
      * Execute method
      *
      * @param array $method_rule Method detail
-     * @param string $field_path The field which is related to the rule
      * @return bool|string|array
      */
-    protected function execute_method($method_rule, $field_path)
+    protected function execute_method($method_rule)
     {
         try {
             $params = $method_rule['params'];
@@ -3539,6 +3599,28 @@ class Validation
     }
 
     /**
+     * Return a parsable string representation of a variable
+     * 
+     * The built-in function `var_export` does not work for decimal in PHP 5.6.
+     * So I create the function for the same functionality.
+     *
+     * @see https://www.php.net/manual/en/function.var-export.php
+     * @param mixed $value
+     * @param bool $return
+     * @return void
+     */
+    public function var_export($value, $return = true)
+    {
+        if ($value === null) {
+            $value = 'NULL';
+        } else if (is_bool($value)) {
+            $value = $value ? 'true' : 'false';
+        }
+
+        return $value;
+    }
+
+    /**
      * To convert a camelCase(camel case, camel caps or medial capitals) formatted string to a non-camelCase format.
      * For example: "RuleDefault" -> "rule_default"
      *
@@ -3648,7 +3730,7 @@ class Validation
              * Most of the time the $rules is an associate array, so the ruleset type is RULESET_TYPE_ASSOC_ARRAY
              * But sometimes it's for index array, we will change the ruleset type below.
              */
-            $root_ruleset_entity = new RulesetEntity('root', $rules, '');
+            $root_ruleset_entity = new RulesetEntity('root', $rules, null);
             if (!empty($auto_field)) $root_ruleset_entity->set_real_root_name($auto_field);
             $root_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_ASSOC_ARRAY);
             $symbol_index_array_without_left_dot = ltrim($this->config['symbol_index_array'], '.');
@@ -3687,6 +3769,8 @@ class Validation
      */
     protected function parse_ruleset_entity(&$parent_ruleset_entity)
     {
+        $this->parse_self_ruleset_entity($parent_ruleset_entity);
+        
         $parent_ruleset = $parent_ruleset_entity->get_value();
         $field_path = $parent_ruleset_entity->get_path();
 
@@ -3739,7 +3823,7 @@ class Validation
 
         foreach ($parent_ruleset as $field => $ruleset) {
             $current_field_path = '';
-            if ($field_path === '') $current_field_path = $field;
+            if ($field_path === null) $current_field_path = $field;
             else $current_field_path = $field_path . $this->config['symbol_field_name_separator'] . $field;
             $this->set_current_field_path($current_field_path);
 
@@ -3816,6 +3900,27 @@ class Validation
         }
 
         return $parent_ruleset_entity;
+    }
+
+    /**
+     * Parse the rulesets of the parent RulesetEntity
+     *
+     * @param ?RulesetEntity $parent_ruleset_entity
+     */
+    protected function parse_self_ruleset_entity(&$parent_ruleset_entity)
+    {
+        $parent_ruleset = $parent_ruleset_entity->get_value();
+        if (isset($parent_ruleset[$this->config['self_ruleset_key']])) {
+            $parent_ruleset_entity
+                ->reset_rule_entities()
+                ->set_ruleset($parent_ruleset[$this->config['self_ruleset_key']]);
+            $this->parse_rule_entity($parent_ruleset_entity);
+
+            unset($parent_ruleset[$this->config['self_ruleset_key']]);
+            $parent_ruleset_entity->set_value($parent_ruleset);
+        }
+
+        return true;
     }
 
     /**
@@ -4147,6 +4252,10 @@ class Validation
      */
     protected function execute_entity($data, $parent_ruleset_entity)
     {
+        $self_result = $this->execute_self_ruleset_entities($data, $parent_ruleset_entity);
+        if ($self_result == 0) return false;
+        else if ($self_result == 1 && empty($data)) return true;     // optional
+
         $current_index_array_key = null;
         $parent_ruleset_type = $parent_ruleset_entity->get_ruleset_type();
         if ($parent_ruleset_type == RulesetEntity::RULESET_TYPE_INDEX_ARRAY) {
@@ -4161,35 +4270,10 @@ class Validation
             switch ($ruleset_type) {
                 case RulesetEntity::RULESET_TYPE_ASSOC_ARRAY:
                 case RulesetEntity::RULESET_TYPE_INDEX_ARRAY:
-                    $has_static_ruleset = false;
-                    if ($ruleset_entity->has_if_ruleset_entities()) {
-                        $has_static_ruleset = true;
-                        $result = $this->execute_if_ruleset_entities($data, $field, $ruleset_entity);
-                    } else if ($ruleset_entity->has_parallel_ruleset_entities()) {
-                        $has_static_ruleset = true;
-                        $result = $this->execute_parallel_ruleset_entities($data, $field, $ruleset_entity);
-                    } else if ($ruleset_entity->has_rule_entities()) {
-                        $has_static_ruleset = true;
-                        $result = $this->execute_ruleset_entity($data, $field, $ruleset_entity, $current_field_path);
+                    if ($ruleset_type === RulesetEntity::RULESET_TYPE_ASSOC_ARRAY) {
+                        $result = $this->execute_entity(isset($data[$field]) ? $data[$field] : null, $ruleset_entity, $current_field_path);
                     } else {
-                        $result = true;
-                    }
-
-                    if (
-                        !$result
-                        || (
-                            $result
-                            && $has_static_ruleset
-                            && empty($data[$field])
-                        )
-                    ) {
-                        $this->set_result($current_field_path, $result);
-                    } else {
-                        if ($ruleset_type === RulesetEntity::RULESET_TYPE_ASSOC_ARRAY) {
-                            $result = $this->execute_entity(isset($data[$field]) ? $data[$field] : null, $ruleset_entity, $current_field_path);
-                        } else {
-                            $result = $this->execute_index_array_ruleset_entities($data, $field, $ruleset_entity);
-                        }
+                        $result = $this->execute_index_array_ruleset_entities($data, $field, $ruleset_entity);
                     }
                     
                     break;
@@ -4213,6 +4297,63 @@ class Validation
     }
 
     /**
+     * Execute validation of self rules of a array node.
+     * 
+     * Result:
+     *  - -1: No self ruleset
+     *  -  0: Validate self ruleset but failed.
+     *  -  1: Validate self ruleset and success.
+     *
+     * @param array $data The parent data of the field which is related to the rule
+     * @param RulesetEntity $ruleset_entity The ruleset of the field
+     * @return int The result of validation
+     */
+    protected function execute_self_ruleset_entities($data, $ruleset_entity)
+    {
+        if ($ruleset_entity->has_if_ruleset_entities()) {
+            $field_path = $ruleset_entity->get_path();
+            $field = $this->get_path_final_field($field_path);
+            $result = $this->execute_if_ruleset_entities([
+                $field => $data
+            ], $field, $ruleset_entity);
+            $this->set_result($field_path, $result);
+            return $result ? 1 : 0;
+        } else if ($ruleset_entity->has_parallel_ruleset_entities()) {
+            $field_path = $ruleset_entity->get_path();
+            $field = $this->get_path_final_field($field_path);
+            $result = $this->execute_parallel_ruleset_entities([
+                $field => $data
+            ], $field, $ruleset_entity);
+            $this->set_result($field_path, $result);
+            return $result ? 1 : 0;
+        } else if ($ruleset_entity->has_rule_entities()) {
+            $field_path = $ruleset_entity->get_path();
+            $field = $this->get_path_final_field($field_path);
+            $result = $this->execute_ruleset_entity([
+                $field => $data
+            ], $field, $ruleset_entity, $field_path);
+            $this->set_result($field_path, $result);
+            return $result ? 1 : 0;
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * Get the final field from the field path.
+     * For example, The "C" is the final field of the path "A.B.C"
+     * 
+     * @param ?string $field_path
+     * @return void
+     */
+    protected function get_path_final_field(&$field_path)
+    {
+        if ($field_path === null) $field_path = $this->config['auto_field'];
+        $field_path_array = explode($this->config['symbol_field_name_separator'], $field_path);
+        return $field_path_array[count($field_path_array)-1];
+    }
+
+    /**
      * Execute validation of index array rules.
      * There has two ways to add index array rules:
      * 1. Add symbol_index_array in the end of the field. Such as $rule = [ "name.*" => [ "*|string" ] ];
@@ -4225,8 +4366,13 @@ class Validation
      */
     protected function execute_index_array_ruleset_entities($data, $field, $ruleset_entity)
     {
+        $current_data = isset($data[$field]) ? $data[$field] : null;
+        $self_result = $this->execute_self_ruleset_entities($current_data, $ruleset_entity);
+        if ($self_result == 0) return false;
+        else if ($self_result == 1 && empty($current_data)) return true;     // optional
+
         $field_path = $ruleset_entity->get_path();
-        if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
+        if (!isset($current_data) || !$this->is_index_array($current_data)) {
             $error_template = $this->get_error_template('index_array');
             $error_msg = str_replace($this->symbol_this, $field_path, $error_template);
             $message = [
@@ -4245,9 +4391,9 @@ class Validation
             $ruleset_entity->set_index_array_deep($index_array_deep);
 
             $is_all_valid = true;
-            foreach ($data[$field] as $key => $value) {
+            foreach ($current_data as $key => $value) {
                 $ruleset_entity->set_root_index_array_key($index_array_deep, $key);
-                $result = $this->execute_entity($data[$field], $ruleset_entity);
+                $result = $this->execute_entity($current_data, $ruleset_entity);
 
                 $is_all_valid = $is_all_valid && $result;
 
@@ -4421,7 +4567,7 @@ class Validation
 
                     $when_method_rule = $when_rule_entity->get_method_rule();
                     $when_method_rule['params'] = $this->parse_rule_entity_params($when_method_rule['params'], $data, $field);
-                    $when_result = $this->execute_method($when_method_rule, $field_path);
+                    $when_result = $this->execute_method($when_method_rule);
 
                     if (is_array($when_result) && !empty($when_result['error_type']) && $when_result['error_type'] == 'undefined_method') return false;
 
@@ -4540,7 +4686,7 @@ class Validation
             }
             // Method
             else {
-                $result = $this->execute_method($method_rule, $field_path);
+                $result = $this->execute_method($method_rule);
 
                 /**
                  * If method validation is success. should return true.
@@ -4571,6 +4717,7 @@ class Validation
                 if ($ruleset_entity->is_condition_ruleset_entity()) return false; 
 
                 // Replace symbol to field name and parameter value
+                if ($field_path === null) $field_path = $this->config['auto_field'];  // root node
                 $error_template = str_replace($this->symbol_this, $field_path, $error_template);
                 $error_msg = $this->inject_parameters_to_error_template($error_template, $params, $method_rule);
 

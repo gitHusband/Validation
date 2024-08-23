@@ -39,6 +39,7 @@ Table of contents
          * [The When Conditional Rules](#the-when-conditional-rules)
          * [IF Rules](#if-rules)
       * [4.7 Infinitely Nested Data Structures](#47-infinitely-nested-data-structures)
+         * [The Rules Of The Array Itself](#the-rules-of-the-array-itself)
       * [4.8 Optional Field](#48-optional-field)
       * [4.9 Special Validation Rules](#49-special-validation-rules)
       * [4.10 Customized Configuration](#410-customized-configuration)
@@ -712,6 +713,54 @@ $rule = [
 
 </details>
 
+#### The Rules Of The Array Itself
+
+In the above examples, a rule array can complete the validation of complex structured data. But only the leaf fields can be validated. If you want to validate the parent array itself, it is not yet possible.
+
+Then, we design the rule to represent the parent array itself through a `__self__` leaf field.
+
+- The `__self__` field allows customization, see [4.10 Customized Configuration](#410-customized-configuration)
+- Specially, if the array itself has only the `optional` rule, there is a simple way to write it, see [4.8 Optional Field](#48-optional-field)
+
+**1. Rules for associative array itself**
+```PHP
+$rule = [
+    // Indicates that the root data can be empty. If it is not empty, its fields are required to contain and only contain "id, name, favorite_fruit".
+    "__self__" => "optional|require_array_keys[id, name, favourite_fruit]",
+    "id" => "required|/^\d+$/",
+    "name" => "required|length>[3]",
+    "favourite_fruit" => [
+        // Indicates that the `favourite_fruit` can be empty. If it is not empty, its fields are required to contain and only contain "name, color, shape".
+        "__self__" => "optional|require_array_keys[name, color, shape]",
+        "name" => "required|length>[3]",
+        "color" => "required|length>[3]",
+        "shape" => "required|length>[3]"
+    ]
+];
+```
+
+**2. Rules for index array itself**
+```PHP
+$rule = [
+    "id" => "required|/^\d+$/",
+    "name" => "required|length>[3]",
+    "favourite_color" => [
+        // Indicates that the `favourite_color` can be empty. If it is not empty, its fields are required to contain and only contain "0, 1". Only two child elements are allowed.
+        "__self__" => "optional|require_array_keys[0,1]",
+        "*" => "required|length>[3]"
+    ],
+    "favourite_fruits" => [
+        // Indicates that the `favourite_fruits` can be empty. If it is not empty, its fields are required to contain and only contain "0, 1". Only two child elements are allowed.
+        "__self__" => "optional|require_array_keys[0,1]",
+        "*" => [
+            "name" => "required|length>[3]",
+            "color" => "required|length>[3]",
+            "shape" => "required|length>[3]"
+        ]
+    ]
+];
+```
+
 ### 4.8 Optional Field
 
 1. Generally, for a leaf field (without any subfields), you can directly use the `optional` method to indicate that the field is optional.
@@ -788,6 +837,7 @@ $config = [
     'symbol_when' => ':?',                                      // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
     'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
     'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+    'self_ruleset_key' => '__self__',                           // If an array has such a subfield with the same name as {self_ruleset_key}, then the ruleset of this subfield is the ruleset of the array.
 ];
 ```
 
@@ -1163,6 +1213,7 @@ Symbol | Method | Variable-Length Arguments | Error Message Template
 / | `bool_str` | No | @this must be boolean string
 / | `bool_string` | No | @this must be boolean string
 `bool_string=` | `bool_string_equal` | No | @this must be boolean string @p1
+`<keys>` | `require_array_keys` | **Yes** | @this must be array and its keys must contain and only contain @p1
 / | `file_base64` | No | @this must be a valid file base64
 / | `file_base64:mime` | No | @this file mine must be euqal to @p1
 / | `file_base64:size` | No | @this file size must be less than @p2kb

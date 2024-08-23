@@ -92,8 +92,9 @@ class RulesetEntity
 
     /**
      * The path of the current node.
-     *
-     * @var string
+     * - `null`: root node.
+     * 
+     * @var ?string
      */
     protected $path;
 
@@ -417,7 +418,7 @@ class RulesetEntity
     /**
      * Set the path
      *
-     * @param string $path
+     * @param ?string $path
      * @return self
      */
     public function set_path($path)
@@ -429,7 +430,7 @@ class RulesetEntity
     /**
      * Get the path
      *
-     * @return string
+     * @return ?string
      */
     public function get_path()
     {

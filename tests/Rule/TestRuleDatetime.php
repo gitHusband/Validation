@@ -10,7 +10,7 @@ namespace githusband\Tests\Rule;
  * @see githusband\Rule\RuleClassDatetime
  * @package UnitTests
  */
-trait TestRuledatetime
+trait TestRuleDatetime
 {
     protected function test_method_datetime()
     {

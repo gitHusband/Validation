@@ -289,3 +289,7 @@ Symbol | Old Method Name | New Method Name | Is Optimized
 
 - 优化方法标志数组.
 - 优化可变长度参数的判定方式，改为从方法标志数组设定 `is_variable_length_argument`。
+
+### 功能
+
+- 支持为数组自身设定规则：设置 `__self__` 子字段表示数组自身规则。

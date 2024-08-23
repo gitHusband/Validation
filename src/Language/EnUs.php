@@ -87,6 +87,7 @@ class EnUs
         'bool_string' => '@this must be boolean string',
         'bool_str=' => '@this must be boolean string @p1', // @deprecated 2.3.0
         'bool_string=' => '@this must be boolean string @p1',
+        '<keys>' => '@this must be array and its keys must contain and only contain @p1',
         'file_base64' => '@this must be a valid file base64',
         'file_base64:mime' => '@this file mine must be euqal to @p1',
         'file_base64:size' => '@this file size must be less than @p2kb',

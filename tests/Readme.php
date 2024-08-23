@@ -461,6 +461,84 @@ class Readme extends TestCommon
         return $this->validate($data, $rule);
     }
 
+    public function test_self_rule_of_associative_array()
+    {
+        $data = [
+            "id" => 1,
+            "name" => "Johnny",
+            "favourite_fruit" => [
+                "name" => "apple",
+                "color" => "red",
+                "shape" => "circular"
+            ]
+        ];
+
+        // 若要验证上述 $data，规则可以这么写
+        $rule = [
+            // 表示根数据是可以为空的，如果不为空，要求其字段有且只有包含 id, name, favourite_fruit
+            "__self__" => "optional|require_array_keys[id, name, favourite_fruit]",
+            "id" => "required|/^\d+$/",
+            "name" => "required|length>[3]",
+            "favourite_fruit" => [
+                // 表示 favourite_fruit 是可以为空的，如果不为空，要求其字段有且只有包含 name, color, shape
+                "__self__" => "optional|require_array_keys[name, color, shape]",
+                "name" => "required|length>[3]",
+                "color" => "required|length>[3]",
+                "shape" => "required|length>[3]"
+            ]
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
+    public function test_self_rule_of_index_array()
+    {
+        $data = [
+            "id" => 1,
+            "name" => "Johnny",
+            "favourite_color" => [
+                "white",
+                "black",
+                "a"
+            ],
+            "favourite_fruits" => [
+                [
+                    "name" => "apple",
+                    "color" => "black",
+                    "shape" => "circular"
+                ],
+                [
+                    "name" => "banana",
+                    "color" => "yellow",
+                    "shape" => "long strip"
+                ],
+                []
+            ]
+        ];
+
+        // 若要验证上述 $data，规则可以这么写
+        $rule = [
+            "id" => "required|/^\d+$/",
+            "name" => "required|length>[3]",
+            "favourite_color" => [
+                // 表示 favourite_color 是可以为空的，如果不为空，要求其字段有且只有包含 0, 1，也就是只有两个子数据。
+                "__self__" => "optional|require_array_keys[0,1]",
+                "*" => "required|length>[3]"
+            ],
+            "favourite_fruits" => [
+                // 表示 favourite_fruits 是可以为空的，如果不为空，要求其字段有且只有包含 0, 1，也就是只有两个子数据。
+                "__self__" => "optional|require_array_keys[0,1]",
+                "*" => [
+                    "name" => "required|length>[3]",
+                    "color" => "required|length>[3]",
+                    "shape" => "required|length>[3]"
+                ]
+            ]
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
     public function test_optional_field()
     {
         $data = [];

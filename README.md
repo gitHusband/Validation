@@ -38,6 +38,7 @@
          * [When 条件规则](#when-条件规则)
          * [IF 条件规则](#if-条件规则)
       * [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
+         * [数组自身的规则](#数组自身的规则)
       * [4.8 可选字段](#48-可选字段)
       * [4.9 特殊的验证规则](#49-特殊的验证规则)
       * [4.10 客制化配置](#410-客制化配置)
@@ -702,6 +703,53 @@ $rule = [
 
 </details>
 
+#### 数组自身的规则
+
+上述的例子，一个规则数组便可完成对复杂结构的数据的验证。但只能对叶子字段进行验证，如果要对父数组本身进行验证，还无法实现。
+那么，我们设计通过一个 `__self__` 叶子字段，表示父数组本身的规则。
+
+- `__self__` 字段允许自定义，见 [4.10 客制化配置](#410-客制化配置)
+- 特殊的，如果数组本身规则只有可选的 `optional`，有简便的写法，见 [4.8 可选字段](#48-可选字段)
+
+**1. 关联数组的自身规则**
+```PHP
+$rule = [
+    // 表示根数据是可以为空的，如果不为空，要求其字段有且只有包含 id, name, favourite_fruit
+    "__self__" => "optional|require_array_keys[id, name, favourite_fruit]",
+    "id" => "required|/^\d+$/",
+    "name" => "required|length>[3]",
+    "favourite_fruit" => [
+        // 表示 favourite_fruit 是可以为空的，如果不为空，要求其字段有且只有包含 name, color, shape
+        "__self__" => "optional|require_array_keys[name, color, shape]",
+        "name" => "required|length>[3]",
+        "color" => "required|length>[3]",
+        "shape" => "required|length>[3]"
+    ]
+];
+```
+
+**2. 索引数组的自身规则**
+```PHP
+$rule = [
+    "id" => "required|/^\d+$/",
+    "name" => "required|length>[3]",
+    "favourite_color" => [
+        // 表示 favourite_color 是可以为空的，如果不为空，要求其字段有且只有包含 0, 1，也就是只有两个子数据。
+        "__self__" => "optional|require_array_keys[0,1]",
+        "*" => "required|length>[3]"
+    ],
+    "favourite_fruits" => [
+        // 表示 favourite_fruits 是可以为空的，如果不为空，要求其字段有且只有包含 0, 1，也就是只有两个子数据。
+        "__self__" => "optional|require_array_keys[0,1]",
+        "*" => [
+            "name" => "required|length>[3]",
+            "color" => "required|length>[3]",
+            "shape" => "required|length>[3]"
+        ]
+    ]
+];
+```
+
 ### 4.8 可选字段
 
 1. 一般的，对于一个叶子字段（无任何子字段），可以直接使用 `optional` 方法，表示该字段是可选的。
@@ -778,6 +826,7 @@ $config = [
     'symbol_when' => ':?',                                      // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
     'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
     'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+    'self_ruleset_key' => '__self__',                           // If an array has such a subfield with the same name as {self_ruleset_key}, then the ruleset of this subfield is the ruleset of the array.
 ];
 ```
 
@@ -1154,6 +1203,7 @@ function check_animal($animal) {
 / | `bool_str` | 否 | @this 必须是布尔型字符串
 / | `bool_string` | 否 | @this 必须是布尔型字符串
 `bool_string=` | `bool_string_equal` | 否 | @this 必须是布尔型字符串且等于 @p1
+`<keys>` | `require_array_keys` | **是** | @this 必须是数组且其字段有且只有包含 @p1
 / | `dob` | 否 | @this 必须是正确的日期
 / | `file_base64` | 否 | @this 必须是正确的文件的base64码
 / | `file_base64:mime` | 否 | @this 文件类型必须是 @p1
