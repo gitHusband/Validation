@@ -19,7 +19,7 @@ trait RuleDefaultTrait
     /**
      * The method symbols of rule default.
      *
-     * @see githusband\Rule::$method_symbols About the validated format
+     * @see githusband\Rule\RuleClassDefault::$method_symbols About its format
      * @var array
      */
     protected $method_symbols_of_rule_default_trait = [
@@ -83,7 +83,7 @@ trait RuleDefaultTrait
      * The old method symbols of rule default that are deprecated.
      * 
      * @deprecated 2.3.0
-     * @see githusband\Rule::$method_symbols About the validated format
+     * @see githusband\Rule\RuleClassDefault::$method_symbols About its format
      * @var array
      */
     protected $deprecated_method_symbols_of_rule_default_trait = [

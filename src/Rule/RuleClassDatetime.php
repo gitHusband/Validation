@@ -18,7 +18,7 @@ class RuleClassDatetime
     /**
      * The method symbols of rule datetime.
      *
-     * @see githusband\Rule::$method_symbols About validated format
+     * @see githusband\Rule\RuleClassDefault::$method_symbols About its format
      * @var array
      */
     public static $method_symbols = [
