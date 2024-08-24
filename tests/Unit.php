@@ -265,7 +265,7 @@ class Unit extends TestCommon
     {
         /** @var Validation */
         $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
-        $validation->set_rules($rule, $extra['method_name'], true);
+        $validation->set_rules($rule, $extra['method_name'], true, true);
 
         $stop_if_failed = true;
         $result = true;
