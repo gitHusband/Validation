@@ -1521,7 +1521,7 @@ class Validation
         } else {
             $is_all_valid = true;
             foreach ($data[$field] as $key => $value) {
-                $result = $this->execute($data[$field], [$key => $ruleset], $field_path, true);
+                $result = $this->execute($data[$field], [$key => $ruleset], $field_path);
 
                 $is_all_valid = $is_all_valid && $result;
 
