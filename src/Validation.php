@@ -2308,6 +2308,19 @@ class Validation
         if (is_array($method_data)) {
             $method = $method_data['method'];
             $is_variable_length_argument = !empty($method_data['is_variable_length_argument']);
+            /**
+             * Inject default arguments into the method arguments.
+             * @see githusband\Rule\RuleClassDefault::$method_symbols
+             */
+            if (!empty($method_data['default_arguments'])) {
+                $default_arguments = $method_data['default_arguments'];
+                ksort($default_arguments);
+                foreach ($default_arguments as $key => $default_argument) {
+                    if (!array_key_exists($key-1, $params)) {
+                        $params[$key] = $default_argument;
+                    }
+                }
+            }
         } else {
             $method = $method_data;
         }

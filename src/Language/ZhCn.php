@@ -88,6 +88,7 @@ class ZhCn
         'bool_str=' => '@this 必须是布尔型字符串且等于 @p1', // @deprecated 2.3.0
         'bool_string=' => '@this 必须是布尔型字符串且等于 @p1',
         '<keys>' => '@this 必须是数组且其字段有且只有包含 @p1',
+        'unique' => '@this 必须是唯一的',
         'dob' => '@this 必须是正确的日期',
         'file_base64' => '@this 必须是正确的文件的base64码',
         'file_base64:mime' => '@this 文件类型必须是 @p1',

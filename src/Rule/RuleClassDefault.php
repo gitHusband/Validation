@@ -20,8 +20,11 @@ class RuleClassDefault
      * Method Data Fields:
      * - symbols: The symbols of a method.
      * - is_variable_length_argument: Whether the second parameter of the current rule is variable length argument or not
+     * - default_arguments: Set the default arguments for the method. {@see githusband\Rule\RuleClassArray::$method_symbols['is_unique']}
+     *   - The key of default_arguments array must be int. It indicates what argument it is. e.g. `2` means the 2th argument.
+     *   - The value of default_arguments array can be anything. Specially, about the value what likes "@parent"(means the parent data of the current field), please @see https://github.com/gitHusband/Validation/blob/main/README-EN.md#43-method-parameters
      *
-     * @var array<string, string|array{symbols: string|string[], is_variable_length_argument: bool}>
+     * @var array<string, string|array{symbols: string|string[], is_variable_length_argument: bool, default_arguments: <int, mixed>}>
      */
     public static $method_symbols = [
         'equal' => '=',

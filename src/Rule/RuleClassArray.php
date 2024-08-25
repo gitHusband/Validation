@@ -2,6 +2,8 @@
 
 namespace githusband\Rule;
 
+use githusband\Exception\MethodException;
+
 /**
  * Class RuleClassArray contains multiple methods to validate the array
  * 
@@ -21,6 +23,12 @@ class RuleClassArray
         'require_array_keys' => [
             'symbols' => '<keys>',
             'is_variable_length_argument' => true,
+        ],
+        'is_unique' => [
+            'symbols' => 'unique',
+            'default_arguments' => [
+                2 => '@parent'
+            ]
         ],
     ];
 
@@ -46,5 +54,33 @@ class RuleClassArray
         }
 
         return true;
+    }
+
+    /**
+     * Check if the child data is unique within the parent array.
+     *
+     * @param mixed $data The child data within an index array
+     * @param array $parent The parent data of the $data
+     * @return bool
+     * @throws MethodException
+     */
+    public static function is_unique($data, $parent)
+    {
+        $is_unique = true;
+        $count = 0;
+
+        if (!is_array($parent)) throw MethodException::parameter("The 2th argument is not an array");
+
+        foreach ($parent as $value) {
+            if ($data === $value) {
+                $count++;
+                if ($count > 1) {
+                    $is_unique = false;
+                    break;
+                }
+            }
+        }
+
+        return $is_unique;
     }
 }
