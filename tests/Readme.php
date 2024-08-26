@@ -100,18 +100,20 @@ class Readme extends TestCommon
     public function test_custom_method_by_add_method()
     {
         $data = [
-            "id" => 0,
+            "id" => 1,
         ];
 
         $rule = [
             // 必要的，且只能是数字，且必须大于 0
             "id" => "required|/^\d+$/|check_id",
+            // 或者使用标志代替方法名
+            "id" => "required|/^\d+$/|c_id",
         ];
 
         $validation = new Validation();
         $validation->add_method('check_id', function ($id) {
-            if (false) define('UNDEFINED_VAR', 1);
-            return UNDEFINED_VAR;
+            // if (false) define('UNDEFINED_VAR', 1);
+            // return UNDEFINED_VAR;
 
             if ($id == 0) {
                 return false;
@@ -124,7 +126,7 @@ class Readme extends TestCommon
             }
 
             return true;
-        });
+        }, 'c_id');
 
         if ($validation->set_rules($rule)->validate($data)) {
             return $validation->get_result();

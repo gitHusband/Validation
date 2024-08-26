@@ -33,7 +33,11 @@ Table of contents
       * [4.1 Methods And Their Symbols](#41-methods-and-their-symbols)
       * [4.2 Regular Expression](#42-regular-expression)
       * [4.3 Method Parameters](#43-method-parameters)
+        * [The ways to pass parameters](#the-ways-to-pass-parameters)
+        * [Parameter type](#parameter-type)
       * [4.4 Method Extension](#44-method-extension)
+        * [The ways to extend methods](#the-ways-to-extend-methods)
+        * [Set method symbols](#set-method-symbols)
       * [4.5 Series And Parallel Rules](#45-series-and-parallel-rules)
       * [4.6 Conditional Rules](#46-conditional-rules)
          * [The When Conditional Rules](#the-when-conditional-rules)
@@ -236,6 +240,8 @@ Supports multiple regular expressions in a series rule
 ### 4.3 Method Parameters
 How to pass parameters to the methods in rules written as strings?
 
+#### The ways to pass parameters
+
 1. **Standard parameters**
 Just like the parameters used by PHP functions, the parameters are written in parentheses `()`. Multiple parameters are separated by commas `,`. No extra spaces are allowed before and after `,`
 For example,
@@ -253,6 +259,25 @@ For example, the above example can be shortened to:
 
 3. **Omit parameters**
 When there is only one method parameter and it is the current field value, you can omit `()` and `[]` and only write the method.
+For example, 
+```
+"id" => "uuid"
+```
+
+4. **Default parameters**
+Default parameters are supported but require additional configuration. See [Set method symbols](#set-method-symbols)
+For example, the following indicates that the data is an indexed array, and `unique` verifies that its subdata must be unique. However, it is a bit redundant to write `@parent` for parameters every time. It can be omitted by configuring default parameters.
+
+```PHP
+$rule = [
+    // Standard parameters
+    "*" => "unique(@this,@parent)",
+    // Omit the `@this` parameter
+    "*" => "unique[@parent]",
+    // Default parameters
+    "*" => "unique"
+];
+```
 
 **Parameters List**
 
@@ -262,7 +287,7 @@ Static Value | Indicates that the parameter is a static string and is allowed to
 @this | Indicates that the parameter is the value of the current field
 @parent | Indicates the parameter is the value of the parent of the current field
 @root | Indicates that this parameter is the whole validation data
-@field_name | Indicates that the parameter is the value of a field whose name is `field_name`. e.g. `@age`
+@field_path | Indicates that the parameter is the value of a field whose name is `field_path`. e.g. `@age`, `@person.name`
 
 **Parameter separator:**
 - `symbol_parameter_separator`: `,`
@@ -273,7 +298,8 @@ Static Value | Indicates that the parameter is a static string and is allowed to
   - Wrapped by `{}`.
 - For custom parameter separator, see [4.10 Customized Configuration](#410-customized-configuration)
 
-**Parameter Type:**
+#### Parameter Type
+
 Automatically detect the type of the parameter and forcibly convert it to the corresponding type.
 1. Text quoted with double quotes (`"`) or single quotes (`''`) is treated as a string. Otherwise the type is detected and forcibly converted.
   - For example, `"abc"`, `'abc'` or `abc` are treated as string `abc`
@@ -281,7 +307,7 @@ Automatically detect the type of the parameter and forcibly convert it to the co
   - `int`：For example, `123` is an integer and `"123"` is a string
   - `float`: For example, `123.0`
   - `bool`: For example, `false` or `TRUE`
-  - `array`: For example, `[1,2,3]`
+  - `array`: For example, `[1,2,3]` or `["a", "b"]`
   - `object`: For example, `{"a": "A", "b": "B"}`
   - For example, `my_method[[1,"2",'3'],100,false,"true"]`:
     - `[1,"2",'3']` will be converted to `array([1,"2","3"])`
@@ -299,14 +325,19 @@ If the validation rules are complex and the built-in methods cannot meet your ne
 
 If the method may return different error messages based on different judgments, see the section [4.13 Error message template - 3. Return the template directly in the method](#413-error-message-template).
 
+#### The ways to extend methods
+
 There are several ways to extend your own methods:
-1. **Add method**：`add_method`
+##### 1. Add method：`add_method($method, $callable, $method_symbol = '')`
 Add a new method
+- `$method`: Method name
+- `$callable`: Method definition
+- `$method_symbol`: Method symbol. Optional.
 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
 
-Add a new method, check_id
+Add a new method, `check_id`, and set its symbol to `c_id`
 ```PHP
 $validation->add_method('check_id', function ($id) {
     if ($id == 0) {
@@ -314,7 +345,7 @@ $validation->add_method('check_id', function ($id) {
     }
 
     return true;
-});
+}, 'c_id');
 ```
 
 The rule is
@@ -322,37 +353,30 @@ The rule is
 $rule = [
     // Required, must be a number and must be not equal to 0
     "id" => "required|/^\d+$/|check_id",
+    // Or use its symbol instead of the method name
+    "id" => "required|/^\d+$/|c_i",
 ];
 ```
 
 </details>
 </br>
 
-2. **Add rule class**：by `add_rule_class`
+##### 2. Add rule class：by `add_rule_class`
 A rule class contains multiple methods and their symbols. Supports static or non-static methods.
 Due to priority reasons, if you need to override the built-in methods in the validation class Validation, please use the new rule class. The extended class may not be able to override it.
 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
 
-Create a new file，`RuleClassString.php`
+Create a new file，`RuleClassTest.php`
 ```PHP
 /**
  * Use rule class to add validation methods
  * If you need to define method symbols, put them in the method_symbols attribute
  */
-class RuleClassString
+class RuleClassTest
 {
-    /**
-     * Method Symbol:
-     * - If the value is a string, it represents the Symbol
-     * - If the value is an array, the following fields are supported:
-     *   - 'symbols': It represents the Symbol
-     *   - ‘is_variable_length_argument’: The second parameter of the method is a variable-length parameter, that means all parameters after the first parameter in the ruleset will be treated as the child elements of the second parameter. See `githusband\Validation\RuleClassDefault::$method_symbols`
-     * 
-     * @example `in_number_array[1,2,3]` The second parameter is an array `[1,2,3]`
-     * @var array<string, string|array>
-     */
+    // method symbol
     public static $method_symbols = [
         'is_custom_string' => 'cus_str',
     ];
@@ -365,23 +389,23 @@ class RuleClassString
 }
 ```
 
-Call `add_rule_class` to add a new rule class，RuleClassString
+Call `add_rule_class` to add a new rule class，RuleClassTest
 ```PHP
-use RuleClassString;
+use RuleClassTest;
 
-// Add a new rule class，RuleClassString
-$validation->add_rule_class(RuleClassString::class);
+// Add a new rule class，RuleClassTest
+$validation->add_rule_class(RuleClassTest::class);
 ```
 In fact, `add_rule_class` adds the rule class into the `rule_classes` attribute, so that we can add a new rule class through another more direct method:
 
 ```PHP
 use githusband\Validation;
-use RuleClassString;
+use RuleClassTest;
 
 class MyValidation extends Validation
 {
     protected $rule_classes = [
-        RuleClassString::class
+        RuleClassTest::class
     ];
 }
 ```
@@ -391,13 +415,15 @@ The rule is
 $rule = [
     // Required, format must be /^[\w\d -]{8,32}$/
     "id" => "required|is_custom_string",
+    // Or use its symbol instead of the method name
+    "id" => "required|cus_str",
 ];
 ```
 
 </details>
 </br>
 
-3. **Extend `Validation` class**
+##### 3. Extend `Validation` class
 
 Extend the `Validation` class and override the built-in methods or add new built-in methods. Recommended [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
 
@@ -413,7 +439,7 @@ Create a new file，`RuleExtendTrait.php`
 trait RuleExtendTrait
 {
     // method symbol
-    protected $method_symbols_of_rule_custome = [
+    protected $method_symbols_of_rule_extend_trait = [
         'euqal_to_1' => '=1',
     ];
 
@@ -463,13 +489,128 @@ $rule = [
 </details>
 </br>
 
-4. **The priority of the these ways**
+##### 4. Global function
 Including the system functions and user-defined global functions.
 
-**几种方法的优先级**
+**The priority of the these ways**
 `Add method` > `Add rule class` > `Extend Validation class` > `Built-in method` > `Global function`
 
 If the method can not be found from the three way, an error will be reported: Undefined
+
+#### Set method symbols
+
+Allows setting method symbols, making it more intuitive. For example, the symbol for `greater_than` is `>`. Refer to [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
+From the previous section, you should have noticed the use of method symbols. That's also the most common way to set the symbols. For example,
+```PHP
+public static $method_symbols = [
+    'is_custom_string' => 'cus_str',
+];
+```
+
+Method symbols `$method_symbols` may also support other attributes:
+
+- If the value is a string, such as 'cus_str', it represents the symbol.
+- If the value is an array, the following fields are supported:
+  - symbols: The symbols of a method. e.g. 'cus_str'
+  - is_variable_length_argument: Default to false. Whether the second parameter of the current rule is variable length argument or not
+  - default_arguments: Default to nothing. Set the default arguments for the method. {@see githusband\Rule\RuleClassArray::$method_symbols['is_unique']}
+    - The key of default_arguments array must be int. It indicates what argument it is. e.g. `2` means the 2th argument.
+    - The value of default_arguments array can be anything. Specially, about the value what likes "@parent"(means the parent data of the current field), see [4.3 Method Parameters](#43-method-parameters)
+
+For [2. Add rule class](#2-add-rule-classby-add_rule_class), if all attributes of the method symbols are supported, the example is as follows,
+
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
+
+```PHP
+class RuleClassTest
+{
+    /**
+     * The method symbols of rule default.
+     * 
+     * - If the value is a string, such as 'cus_str', it represents the symbol.
+     * - If the value is an array, the following fields are supported:
+     *   - symbols: The symbols of a method.
+     *   - is_variable_length_argument: Default to false. Whether the second parameter of the current rule is variable length argument or not
+     *   - default_arguments: Default to nothing. Set the default arguments for the method. {@see githusband\Rule\RuleClassArray::$method_symbols['is_unique']}
+     *     - The key of default_arguments array must be int. It indicates what argument it is. e.g. `2` means the 2th argument.
+     *     - The value of default_arguments array can be anything. Specially, about the value what likes "@parent"(means the parent data of the current field), please @see https://github.com/gitHusband/Validation/blob/main/README-EN.md#43-method-parameters
+     *
+     * @var array<string, string|array{symbols: string|string[], is_variable_length_argument: bool, default_arguments: <int, mixed>}>
+     */
+    public static $method_symbols = [
+        'is_custom_string' => 'cus_str',
+        'is_in_custom_list' => [
+            'symbols' => '<custom>',
+            'is_variable_length_argument' => true,  // All parameters after the first parameter are considered subelements of the second parameter array.
+        ],
+        'is_equal_to_password' => [
+            'symbols' => '=pwd',
+            'default_arguments' => [
+                2 => '@password'    // The second parameter defaults to the value of the `password` field
+            ]
+        ]
+    ];
+
+    /**
+     * Test method 1 - Test whether the format of the current field meets the requirements
+     * 
+     * Usage:
+     * - 'id' => 'is_custom_string'
+     * - 'id' => 'cus_str'
+     *
+     * @param string $data
+     * @return bool
+     */
+    public static function is_custom_string($data)
+    {
+        return preg_match('/^[\w\d -]{8,32}$/', $data) ? true : false;
+    }
+
+    /**
+     * Test method 2 - Test whether the current field exists in the list
+     * 
+     * Usage:
+     * - 'sequence' => 'is_in_custom_list[1st, First, 2nd, Second]'
+     * - 'sequence' => '<custom>[1st, First, 2nd, Second]'
+     * 
+     * This is an example of that the second parameter is a variable length parameter. If you do not set the is_variable_length_argument, then it is written as follows. Note that the second parameter must be a legal JSON Encoded string. For example:
+     * - 'sequence' => 'is_in_custom_list[["1st", "First", "2nd", "Second"]]'
+     * - 'sequence' => '<custom>[["1st", "First", "2nd", "Second"]]'
+     *
+     * @param mixed $data
+     * @param array $list
+     * @return bool
+     */
+    public static function is_in_custom_list($data, $list)
+    {
+        return in_array($data, $list);
+    }
+
+    /**
+     * Test Method 3 - Verify that the current field is equal to the `password` field
+     * 
+     * Usage:
+     * - 'confirm_password' => 'is_equal_to_password'
+     * - 'confirm_password' => '=pwd'
+     * 
+     * This is an example of default parameters. The same effect is achieved by using the `euqal` method, which is equivalent to adding the default parameter '@password' to the equal method. For example:
+     * - 'confirm_password' => `equal[@password]`，
+     * - 'confirm_password' => `=[@password]`，
+     *
+     * @param string $data
+     * @param string $password
+     * @return bool
+     */
+    public static function is_equal_to_password($data, $password)
+    {
+        return $data == $password;
+    }
+}
+```
+
+</details>
+
 
 ### 4.5 Series And Parallel Rules
 - Series: Multiple methods in a rule of one field must all be valid, the flag is `|`

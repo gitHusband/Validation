@@ -642,7 +642,7 @@ class Validation
     /**
      * Reverse the method_symbols array of a rule class
      *
-     * @param class $rule_class A class that contains multiple rule methods
+     * @param class|\githusband\Rule\RuleClassDefault $rule_class A class that contains multiple rule methods
      * @return void
      */
     protected function reverse_rule_class_method_symbols($rule_class)
@@ -1064,16 +1064,16 @@ class Validation
      *
      * @param string $method Method name
      * @param callable $callable Function definition
-     * @param string|array $symbol Symbol of method
+     * @param string|array $method_symbol Symbol of method
      * @return static
      * @api
      */
-    public function add_method($method, $callable, $symbol = '')
+    public function add_method($method, $callable, $method_symbol = '')
     {
         $this->methods[$method] = $callable;
-        if (!empty($symbol)) {
-            $this->method_symbols[$method] = $symbol;
-            $this->reverse_one_method_symbol($method, $symbol, $this->method_symbols_reversed);
+        if (!empty($method_symbol)) {
+            $this->method_symbols[$method] = $method_symbol;
+            $this->reverse_one_method_symbol($method, $method_symbol, $this->method_symbols_reversed);
         }
         return $this;
     }

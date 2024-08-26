@@ -5,7 +5,8 @@ namespace githusband\Tests;
 use githusband\Tests\Rule\TestRuleDefault;
 use githusband\Tests\Rule\TestRuleDatetime;
 use githusband\Tests\Rule\TestRuleArray;
-use githusband\Tests\Extend\Rule\RuleClassString;
+use githusband\Tests\Rule\TestRuleTest;
+use githusband\Tests\Extend\Rule\RuleClassTest;
 
 use githusband\Validation;
 use githusband\Tests\TestCommon;
@@ -7732,7 +7733,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_rule_classes_1()
+    protected function test_rule_classes_property()
     {
         $rules = [
             "symbol" => [
@@ -7782,7 +7783,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_rule_classes_2()
+    protected function test_add_rule_classes()
     {
         $rules = [
             "symbol" => [
@@ -7818,7 +7819,7 @@ class Unit extends TestCommon
             ],
         ];
 
-        $this->validation->add_rule_class(RuleClassString::class);
+        $this->validation->add_rule_class(RuleClassTest::class);
 
         $extra = [
             "method_name" => __METHOD__,
@@ -7972,5 +7973,5 @@ class Unit extends TestCommon
         ];
     }
 
-    use TestRuleDefault, TestRuleDatetime, TestRuleArray;
+    use TestRuleDefault, TestRuleDatetime, TestRuleArray, TestRuleTest;
 }
