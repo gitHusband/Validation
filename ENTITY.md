@@ -36,6 +36,7 @@ flowchart LR
     RE --> re_symbol[Symbol];
     RE --> re_parameters[Parameters];
     RE --> re_operator[Operator];
+    RE --> re_is_variable_length_argument[Is Variable Length Argument];
     RE --> re_error_type[Error Type];
     RE --> re_error_template[Error Template];
     RE --> re_is_error_template_for_whole_ruleset[Is Error template For Whole Ruleset];

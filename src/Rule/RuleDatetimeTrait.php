@@ -17,43 +17,49 @@ use githusband\Exception\MethodException;
  */
 trait RuleDatetimeTrait
 {
+    /**
+     * The method symbols of rule datetime.
+     *
+     * @see githusband\Rule\RuleClassDefault::$method_symbols About its format
+     * @var array
+     */
     protected $method_symbols_of_rule_datetime_trait = [
         // Datetime
-        'datetime' => 'is_datetime',
-        'datetime=' => 'datetime_equal',
-        'datetime!=' => 'datetime_not_equal',
-        'datetime>' => 'datetime_greater_than',
-        'datetime>=' => 'datetime_greater_equal',
-        'datetime<' => 'datetime_less_than',
-        'datetime<=' => 'datetime_less_equal',
-        'datetime><' => 'datetime_greater_less',
-        'datetime><=' => 'datetime_greater_lessequal',
-        'datetime>=<' => 'datetime_greaterequal_less',
-        'datetime>=<=' => 'datetime_between',
+        'is_datetime' => 'datetime',
+        'datetime_equal' => 'datetime=',
+        'datetime_not_equal' => 'datetime!=',
+        'datetime_greater_than' => 'datetime>',
+        'datetime_greater_equal' => 'datetime>=',
+        'datetime_less_than' => 'datetime<',
+        'datetime_less_equal' => 'datetime<=',
+        'datetime_greater_less' => 'datetime><',
+        'datetime_greater_lessequal' => 'datetime><=',
+        'datetime_greaterequal_less' => 'datetime>=<',
+        'datetime_between' => 'datetime>=<=',
         // Date
-        'date' => 'is_date',
-        'date=' => 'date_equal',
-        'date!=' => 'date_not_equal',
-        'date>' => 'date_greater_than',
-        'date>=' => 'date_greater_equal',
-        'date<' => 'date_less_than',
-        'date<=' => 'date_less_equal',
-        'date><' => 'date_greater_less',
-        'date><=' => 'date_greater_lessequal',
-        'date>=<' => 'date_greaterequal_less',
-        'date>=<=' => 'date_between',
+        'is_date' => 'date',
+        'date_equal' => 'date=',
+        'date_not_equal' => 'date!=',
+        'date_greater_than' => 'date>',
+        'date_greater_equal' => 'date>=',
+        'date_less_than' => 'date<',
+        'date_less_equal' => 'date<=',
+        'date_greater_less' => 'date><',
+        'date_greater_lessequal' => 'date><=',
+        'date_greaterequal_less' => 'date>=<',
+        'date_between' => 'date>=<=',
         // Time
-        'time' => 'is_time',
-        'time=' => 'time_equal',
-        'time!=' => 'time_not_equal',
-        'time>' => 'time_greater_than',
-        'time>=' => 'time_greater_equal',
-        'time<' => 'time_less_than',
-        'time<=' => 'time_less_equal',
-        'time><' => 'time_greater_less',
-        'time><=' => 'time_greater_lessequal',
-        'time>=<' => 'time_greaterequal_less',
-        'time>=<=' => 'time_between',
+        'is_time' => 'time',
+        'time_equal' => 'time=',
+        'time_not_equal' => 'time!=',
+        'time_greater_than' => 'time>',
+        'time_greater_equal' => 'time>=',
+        'time_less_than' => 'time<',
+        'time_less_equal' => 'time<=',
+        'time_greater_less' => 'time><',
+        'time_greater_lessequal' => 'time><=',
+        'time_greaterequal_less' => 'time>=<',
+        'time_between' => 'time>=<=',
     ];
 
     /**

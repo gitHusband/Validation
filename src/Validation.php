@@ -6,6 +6,7 @@ use githusband\Entity\RulesetEntity;
 use githusband\Entity\RuleEntity;
 use githusband\Rule\RuleClassDefault;
 use githusband\Rule\RuleClassDatetime;
+use githusband\Rule\RuleClassArray;
 use githusband\Exception\GhException;
 use githusband\Exception\RuleException;
 use Exception;
@@ -256,6 +257,7 @@ class Validation
         'symbol_when' => ':?',                                      // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
         'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
         'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+        'self_ruleset_key' => '__self__',                           // If an array has such a subfield with the same name as {self_ruleset_key}, then the ruleset of this subfield is the ruleset of the array.
     ];
     protected $config_backup;
 
@@ -296,9 +298,10 @@ class Validation
 
     /**
      * The method symbol
-     * Using symbol mapped to real method. e.g. '=' => 'equal'
+     * Using symbol mapped to real method. e.g. 'equal' => '='
      * 
-     * @example {"=": "equal"}
+     * @example `{"equal": "="}`
+     * @example `{"equal": {"symbols": ["=", "EQUAL"]}}` Multiple symbols of one method.
      * @see githusband\Rule\RuleClassDefault::$method_symbols
      * @see githusband\Rule\RuleDefaultTrait::$method_symbols_of_rule_default_trait
      * @var array
@@ -306,9 +309,12 @@ class Validation
     protected $method_symbols = [];
     protected $deprecated_method_symbols = [];
     /**
-     * Reverse the method symbol
+     * Reversed method symbol.
      * 
-     * @example {"equal": "="}
+     * Why reverse the method symbol? The purpose is that for easily to check if a rule is symbol or method.
+     * 
+     * @example {"=": "equal"}
+     * @example `{"=": "equal", "EQUAL": "equal"}` Multiple symbols of one method.
      * @see static::$method_symbols
      * @var array
      */
@@ -331,6 +337,7 @@ class Validation
     protected $rule_classes_default = [
         RuleClassDefault::class,
         RuleClassDatetime::class,
+        RuleClassArray::class,
     ];
 
     /**
@@ -451,17 +458,139 @@ class Validation
 
             $deprecated_trait_method_symbols = "deprecated_method_symbols_of_{$trait_name_uncamelized}";
             if (property_exists($this, $deprecated_trait_method_symbols)) {
-                $this->method_symbols = array_merge($this->method_symbols, $this->{$deprecated_trait_method_symbols});
-                $this->deprecated_method_symbols = array_merge($this->deprecated_method_symbols, $this->{$deprecated_trait_method_symbols});
+                $this->method_symbols = $this->merge_method_symbols($this->method_symbols, $this->{$deprecated_trait_method_symbols});
+                $this->deprecated_method_symbols = $this->merge_method_symbols($this->deprecated_method_symbols, $this->{$deprecated_trait_method_symbols});
             }
 
             $trait_method_symbols = "method_symbols_of_{$trait_name_uncamelized}";
             if (property_exists($this, $trait_method_symbols)) {
-                $this->method_symbols = array_merge($this->method_symbols, $this->{$trait_method_symbols});
+                $this->method_symbols = $this->merge_method_symbols($this->method_symbols, $this->{$trait_method_symbols});
             }
         }
 
-        $this->method_symbols_reversed = array_flip($this->method_symbols);
+        $this->method_symbols_reversed = $this->reverse_method_symbols($this->method_symbols);
+    }
+
+    /**
+     * Merge two method symbols array
+     * 
+     * @param array $first_method_symbols
+     * @param array $next_method_symbols
+     * @return array
+     */
+    protected function merge_method_symbols($first_method_symbols, $next_method_symbols)
+    {
+        foreach ($next_method_symbols as $method => $method_data) {
+            if (isset($first_method_symbols[$method])) {
+                $first_method_symbols[$method] = $this->merge_symbol_of_method($first_method_symbols[$method], $method_data);
+            } else {
+                $first_method_symbols[$method] = $method_data;
+            }
+        }
+
+        return $first_method_symbols;
+    }
+
+    /**
+     * Merge two symbols of a same method
+     * 
+     * When you want to add new symbol for a same method to deprecate it old symbol, you 
+     *
+     * @example
+     * ```
+     * #1. First Method Symbol
+     * `{"equal": "="}`
+     * #2. Next Method Symbol
+     * `{"equal": "EQUAL"}`
+     * #3. Merged Method Symbol
+     * {"equal": {"symbols": ["=", "EQUAL"]}}
+     * ```
+     * @param string|array $first
+     * @param string|array $next
+     * @return array
+     */
+    protected function merge_symbol_of_method($first, $next)
+    {
+        $method_data = [];
+        if (is_string($first)) {
+            $method_data['symbols'] = [$first];
+        } else {
+            $method_data = $first;
+        }
+
+        if (is_string($next)) {
+            $method_data['symbols'][] = $next;
+        } else {
+            foreach ($next as $nk => $nv) {
+                if ($nk == 'symbols') {
+                    if (is_string($method_data[$nk])) $method_data[$nk] = [$method_data[$nk]];
+                    if (is_string($next[$nk])) $next[$nk] = [$next[$nk]];
+                    $method_data[$nk] = array_merge($method_data[$nk], $next[$nk]);
+                } else {
+                    $method_data[$nk] = $nv;
+                }
+            }
+        }
+
+        return $method_data;
+    }
+
+    /**
+     * Reverse the method_symbols array
+     *
+     * @param array $method_symbols
+     * @return array
+     */
+    protected function reverse_method_symbols($method_symbols)
+    {
+        $method_symbols_reversed = [];
+        foreach ($method_symbols as $method => $method_data) {
+            $this->reverse_one_method_symbol($method, $method_data, $method_symbols_reversed);
+        }
+
+        return $method_symbols_reversed;
+    }
+
+    /**
+     * Reverse one of the method_symbols
+     *
+     * @example
+     * ```
+     * #1. Method Symbol
+     * `{"equal": "="}`
+     * #2. Reversed Method Symbol
+     * `{"=": "equal"}`
+     * ```
+     * @example
+     * ```
+     * #1. Method Symbol
+     * {"equal": {"symbols": ["=", "EQUAL"]}}
+     * #2. Reversed Method Symbol
+     * `{"=": "equal", "EQUAL": "equal"}`
+     * ```
+     * @see static::merge_symbol_of_method()
+     * @param string $method
+     * @param string|array $method_data
+     * @param array $method_symbols_reversed The target you want to save the reversed data into.
+     * @return void
+     */
+    protected function reverse_one_method_symbol($method, $method_data, &$method_symbols_reversed) {
+        if (is_string($method_data)) {
+            $method_symbols_reversed[$method_data] = $method;
+        } else if (!empty($method_data['symbols'])) {
+            $symbols = $method_data['symbols'];
+            unset($method_data['symbols']);
+            $method_tmp = array_merge([
+                'method' => $method
+            ], $method_data);
+            if (is_array($symbols)) {
+                foreach ($symbols as $symbol) {
+                    $method_symbols_reversed[$symbol] = $method_tmp;
+                }
+            } else {
+                $method_symbols_reversed[$symbols] = $method_tmp;
+            }
+        }
     }
 
     /**
@@ -501,24 +630,24 @@ class Validation
     protected function init_rule_class($rule_class)
     {
         if (property_exists($rule_class, 'deprecated_method_symbols')) {
-            $rule_class::$method_symbols = array_merge($rule_class::$deprecated_method_symbols, $rule_class::$method_symbols);
+            $rule_class::$method_symbols = $this->merge_method_symbols($rule_class::$deprecated_method_symbols, $rule_class::$method_symbols);
         }
 
-        $this->reverse_method_symbols($rule_class);
+        $this->reverse_rule_class_method_symbols($rule_class);
 
         if (is_object($rule_class)) return $rule_class;
         return new $rule_class();
     }
 
     /**
-     * Reverse the method_symbols array
+     * Reverse the method_symbols array of a rule class
      *
-     * @param class $rule_class A class that contains multiple rule methods
+     * @param class|\githusband\Rule\RuleClassDefault $rule_class A class that contains multiple rule methods
      * @return void
      */
-    protected function reverse_method_symbols($rule_class)
+    protected function reverse_rule_class_method_symbols($rule_class)
     {
-        $this->rule_class_method_symbols_reversed[$rule_class] = array_flip($rule_class::$method_symbols);
+        $this->rule_class_method_symbols_reversed[$rule_class] = $this->reverse_method_symbols($rule_class::$method_symbols);
     }
 
     /**
@@ -540,14 +669,15 @@ class Validation
      * @param string $symbol
      * @return bool
      */
-    public function is_method_symbol($symbol)
+    public function is_symbol_of_method($symbol)
     {
-        if (isset($this->method_symbols[$symbol])) return true;
+        if (isset($this->method_symbols_reversed[$symbol])) return true;
 
         for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
             $rule_class = $this->rule_classes[$i];
-            $method_symbols = $rule_class::$method_symbols;
-            if (isset($method_symbols[$symbol])) {
+            $rule_class_name = get_class($rule_class);
+            $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+            if (isset($method_symbols_reversed[$symbol])) {
                 return true;
             }
         }
@@ -566,60 +696,134 @@ class Validation
     {
         $by_symbol = false;
 
-        if (!empty($operator) && $this->is_method_symbol($operator . $in)) {
+        /**
+         * Step 1. Check if the {$in} is a symbol.
+         * If yes, then get its method.
+         * If not, then treat it as a method and start step 2.
+         */
+        $in_with_operator = $operator . $in;
+        if (!empty($operator) && isset($this->method_symbols_reversed[$in_with_operator])) {
+            /**
+             * Check if the {$operator + $in} symbol is existed
+             * Because we support the operator to be a part of the symbol.
+             * For example, `!=` is the symbol of method `not_equal`, so we don't treat the `!` as a operator.
+             */
             $by_symbol = true;
             $in = $operator . $in;
             $operator = '';
-        } else if ($this->is_method_symbol($in)) {
+            $class = 'static';
+            $method_data = $this->method_symbols_reversed[$in_with_operator];
+        } else if (isset($this->method_symbols_reversed[$in])) {
             $by_symbol = true;
+            $class = 'static';
+            $method_data = $this->method_symbols_reversed[$in];
+        } else {
+            /**
+             * Check if it's the symbol which set in extended rule classes.
+             * @see static::$rule_classes_default
+             * @see static::init_rule_classes()
+             */
+            for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
+                $rule_class = $this->rule_classes[$i];
+                $rule_class_name = get_class($rule_class);
+                $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+                if (!empty($operator) && isset($method_symbols_reversed[$in_with_operator])) {
+                    $by_symbol = true;
+                    $in = $operator . $in;
+                    $operator = '';
+                    $class = $rule_class;
+                    $method_data = $method_symbols_reversed[$in_with_operator];
+                    break;
+                } else if (isset($method_symbols_reversed[$in])) {
+                    $by_symbol = true;
+                    $class = $rule_class;
+                    $method_data = $method_symbols_reversed[$in];
+                    break;
+                }
+            }
         }
 
         if ($by_symbol) {
             $symbol = $in;
-
-            if (isset($this->method_symbols[$symbol])) {
+        }
+        /**
+         * Step 2. Get the symbol for the method.
+         * NOTE:
+         * - One method may have not set a symbol.
+         * - One method may have set multiple symbols.
+         */
+        else {
+            $method = $in;
+            if (isset($this->method_symbols[$in])) {
                 $class = 'static';
-                $method = $this->method_symbols[$in];
+                $symbol_data = $this->method_symbols[$in];
+                if (is_array($symbol_data)) {
+                    /** Why 'symbols'? @see static::merge_symbol_of_method() */
+                    if (empty($symbol_data['symbols'])) {
+                        // Only set the method data(e.g. is_variable_length_argument) without setting a symbol
+                        $symbol = $method;
+                        $method_data = $symbol_data;
+                        $method_data['method'] = $method;
+                    } else {
+                        $symbol = $symbol_data['symbols'];
+                        if (is_array($symbol)) $symbol = $symbol[0];
+                        $method_data = $this->method_symbols_reversed[$symbol];
+                    }
+                } else {
+                    $symbol = $symbol_data;
+                    $method_data = $this->method_symbols_reversed[$symbol];
+                }
             } else {
+                /**
+                 * Check if it's the method which set in extended rule classes.
+                 * @see static::$rule_classes_default
+                 * @see static::init_rule_classes()
+                 */
                 for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
                     $rule_class = $this->rule_classes[$i];
                     $method_symbols = $rule_class::$method_symbols;
                     if (isset($method_symbols[$in])) {
                         $class = $rule_class;
-                        $method = $method_symbols[$in];
+                        $symbol_data = $method_symbols[$in];
+                        if (is_array($symbol_data)) {
+                            /** Why 'symbols'? @see static::merge_symbol_of_method() */
+                            if (empty($symbol_data['symbols'])) {
+                                // Only set the method data(e.g. is_variable_length_argument) without setting a symbol
+                                $symbol = $method;
+                                $method_data = $symbol_data;
+                                $method_data['method'] = $method;
+                            } else {
+                                $symbol = $symbol_data['symbols'];
+                                if (is_array($symbol)) $symbol = $symbol[0];
+                                $rule_class_name = get_class($rule_class);
+                                $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+                                $method_data = $method_symbols_reversed[$symbol];
+                            }
+                        } else {
+                            $symbol = $symbol_data;
+                            $rule_class_name = get_class($rule_class);
+                            $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
+                            $method_data = $method_symbols_reversed[$symbol];
+                        }
                         break;
                     }
                 }
 
-                if (empty($class)) $class = 'static';
-                if (empty($method)) $method = $symbol;
-            }
-        } else {
-            $method = $in;
-            if (isset($this->method_symbols_reversed[$in])) {
-                $class = 'static';
-                $symbol = $this->method_symbols_reversed[$in];
-            } else {
-                for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
-                    $rule_class = $this->rule_classes[$i];
-                    $rule_class_name = get_class($rule_class);
-                    $method_symbols_reversed = $this->rule_class_method_symbols_reversed[$rule_class_name];
-                    if (isset($method_symbols_reversed[$in])) {
-                        $class = $rule_class_name;
-                        $symbol = $method_symbols_reversed[$in];
-                        break;
-                    }
+                if (empty($class)) {
+                    $class = 'global';
+                    $symbol = $method;
+                    /** Why 'method'? @see static::reverse_method_symbols() */
+                    $method_data = [
+                        'method' => $method
+                    ];
                 }
-
-                if (empty($class)) $class = 'static';
-                if (empty($symbol)) $symbol = $method;
             }
         }
 
         return [
             $by_symbol,
             $symbol,
-            $method,
+            $method_data,
             $operator,
             $class
         ];
@@ -773,18 +977,31 @@ class Validation
      * - this method symbols
      * - rule classes method symbols
      *
+     * @param bool $is_reversed
      * @return array
      */
-    public function get_method_symbols()
+    public function get_method_symbols($is_reversed = false)
     {
-        $method_symbols = $this->method_symbols;
-        $rule_classes_length = count($this->rule_classes);
-        for ($i = 0; $i < $rule_classes_length; $i++) {
-            $rule_class = $this->rule_classes[$i];
-            $method_symbols = array_merge($method_symbols, $rule_class::$method_symbols);
-        }
+        if (!$is_reversed) {
+            $method_symbols = $this->method_symbols;
+            $rule_classes_length = count($this->rule_classes);
+            for ($i = 0; $i < $rule_classes_length; $i++) {
+                $rule_class = $this->rule_classes[$i];
+                $method_symbols = array_merge($method_symbols, $rule_class::$method_symbols);
+            }
 
-        return $method_symbols;
+            return $method_symbols;
+        } else {
+            $method_symbols_reversed = $this->method_symbols_reversed;
+
+            for ($i = count($this->rule_classes) - 1; $i >= 0; $i--) {
+                $rule_class = $this->rule_classes[$i];
+                $rule_class_name = get_class($rule_class);
+                $method_symbols_reversed = array_merge($method_symbols_reversed, $this->rule_class_method_symbols_reversed[$rule_class_name]);
+            }
+
+            return $method_symbols_reversed;
+        }
     }
 
     /**
@@ -792,18 +1009,21 @@ class Validation
      * - this deprecated method symbols
      * - rule deprecated classes method symbols
      *
+     * @param bool $is_reversed
      * @return array
      */
-    public function get_deprecated_method_symbols()
+    public function get_deprecated_method_symbols($is_reversed = false)
     {
         $deprecated_method_symbols = $this->deprecated_method_symbols;
         $rule_classes_length = count($this->rule_classes);
         for ($i = 0; $i < $rule_classes_length; $i++) {
             $rule_class = $this->rule_classes[$i];
             if (property_exists($rule_class, 'deprecated_method_symbols')) {
-                $deprecated_method_symbols = array_merge($deprecated_method_symbols, $rule_class::$deprecated_method_symbols);
+                $deprecated_method_symbols = $this->merge_method_symbols($deprecated_method_symbols, $rule_class::$deprecated_method_symbols);
             }
         }
+
+        if ($is_reversed) $deprecated_method_symbols = $this->reverse_method_symbols($deprecated_method_symbols);
 
         return $deprecated_method_symbols;
     }
@@ -844,16 +1064,16 @@ class Validation
      *
      * @param string $method Method name
      * @param callable $callable Function definition
-     * @param string $symbol Symbol of method
+     * @param string|array $method_symbol Symbol of method
      * @return static
      * @api
      */
-    public function add_method($method, $callable, $symbol = '')
+    public function add_method($method, $callable, $method_symbol = '')
     {
         $this->methods[$method] = $callable;
-        if (!empty($symbol)) {
-            $this->method_symbols[$symbol] = $method;
-            $this->method_symbols_reversed[$method] = $symbol;
+        if (!empty($method_symbol)) {
+            $this->method_symbols[$method] = $method_symbol;
+            $this->reverse_one_method_symbol($method, $method_symbol, $this->method_symbols_reversed);
         }
         return $this;
     }
@@ -970,6 +1190,10 @@ class Validation
      */
     protected function execute($data, $rules, $field_path = null)
     {
+        $self_result = $this->execute_self_rules($data, $rules, $field_path);
+        if ($self_result == 0) return false;
+        else if ($self_result == 1 && empty($data)) return true;     // optional
+
         foreach ($rules as $field => $ruleset) {
             $current_field_path = '';
             if ($field_path === null) $current_field_path = $field;
@@ -995,7 +1219,11 @@ class Validation
                 }
                 // Validate index array
                 else if ($this->has_system_symbol($ruleset_system_symbol, 'symbol_index_array', true)) {
-                    $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset[$ruleset_system_symbol]);
+                    $current_data = isset($data[$field]) ? $data[$field] : null;
+                    $self_result = $this->execute_self_rules($current_data, $ruleset, $current_field_path);
+                    if ($self_result == 0) $result = false;
+                    else if ($self_result == 1 && empty($current_data)) $result = true;     // optional
+                    else $result = $this->execute_index_array_rules($data, $field, $current_field_path, $ruleset[$ruleset_system_symbol]);
                 }
                 // Validate association array
                 else {
@@ -1081,6 +1309,9 @@ class Validation
     protected function get_ruleset_system_symbol($ruleset)
     {
         if (!is_array($ruleset)) return false;
+
+        // self ruleset of index array
+        if (isset($ruleset[$this->config['self_ruleset_key']])) unset($ruleset[$this->config['self_ruleset_key']]);
 
         $keys = array_keys($ruleset);
 
@@ -1190,6 +1421,44 @@ class Validation
     }
 
     /**
+     * Execute validation of self rules of a array node.
+     * 
+     * Result:
+     *  - -1: No self ruleset
+     *  -  0: Validate self ruleset but failed.
+     *  -  1: Validate self ruleset and success.
+     * 
+     * @example
+     * ```
+     * $rule => [
+     *      "person" => [
+     *          "__self__" => "optional|<keys>[id, name]",
+     *          "id" => "required|int|>=[1]|<=[100]",
+     *          "name" => "required|string|/^[A-Z]+-\d+/"
+     *      ]
+     * ];
+     * ```
+     * @param array $data The parent data of the field which is related to the rules
+     * @param string $field The field which is related to the rules
+     * @param string $field_path Field path, suce as fruit.apple
+     * @return int The result of validation
+     */
+    protected function execute_self_rules($data, &$rules, $field_path)
+    {
+        if (isset($rules[$this->config['self_ruleset_key']])) {
+            $field = $this->get_path_final_field($field_path);
+            $result = $this->execute_ruleset([
+                $field => $data
+            ], $field, $rules[$this->config['self_ruleset_key']], $field_path);
+            unset($rules[$this->config['self_ruleset_key']]);
+            $this->set_result($field_path, $result);
+            return $result ? 1 : 0;
+        }
+
+        return -1;
+    }
+
+    /**
      * Execute validation of parallel rules.
      * There has two ways to add parallel rules:
      * 1. Add symbol_parallel_rule in the end of the field. Such as $rule = [ "name[or]" => [ "*|string", "*|int" ] ];
@@ -1252,7 +1521,7 @@ class Validation
         } else {
             $is_all_valid = true;
             foreach ($data[$field] as $key => $value) {
-                $result = $this->execute($data[$field], [$key => $ruleset], $field_path, true);
+                $result = $this->execute($data[$field], [$key => $ruleset], $field_path);
 
                 $is_all_valid = $is_all_valid && $result;
 
@@ -2034,7 +2303,27 @@ class Validation
             $params = [$this->symbol_this];
         }
 
-        list($by_symbol, $symbol, $method, $operator, $class) = $this->match_method_and_symbol($method, $operator);
+        list($by_symbol, $symbol, $method_data, $operator, $class) = $this->match_method_and_symbol($method, $operator);
+        $is_variable_length_argument = false;
+        if (is_array($method_data)) {
+            $method = $method_data['method'];
+            $is_variable_length_argument = !empty($method_data['is_variable_length_argument']);
+            /**
+             * Inject default arguments into the method arguments.
+             * @see githusband\Rule\RuleClassDefault::$method_symbols
+             */
+            if (!empty($method_data['default_arguments'])) {
+                $default_arguments = $method_data['default_arguments'];
+                ksort($default_arguments);
+                foreach ($default_arguments as $key => $default_argument) {
+                    if (!array_key_exists($key-1, $params)) {
+                        $params[$key] = $default_argument;
+                    }
+                }
+            }
+        } else {
+            $method = $method_data;
+        }
 
         foreach ($params as &$param) {
             if (is_array($param)) continue;
@@ -2072,8 +2361,11 @@ class Validation
             }
         }
 
-        // "in" method, all the parameters are treated as the second parameter.
-        if ($this->is_in_method($symbol)) {
+        /**
+         * Check whether the second parameter of the current rule is variable length argument or not
+         * If true, all the parameters are treated as the second parameter.
+         */
+        if ($is_variable_length_argument) {
             $field_name = $params[0];
             array_shift($params);
             $params = [
@@ -2087,6 +2379,7 @@ class Validation
             'symbol' => $symbol,
             'by_symbol' => $by_symbol,
             'operator' => $operator,
+            'is_variable_length_argument' => $is_variable_length_argument,
             'params' => $params,
         ];
 
@@ -2417,19 +2710,28 @@ class Validation
     protected function inject_parameter_to_error_template($error_template, $key, $value, $method_rule)
     {
         if (is_array($value) || is_object($value)) {
-            if ($this->is_in_method($method_rule['symbol'])) {
-                $value = implode(',', $value);
+            if ($method_rule['is_variable_length_argument']) {
+                $value_max_index = count($value) - 1;
+                $index = 0;
+                $serialized_value = '';
+                foreach ($value as $k => $v) {
+                    if (is_array($v)) {
+                        $v = $k;
+                    } else if (!is_string($v)) {
+                        $v = $this->var_export($v, true);
+                    }
+                    $serialized_value .= "$v";
+                    if ($index != $value_max_index) $serialized_value .= ",";
+                    $index++;
+                }
+                $value = $serialized_value;
             } else {
                 return $error_template;
             }
         }
 
         $p = $value;
-        if (!isset($value)) {
-            $p = "NULL";
-        } else if (is_bool($value)) {
-            $p = $value ? 'true' : 'false';
-        }
+        if (!is_string($value)) $p = $this->var_export($value, true);
         $error_template = str_replace('@p' . $key, $p, $error_template);
         $error_template = str_replace('@t' . $key, $this->get_parameter_type($value), $error_template);
         return $error_template;
@@ -2635,7 +2937,7 @@ class Validation
 
                 $method_rule = $this->parse_method($when_rule, '', $data, $field);
                 $params = $method_rule['params'];
-                $when_result = $this->execute_method($method_rule, $field_path);
+                $when_result = $this->execute_method($method_rule);
 
                 if (is_array($when_result) && !empty($when_result['error_type']) && $when_result['error_type'] == 'undefined_method') return false;
 
@@ -2791,7 +3093,7 @@ class Validation
             else {
                 $method_rule = $this->parse_method($rule, $operator, $data, $field);
                 $params = $method_rule['params'];
-                $result = $this->execute_method($method_rule, $field_path);
+                $result = $this->execute_method($method_rule);
 
                 /**
                  * If method validation is success. should return true.
@@ -2852,10 +3154,9 @@ class Validation
      * Execute method
      *
      * @param array $method_rule Method detail
-     * @param string $field_path The field which is related to the rule
      * @return bool|string|array
      */
-    protected function execute_method($method_rule, $field_path)
+    protected function execute_method($method_rule)
     {
         try {
             $params = $method_rule['params'];
@@ -3311,6 +3612,28 @@ class Validation
     }
 
     /**
+     * Return a parsable string representation of a variable
+     * 
+     * The built-in function `var_export` does not work for decimal in PHP 5.6.
+     * So I create the function for the same functionality.
+     *
+     * @see https://www.php.net/manual/en/function.var-export.php
+     * @param mixed $value
+     * @param bool $return
+     * @return void
+     */
+    public function var_export($value, $return = true)
+    {
+        if ($value === null) {
+            $value = 'NULL';
+        } else if (is_bool($value)) {
+            $value = $value ? 'true' : 'false';
+        }
+
+        return $value;
+    }
+
+    /**
      * To convert a camelCase(camel case, camel caps or medial capitals) formatted string to a non-camelCase format.
      * For example: "RuleDefault" -> "rule_default"
      *
@@ -3358,18 +3681,6 @@ class Validation
     {
         if (!is_array($array)) return false;
         return array_keys($array) === range(0, count($array) - 1);
-    }
-
-    /**
-     * Check if it's an "in" type method name or not.
-     * For example, "in_array" method
-     *
-     * @param string $method
-     * @return bool
-     */
-    protected function is_in_method($method)
-    {
-        return preg_match('/^!?[\<\(][a-zA-Z0-9_\*]+[\>\)]$/', $method, $matches);
     }
 
     /**
@@ -3432,7 +3743,7 @@ class Validation
              * Most of the time the $rules is an associate array, so the ruleset type is RULESET_TYPE_ASSOC_ARRAY
              * But sometimes it's for index array, we will change the ruleset type below.
              */
-            $root_ruleset_entity = new RulesetEntity('root', $rules, '');
+            $root_ruleset_entity = new RulesetEntity('root', $rules, null);
             if (!empty($auto_field)) $root_ruleset_entity->set_real_root_name($auto_field);
             $root_ruleset_entity->set_ruleset_type(RulesetEntity::RULESET_TYPE_ASSOC_ARRAY);
             $symbol_index_array_without_left_dot = ltrim($this->config['symbol_index_array'], '.');
@@ -3471,6 +3782,8 @@ class Validation
      */
     protected function parse_ruleset_entity(&$parent_ruleset_entity)
     {
+        $this->parse_self_ruleset_entity($parent_ruleset_entity);
+        
         $parent_ruleset = $parent_ruleset_entity->get_value();
         $field_path = $parent_ruleset_entity->get_path();
 
@@ -3523,7 +3836,7 @@ class Validation
 
         foreach ($parent_ruleset as $field => $ruleset) {
             $current_field_path = '';
-            if ($field_path === '') $current_field_path = $field;
+            if ($field_path === null) $current_field_path = $field;
             else $current_field_path = $field_path . $this->config['symbol_field_name_separator'] . $field;
             $this->set_current_field_path($current_field_path);
 
@@ -3600,6 +3913,27 @@ class Validation
         }
 
         return $parent_ruleset_entity;
+    }
+
+    /**
+     * Parse the rulesets of the parent RulesetEntity
+     *
+     * @param ?RulesetEntity $parent_ruleset_entity
+     */
+    protected function parse_self_ruleset_entity(&$parent_ruleset_entity)
+    {
+        $parent_ruleset = $parent_ruleset_entity->get_value();
+        if (isset($parent_ruleset[$this->config['self_ruleset_key']])) {
+            $parent_ruleset_entity
+                ->reset_rule_entities()
+                ->set_ruleset($parent_ruleset[$this->config['self_ruleset_key']]);
+            $this->parse_rule_entity($parent_ruleset_entity);
+
+            unset($parent_ruleset[$this->config['self_ruleset_key']]);
+            $parent_ruleset_entity->set_value($parent_ruleset);
+        }
+
+        return true;
     }
 
     /**
@@ -3910,7 +4244,8 @@ class Validation
                 if (empty($method_rule['by_symbol'])) $error_template = str_replace($this->symbol_method, $method_rule['method'], $error_template);
                 else $error_template = str_replace($this->symbol_method, $method_rule['symbol'], $error_template);
                 $rule_entity = new RuleEntity(RuleEntity::RULE_TYPE_METHOD, $method_rule['method'], $rule, $method_rule['params'], $method_rule['symbol'], $method_rule['by_symbol']);
-                $rule_entity->set_operator($method_rule['operator']);
+                $rule_entity->set_operator($method_rule['operator'])
+                    ->set_is_variable_length_argument($method_rule['is_variable_length_argument']);
             }
 
             $rule_entity->set_error_type($error_type)
@@ -3930,6 +4265,10 @@ class Validation
      */
     protected function execute_entity($data, $parent_ruleset_entity)
     {
+        $self_result = $this->execute_self_ruleset_entities($data, $parent_ruleset_entity);
+        if ($self_result == 0) return false;
+        else if ($self_result == 1 && empty($data)) return true;     // optional
+
         $current_index_array_key = null;
         $parent_ruleset_type = $parent_ruleset_entity->get_ruleset_type();
         if ($parent_ruleset_type == RulesetEntity::RULESET_TYPE_INDEX_ARRAY) {
@@ -3944,35 +4283,10 @@ class Validation
             switch ($ruleset_type) {
                 case RulesetEntity::RULESET_TYPE_ASSOC_ARRAY:
                 case RulesetEntity::RULESET_TYPE_INDEX_ARRAY:
-                    $has_static_ruleset = false;
-                    if ($ruleset_entity->has_if_ruleset_entities()) {
-                        $has_static_ruleset = true;
-                        $result = $this->execute_if_ruleset_entities($data, $field, $ruleset_entity);
-                    } else if ($ruleset_entity->has_parallel_ruleset_entities()) {
-                        $has_static_ruleset = true;
-                        $result = $this->execute_parallel_ruleset_entities($data, $field, $ruleset_entity);
-                    } else if ($ruleset_entity->has_rule_entities()) {
-                        $has_static_ruleset = true;
-                        $result = $this->execute_ruleset_entity($data, $field, $ruleset_entity, $current_field_path);
+                    if ($ruleset_type === RulesetEntity::RULESET_TYPE_ASSOC_ARRAY) {
+                        $result = $this->execute_entity(isset($data[$field]) ? $data[$field] : null, $ruleset_entity, $current_field_path);
                     } else {
-                        $result = true;
-                    }
-
-                    if (
-                        !$result
-                        || (
-                            $result
-                            && $has_static_ruleset
-                            && empty($data[$field])
-                        )
-                    ) {
-                        $this->set_result($current_field_path, $result);
-                    } else {
-                        if ($ruleset_type === RulesetEntity::RULESET_TYPE_ASSOC_ARRAY) {
-                            $result = $this->execute_entity(isset($data[$field]) ? $data[$field] : null, $ruleset_entity, $current_field_path);
-                        } else {
-                            $result = $this->execute_index_array_ruleset_entities($data, $field, $ruleset_entity);
-                        }
+                        $result = $this->execute_index_array_ruleset_entities($data, $field, $ruleset_entity);
                     }
                     
                     break;
@@ -3996,6 +4310,63 @@ class Validation
     }
 
     /**
+     * Execute validation of self rules of a array node.
+     * 
+     * Result:
+     *  - -1: No self ruleset
+     *  -  0: Validate self ruleset but failed.
+     *  -  1: Validate self ruleset and success.
+     *
+     * @param array $data The parent data of the field which is related to the rule
+     * @param RulesetEntity $ruleset_entity The ruleset of the field
+     * @return int The result of validation
+     */
+    protected function execute_self_ruleset_entities($data, $ruleset_entity)
+    {
+        if ($ruleset_entity->has_if_ruleset_entities()) {
+            $field_path = $ruleset_entity->get_path();
+            $field = $this->get_path_final_field($field_path);
+            $result = $this->execute_if_ruleset_entities([
+                $field => $data
+            ], $field, $ruleset_entity);
+            $this->set_result($field_path, $result);
+            return $result ? 1 : 0;
+        } else if ($ruleset_entity->has_parallel_ruleset_entities()) {
+            $field_path = $ruleset_entity->get_path();
+            $field = $this->get_path_final_field($field_path);
+            $result = $this->execute_parallel_ruleset_entities([
+                $field => $data
+            ], $field, $ruleset_entity);
+            $this->set_result($field_path, $result);
+            return $result ? 1 : 0;
+        } else if ($ruleset_entity->has_rule_entities()) {
+            $field_path = $ruleset_entity->get_path();
+            $field = $this->get_path_final_field($field_path);
+            $result = $this->execute_ruleset_entity([
+                $field => $data
+            ], $field, $ruleset_entity, $field_path);
+            $this->set_result($field_path, $result);
+            return $result ? 1 : 0;
+        } else {
+            return -1;
+        }
+    }
+
+    /**
+     * Get the final field from the field path.
+     * For example, The "C" is the final field of the path "A.B.C"
+     * 
+     * @param ?string $field_path
+     * @return void
+     */
+    protected function get_path_final_field(&$field_path)
+    {
+        if ($field_path === null) $field_path = $this->config['auto_field'];
+        $field_path_array = explode($this->config['symbol_field_name_separator'], $field_path);
+        return $field_path_array[count($field_path_array)-1];
+    }
+
+    /**
      * Execute validation of index array rules.
      * There has two ways to add index array rules:
      * 1. Add symbol_index_array in the end of the field. Such as $rule = [ "name.*" => [ "*|string" ] ];
@@ -4008,8 +4379,13 @@ class Validation
      */
     protected function execute_index_array_ruleset_entities($data, $field, $ruleset_entity)
     {
+        $current_data = isset($data[$field]) ? $data[$field] : null;
+        $self_result = $this->execute_self_ruleset_entities($current_data, $ruleset_entity);
+        if ($self_result == 0) return false;
+        else if ($self_result == 1 && empty($current_data)) return true;     // optional
+
         $field_path = $ruleset_entity->get_path();
-        if (!isset($data[$field]) || !$this->is_index_array($data[$field])) {
+        if (!isset($current_data) || !$this->is_index_array($current_data)) {
             $error_template = $this->get_error_template('index_array');
             $error_msg = str_replace($this->symbol_this, $field_path, $error_template);
             $message = [
@@ -4028,9 +4404,9 @@ class Validation
             $ruleset_entity->set_index_array_deep($index_array_deep);
 
             $is_all_valid = true;
-            foreach ($data[$field] as $key => $value) {
+            foreach ($current_data as $key => $value) {
                 $ruleset_entity->set_root_index_array_key($index_array_deep, $key);
-                $result = $this->execute_entity($data[$field], $ruleset_entity);
+                $result = $this->execute_entity($current_data, $ruleset_entity);
 
                 $is_all_valid = $is_all_valid && $result;
 
@@ -4204,7 +4580,7 @@ class Validation
 
                     $when_method_rule = $when_rule_entity->get_method_rule();
                     $when_method_rule['params'] = $this->parse_rule_entity_params($when_method_rule['params'], $data, $field);
-                    $when_result = $this->execute_method($when_method_rule, $field_path);
+                    $when_result = $this->execute_method($when_method_rule);
 
                     if (is_array($when_result) && !empty($when_result['error_type']) && $when_result['error_type'] == 'undefined_method') return false;
 
@@ -4323,7 +4699,7 @@ class Validation
             }
             // Method
             else {
-                $result = $this->execute_method($method_rule, $field_path);
+                $result = $this->execute_method($method_rule);
 
                 /**
                  * If method validation is success. should return true.
@@ -4354,6 +4730,7 @@ class Validation
                 if ($ruleset_entity->is_condition_ruleset_entity()) return false; 
 
                 // Replace symbol to field name and parameter value
+                if ($field_path === null) $field_path = $this->config['auto_field'];  // root node
                 $error_template = str_replace($this->symbol_this, $field_path, $error_template);
                 $error_msg = $this->inject_parameters_to_error_template($error_template, $params, $method_rule);
 

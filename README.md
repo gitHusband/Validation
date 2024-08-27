@@ -32,12 +32,17 @@
       * [4.1 方法及其标志](#41-方法及其标志)
       * [4.2 正则表达式](#42-正则表达式)
       * [4.3 方法传参](#43-方法传参)
+        * [传参的几种方式](#传参的几种方式)
+        * [参数类型](#参数类型)
       * [4.4 自定义方法](#44-自定义方法)
+        * [自定义方法的几种方式](#自定义方法的几种方式)
+        * [设置方法标志](#设置方法标志)
       * [4.5 串联并联规则](#45-串联并联规则)
       * [4.6 条件规则](#46-条件规则)
          * [When 条件规则](#when-条件规则)
          * [IF 条件规则](#if-条件规则)
       * [4.7 无限嵌套的数据结构](#47-无限嵌套的数据结构)
+         * [数组自身的规则](#数组自身的规则)
       * [4.8 可选字段](#48-可选字段)
       * [4.9 特殊的验证规则](#49-特殊的验证规则)
       * [4.10 客制化配置](#410-客制化配置)
@@ -234,6 +239,8 @@ $ composer run-script readme test_complete_example
 ### 4.3 方法传参
 在以字符串书写的规则中，如何给方法传参呢？
 
+#### 传参的几种方式
+
 1. **标准参数**
 跟 PHP 函数使用参数一样，参数写在小括号`()`里面，多个参数以逗号`,`分隔，`,`前后不允许多余的空格
 例如，
@@ -251,6 +258,24 @@ $ composer run-script readme test_complete_example
 
 3. **省略参数**
 当函数参数只有一个且为当前字段值时，可省略 `()` 和 `[]` ，只写方法。
+例如，
+```
+"id" => "uuid"
+```
+
+4. **默认参数**
+支持默认参数，但需要额外配置。见 [设置方法标志](#设置方法标志)
+例如，以下表示数据为索引数组，`unique` 验证其子数据必须是唯一的。但参数每次都得写 `@parent` 稍显多余，通过配置默认参数，可以省略之。
+```PHP
+$rule = [
+    // 标准写法
+    "*" => "unique(@this,@parent)",
+    // 省略 `@this`
+    "*" => "unique[@parent]",
+    // 默认参数写法
+    "*" => "unique"
+];
+```
 
 **参数变量表**
 
@@ -260,7 +285,7 @@ $ composer run-script readme test_complete_example
 `@this` | 代表参数是当前字段的值
 `@parent` | 代表参数是当前字段的父元素的值
 `@root` | 代表参数是整个原始验证数据
-`@{field_name}` | 代表参数是整个验证数据中的字段名是 `field_name` 的字段的值。例如 `@id`
+`@{field_path}` | 代表参数是整个验证数据中的字段名是 `field_path` 的字段的值。例如 `@id`, `@person.name`
 
 **参数分隔符：**
 - `symbol_parameter_separator`: `,`
@@ -272,7 +297,8 @@ $ composer run-script readme test_complete_example
 - 自定义参数分隔符，见 [4.10 客制化配置](#410-客制化配置)
 
 
-**参数类型：**
+#### 参数类型
+
 自动探测参数的类型并强制转换为对应类型。
 1. 被双引号（`"`）或单引号（`'`）包含的内容即被视为字符串。否则将探测并强制转换类型。
   - 例如 `"abc"`, `'abc'` 或者 `abc` 都被视为字符串 `abc`
@@ -280,7 +306,7 @@ $ composer run-script readme test_complete_example
   - `int`：例如 `123` 为整形，`"123"` 为字符串 
   - `float`: 例如 `123.0`
   - `bool`: 例如 `false` 或者 `TRUE`
-  - `array`: 例如 `[1,2,3]`
+  - `array`: 例如 `[1,2,3]` 或者 `["a", "b"]`
   - `object`: 例如 `{"a": "A", "b": "B"}`
   - 例如： `my_method[[1,"2",'3'],100,false,"true"]`
     - `[1,"2",'3']` 将被转换为 `array([1,"2","3"])`
@@ -294,14 +320,20 @@ Validation 类中内置了一些验证方法，例如 `*`，`>`, `length>=`, `ip
 如果验证规则比较复杂，内置方法无法满足你的需求，可以拓展你自己的方法。
 如果方法中根据不同的判断可能返回不同的错误信息，见 [4.13 错误信息模板 - 3. 在方法中直接返回模板](#413-错误信息模板) 一节。
 
+#### 自定义方法的几种方式
+
 拓展方法有以下几种方式：
-1. **新增方法**：`add_method`
+
+##### 1. 新增方法：`add_method($method, $callable, $method_symbol = '')`
 新增一个新的方法
+- `$method`：方法名
+- `$callable`：方法定义
+- `$method_symbol`：方法标志。可选的。
 
 <details>
   <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
 
-注册一个新的方法，check_id
+注册一个新的方法，`check_id`，并设置其标志为 `c_id`
 ```PHP
 $validation->add_method('check_id', function ($id) {
     if ($id == 0) {
@@ -309,7 +341,7 @@ $validation->add_method('check_id', function ($id) {
     }
 
     return true;
-});
+}, 'c_id');
 ```
 
 规则这么写
@@ -317,30 +349,32 @@ $validation->add_method('check_id', function ($id) {
 $rule = [
     // 必要的，且只能是数字，且必须大于 0
     "id" => "required|/^\d+$/|check_id",
+    // 或者使用标志代替方法名
+    "id" => "required|/^\d+$/|c_i",
 ];
 ```
 
 </details>
 </br>
 
-2. **新增方法类**：`add_rule_class`
+##### 2. 新增方法类：`add_rule_class`
 一个方法类包含多个方法及其标志。支持静态或非静态的方法。
 由于优先级原因，如需覆盖验证类 Validation 中的原生方法，请使用新增方法类，拓展类可能无法覆盖。
 
 <details>
   <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
 
-创建一个新的文件，`RuleClassString.php`
+创建一个新的文件，`RuleClassTest.php`
 ```PHP
 /**
  * 推荐用 rule class 增加验证方法
  * 如果需要定义方法标志，将他们放在 method_symbols 属性中
  */
-class RuleClassString
+class RuleClassTest
 {
     // 方法标志
     public static $method_symbols = [
-        'cus_str' => 'is_custom_string',
+        'is_custom_string' => 'cus_str',
     ];
 
     // 方法
@@ -351,23 +385,23 @@ class RuleClassString
 }
 ```
 
-调用 `add_rule_class` 注册一个新的方法类，RuleClassString
+调用 `add_rule_class` 注册一个新的方法类，RuleClassTest
 ```PHP
-use RuleClassString;
+use RuleClassTest;
 
-// 注册一个新的方法类，RuleClassString
-$validation->add_rule_class(RuleClassString::class);
+// 注册一个新的方法类，RuleClassTest
+$validation->add_rule_class(RuleClassTest::class);
 ```
 实际上，`add_rule_class` 也是将规则类插入到 `rule_classes` 属性中，那么我们也可以通过另一种更加直接的方法注册新的方法类：
 
 ```PHP
 use githusband\Validation;
-use RuleClassString;
+use RuleClassTest;
 
 class MyValidation extends Validation
 {
     protected $rule_classes = [
-        RuleClassString::class
+        RuleClassTest::class
     ];
 }
 ```
@@ -377,13 +411,15 @@ class MyValidation extends Validation
 $rule = [
     // 必要的，且格式必须是 /^[\w\d -]{8,32}$/
     "id" => "required|is_custom_string",
+    // 或者使用标志代替方法名
+    "id" => "required|cus_str",
 ];
 ```
 
 </details>
 </br>
 
-3. **拓展 `Validation` 类**
+##### 3. 拓展 `Validation` 类
 
 拓展 `Validation` 类并重写内置方法或者增加新的内置方法。推荐用 [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
 
@@ -399,8 +435,8 @@ $rule = [
 trait RuleExtendTrait
 {
     // 方法标志
-    protected $method_symbols_of_rule_custome = [
-        '=1' => 'euqal_to_1',
+    protected $method_symbols_of_rule_extend_trait = [
+        'euqal_to_1' => '=1',
     ];
 
     // 方法
@@ -425,7 +461,7 @@ class MyValidation extends Validation
      * 如果需要定义方法标志，将他们放在属性 method_symbols 中
      */
     protected $method_symbols = [
-        ">=1" => "grater_than_or_equal_to_1",
+        'grater_than_or_equal_to_1' => '>=1',
     ];
 
     protected function grater_than_or_equal_to_1($data)
@@ -448,13 +484,129 @@ $rule = [
 </details>
 </br>
 
-4. **全局函数**
+##### 4. 全局函数
 包括系统自带的函数和用户自定义的全局函数。
 
 **几种方法的优先级**
 `新增方法` > `新增方法类` > `拓展 Validation 类` > `内置方法` > `全局函数`
 
 若方法都不存在，则报错：未定义
+
+#### 设置方法标志
+
+允许设置方法的标志，更加直观。例如，`greater_than` 的标志是 `>`。参考 [附录 1 - 方法标志及其含义](#附录-1---方法标志及其含义)
+从上一节中，你应该已经注意到方法标志的使用了。那也是最通用的设置标志的方式。例如，
+```PHP
+public static $method_symbols = [
+    'is_custom_string' => 'cus_str',
+];
+```
+
+方法标志 `$method_symbols` 可能还支持其他属性：
+
+- 如果值为字符串，例如 'cus_str'，则表示标志。
+- 如果值为数组，则支持以下字段:
+  - `symbols`: 表示标志，例如 'cus_str'。
+  - `is_variable_length_argument`: 默认为 false。表示方法第二个参数为可变长度参数，规则集 中的第一个参数之后的所有参数都会被第二个参数的子元素。参考 `githusband\Rule\RuleClassDefault::$method_symbols['in_number_array']`。
+  - `default_arguments`: 默认为 无。设置方法的默认参数。参考 `githusband\Rule\RuleClassArray::$method_symbols['is_unique']`。
+    - `default_arguments` 数组的键必须是整形数字，表示第几个默认参数. 例如，`2` 表示第二个参数。
+    - `default_arguments` 数组的值可以是任意值。对于类似 "@parent" (表示当前字段的父数据)，参考 [4.3 方法传参](#43-方法传参)
+
+对于 [2. 新增方法类](#2-新增方法类add_rule_class)，如果支持方法标志的全部属性，例子如下，
+
+<details>
+  <summary><span>&#128071;</span> <strong>点击查看代码</strong></summary>
+
+```PHP
+class RuleClassTest
+{
+    /**
+     * 方法标志：
+     * - 如果值为字符串，则表示标志。
+     * - 如果值为数组，则支持以下字段:
+     *   - `symbols`: 表示标志
+     *   - `is_variable_length_argument`: 默认为 false。表示方法第二个参数为可变长度参数，规则集 中的第一个参数之后的所有参数都会被第二个参数的子元素。参考 `githusband\Rule\RuleClassDefault::$method_symbols['in_number_array']`。
+     *   - `default_arguments`: 默认为 无。设置方法的默认参数。参考 `githusband\Rule\RuleClassArray::$method_symbols['is_unique']`。
+     *     - `default_arguments` 数组的键必须是整形数字，表示第几个默认参数. 例如，`2` 表示第二个参数。
+     *     - `default_arguments` 数组的值可以是任意值。对于类似 "@parent" (表示当前字段的父数据)，参考 https://github.com/gitHusband/Validation?tab=readme-ov-file#43-%E6%96%B9%E6%B3%95%E4%BC%A0%E5%8F%82
+     * 
+     * @example `in_number_array[1,2,3]` 第二个参数是一个数组 `[1,2,3]`
+     * @see githusband\Rule\RuleClassDefault::$method_symbols
+     * @see githusband\Rule\RuleClassArray::$method_symbols
+     * @var array<string, string|array>
+     */
+    public static $method_symbols = [
+        'is_custom_string' => 'cus_str',
+        'is_in_custom_list' => [
+            'symbols' => '<custom>',
+            'is_variable_length_argument' => true,  // 第一个参数之后的所有参数，都被认作第二个参数数组的子元素
+        ],
+        'is_equal_to_password' => [
+            'symbols' => '=pwd',
+            'default_arguments' => [
+                2 => '@password'    // 第二个参数默认为 password 字段的值
+            ]
+        ]
+    ];
+
+    /**
+     * 测试方法 1 - 测试当前字段的格式是否满足要求
+     * 
+     * 用法：
+     * - 'id' => 'is_custom_string'
+     * - 'id' => 'cus_str'
+     *
+     * @param string $data
+     * @return bool
+     */
+    public static function is_custom_string($data)
+    {
+        return preg_match('/^[\w\d -]{8,32}$/', $data) ? true : false;
+    }
+
+    /**
+     * 测试方法 2 - 测试当前字段是否存在于列表内
+     * 
+     * 用法：
+     * - 'sequence' => 'is_in_custom_list[1st, First, 2nd, Second]'
+     * - 'sequence' => '<custom>[1st, First, 2nd, Second]'
+     * 
+     * 这是一个第二个参数为可变长度参数的例子。如果不设置可变长度参数，那么它的写法如下，注意第二个参数必须是合法的 JSON Encoded 字符串。例如：
+     * - 'sequence' => 'is_in_custom_list[["1st", "First", "2nd", "Second"]]'
+     * - 'sequence' => '<custom>[["1st", "First", "2nd", "Second"]]'
+     *
+     * @param mixed $data
+     * @param array $list
+     * @return bool
+     */
+    public static function is_in_custom_list($data, $list)
+    {
+        return in_array($data, $list);
+    }
+
+    /**
+     * 测试方法 3 - 验证当前字段是否与 password 字段相等
+     * 
+     * 用法：
+     * - 'confirm_password' => 'is_equal_to_password'
+     * - 'confirm_password' => '=pwd'
+     * 
+     * 这是一个默认参数的例子。用 `euqal` 方法来写效果也一样, 它相当于给 equal 方法加了默认参数 '@password'。例如：
+     * - 'confirm_password' => `equal[@password]`，
+     * - 'confirm_password' => `=[@password]`，
+     *
+     * @param string $data
+     * @param string $password
+     * @return bool
+     */
+    public static function is_equal_to_password($data, $password)
+    {
+        return $data == $password;
+    }
+}
+```
+
+</details>
 
 ### 4.5 串联并联规则
 - 串联：一个参数的多个方法必须全部满足，标志是 `|`
@@ -693,6 +845,53 @@ $rule = [
 
 </details>
 
+#### 数组自身的规则
+
+上述的例子，一个规则数组便可完成对复杂结构的数据的验证。但只能对叶子字段进行验证，如果要对父数组本身进行验证，还无法实现。
+那么，我们设计通过一个 `__self__` 叶子字段，表示父数组本身的规则。
+
+- `__self__` 字段允许自定义，见 [4.10 客制化配置](#410-客制化配置)
+- 特殊的，如果数组本身规则只有可选的 `optional`，有简便的写法，见 [4.8 可选字段](#48-可选字段)
+
+**1. 关联数组的自身规则**
+```PHP
+$rule = [
+    // 表示根数据是可以为空的，如果不为空，要求其字段有且只有包含 id, name, favourite_fruit
+    "__self__" => "optional|require_array_keys[id, name, favourite_fruit]",
+    "id" => "required|/^\d+$/",
+    "name" => "required|length>[3]",
+    "favourite_fruit" => [
+        // 表示 favourite_fruit 是可以为空的，如果不为空，要求其字段有且只有包含 name, color, shape
+        "__self__" => "optional|require_array_keys[name, color, shape]",
+        "name" => "required|length>[3]",
+        "color" => "required|length>[3]",
+        "shape" => "required|length>[3]"
+    ]
+];
+```
+
+**2. 索引数组的自身规则**
+```PHP
+$rule = [
+    "id" => "required|/^\d+$/",
+    "name" => "required|length>[3]",
+    "favourite_color" => [
+        // 表示 favourite_color 是可以为空的，如果不为空，要求其字段有且只有包含 0, 1，也就是只有两个子数据。
+        "__self__" => "optional|require_array_keys[0,1]",
+        "*" => "required|length>[3]"
+    ],
+    "favourite_fruits" => [
+        // 表示 favourite_fruits 是可以为空的，如果不为空，要求其字段有且只有包含 0, 1，也就是只有两个子数据。
+        "__self__" => "optional|require_array_keys[0,1]",
+        "*" => [
+            "name" => "required|length>[3]",
+            "color" => "required|length>[3]",
+            "shape" => "required|length>[3]"
+        ]
+    ]
+];
+```
+
 ### 4.8 可选字段
 
 1. 一般的，对于一个叶子字段（无任何子字段），可以直接使用 `optional` 方法，表示该字段是可选的。
@@ -769,6 +968,7 @@ $config = [
     'symbol_when' => ':?',                                      // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
     'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
     'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+    'self_ruleset_key' => '__self__',                           // If an array has such a subfield with the same name as {self_ruleset_key}, then the ruleset of this subfield is the ruleset of the array.
 ];
 ```
 
@@ -1077,141 +1277,145 @@ function check_animal($animal) {
 
 ## 附录 1 - 方法标志及其含义
 
-标志 | 方法 | 错误消息模板
----|---|---
-`*` | `required` | @this 不能为空
-`O:?` | `optional:when` | 在特定情况下，@this 才能为空
-`uuid` | `is_uuid` | @this 必须是 UUID
-`length>=<=` | `length_between` | @this 长度必须大于等于 @p1 且小于等于 @p2
-`date>` | `date_greater_than` | @this 日期必须大于 @p1
+标志 | 方法 | 可变长度参数 | 错误消息模板
+---|---|:---:|---
+`*` | `required` | 否 | @this 不能为空
+`O:?` | `optional:when` | 否 | 在特定情况下，@this 才能为空
+`uuid` | `is_uuid` | 否 | @this 必须是 UUID
+`>` | `greater_than` | 否 | @this 必须大于 @p1
+`length>=<=` | `length_between` | 否 | @this 长度必须大于等于 @p1 且小于等于 @p2
+`<number>` | `in_number_array` | **是** | @this 必须是数字且在此之内 @p1
+`date>` | `date_greater_than` | 否 | @this 日期必须大于 @p1
 
+- `is_variable_length_argument`: 表示方法第二个参数是否为[可变长度参数](https://www.php.net/manual/en/functions.arguments.php#functions.variable-arg-list)。即方法第二个参数为数组，规则集中第一个参数之后的所有参数，都被视为方法的第二个参数的子元素。
 
 <details>
   <summary><span>&#128071;</span> <strong>点击查看 附录 1 - 方法标志及其含义</strong></summary>
 
-标志 | 方法 | 错误消息模板
----|---|---
-/ | `default` | @this 验证错误
-`.*` | `index_array` | @this 必须是索引数组
-`:?` | `when` | 在特定情况下，
-`:!?` | `when_not` | 在非特定情况下，
-`*` | `required` | @this 不能为空
-`*:?` | `required:when` | 在特定情况下，@this 不能为空
-`*:!?` | `required:when_not` | 在非特定情况下，@this 不能为空
-`O` | `optional` | @this 永远不会出错
-`O:?` | `optional:when` | 在特定情况下，@this 才能为空
-`O:!?` | `optional:when_not` | 在非特定情况下，@this 才能为空
-`O!` | `optional_unset` | @this 允许不设置，且一旦设置则不能为空
-`O!:?` | `optional_unset:when` | 在特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
-`O!:!?` | `optional_unset:when_not` | 在非特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
-/ | `preg` | @this 格式错误，必须是 @preg
-/ | `preg_format` | @this 方法 @preg 不是合法的正则表达式
-/ | `call_method` | @method 未定义
-`=` | `equal` | @this 必须等于 @p1
-`!=` | `not_equal` | @this 必须不等于 @p1
-`==` | `strictly_equal` | @this 必须严格等于 @t1(@p1)
-`!==` | `not_strictly_equal` | @this 必须严格不等于 @t1(@p1)
-`>` | `greater_than` | @this 必须大于 @p1
-`<` | `less_than` | @this 必须小于 @p1
-`>=` | `greater_equal` | @this 必须大于等于 @p1
-`<=` | `less_equal` | @this 必须小于等于 @p1
-`><` | `greater_less` | @this 必须大于 @p1 且小于 @p2
-`><=` | `greater_lessequal` | @this 必须大于 @p1 且小于等于 @p2
-`>=<` | `greaterequal_less` | @this 必须大于等于 @p1 且小于 @p2
-`>=<=` | `between` | @this 必须大于等于 @p1 且小于等于 @p2
-`<number>` | `in_number_array` | @this 必须是数字且在此之内 @p1
-`!<number>` | `not_in_number_array` | @this 必须是数字且不在此之内 @p1
-`<string>` | `in_string_array` | @this 必须是字符串且在此之内 @p1
-`!<string>` | `not_in_string_array` | @this 必须是字符串且不在此之内 @p1
-`length=` | `length_equal` | @this 长度必须等于 @p1
-`length!=` | `length_not_equal` | @this 长度必须不等于 @p1
-`length>` | `length_greater_than` | @this 长度必须大于 @p1
-`length<` | `length_less_than` | @this 长度必须小于 @p1
-`length>=` | `length_greater_equal` | @this 长度必须大于等于 @p1
-`length<=` | `length_less_equal` | @this 长度必须小于等于 @p1
-`length><` | `length_greater_less` | @this 长度必须大于 @p1 且小于 @p2
-`length><=` | `length_greater_lessequal` | @this 长度必须大于 @p1 且小于等于 @p2
-`length>=<` | `length_greaterequal_less` | @this 长度必须大于等于 @p1 且小于 @p2
-`length>=<=` | `length_between` | @this 长度必须大于等于 @p1 且小于等于 @p2
-`int` | `integer` | @this 必须是整型
-/ | `float` | @this 必须是小数
-/ | `string` | @this 必须是字符串
-`array` | `is_array` | @this 必须是数组
-/ | `bool` | @this 必须是布尔型
-`bool=` | `bool_equal` | @this 必须是布尔型且等于 @p1
-/ | `bool_str` | @this 必须是布尔型字符串
-/ | `bool_string` | @this 必须是布尔型字符串
-`bool_string=` | `bool_string_equal` | @this 必须是布尔型字符串且等于 @p1
-/ | `dob` | @this 必须是正确的日期
-/ | `file_base64` | @this 必须是正确的文件的base64码
-/ | `file_base64:mime` | @this 文件类型必须是 @p1
-/ | `file_base64:size` | @this 文件尺寸必须小于 @p2kb
-/ | `oauth2_grant_type` | @this 必须是合法的 OAuth2 授权类型
-`email` | `is_email` | @this 必须是邮箱
-`url` | `is_url` | @this 必须是网址
-`ip` | `is_ip` | @this 必须是IP地址
-`ipv4` | `is_ipv4` | @this 必须是IPv6地址
-`ipv6` | `is_ipv6` | @this 必须是IPv6地址
-`mac` | `is_mac` | @this 必须是MAC地址
-`uuid` | `is_uuid` | @this 必须是 UUID
-`ulid` | `is_ulid` | @this 必须是 ULID
-`alpha` | `is_alpha` | @this 只能包含字母
-`alpha_ext` | `is_alpha_ext` | @this 只能包含字母和_-
-/ | `alpha_ext:@p2` | @this 只能包含字母和@p2
-`alphanumeric` | `is_alphanumeric` | @this 只能包含字母和数字
-`alphanumeric_ext` | `is_alphanumeric_ext` | @this 只能包含字母，数字和_-
-/ | `alphanumeric_ext:@p2` | @this 只能包含字母，数字和@p2
-`datetime` | `is_datetime` | @this 必须是格式正确的日期时间
-/ | `datetime:format:@p1` | @this 必须是日期时间且格式为 @p1
-/ | `datetime:format:@p2` | @this 必须是日期时间且格式为 @p2
-/ | `datetime:format:@p3` | @this 必须是日期时间且格式为 @p3
-/ | `datetime:invalid_format:@p1` | @this 格式 @p1 不是合法的日期时间格式
-/ | `datetime:invalid_format:@p2` | @this 格式 @p2 不是合法的日期时间格式
-/ | `datetime:invalid_format:@p3` | @this 格式 @p3 不是合法的日期时间格式
-`datetime=` | `datetime_equal` | @this 日期时间必须等于 @p1
-`datetime!=` | `datetime_not_equal` | @this 日期时间必须不等于 @p1
-`datetime>` | `datetime_greater_than` | @this 日期时间必须大于 @p1
-`datetime>=` | `datetime_greater_equal` | @this 日期时间必须大于等于 @p1
-`datetime<` | `datetime_less_than` | @this 日期时间必须小于 @p1
-`datetime<=` | `datetime_less_equal` | @this 日期时间必须小于等于 @p1
-`datetime><` | `datetime_greater_less` | @this 日期时间必须大于 @p1 且小于 @p2
-`datetime>=<` | `datetime_greaterequal_less` | @this 日期时间必须大于等于 @p1 且小于 @p2
-`datetime><=` | `datetime_greater_lessequal` | @this 日期时间必须大于 @p1 且小于等于 @p2
-`datetime>=<=` | `datetime_between` | @this 日期时间必须在 @p1 和 @p2 之间
-`date` | `is_date` | @this 必须是日期且格式为 Y-m-d
-/ | `date:format:@p1` | @this 必须是日期且格式为 @p1
-/ | `date:format:@p2` | @this 必须是日期且格式为 @p2
-/ | `date:format:@p3` | @this 必须是日期且格式为 @p3
-/ | `date:invalid_format:@p1` | @this 格式 @p1 不是合法的日期格式
-/ | `date:invalid_format:@p2` | @this 格式 @p2 不是合法的日期格式
-/ | `date:invalid_format:@p3` | @this 格式 @p3 不是合法的日期格式
-`date=` | `date_equal` | @this 日期必须等于 @p1
-`date!=` | `date_not_equal` | @this 日期必须不等于 @p1
-`date>` | `date_greater_than` | @this 日期必须大于 @p1
-`date>=` | `date_greater_equal` | @this 日期必须大于等于 @p1
-`date<` | `date_less_than` | @this 日期必须小于 @p1
-`date<=` | `date_less_equal` | @this 日期必须小于等于 @p1
-`date><` | `date_greater_less` | @this 日期必须大于 @p1 且小于 @p2
-`date>=<` | `date_greaterequal_less` | @this 日期必须大于等于 @p1 且小于 @p2
-`date><=` | `date_greater_lessequal` | @this 日期必须大于 @p1 且小于等于 @p2
-`date>=<=` | `date_between` | @this 日期必须在 @p1 和 @p2 之间
-`time` | `is_time` | @this 必须是时间且格式为 H:i:s
-/ | `time:format:@p1` | @this 必须是时间且格式为 @p1
-/ | `time:format:@p2` | @this 必须是时间且格式为 @p2
-/ | `time:format:@p3` | @this 必须是时间且格式为 @p3
-/ | `time:invalid_format:@p1` | @this 格式 @p1 不是合法的时间格式
-/ | `time:invalid_format:@p2` | @this 格式 @p2 不是合法的时间格式
-/ | `time:invalid_format:@p3` | @this 格式 @p3 不是合法的时间格式
-`time=` | `time_equal` | @this 时间必须等于 @p1
-`time!=` | `time_not_equal` | @this 时间必须不等于 @p1
-`time>` | `time_greater_than` | @this 时间必须大于 @p1
-`time>=` | `time_greater_equal` | @this 时间必须大于等于 @p1
-`time<` | `time_less_than` | @this 时间必须小于 @p1
-`time<=` | `time_less_equal` | @this 时间必须小于等于 @p1
-`time><` | `time_greater_less` | @this 时间必须大于 @p1 且小于 @p2
-`time>=<` | `time_greaterequal_less` | @this 时间必须大于等于 @p1 且小于 @p2
-`time><=` | `time_greater_lessequal` | @this 时间必须大于 @p1 且小于等于 @p2
-`time>=<=` | `time_between` | @this 时间必须在 @p1 和 @p2 之间
+标志 | 方法 | 可变长度参数 | 错误消息模板
+---|---|:---:|---
+/ | `default` | 否 | @this 验证错误
+`.*` | `index_array` | 否 | @this 必须是索引数组
+`:?` | `when` | 否 | 在特定情况下，
+`:!?` | `when_not` | 否 | 在非特定情况下，
+`*` | `required` | 否 | @this 不能为空
+`*:?` | `required:when` | 否 | 在特定情况下，@this 不能为空
+`*:!?` | `required:when_not` | 否 | 在非特定情况下，@this 不能为空
+`O` | `optional` | 否 | @this 永远不会出错
+`O:?` | `optional:when` | 否 | 在特定情况下，@this 才能为空
+`O:!?` | `optional:when_not` | 否 | 在非特定情况下，@this 才能为空
+`O!` | `optional_unset` | 否 | @this 允许不设置，且一旦设置则不能为空
+`O!:?` | `optional_unset:when` | 否 | 在特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
+`O!:!?` | `optional_unset:when_not` | 否 | 在非特定情况下，@this 允许不设置，且一旦设置则不能为空。否则不能为空
+/ | `preg` | 否 | @this 格式错误，必须是 @preg
+/ | `preg_format` | 否 | @this 方法 @preg 不是合法的正则表达式
+/ | `call_method` | 否 | @method 未定义
+`=` | `equal` | 否 | @this 必须等于 @p1
+`!=` | `not_equal` | 否 | @this 必须不等于 @p1
+`==` | `strictly_equal` | 否 | @this 必须严格等于 @t1(@p1)
+`!==` | `not_strictly_equal` | 否 | @this 必须严格不等于 @t1(@p1)
+`>` | `greater_than` | 否 | @this 必须大于 @p1
+`<` | `less_than` | 否 | @this 必须小于 @p1
+`>=` | `greater_equal` | 否 | @this 必须大于等于 @p1
+`<=` | `less_equal` | 否 | @this 必须小于等于 @p1
+`><` | `greater_less` | 否 | @this 必须大于 @p1 且小于 @p2
+`><=` | `greater_lessequal` | 否 | @this 必须大于 @p1 且小于等于 @p2
+`>=<` | `greaterequal_less` | 否 | @this 必须大于等于 @p1 且小于 @p2
+`>=<=` | `between` | 否 | @this 必须大于等于 @p1 且小于等于 @p2
+`<number>` | `in_number_array` | **是** | @this 必须是数字且在此之内 @p1
+`!<number>` | `not_in_number_array` | **是** | @this 必须是数字且不在此之内 @p1
+`<string>` | `in_string_array` | **是** | @this 必须是字符串且在此之内 @p1
+`!<string>` | `not_in_string_array` | **是** | @this 必须是字符串且不在此之内 @p1
+`length=` | `length_equal` | 否 | @this 长度必须等于 @p1
+`length!=` | `length_not_equal` | 否 | @this 长度必须不等于 @p1
+`length>` | `length_greater_than` | 否 | @this 长度必须大于 @p1
+`length<` | `length_less_than` | 否 | @this 长度必须小于 @p1
+`length>=` | `length_greater_equal` | 否 | @this 长度必须大于等于 @p1
+`length<=` | `length_less_equal` | 否 | @this 长度必须小于等于 @p1
+`length><` | `length_greater_less` | 否 | @this 长度必须大于 @p1 且小于 @p2
+`length><=` | `length_greater_lessequal` | 否 | @this 长度必须大于 @p1 且小于等于 @p2
+`length>=<` | `length_greaterequal_less` | 否 | @this 长度必须大于等于 @p1 且小于 @p2
+`length>=<=` | `length_between` | 否 | @this 长度必须大于等于 @p1 且小于等于 @p2
+`int` | `integer` | 否 | @this 必须是整型
+/ | `float` | 否 | @this 必须是小数
+/ | `string` | 否 | @this 必须是字符串
+`array` | `is_array` | 否 | @this 必须是数组
+/ | `bool` | 否 | @this 必须是布尔型
+`bool=` | `bool_equal` | 否 | @this 必须是布尔型且等于 @p1
+/ | `bool_str` | 否 | @this 必须是布尔型字符串
+/ | `bool_string` | 否 | @this 必须是布尔型字符串
+`bool_string=` | `bool_string_equal` | 否 | @this 必须是布尔型字符串且等于 @p1
+`<keys>` | `require_array_keys` | **是** | @this 必须是数组且其字段有且只有包含 @p1
+/ | `dob` | 否 | @this 必须是正确的日期
+/ | `file_base64` | 否 | @this 必须是正确的文件的base64码
+/ | `file_base64:mime` | 否 | @this 文件类型必须是 @p1
+/ | `file_base64:size` | 否 | @this 文件尺寸必须小于 @p2kb
+/ | `oauth2_grant_type` | 否 | @this 必须是合法的 OAuth2 授权类型
+`email` | `is_email` | 否 | @this 必须是邮箱
+`url` | `is_url` | 否 | @this 必须是网址
+`ip` | `is_ip` | 否 | @this 必须是IP地址
+`ipv4` | `is_ipv4` | 否 | @this 必须是IPv6地址
+`ipv6` | `is_ipv6` | 否 | @this 必须是IPv6地址
+`mac` | `is_mac` | 否 | @this 必须是MAC地址
+`uuid` | `is_uuid` | 否 | @this 必须是 UUID
+`ulid` | `is_ulid` | 否 | @this 必须是 ULID
+`alpha` | `is_alpha` | 否 | @this 只能包含字母
+`alpha_ext` | `is_alpha_ext` | 否 | @this 只能包含字母和_-
+/ | `alpha_ext:@p2` | 否 | @this 只能包含字母和@p2
+`alphanumeric` | `is_alphanumeric` | 否 | @this 只能包含字母和数字
+`alphanumeric_ext` | `is_alphanumeric_ext` | 否 | @this 只能包含字母，数字和_-
+/ | `alphanumeric_ext:@p2` | 否 | @this 只能包含字母，数字和@p2
+`datetime` | `is_datetime` | 否 | @this 必须是格式正确的日期时间
+/ | `datetime:format:@p1` | 否 | @this 必须是日期时间且格式为 @p1
+/ | `datetime:format:@p2` | 否 | @this 必须是日期时间且格式为 @p2
+/ | `datetime:format:@p3` | 否 | @this 必须是日期时间且格式为 @p3
+/ | `datetime:invalid_format:@p1` | 否 | @this 格式 @p1 不是合法的日期时间格式
+/ | `datetime:invalid_format:@p2` | 否 | @this 格式 @p2 不是合法的日期时间格式
+/ | `datetime:invalid_format:@p3` | 否 | @this 格式 @p3 不是合法的日期时间格式
+`datetime=` | `datetime_equal` | 否 | @this 日期时间必须等于 @p1
+`datetime!=` | `datetime_not_equal` | 否 | @this 日期时间必须不等于 @p1
+`datetime>` | `datetime_greater_than` | 否 | @this 日期时间必须大于 @p1
+`datetime>=` | `datetime_greater_equal` | 否 | @this 日期时间必须大于等于 @p1
+`datetime<` | `datetime_less_than` | 否 | @this 日期时间必须小于 @p1
+`datetime<=` | `datetime_less_equal` | 否 | @this 日期时间必须小于等于 @p1
+`datetime><` | `datetime_greater_less` | 否 | @this 日期时间必须大于 @p1 且小于 @p2
+`datetime>=<` | `datetime_greaterequal_less` | 否 | @this 日期时间必须大于等于 @p1 且小于 @p2
+`datetime><=` | `datetime_greater_lessequal` | 否 | @this 日期时间必须大于 @p1 且小于等于 @p2
+`datetime>=<=` | `datetime_between` | 否 | @this 日期时间必须在 @p1 和 @p2 之间
+`date` | `is_date` | 否 | @this 必须是日期且格式为 Y-m-d
+/ | `date:format:@p1` | 否 | @this 必须是日期且格式为 @p1
+/ | `date:format:@p2` | 否 | @this 必须是日期且格式为 @p2
+/ | `date:format:@p3` | 否 | @this 必须是日期且格式为 @p3
+/ | `date:invalid_format:@p1` | 否 | @this 格式 @p1 不是合法的日期格式
+/ | `date:invalid_format:@p2` | 否 | @this 格式 @p2 不是合法的日期格式
+/ | `date:invalid_format:@p3` | 否 | @this 格式 @p3 不是合法的日期格式
+`date=` | `date_equal` | 否 | @this 日期必须等于 @p1
+`date!=` | `date_not_equal` | 否 | @this 日期必须不等于 @p1
+`date>` | `date_greater_than` | 否 | @this 日期必须大于 @p1
+`date>=` | `date_greater_equal` | 否 | @this 日期必须大于等于 @p1
+`date<` | `date_less_than` | 否 | @this 日期必须小于 @p1
+`date<=` | `date_less_equal` | 否 | @this 日期必须小于等于 @p1
+`date><` | `date_greater_less` | 否 | @this 日期必须大于 @p1 且小于 @p2
+`date>=<` | `date_greaterequal_less` | 否 | @this 日期必须大于等于 @p1 且小于 @p2
+`date><=` | `date_greater_lessequal` | 否 | @this 日期必须大于 @p1 且小于等于 @p2
+`date>=<=` | `date_between` | 否 | @this 日期必须在 @p1 和 @p2 之间
+`time` | `is_time` | 否 | @this 必须是时间且格式为 H:i:s
+/ | `time:format:@p1` | 否 | @this 必须是时间且格式为 @p1
+/ | `time:format:@p2` | 否 | @this 必须是时间且格式为 @p2
+/ | `time:format:@p3` | 否 | @this 必须是时间且格式为 @p3
+/ | `time:invalid_format:@p1` | 否 | @this 格式 @p1 不是合法的时间格式
+/ | `time:invalid_format:@p2` | 否 | @this 格式 @p2 不是合法的时间格式
+/ | `time:invalid_format:@p3` | 否 | @this 格式 @p3 不是合法的时间格式
+`time=` | `time_equal` | 否 | @this 时间必须等于 @p1
+`time!=` | `time_not_equal` | 否 | @this 时间必须不等于 @p1
+`time>` | `time_greater_than` | 否 | @this 时间必须大于 @p1
+`time>=` | `time_greater_equal` | 否 | @this 时间必须大于等于 @p1
+`time<` | `time_less_than` | 否 | @this 时间必须小于 @p1
+`time<=` | `time_less_equal` | 否 | @this 时间必须小于等于 @p1
+`time><` | `time_greater_less` | 否 | @this 时间必须大于 @p1 且小于 @p2
+`time>=<` | `time_greaterequal_less` | 否 | @this 时间必须大于等于 @p1 且小于 @p2
+`time><=` | `time_greater_lessequal` | 否 | @this 时间必须大于 @p1 且小于等于 @p2
+`time>=<=` | `time_between` | 否 | @this 时间必须在 @p1 和 @p2 之间
 
 </details>
 </br>

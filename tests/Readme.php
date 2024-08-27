@@ -100,18 +100,20 @@ class Readme extends TestCommon
     public function test_custom_method_by_add_method()
     {
         $data = [
-            "id" => 0,
+            "id" => 1,
         ];
 
         $rule = [
             // 必要的，且只能是数字，且必须大于 0
             "id" => "required|/^\d+$/|check_id",
+            // 或者使用标志代替方法名
+            "id" => "required|/^\d+$/|c_id",
         ];
 
         $validation = new Validation();
         $validation->add_method('check_id', function ($id) {
-            if (false) define('UNDEFINED_VAR', 1);
-            return UNDEFINED_VAR;
+            // if (false) define('UNDEFINED_VAR', 1);
+            // return UNDEFINED_VAR;
 
             if ($id == 0) {
                 return false;
@@ -124,7 +126,7 @@ class Readme extends TestCommon
             }
 
             return true;
-        });
+        }, 'c_id');
 
         if ($validation->set_rules($rule)->validate($data)) {
             return $validation->get_result();
@@ -461,6 +463,84 @@ class Readme extends TestCommon
         return $this->validate($data, $rule);
     }
 
+    public function test_self_rule_of_associative_array()
+    {
+        $data = [
+            "id" => 1,
+            "name" => "Johnny",
+            "favourite_fruit" => [
+                "name" => "apple",
+                "color" => "red",
+                "shape" => "circular"
+            ]
+        ];
+
+        // 若要验证上述 $data，规则可以这么写
+        $rule = [
+            // 表示根数据是可以为空的，如果不为空，要求其字段有且只有包含 id, name, favourite_fruit
+            "__self__" => "optional|require_array_keys[id, name, favourite_fruit]",
+            "id" => "required|/^\d+$/",
+            "name" => "required|length>[3]",
+            "favourite_fruit" => [
+                // 表示 favourite_fruit 是可以为空的，如果不为空，要求其字段有且只有包含 name, color, shape
+                "__self__" => "optional|require_array_keys[name, color, shape]",
+                "name" => "required|length>[3]",
+                "color" => "required|length>[3]",
+                "shape" => "required|length>[3]"
+            ]
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
+    public function test_self_rule_of_index_array()
+    {
+        $data = [
+            "id" => 1,
+            "name" => "Johnny",
+            "favourite_color" => [
+                "white",
+                "black",
+                "a"
+            ],
+            "favourite_fruits" => [
+                [
+                    "name" => "apple",
+                    "color" => "black",
+                    "shape" => "circular"
+                ],
+                [
+                    "name" => "banana",
+                    "color" => "yellow",
+                    "shape" => "long strip"
+                ],
+                []
+            ]
+        ];
+
+        // 若要验证上述 $data，规则可以这么写
+        $rule = [
+            "id" => "required|/^\d+$/",
+            "name" => "required|length>[3]",
+            "favourite_color" => [
+                // 表示 favourite_color 是可以为空的，如果不为空，要求其字段有且只有包含 0, 1，也就是只有两个子数据。
+                "__self__" => "optional|require_array_keys[0,1]",
+                "*" => "required|length>[3]"
+            ],
+            "favourite_fruits" => [
+                // 表示 favourite_fruits 是可以为空的，如果不为空，要求其字段有且只有包含 0, 1，也就是只有两个子数据。
+                "__self__" => "optional|require_array_keys[0,1]",
+                "*" => [
+                    "name" => "required|length>[3]",
+                    "color" => "required|length>[3]",
+                    "shape" => "required|length>[3]"
+                ]
+            ]
+        ];
+
+        return $this->validate($data, $rule);
+    }
+
     public function test_optional_field()
     {
         $data = [];
@@ -674,8 +754,8 @@ class Readme extends TestCommon
 
         $validation_config = $validation->get_config();
         $config_default = $validation->get_config_default();
-        $method_symbols = $validation->get_method_symbols();
-        $deprecated_method_symbols = $validation->get_deprecated_method_symbols();
+        $method_symbols_reversed = $validation->get_method_symbols(true);
+        $deprecated_method_symbols_reversed = $validation->get_deprecated_method_symbols(true);
         $error_templates = $validation->get_error_templates();
 
         /**
@@ -701,15 +781,15 @@ class Readme extends TestCommon
 
         $header = "";
         if ($language == 'zh-cn') {
-            $header = "标志 | 方法 | 错误消息模板\n";
+            $header = "标志 | 方法 | 可变长度参数 | 错误消息模板\n";
         } else if ($language == 'en-us') {
-            $header = "Symbol | Method | Error Message Template\n";
+            $header = "Symbol | Method | Variable-Length Arguments | Error Message Template\n";
         }
-        $header .= "---|---|---\n";
+        $header .= "---|---|:---:|---\n";
         $method_symbol_table = $header;
 
         foreach ($error_templates as $symbol => $method_error_template) {
-            $is_deprecated = isset($deprecated_method_symbols[$symbol]);
+            $is_deprecated = isset($deprecated_method_symbols_reversed[$symbol]);
             if ($is_deprecated && $skip_deprecated) continue;
             /**
              * Every method supports "when" or "when not" rule.
@@ -719,19 +799,19 @@ class Readme extends TestCommon
              */
             if (preg_match("/^(.*)({$config_default['symbol_when']}|{$config_default['symbol_when_not']})$/", $symbol, $matches)) {
                 $symbol_1 = $matches[1];
-                $method_and_symbol_1 = $this->get_method_and_symbol($symbol_1, $built_in_methods, $validation_config, $method_symbols);
+                $method_and_symbol_1 = $this->get_method_and_symbol($symbol_1, $built_in_methods, $validation_config, $method_symbols_reversed);
                 // $method_1 = $method_and_symbol_1['method'];
                 $symbol_1 = $method_and_symbol_1['symbol'];
 
                 if ($matches[2] == $config_default['symbol_when']) $symbol_when_type = 'when';
                 else $symbol_when_type = 'when_not';
-                $method_and_symbol_2 = $this->get_method_and_symbol($symbol_when_type, $built_in_methods, $validation_config, $method_symbols);
+                $method_and_symbol_2 = $this->get_method_and_symbol($symbol_when_type, $built_in_methods, $validation_config, $method_symbols_reversed);
                 // $method_2 = $method_and_symbol_2['method'];
                 $symbol_2 = $method_and_symbol_2['symbol'];
                 $method = $symbol;
                 $symbol = "{$symbol_1}{$symbol_2}";
             } else {
-                $method_and_symbol = $this->get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbols);
+                $method_and_symbol = $this->get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbols_reversed);
                 $method = $method_and_symbol['method'];
                 $symbol = $method_and_symbol['symbol'];
             }
@@ -741,20 +821,33 @@ class Readme extends TestCommon
             } else if (!empty($symbol) && !in_array($symbol, ['/'])) {
                 $symbol = "`{$symbol}`";
             }
-            $method_symbol_table .= "{$symbol} | `{$method}` | {$method_error_template}\n";
+
+            $is_variable_length_argument = false;
+            if (is_array($method)) {
+                $is_variable_length_argument = !empty($method['is_variable_length_argument']);
+                $method = $method['method'];
+            }
+            if ($is_variable_length_argument) {
+                $ivla_message = $this->translate($language, 'Yes');
+                $ivla_message = "**$ivla_message**";
+            } else {
+                $ivla_message = $this->translate($language, 'No');
+            }
+
+            $method_symbol_table .= "{$symbol} | `{$method}` | {$ivla_message} | {$method_error_template}\n";
         }
 
         $this->write_log(static::LOG_LEVEL_INFO, "\n{$method_symbol_table}");
     }
 
-    protected function get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbol)
+    protected function get_method_and_symbol($symbol, $built_in_methods, $validation_config, $method_symbol_reversed)
     {
         if (isset($built_in_methods[$symbol])) {
             $method = $symbol;
             $symbol = $validation_config[$built_in_methods[$method]] ?? $built_in_methods[$method];
         } else {
-            if (isset($method_symbol[$symbol])) {
-                $method = $method_symbol[$symbol];
+            if (isset($method_symbol_reversed[$symbol])) {
+                $method = $method_symbol_reversed[$symbol];
             } else {
                 $method = $symbol;
                 $symbol = '/';
@@ -765,6 +858,20 @@ class Readme extends TestCommon
             'method' => $method,
             'symbol' => $symbol
         ];
+    }
+
+    protected function translate($language, $message)
+    {
+        if ($language == 'en-us') return $message;
+
+        static $translation = [
+            'zh-cn' => [
+                'Yes' => '是',
+                'No' => '否'
+            ]
+        ];
+
+        return $translation[$language][$message];
     }
 
     protected function validate($data, $rule, $validation_conf = [])

@@ -282,3 +282,21 @@ Symbol | Old Method Name | New Method Name | Is Optimized
 - **支持规则实体（RuleEntity）**。解析一次规则到实体类，多次验证不同数据，无需重复解析。
 - **支持标准 IF 结构**。例如: `if ( expr1 ) { statement1 } else if ( expr2 || !expr2 ) { statement2 } else { statement3 }`
   - 旧的 IF 结构已弃用。例如 `if(expr)|statement1|statement2`。后续将会完全移除该写法的支持。
+
+## v2.6.1
+
+### 优化
+
+- 优化方法标志数组.
+- 优化可变长度参数的判定方式，改为从方法标志数组设定 `is_variable_length_argument`。
+- 支持默认参数，从方法标志数组设定 `default_arguments`。
+- 优化 `add_method` 方法，使其支持 `is_variable_length_argument` 和 `default_arguments`。
+
+### 功能
+
+- 支持为数组自身设定规则：设置 `__self__` 子字段表示数组自身规则。
+
+### 新增的方法
+
+- `unique`: `is_unique`。判断数组中的元素是否唯一。
+- `<keys>`: `require_array_keys`。判断数组中。

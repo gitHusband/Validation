@@ -76,6 +76,14 @@ class RuleEntity
     protected $operator = '';
 
     /**
+     * Whether the second parameter of the current rule is variable length argument or not
+     * 
+     * @example `in_number_array[1,2,3]` The second parameter is an array `[1,2,3]`
+     * @var bool
+     */
+    protected $is_variable_length_argument = false;
+
+    /**
      * The compared value for the comparison operator of the current rule.
      * 
      * Due to we only support `!` currently, so the compared value is useless
@@ -241,6 +249,28 @@ class RuleEntity
     }
 
     /**
+     * Set is_variable_length_argument
+     *
+     * @param bool $is_variable_length_argument
+     * @return self
+     */
+    public function set_is_variable_length_argument($is_variable_length_argument)
+    {
+        $this->is_variable_length_argument = $is_variable_length_argument;
+        return $this;
+    }
+
+    /**
+     * Get is_variable_length_argument
+     *
+     * @return bool
+     */
+    public function get_is_variable_length_argument()
+    {
+        return $this->is_variable_length_argument;
+    }
+
+    /**
      * Set error_template
      *
      * @param string $error_template
@@ -320,7 +350,7 @@ class RuleEntity
      * Get method rule
      *
      * @see \githusband\Validation::parse_method()
-     * @return void
+     * @return array
      */
     public function get_method_rule()
     {
@@ -329,6 +359,7 @@ class RuleEntity
             'symbol' => $this->symbol,
             'by_symbol' => $this->by_symbol,
             'operator' => $this->operator,
+            'is_variable_length_argument' => $this->is_variable_length_argument,
             'params' => $this->parameters,
         ];
     }

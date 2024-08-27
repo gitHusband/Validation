@@ -4,7 +4,9 @@ namespace githusband\Tests;
 
 use githusband\Tests\Rule\TestRuleDefault;
 use githusband\Tests\Rule\TestRuleDatetime;
-use githusband\Tests\Extend\Rule\RuleClassString;
+use githusband\Tests\Rule\TestRuleArray;
+use githusband\Tests\Rule\TestRuleTest;
+use githusband\Tests\Extend\Rule\RuleClassTest;
 
 use githusband\Validation;
 use githusband\Tests\TestCommon;
@@ -79,6 +81,15 @@ class Unit extends TestCommon
     protected $is_error = false;
 
     private $_symbol_me = "@this";
+
+    /**
+     * The count of validated data times
+     * 
+     * A validate data may have multiple fields.
+     *
+     * @var int
+     */
+    protected $validated_data_count = 0;
 
     public function __construct($enable_entity = false)
     {
@@ -172,6 +183,7 @@ class Unit extends TestCommon
         $spent_time = ($end_time - $start_time) / 1000;
         $spent_human_time = $this->seconds_to_human_time($spent_time);
         $this->write_log(static::LOG_LEVEL_WARN, "#{$times} End performance testing at {$end_datetime}.\n");
+        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Total validated data count: {$this->validated_data_count}\n");
         $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Total time spent: {$spent_time} Seconds({$spent_human_time})\n");
         $this->write_log(static::LOG_LEVEL_WARN, "#######################################################\n");
 
@@ -264,7 +276,7 @@ class Unit extends TestCommon
     {
         /** @var Validation */
         $validation = isset($extra['validation_class']) ? $extra['validation_class'] : $this->validation;
-        $validation->set_rules($rule, $extra['method_name'], true);
+        $validation->set_rules($rule, $extra['method_name'], true, true);
 
         $stop_if_failed = true;
         $result = true;
@@ -286,6 +298,7 @@ class Unit extends TestCommon
             if (strpos($c_field, "Valid") !== false) {
                 $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be valid.";
 
+                $this->validated_data_count++;
                 if (!$validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, [
                         "valid_alert" => $valid_alert,
@@ -298,6 +311,7 @@ class Unit extends TestCommon
             else if (strpos($c_field, "Invalid") !== false) {
                 $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be invalid.";
 
+                $this->validated_data_count++;
                 if ($validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, $valid_alert, $rule, $cases);
                     $result = false;
@@ -336,6 +350,7 @@ class Unit extends TestCommon
             // Check exception cases
             else if (strpos($c_field, "Exception") !== false) {
                 try {
+                    $this->validated_data_count++;
                     if (!$validation->validate($case['data'])) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
                             "exception_alert" => "It should throw an exception but it was validated failed",
@@ -3852,6 +3867,631 @@ class Unit extends TestCommon
         ];
     }
 
+    protected function test_self_rule_of_assoc_array()
+    {
+        $rules = [
+            "symbol" => [
+                "__self__" => "optional|require_array_keys[group, person]",
+                "group" => "required|string",
+                "person" => [
+                    "__self__" => "optional|require_array_keys[id, name]",
+                    "id" => "required|int|>=[1]|<=[100]",
+                    "name" => "required|string|/^[A-Z]+-\d+/"
+                ]
+            ],
+            "method" => [
+                "__self__" => "optional|<keys>[group, person]",
+                "group" => "required|string",
+                "person" => [
+                    "__self__" => "optional|<keys>[id, name]",
+                    "id" => "required|int|>=[1]|<=[100]",
+                    "name" => "required|string|/^[A-Z]+-\d+/"
+                ]
+            ],
+        ];
+
+        $cases = [
+            "Valid_data_1" => [
+                "data" => [
+                    "group" => "Group-1",
+                    "person" => [
+                        "id" => 1,
+                        "name" => "A-1"
+                    ]
+                ]
+            ],
+            "Valid_data_2" => [
+                "data" => [
+                    "group" => "Group-2",
+                    "person" => []
+                ]
+            ],
+            "Valid_data_3" => [
+                "data" => []
+            ],
+            "Invalid_data_root_1" => [
+                "data" => [
+                    "person" => []
+                ],
+                "expected_msg" => ["data" => "data must be array and its keys must contain and only contain group,person"]
+            ],
+            "Invalid_data_persion_1" => [
+                "data" => [
+                    "group" => "Group-1",
+                    "person" => [
+                        "id" => 1,
+                        "name" => ""
+                    ]
+                ],
+                "expected_msg" => ["person.name" => "person.name can not be empty"]
+            ],
+            "Invalid_data_persion_2" => [
+                "data" => [
+                    "group" => "Group-1",
+                    "person" => [
+                        "id" => 0,
+                        "name" => ""
+                    ]
+                ],
+                "expected_msg" => ["person.id" => "person.id must be greater than or equal to 1"]
+            ],
+            "Invalid_data_persion_3" => [
+                "data" => [
+                    "group" => "Group-1",
+                    "person" => [
+                        "id" => 101,
+                        "name" => ""
+                    ]
+                ],
+                "expected_msg" => ["person.id" => "person.id must be less than or equal to 100"]
+            ],
+            "Invalid_data_persion_4" => [
+                "data" => [
+                    "group" => "Group-1",
+                    "person" => [
+                        "id" => 1,
+                        "name" => "a1"
+                    ]
+                ],
+                "expected_msg" => ["person.name" => "person.name format is invalid, should be /^[A-Z]+-\\d+/"]
+            ],
+            "Invalid_data_persion_5" => [
+                "data" => [
+                    "group" => "Group-1",
+                    "person" => [
+                        "id" => 1,
+                    ]
+                ],
+                "expected_msg" => ["person" => "person must be array and its keys must contain and only contain id,name"]
+            ],
+            "Invalid_data_persion_6" => [
+                "data" => [
+                    "group" => "Group-1",
+                    "person" => [
+                        "id" => 1,
+                        "name" => "A-1",
+                        "age" => 18
+                    ]
+                ],
+                "expected_msg" => ["person" => "person must be array and its keys must contain and only contain id,name"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_self_rule_of_index_array()
+    {
+        $rule = [
+            "person.*" => [
+                "__self__" => "required|require_array_keys[name, relation]",
+                "name" => "required|string|/^\d+.*/",
+                "relation" => [
+                    "father" => "required|string",
+                    "mother" => "optional|string",
+                ]
+            ],
+            "pet" => [
+                "__self__" => "required|require_array_keys[0, 1, 2]",
+                "required|string",
+                "required|string",
+                [
+                    "required|string",
+                    "required|string",
+                ]
+            ],
+            "flower.*" => "required|string",
+            "clothes[optional].*" => [
+                "__self__" => "required|require_array_keys[0, 1]",
+                "required|string",
+            ],
+            "shoes" => [
+                "__self__" => "optional|require_array_keys[0, 1]",
+                "*" => "required|string"
+            ],
+        ];
+
+        $cases = [
+            "Valid_data-1" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "clothes" => [
+                        ["T-shirt", "sweater"],
+                        ["pants", "shorts"],
+                    ],
+                ]
+            ],
+            "Valid_data-2" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "clothes" => [],
+                ]
+            ],
+            // --------------------------------------------------  //
+            "Invalid_person-0-1(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        [],
+                    ]
+                ],
+                "expected_msg" => ["person.0" => "person.0 can not be empty"]
+            ],
+            "Invalid_person-0-2(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => ""],
+                    ]
+                ],
+                "expected_msg" => ["person.0" => "person.0 must be array and its keys must contain and only contain name,relation"]
+            ],
+            "Invalid_person-0-3(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "abcABC", "relation" => ["father" => "f123", "mother" => "m123"]],
+                    ]
+                ],
+                "expected_msg" => ["person.0.name" => "person.0.name format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_person-0-4(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        // ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "", "mother" => "m123ABC"]],
+                    ]
+                ],
+                "expected_msg" => ["person.0.relation.father" => "person.0.relation.father can not be empty"]
+            ],
+            // +++++++++++++++++++++++++ //
+            "Invalid_person-1-1(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        [],
+                    ]
+                ],
+                "expected_msg" => ["person.1" => "person.1 can not be empty"]
+            ],
+            "Invalid_person-1-2(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => ""],
+                    ]
+                ],
+                "expected_msg" => ["person.1" => "person.1 must be array and its keys must contain and only contain name,relation"]
+            ],
+            "Invalid_person-1-3(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "abcABC", "relation" => ["father" => "f123", "mother" => "m123"]],
+                    ]
+                ],
+                "expected_msg" => ["person.1.name" => "person.1.name format is invalid, should be /^\d+.*/"]
+            ],
+            "Invalid_person-1-4(assoc_arr)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "", "mother" => "m123ABC"]],
+                    ]
+                ],
+                "expected_msg" => ["person.1.relation.father" => "person.1.relation.father can not be empty"]
+            ],
+            // --------------------------------------------------  //
+            "Invalid_pet-0(static,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                ],
+                "expected_msg" => ["pet" => "pet can not be empty"]
+            ],
+            "Invalid_pet-1(static,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => []
+                ],
+                "expected_msg" => ["pet" => "pet can not be empty"]
+            ],
+            "Invalid_pet-2(static,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => [
+                        "",
+                        "",
+                        ""
+                    ]
+                ],
+                "expected_msg" => ["pet.0" => "pet.0 can not be empty"]
+            ],
+            "Invalid_pet-3(static,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => [
+                        "123",
+                        "",
+                        ""
+                    ]
+                ],
+                "expected_msg" => ["pet.1" => "pet.1 can not be empty"]
+            ],
+            "Invalid_pet-4(static,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", ""],
+                    ]
+                ],
+                "expected_msg" => ["pet.2.1" => "pet.2.1 can not be empty"]
+            ],
+            // --------------------------------------------------  //
+            "Invalid_flower-0(dynamic,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "flower" => [
+                        "",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                ],
+                "expected_msg" => ["flower.0" => "flower.0 can not be empty"]
+            ],
+            "Invalid_flower-1(dynamic,string)" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => "m123ABC"]],
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        123,
+                    ],
+                ],
+                "expected_msg" => ["flower.2" => "flower.2 must be string"]
+            ],
+            // --------------------------------------------------  //
+            "Invalid_clothes-0" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        "",
+                        ["pants", "shorts"],
+                    ],
+                ],
+                "expected_msg" => ["clothes.0" => "clothes.0 can not be empty"]
+            ],
+            "Invalid_clothes-1" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        ["T-shirt", "sweater"],
+                        ["", "shorts"],
+                    ],
+                ],
+                "expected_msg" => ["clothes.1.0" => "clothes.1.0 can not be empty"]
+            ],
+            "Invalid_clothes-2" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        ["T-shirt", "sweater"],
+                        [true, "shorts"],
+                    ],
+                ],
+                "expected_msg" => ["clothes.1.0" => "clothes.1.0 must be string"]
+            ],
+            // --------------------------------------------------  //
+            "Invalid_shoes-0" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        ["T-shirt", "sweater"],
+                        ["pants", "shorts"],
+                    ],
+                    "shoes" => [
+                        "boots",
+                        "",
+                    ],
+                ],
+                "expected_msg" => ["shoes.1" => "shoes.1 can not be empty"]
+            ],
+            "Invalid_shoes-1" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        ["T-shirt", "sweater"],
+                        ["pants", "shorts"],
+                    ],
+                    "shoes" => [
+                        ["boots", "trainers"],
+                        "",
+                    ],
+                ],
+                "expected_msg" => ["shoes.0" => "shoes.0 must be string"]
+            ],
+            "Invalid_shoes-2" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        ["T-shirt", "sweater"],
+                        ["pants", "shorts"],
+                    ],
+                    "shoes" => [
+                        "boots",
+                        "",
+                    ],
+                ],
+                "expected_msg" => ["shoes.1" => "shoes.1 can not be empty"]
+            ],
+            "Invalid_shoes-3" => [
+                "data" => [
+                    "person" => [
+                        ["name" => "123", "relation" => ["father" => "f123", "mother" => "m123"]],
+                        ["name" => "123ABC", "relation" => ["father" => "f123ABC", "mother" => ""]],
+                    ],
+                    "flower" => [
+                        "Rose",
+                        "Narcissu",
+                        "Peony",
+                    ],
+                    "pet" => [
+                        "cat",
+                        "dog",
+                        ["cat", "dog"],
+                    ],
+                    "clothes" => [
+                        ["T-shirt", "sweater"],
+                        ["pants", "shorts"],
+                    ],
+                    "shoes" => [
+                        "boots",
+                        false,
+                    ],
+                ],
+                "expected_msg" => ["shoes.1" => "shoes.1 must be string"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_self_rule_of_index_array_simple()
+    {
+        $rule = [
+            "shoes" => [
+                "__self__" => "optional|require_array_keys[0, 1]",
+                "*" => "required|string"
+            ],
+        ];
+
+        $cases = [
+            "Valid_data-1" => [
+                "data" => []
+            ],
+            "Valid_data-2" => [
+                "data" => [
+                    "shoes" => [],
+                ]
+            ],
+            "Valid_data-3" => [
+                "data" => [
+                    "shoes" => [
+                        "boots",
+                        "trainers"
+                    ],
+                ]
+            ],
+            // --------------------------------------------------  //
+            "Invalid_shoes-0" => [
+                "data" => [
+                    "shoes" => [
+                        "boots",
+                        ""
+                    ],
+                ],
+                "expected_msg" => ["shoes.1" => "shoes.1 can not be empty"]
+            ],
+            "Invalid_shoes-1" => [
+                "data" => [
+                    "shoes" => [
+                        ["boots", "trainers"],
+                        ""
+                    ],
+                ],
+                "expected_msg" => ["shoes.0" => "shoes.0 must be string"]
+            ],
+            "Invalid_shoes-2" => [
+                "data" => [
+                    "shoes" => [
+                        "boots",
+                        false
+                    ],
+                ],
+                "expected_msg" => ["shoes.1" => "shoes.1 must be string"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        return $method_info = [
+            "rule" => $rule,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
     protected function test_backslash()
     {
         $rule = [
@@ -6807,7 +7447,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_add_method()
+    protected function test_add_method_with_symbol_string()
     {
         $rules = [
             "symbol" => [
@@ -6864,7 +7504,249 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_rule_classes_1()
+    protected function test_add_method_with_symbol_array()
+    {
+        $rules = [
+            "symbol" => [
+                "animail_a" => "optional|c_a['A']",
+                "animail_ab" => "optional|c_a[A, B]",
+                "animail_bc" => "optional|c_a[B, C]",
+            ],
+            "method" => [
+                "animail_a" => "optional|check_animails['A']",
+                "animail_ab" => "optional|check_animails[A, B]",
+                "animail_bc" => "optional|check_animails[B, C]",
+            ],
+        ];
+
+        $cases = [
+            "Valid_data_a_1" => [
+                "data" => [
+                    "animail_a" => "Ape",
+                ]
+            ],
+            "Valid_data_a_2" => [
+                "data" => [
+                    "animail_a" => "Ant",
+                ]
+            ],
+            "Invalid_data_a_1" => [
+                "data" => [
+                    "animail_a" => "Bear",
+                ],
+                "expected_msg" => ["animail_a" => "animail_a validation failed"]
+            ],
+            "Valid_data_ab_1" => [
+                "data" => [
+                    "animail_ab" => "Ape",
+                ]
+            ],
+            "Valid_data_ab_2" => [
+                "data" => [
+                    "animail_ab" => "Ant",
+                ]
+            ],
+            "Valid_data_ab_3" => [
+                "data" => [
+                    "animail_ab" => "Bird",
+                ]
+            ],
+            "Valid_data_ab_4" => [
+                "data" => [
+                    "animail_ab" => "Bear",
+                ]
+            ],
+            "Invalid_data_ab_1" => [
+                "data" => [
+                    "animail_ab" => "Cat",
+                ],
+                "expected_msg" => ["animail_ab" => "animail_ab validation failed"]
+            ],
+            "Valid_data_bc_1" => [
+                "data" => [
+                    "animail_bc" => "Bird",
+                ]
+            ],
+            "Valid_data_bc_2" => [
+                "data" => [
+                    "animail_bc" => "Bear",
+                ]
+            ],
+            "Valid_data_bc_3" => [
+                "data" => [
+                    "animail_bc" => "Cat",
+                ]
+            ],
+            "Valid_data_bc_4" => [
+                "data" => [
+                    "animail_bc" => "Crab",
+                ]
+            ],
+            "Invalid_data_bc_1" => [
+                "data" => [
+                    "animail_bc" => "Ape",
+                ],
+                "expected_msg" => ["animail_bc" => "animail_bc validation failed"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        $this->validation->add_method("check_animails", function ($data, $list) {
+            $animals = [];
+            if (in_array('A', $list)) {
+                $animals[] = 'Ape';
+                $animals[] = 'Ant';
+            }
+
+            if (in_array('B', $list)) {
+                $animals[] = 'Bird';
+                $animals[] = 'Bear';
+            }
+
+            if (in_array('C', $list)) {
+                $animals[] = 'Cat';
+                $animals[] = 'Crab';
+                $animals[] = 'Camel';
+            }
+
+            return in_array($data, $animals);
+        }, [
+            'symbols' => 'c_a',
+            'is_variable_length_argument' => true,
+        ]);
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_add_method_without_symbol()
+    {
+        $rules = [
+            // "symbol" => [
+            //     "animail_a" => "optional|c_a['A']",
+            //     "animail_ab" => "optional|c_a[A, B]",
+            //     "animail_bc" => "optional|c_a[B, C]",
+            // ],
+            "method" => [
+                "animail_a" => "optional|check_animails['A']",
+                "animail_ab" => "optional|check_animails[A, B]",
+                "animail_bc" => "optional|check_animails[B, C]",
+            ],
+        ];
+
+        $cases = [
+            "Valid_data_a_1" => [
+                "data" => [
+                    "animail_a" => "Ape",
+                ]
+            ],
+            "Valid_data_a_2" => [
+                "data" => [
+                    "animail_a" => "Ant",
+                ]
+            ],
+            "Invalid_data_a_1" => [
+                "data" => [
+                    "animail_a" => "Bear",
+                ],
+                "expected_msg" => ["animail_a" => "animail_a validation failed"]
+            ],
+            "Valid_data_ab_1" => [
+                "data" => [
+                    "animail_ab" => "Ape",
+                ]
+            ],
+            "Valid_data_ab_2" => [
+                "data" => [
+                    "animail_ab" => "Ant",
+                ]
+            ],
+            "Valid_data_ab_3" => [
+                "data" => [
+                    "animail_ab" => "Bird",
+                ]
+            ],
+            "Valid_data_ab_4" => [
+                "data" => [
+                    "animail_ab" => "Bear",
+                ]
+            ],
+            "Invalid_data_ab_1" => [
+                "data" => [
+                    "animail_ab" => "Cat",
+                ],
+                "expected_msg" => ["animail_ab" => "animail_ab validation failed"]
+            ],
+            "Valid_data_bc_1" => [
+                "data" => [
+                    "animail_bc" => "Bird",
+                ]
+            ],
+            "Valid_data_bc_2" => [
+                "data" => [
+                    "animail_bc" => "Bear",
+                ]
+            ],
+            "Valid_data_bc_3" => [
+                "data" => [
+                    "animail_bc" => "Cat",
+                ]
+            ],
+            "Valid_data_bc_4" => [
+                "data" => [
+                    "animail_bc" => "Crab",
+                ]
+            ],
+            "Invalid_data_bc_1" => [
+                "data" => [
+                    "animail_bc" => "Ape",
+                ],
+                "expected_msg" => ["animail_bc" => "animail_bc validation failed"]
+            ],
+        ];
+
+        $extra = [
+            "method_name" => __METHOD__,
+        ];
+
+        $this->validation->add_method("check_animails", function ($data, $list) {
+            $animals = [];
+            if (in_array('A', $list)) {
+                $animals[] = 'Ape';
+                $animals[] = 'Ant';
+            }
+
+            if (in_array('B', $list)) {
+                $animals[] = 'Bird';
+                $animals[] = 'Bear';
+            }
+
+            if (in_array('C', $list)) {
+                $animals[] = 'Cat';
+                $animals[] = 'Crab';
+                $animals[] = 'Camel';
+            }
+
+            return in_array($data, $animals);
+        }, [
+            // 'symbols' => 'c_a',
+            'is_variable_length_argument' => true,
+        ]);
+
+        return $method_info = [
+            "rules" => $rules,
+            "cases" => $cases,
+            "extra" => $extra
+        ];
+    }
+
+    protected function test_rule_classes_property()
     {
         $rules = [
             "symbol" => [
@@ -6914,7 +7796,7 @@ class Unit extends TestCommon
         ];
     }
 
-    protected function test_rule_classes_2()
+    protected function test_add_rule_classes()
     {
         $rules = [
             "symbol" => [
@@ -6950,7 +7832,7 @@ class Unit extends TestCommon
             ],
         ];
 
-        $this->validation->add_rule_class(RuleClassString::class);
+        $this->validation->add_rule_class(RuleClassTest::class);
 
         $extra = [
             "method_name" => __METHOD__,
@@ -7104,5 +7986,5 @@ class Unit extends TestCommon
         ];
     }
 
-    use TestRuleDefault, TestRuleDatetime;
+    use TestRuleDefault, TestRuleDatetime, TestRuleArray, TestRuleTest;
 }

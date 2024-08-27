@@ -33,12 +33,17 @@ Table of contents
       * [4.1 Methods And Their Symbols](#41-methods-and-their-symbols)
       * [4.2 Regular Expression](#42-regular-expression)
       * [4.3 Method Parameters](#43-method-parameters)
+        * [The ways to pass parameters](#the-ways-to-pass-parameters)
+        * [Parameter type](#parameter-type)
       * [4.4 Method Extension](#44-method-extension)
+        * [The ways to extend methods](#the-ways-to-extend-methods)
+        * [Set method symbols](#set-method-symbols)
       * [4.5 Series And Parallel Rules](#45-series-and-parallel-rules)
       * [4.6 Conditional Rules](#46-conditional-rules)
          * [The When Conditional Rules](#the-when-conditional-rules)
          * [IF Rules](#if-rules)
       * [4.7 Infinitely Nested Data Structures](#47-infinitely-nested-data-structures)
+         * [The Rules Of The Array Itself](#the-rules-of-the-array-itself)
       * [4.8 Optional Field](#48-optional-field)
       * [4.9 Special Validation Rules](#49-special-validation-rules)
       * [4.10 Customized Configuration](#410-customized-configuration)
@@ -235,6 +240,8 @@ Supports multiple regular expressions in a series rule
 ### 4.3 Method Parameters
 How to pass parameters to the methods in rules written as strings?
 
+#### The ways to pass parameters
+
 1. **Standard parameters**
 Just like the parameters used by PHP functions, the parameters are written in parentheses `()`. Multiple parameters are separated by commas `,`. No extra spaces are allowed before and after `,`
 For example,
@@ -252,6 +259,25 @@ For example, the above example can be shortened to:
 
 3. **Omit parameters**
 When there is only one method parameter and it is the current field value, you can omit `()` and `[]` and only write the method.
+For example, 
+```
+"id" => "uuid"
+```
+
+4. **Default parameters**
+Default parameters are supported but require additional configuration. See [Set method symbols](#set-method-symbols)
+For example, the following indicates that the data is an indexed array, and `unique` verifies that its subdata must be unique. However, it is a bit redundant to write `@parent` for parameters every time. It can be omitted by configuring default parameters.
+
+```PHP
+$rule = [
+    // Standard parameters
+    "*" => "unique(@this,@parent)",
+    // Omit the `@this` parameter
+    "*" => "unique[@parent]",
+    // Default parameters
+    "*" => "unique"
+];
+```
 
 **Parameters List**
 
@@ -261,7 +287,7 @@ Static Value | Indicates that the parameter is a static string and is allowed to
 @this | Indicates that the parameter is the value of the current field
 @parent | Indicates the parameter is the value of the parent of the current field
 @root | Indicates that this parameter is the whole validation data
-@field_name | Indicates that the parameter is the value of a field whose name is `field_name`. e.g. `@age`
+@field_path | Indicates that the parameter is the value of a field whose name is `field_path`. e.g. `@age`, `@person.name`
 
 **Parameter separator:**
 - `symbol_parameter_separator`: `,`
@@ -272,7 +298,8 @@ Static Value | Indicates that the parameter is a static string and is allowed to
   - Wrapped by `{}`.
 - For custom parameter separator, see [4.10 Customized Configuration](#410-customized-configuration)
 
-**Parameter Type:**
+#### Parameter Type
+
 Automatically detect the type of the parameter and forcibly convert it to the corresponding type.
 1. Text quoted with double quotes (`"`) or single quotes (`''`) is treated as a string. Otherwise the type is detected and forcibly converted.
   - For example, `"abc"`, `'abc'` or `abc` are treated as string `abc`
@@ -280,7 +307,7 @@ Automatically detect the type of the parameter and forcibly convert it to the co
   - `int`：For example, `123` is an integer and `"123"` is a string
   - `float`: For example, `123.0`
   - `bool`: For example, `false` or `TRUE`
-  - `array`: For example, `[1,2,3]`
+  - `array`: For example, `[1,2,3]` or `["a", "b"]`
   - `object`: For example, `{"a": "A", "b": "B"}`
   - For example, `my_method[[1,"2",'3'],100,false,"true"]`:
     - `[1,"2",'3']` will be converted to `array([1,"2","3"])`
@@ -298,14 +325,19 @@ If the validation rules are complex and the built-in methods cannot meet your ne
 
 If the method may return different error messages based on different judgments, see the section [4.13 Error message template - 3. Return the template directly in the method](#413-error-message-template).
 
+#### The ways to extend methods
+
 There are several ways to extend your own methods:
-1. **Add method**：`add_method`
+##### 1. Add method：`add_method($method, $callable, $method_symbol = '')`
 Add a new method
+- `$method`: Method name
+- `$callable`: Method definition
+- `$method_symbol`: Method symbol. Optional.
 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
 
-Add a new method, check_id
+Add a new method, `check_id`, and set its symbol to `c_id`
 ```PHP
 $validation->add_method('check_id', function ($id) {
     if ($id == 0) {
@@ -313,7 +345,7 @@ $validation->add_method('check_id', function ($id) {
     }
 
     return true;
-});
+}, 'c_id');
 ```
 
 The rule is
@@ -321,30 +353,32 @@ The rule is
 $rule = [
     // Required, must be a number and must be not equal to 0
     "id" => "required|/^\d+$/|check_id",
+    // Or use its symbol instead of the method name
+    "id" => "required|/^\d+$/|c_i",
 ];
 ```
 
 </details>
 </br>
 
-2. **Add rule class**：by `add_rule_class`
+##### 2. Add rule class：by `add_rule_class`
 A rule class contains multiple methods and their symbols. Supports static or non-static methods.
 Due to priority reasons, if you need to override the built-in methods in the validation class Validation, please use the new rule class. The extended class may not be able to override it.
 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
 
-Create a new file，`RuleClassString.php`
+Create a new file，`RuleClassTest.php`
 ```PHP
 /**
  * Use rule class to add validation methods
  * If you need to define method symbols, put them in the method_symbols attribute
  */
-class RuleClassString
+class RuleClassTest
 {
     // method symbol
     public static $method_symbols = [
-        'cus_str' => 'is_custom_string',
+        'is_custom_string' => 'cus_str',
     ];
 
     // method
@@ -355,23 +389,23 @@ class RuleClassString
 }
 ```
 
-Call `add_rule_class` to add a new rule class，RuleClassString
+Call `add_rule_class` to add a new rule class，RuleClassTest
 ```PHP
-use RuleClassString;
+use RuleClassTest;
 
-// Add a new rule class，RuleClassString
-$validation->add_rule_class(RuleClassString::class);
+// Add a new rule class，RuleClassTest
+$validation->add_rule_class(RuleClassTest::class);
 ```
 In fact, `add_rule_class` adds the rule class into the `rule_classes` attribute, so that we can add a new rule class through another more direct method:
 
 ```PHP
 use githusband\Validation;
-use RuleClassString;
+use RuleClassTest;
 
 class MyValidation extends Validation
 {
     protected $rule_classes = [
-        RuleClassString::class
+        RuleClassTest::class
     ];
 }
 ```
@@ -381,13 +415,15 @@ The rule is
 $rule = [
     // Required, format must be /^[\w\d -]{8,32}$/
     "id" => "required|is_custom_string",
+    // Or use its symbol instead of the method name
+    "id" => "required|cus_str",
 ];
 ```
 
 </details>
 </br>
 
-3. **Extend `Validation` class**
+##### 3. Extend `Validation` class
 
 Extend the `Validation` class and override the built-in methods or add new built-in methods. Recommended [trait](https://www.php.net/manual/zh/language.oop5.traits.php)
 
@@ -403,8 +439,8 @@ Create a new file，`RuleExtendTrait.php`
 trait RuleExtendTrait
 {
     // method symbol
-    protected $method_symbols_of_rule_custome = [
-        '=1' => 'euqal_to_1',
+    protected $method_symbols_of_rule_extend_trait = [
+        'euqal_to_1' => '=1',
     ];
 
     // method
@@ -429,7 +465,7 @@ class MyValidation extends Validation
      * If you need to define method symbols, place them in an attribute named method_symbols
      */
     protected $method_symbols = [
-        ">=1" => "grater_than_or_equal_to_1",
+        'grater_than_or_equal_to_1' => '>=1',
     ];
 
     protected function grater_than_or_equal_to_1($data)
@@ -453,13 +489,128 @@ $rule = [
 </details>
 </br>
 
-4. **The priority of the these ways**
+##### 4. Global function
 Including the system functions and user-defined global functions.
 
-**几种方法的优先级**
+**The priority of the these ways**
 `Add method` > `Add rule class` > `Extend Validation class` > `Built-in method` > `Global function`
 
 If the method can not be found from the three way, an error will be reported: Undefined
+
+#### Set method symbols
+
+Allows setting method symbols, making it more intuitive. For example, the symbol for `greater_than` is `>`. Refer to [Appendix 1 - Methods And Symbols](#appendix-1---methods-and-symbols)
+From the previous section, you should have noticed the use of method symbols. That's also the most common way to set the symbols. For example,
+```PHP
+public static $method_symbols = [
+    'is_custom_string' => 'cus_str',
+];
+```
+
+Method symbols `$method_symbols` may also support other attributes:
+
+- If the value is a string, such as 'cus_str', it represents the symbol.
+- If the value is an array, the following fields are supported:
+  - symbols: The symbols of a method. e.g. 'cus_str'
+  - is_variable_length_argument: Default to false. Whether the second parameter of the current rule is variable length argument or not
+  - default_arguments: Default to nothing. Set the default arguments for the method. {@see githusband\Rule\RuleClassArray::$method_symbols['is_unique']}
+    - The key of default_arguments array must be int. It indicates what argument it is. e.g. `2` means the 2th argument.
+    - The value of default_arguments array can be anything. Specially, about the value what likes "@parent"(means the parent data of the current field), see [4.3 Method Parameters](#43-method-parameters)
+
+For [2. Add rule class](#2-add-rule-classby-add_rule_class), if all attributes of the method symbols are supported, the example is as follows,
+
+<details>
+  <summary><span>&#128071;</span> <strong>Click to view code</strong></summary>
+
+```PHP
+class RuleClassTest
+{
+    /**
+     * The method symbols of rule default.
+     * 
+     * - If the value is a string, such as 'cus_str', it represents the symbol.
+     * - If the value is an array, the following fields are supported:
+     *   - symbols: The symbols of a method.
+     *   - is_variable_length_argument: Default to false. Whether the second parameter of the current rule is variable length argument or not
+     *   - default_arguments: Default to nothing. Set the default arguments for the method. {@see githusband\Rule\RuleClassArray::$method_symbols['is_unique']}
+     *     - The key of default_arguments array must be int. It indicates what argument it is. e.g. `2` means the 2th argument.
+     *     - The value of default_arguments array can be anything. Specially, about the value what likes "@parent"(means the parent data of the current field), please @see https://github.com/gitHusband/Validation/blob/main/README-EN.md#43-method-parameters
+     *
+     * @var array<string, string|array{symbols: string|string[], is_variable_length_argument: bool, default_arguments: <int, mixed>}>
+     */
+    public static $method_symbols = [
+        'is_custom_string' => 'cus_str',
+        'is_in_custom_list' => [
+            'symbols' => '<custom>',
+            'is_variable_length_argument' => true,  // All parameters after the first parameter are considered subelements of the second parameter array.
+        ],
+        'is_equal_to_password' => [
+            'symbols' => '=pwd',
+            'default_arguments' => [
+                2 => '@password'    // The second parameter defaults to the value of the `password` field
+            ]
+        ]
+    ];
+
+    /**
+     * Test method 1 - Test whether the format of the current field meets the requirements
+     * 
+     * Usage:
+     * - 'id' => 'is_custom_string'
+     * - 'id' => 'cus_str'
+     *
+     * @param string $data
+     * @return bool
+     */
+    public static function is_custom_string($data)
+    {
+        return preg_match('/^[\w\d -]{8,32}$/', $data) ? true : false;
+    }
+
+    /**
+     * Test method 2 - Test whether the current field exists in the list
+     * 
+     * Usage:
+     * - 'sequence' => 'is_in_custom_list[1st, First, 2nd, Second]'
+     * - 'sequence' => '<custom>[1st, First, 2nd, Second]'
+     * 
+     * This is an example of that the second parameter is a variable length parameter. If you do not set the is_variable_length_argument, then it is written as follows. Note that the second parameter must be a legal JSON Encoded string. For example:
+     * - 'sequence' => 'is_in_custom_list[["1st", "First", "2nd", "Second"]]'
+     * - 'sequence' => '<custom>[["1st", "First", "2nd", "Second"]]'
+     *
+     * @param mixed $data
+     * @param array $list
+     * @return bool
+     */
+    public static function is_in_custom_list($data, $list)
+    {
+        return in_array($data, $list);
+    }
+
+    /**
+     * Test Method 3 - Verify that the current field is equal to the `password` field
+     * 
+     * Usage:
+     * - 'confirm_password' => 'is_equal_to_password'
+     * - 'confirm_password' => '=pwd'
+     * 
+     * This is an example of default parameters. The same effect is achieved by using the `euqal` method, which is equivalent to adding the default parameter '@password' to the equal method. For example:
+     * - 'confirm_password' => `equal[@password]`，
+     * - 'confirm_password' => `=[@password]`，
+     *
+     * @param string $data
+     * @param string $password
+     * @return bool
+     */
+    public static function is_equal_to_password($data, $password)
+    {
+        return $data == $password;
+    }
+}
+```
+
+</details>
+
 
 ### 4.5 Series And Parallel Rules
 - Series: Multiple methods in a rule of one field must all be valid, the flag is `|`
@@ -703,6 +854,54 @@ $rule = [
 
 </details>
 
+#### The Rules Of The Array Itself
+
+In the above examples, a rule array can complete the validation of complex structured data. But only the leaf fields can be validated. If you want to validate the parent array itself, it is not yet possible.
+
+Then, we design the rule to represent the parent array itself through a `__self__` leaf field.
+
+- The `__self__` field allows customization, see [4.10 Customized Configuration](#410-customized-configuration)
+- Specially, if the array itself has only the `optional` rule, there is a simple way to write it, see [4.8 Optional Field](#48-optional-field)
+
+**1. Rules for associative array itself**
+```PHP
+$rule = [
+    // Indicates that the root data can be empty. If it is not empty, its fields are required to contain and only contain "id, name, favorite_fruit".
+    "__self__" => "optional|require_array_keys[id, name, favourite_fruit]",
+    "id" => "required|/^\d+$/",
+    "name" => "required|length>[3]",
+    "favourite_fruit" => [
+        // Indicates that the `favourite_fruit` can be empty. If it is not empty, its fields are required to contain and only contain "name, color, shape".
+        "__self__" => "optional|require_array_keys[name, color, shape]",
+        "name" => "required|length>[3]",
+        "color" => "required|length>[3]",
+        "shape" => "required|length>[3]"
+    ]
+];
+```
+
+**2. Rules for index array itself**
+```PHP
+$rule = [
+    "id" => "required|/^\d+$/",
+    "name" => "required|length>[3]",
+    "favourite_color" => [
+        // Indicates that the `favourite_color` can be empty. If it is not empty, its fields are required to contain and only contain "0, 1". Only two child elements are allowed.
+        "__self__" => "optional|require_array_keys[0,1]",
+        "*" => "required|length>[3]"
+    ],
+    "favourite_fruits" => [
+        // Indicates that the `favourite_fruits` can be empty. If it is not empty, its fields are required to contain and only contain "0, 1". Only two child elements are allowed.
+        "__self__" => "optional|require_array_keys[0,1]",
+        "*" => [
+            "name" => "required|length>[3]",
+            "color" => "required|length>[3]",
+            "shape" => "required|length>[3]"
+        ]
+    ]
+];
+```
+
 ### 4.8 Optional Field
 
 1. Generally, for a leaf field (without any subfields), you can directly use the `optional` method to indicate that the field is optional.
@@ -779,6 +978,7 @@ $config = [
     'symbol_when' => ':?',                                      // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
     'reg_when_not' => '/^(.+):!\?\((.*)\)/',                    // A regular expression to match a field which must be validated by method($1) only when the condition($3) is not true
     'symbol_when_not' => ':!?',                                 // We don't use the symbol to match a When Rule, it's used to generate the symbols in README
+    'self_ruleset_key' => '__self__',                           // If an array has such a subfield with the same name as {self_ruleset_key}, then the ruleset of this subfield is the ruleset of the array.
 ];
 ```
 
@@ -1086,140 +1286,145 @@ For details, see [Appendix 3 -Error Message Format](#Appendix-3---Error Message 
 
 ## Appendix 1 - Methods And Symbols
 
-Symbol | Method | Error Message Template
----|---|---
-`*` | `required` | @this can not be empty
-`O:?` | `optional:when` | @this can be empty only when certain circumstances are met
-`uuid` | `is_uuid` | @this must be a UUID
-`length>=<=` | `length_between` | @this length must be greater than or equal to @p1 and less than or equal to @p2
-`date>` | `date_greater_than` | @this must be a valid date and greater than @p1
+Symbol | Method | Variable-Length Arguments | Error Message Template
+---|---|:---:|---
+`*` | `required` | No | @this can not be empty
+`O:?` | `optional:when` | No | @this can be empty only when certain circumstances are met
+`uuid` | `is_uuid` | No | @this must be a UUID
+`>` | `greater_than` | No | @this must be greater than @p1
+`length>=<=` | `length_between` | No | @this length must be greater than or equal to @p1 and less than or equal to @p2
+`<number>` | `in_number_array` | **Yes** | @this must be numeric and in @p1
+`date>` | `date_greater_than` | No | @this must be a valid date and greater than @p1
+
+- `is_variable_length_argument`: The second parameter of the method is a [variable-length parameter](https://www.php.net/manual/en/functions.arguments.php#functions.variable-arg-list), that means all parameters after the first parameter in the ruleset will be treated as the child elements of the second parameter.
 
 <details>
   <summary><span>&#128071;</span> <strong>Click to view Appendix 1 - Methods And Symbols</strong></summary>
 
-Symbol | Method | Error Message Template
----|---|---
-/ | `default` | @this validation failed
-`.*` | `index_array` | @this must be a numeric array
-`:?` | `when` | Under certain circumstances, 
-`:!?` | `when_not` | When certain circumstances are not met, 
-`*` | `required` | @this can not be empty
-`*:?` | `required:when` | Under certain circumstances, @this can not be empty
-`*:!?` | `required:when_not` | When certain circumstances are not met, @this can not be empty
-`O` | `optional` | @this never go wrong
-`O:?` | `optional:when` | @this can be empty only when certain circumstances are met
-`O:!?` | `optional:when_not` | @this can be empty only when certain circumstances are not met
-`O!` | `optional_unset` | @this must be unset or must not be empty if it's set
-`O!:?` | `optional_unset:when` | Under certain circumstances, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
-`O!:!?` | `optional_unset:when_not` | When certain circumstances are not met, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
-/ | `preg` | @this format is invalid, should be @preg
-/ | `preg_format` | @this method @preg is not a valid regular expression
-/ | `call_method` | @method is undefined
-`=` | `equal` | @this must be equal to @p1
-`!=` | `not_equal` | @this must be not equal to @p1
-`==` | `strictly_equal` | @this must be strictly equal to @t1(@p1)
-`!==` | `not_strictly_equal` | @this must not be strictly equal to @t1(@p1)
-`>` | `greater_than` | @this must be greater than @p1
-`<` | `less_than` | @this must be less than @p1
-`>=` | `greater_equal` | @this must be greater than or equal to @p1
-`<=` | `less_equal` | @this must be less than or equal to @p1
-`><` | `greater_less` | @this must be greater than @p1 and less than @p2
-`><=` | `greater_lessequal` | @this must be greater than @p1 and less than or equal to @p2
-`>=<` | `greaterequal_less` | @this must be greater than or equal to @p1 and less than @p2
-`>=<=` | `between` | @this must be greater than or equal to @p1 and less than or equal to @p2
-`<number>` | `in_number_array` | @this must be numeric and in @p1
-`!<number>` | `not_in_number_array` | @this must be numeric and can not be in @p1
-`<string>` | `in_string_array` | @this must be string and in @p1
-`!<string>` | `not_in_string_array` | @this must be string and can not be in @p1
-`length=` | `length_equal` | @this length must be equal to @p1
-`length!=` | `length_not_equal` | @this length must be not equal to @p1
-`length>` | `length_greater_than` | @this length must be greater than @p1
-`length<` | `length_less_than` | @this length must be less than @p1
-`length>=` | `length_greater_equal` | @this length must be greater than or equal to @p1
-`length<=` | `length_less_equal` | @this length must be less than or equal to @p1
-`length><` | `length_greater_less` | @this length must be greater than @p1 and less than @p2
-`length><=` | `length_greater_lessequal` | @this length must be greater than @p1 and less than or equal to @p2
-`length>=<` | `length_greaterequal_less` | @this length must be greater than or equal to @p1 and less than @p2
-`length>=<=` | `length_between` | @this length must be greater than or equal to @p1 and less than or equal to @p2
-`int` | `integer` | @this must be integer
-/ | `float` | @this must be float
-/ | `string` | @this must be string
-`array` | `is_array` | @this must be array
-/ | `bool` | @this must be boolean
-`bool=` | `bool_equal` | @this must be boolean @p1
-/ | `bool_str` | @this must be boolean string
-/ | `bool_string` | @this must be boolean string
-`bool_string=` | `bool_string_equal` | @this must be boolean string @p1
-/ | `file_base64` | @this must be a valid file base64
-/ | `file_base64:mime` | @this file mine must be euqal to @p1
-/ | `file_base64:size` | @this file size must be less than @p2kb
-/ | `oauth2_grant_type` | @this is not a valid OAuth2 grant type
-`email` | `is_email` | @this must be email
-`url` | `is_url` | @this must be url
-`ip` | `is_ip` | @this must be IP address
-`ipv4` | `is_ipv4` | @this must be IPv4 address
-`ipv6` | `is_ipv6` | @this must be IPv6 address
-`mac` | `is_mac` | @this must be MAC address
-/ | `dob` | @this must be a valid date
-`uuid` | `is_uuid` | @this must be a UUID
-`ulid` | `is_ulid` | @this must be a ULID
-`alpha` | `is_alpha` | @this must only contain letters
-`alpha_ext` | `is_alpha_ext` | @this must only contain letters and _-
-/ | `alpha_ext:@p2` | @this must only contain letters and @p2
-`alphanumeric` | `is_alphanumeric` | @this must only contain letters and numbers
-`alphanumeric_ext` | `is_alphanumeric_ext` | @this must only contain letters and numbers and _-
-/ | `alphanumeric_ext:@p2` | @this must only contain letters and numbers and @p2
-`datetime` | `is_datetime` | @this must be a valid datetime
-/ | `datetime:format:@p1` | @this must be a valid datetime in format @p1
-/ | `datetime:format:@p2` | @this must be a valid datetime in format @p2
-/ | `datetime:format:@p3` | @this must be a valid datetime in format @p3
-/ | `datetime:invalid_format:@p1` | @this format @p1 is not a valid datetime format
-/ | `datetime:invalid_format:@p2` | @this format @p2 is not a valid datetime format
-/ | `datetime:invalid_format:@p3` | @this format @p3 is not a valid datetime format
-`datetime=` | `datetime_equal` | @this must be a valid datetime and equal to @p1
-`datetime!=` | `datetime_not_equal` | @this must be a valid datetime and not equal to @p1
-`datetime>` | `datetime_greater_than` | @this must be a valid datetime and greater than @p1
-`datetime>=` | `datetime_greater_equal` | @this must be a valid datetime and greater than or equal to @p1
-`datetime<` | `datetime_less_than` | @this must be a valid datetime and less than @p1
-`datetime<=` | `datetime_less_equal` | @this must be a valid datetime and less than or equal to @p1
-`datetime><` | `datetime_greater_less` | @this must be a valid datetime and greater than @p1 and less than @p2
-`datetime>=<` | `datetime_greaterequal_less` | @this must be a valid datetime and greater than or equal to @p1 and less than @p2
-`datetime><=` | `datetime_greater_lessequal` | @this must be a valid datetime and greater than @p1 and less than or equal to @p2
-`datetime>=<=` | `datetime_between` | @this datetime must be between @p1 and @p2
-`date` | `is_date` | @this must be a valid date in format Y-m-d
-/ | `date:format:@p1` | @this must be a valid date in format @p1
-/ | `date:format:@p2` | @this must be a valid date in format @p2
-/ | `date:format:@p3` | @this must be a valid date in format @p3
-/ | `date:invalid_format:@p1` | @this format @p1 is not a valid date format
-/ | `date:invalid_format:@p2` | @this format @p2 is not a valid date format
-/ | `date:invalid_format:@p3` | @this format @p3 is not a valid date format
-`date=` | `date_equal` | @this must be a valid date and equal to @p1
-`date!=` | `date_not_equal` | @this must be a valid date and not equal to @p1
-`date>` | `date_greater_than` | @this must be a valid date and greater than @p1
-`date>=` | `date_greater_equal` | @this must be a valid date and greater than or equal to @p1
-`date<` | `date_less_than` | @this must be a valid date and less than @p1
-`date<=` | `date_less_equal` | @this must be a valid date and less than or equal to @p1
-`date><` | `date_greater_less` | @this must be a valid date and greater than @p1 and less than @p2
-`date>=<` | `date_greaterequal_less` | @this must be a valid date and greater than or equal to @p1 and less than @p2
-`date><=` | `date_greater_lessequal` | @this must be a valid date and greater than @p1 and less than or equal to @p2
-`date>=<=` | `date_between` | @this date must be between @p1 and @p2
-`time` | `is_time` | @this must be a valid time in format H:i:s
-/ | `time:format:@p1` | @this must be a valid time in format @p1
-/ | `time:format:@p2` | @this must be a valid time in format @p2
-/ | `time:format:@p3` | @this must be a valid time in format @p3
-/ | `time:invalid_format:@p1` | @this format @p1 is not a valid time format
-/ | `time:invalid_format:@p2` | @this format @p2 is not a valid time format
-/ | `time:invalid_format:@p3` | @this format @p3 is not a valid time format
-`time=` | `time_equal` | @this must be a valid time and equal to @p1
-`time!=` | `time_not_equal` | @this must be a valid time and not equal to @p1
-`time>` | `time_greater_than` | @this must be a valid time and greater than @p1
-`time>=` | `time_greater_equal` | @this must be a valid time and greater than or equal to @p1
-`time<` | `time_less_than` | @this must be a valid time and less than @p1
-`time<=` | `time_less_equal` | @this must be a valid time and less than or equal to @p1
-`time><` | `time_greater_less` | @this must be a valid time and greater than @p1 and less than @p2
-`time>=<` | `time_greaterequal_less` | @this must be a valid time and greater than or equal to @p1 and less than @p2
-`time><=` | `time_greater_lessequal` | @this must be a valid time and greater than @p1 and less than or equal to @p2
-`time>=<=` | `time_between` | @this time must be between @p1 and @p2
+Symbol | Method | Variable-Length Arguments | Error Message Template
+---|---|:---:|---
+/ | `default` | No | @this validation failed
+`.*` | `index_array` | No | @this must be a numeric array
+`:?` | `when` | No | Under certain circumstances, 
+`:!?` | `when_not` | No | When certain circumstances are not met, 
+`*` | `required` | No | @this can not be empty
+`*:?` | `required:when` | No | Under certain circumstances, @this can not be empty
+`*:!?` | `required:when_not` | No | When certain circumstances are not met, @this can not be empty
+`O` | `optional` | No | @this never go wrong
+`O:?` | `optional:when` | No | @this can be empty only when certain circumstances are met
+`O:!?` | `optional:when_not` | No | @this can be empty only when certain circumstances are not met
+`O!` | `optional_unset` | No | @this must be unset or must not be empty if it's set
+`O!:?` | `optional_unset:when` | No | Under certain circumstances, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
+`O!:!?` | `optional_unset:when_not` | No | When certain circumstances are not met, @this must be unset or must not be empty if it's set. Otherwise it can not be empty
+/ | `preg` | No | @this format is invalid, should be @preg
+/ | `preg_format` | No | @this method @preg is not a valid regular expression
+/ | `call_method` | No | @method is undefined
+`=` | `equal` | No | @this must be equal to @p1
+`!=` | `not_equal` | No | @this must be not equal to @p1
+`==` | `strictly_equal` | No | @this must be strictly equal to @t1(@p1)
+`!==` | `not_strictly_equal` | No | @this must not be strictly equal to @t1(@p1)
+`>` | `greater_than` | No | @this must be greater than @p1
+`<` | `less_than` | No | @this must be less than @p1
+`>=` | `greater_equal` | No | @this must be greater than or equal to @p1
+`<=` | `less_equal` | No | @this must be less than or equal to @p1
+`><` | `greater_less` | No | @this must be greater than @p1 and less than @p2
+`><=` | `greater_lessequal` | No | @this must be greater than @p1 and less than or equal to @p2
+`>=<` | `greaterequal_less` | No | @this must be greater than or equal to @p1 and less than @p2
+`>=<=` | `between` | No | @this must be greater than or equal to @p1 and less than or equal to @p2
+`<number>` | `in_number_array` | **Yes** | @this must be numeric and in @p1
+`!<number>` | `not_in_number_array` | **Yes** | @this must be numeric and can not be in @p1
+`<string>` | `in_string_array` | **Yes** | @this must be string and in @p1
+`!<string>` | `not_in_string_array` | **Yes** | @this must be string and can not be in @p1
+`length=` | `length_equal` | No | @this length must be equal to @p1
+`length!=` | `length_not_equal` | No | @this length must be not equal to @p1
+`length>` | `length_greater_than` | No | @this length must be greater than @p1
+`length<` | `length_less_than` | No | @this length must be less than @p1
+`length>=` | `length_greater_equal` | No | @this length must be greater than or equal to @p1
+`length<=` | `length_less_equal` | No | @this length must be less than or equal to @p1
+`length><` | `length_greater_less` | No | @this length must be greater than @p1 and less than @p2
+`length><=` | `length_greater_lessequal` | No | @this length must be greater than @p1 and less than or equal to @p2
+`length>=<` | `length_greaterequal_less` | No | @this length must be greater than or equal to @p1 and less than @p2
+`length>=<=` | `length_between` | No | @this length must be greater than or equal to @p1 and less than or equal to @p2
+`int` | `integer` | No | @this must be integer
+/ | `float` | No | @this must be float
+/ | `string` | No | @this must be string
+`array` | `is_array` | No | @this must be array
+/ | `bool` | No | @this must be boolean
+`bool=` | `bool_equal` | No | @this must be boolean @p1
+/ | `bool_str` | No | @this must be boolean string
+/ | `bool_string` | No | @this must be boolean string
+`bool_string=` | `bool_string_equal` | No | @this must be boolean string @p1
+`<keys>` | `require_array_keys` | **Yes** | @this must be array and its keys must contain and only contain @p1
+/ | `file_base64` | No | @this must be a valid file base64
+/ | `file_base64:mime` | No | @this file mine must be euqal to @p1
+/ | `file_base64:size` | No | @this file size must be less than @p2kb
+/ | `oauth2_grant_type` | No | @this is not a valid OAuth2 grant type
+`email` | `is_email` | No | @this must be email
+`url` | `is_url` | No | @this must be url
+`ip` | `is_ip` | No | @this must be IP address
+`ipv4` | `is_ipv4` | No | @this must be IPv4 address
+`ipv6` | `is_ipv6` | No | @this must be IPv6 address
+`mac` | `is_mac` | No | @this must be MAC address
+/ | `dob` | No | @this must be a valid date
+`uuid` | `is_uuid` | No | @this must be a UUID
+`ulid` | `is_ulid` | No | @this must be a ULID
+`alpha` | `is_alpha` | No | @this must only contain letters
+`alpha_ext` | `is_alpha_ext` | No | @this must only contain letters and _-
+/ | `alpha_ext:@p2` | No | @this must only contain letters and @p2
+`alphanumeric` | `is_alphanumeric` | No | @this must only contain letters and numbers
+`alphanumeric_ext` | `is_alphanumeric_ext` | No | @this must only contain letters and numbers and _-
+/ | `alphanumeric_ext:@p2` | No | @this must only contain letters and numbers and @p2
+`datetime` | `is_datetime` | No | @this must be a valid datetime
+/ | `datetime:format:@p1` | No | @this must be a valid datetime in format @p1
+/ | `datetime:format:@p2` | No | @this must be a valid datetime in format @p2
+/ | `datetime:format:@p3` | No | @this must be a valid datetime in format @p3
+/ | `datetime:invalid_format:@p1` | No | @this format @p1 is not a valid datetime format
+/ | `datetime:invalid_format:@p2` | No | @this format @p2 is not a valid datetime format
+/ | `datetime:invalid_format:@p3` | No | @this format @p3 is not a valid datetime format
+`datetime=` | `datetime_equal` | No | @this must be a valid datetime and equal to @p1
+`datetime!=` | `datetime_not_equal` | No | @this must be a valid datetime and not equal to @p1
+`datetime>` | `datetime_greater_than` | No | @this must be a valid datetime and greater than @p1
+`datetime>=` | `datetime_greater_equal` | No | @this must be a valid datetime and greater than or equal to @p1
+`datetime<` | `datetime_less_than` | No | @this must be a valid datetime and less than @p1
+`datetime<=` | `datetime_less_equal` | No | @this must be a valid datetime and less than or equal to @p1
+`datetime><` | `datetime_greater_less` | No | @this must be a valid datetime and greater than @p1 and less than @p2
+`datetime>=<` | `datetime_greaterequal_less` | No | @this must be a valid datetime and greater than or equal to @p1 and less than @p2
+`datetime><=` | `datetime_greater_lessequal` | No | @this must be a valid datetime and greater than @p1 and less than or equal to @p2
+`datetime>=<=` | `datetime_between` | No | @this datetime must be between @p1 and @p2
+`date` | `is_date` | No | @this must be a valid date in format Y-m-d
+/ | `date:format:@p1` | No | @this must be a valid date in format @p1
+/ | `date:format:@p2` | No | @this must be a valid date in format @p2
+/ | `date:format:@p3` | No | @this must be a valid date in format @p3
+/ | `date:invalid_format:@p1` | No | @this format @p1 is not a valid date format
+/ | `date:invalid_format:@p2` | No | @this format @p2 is not a valid date format
+/ | `date:invalid_format:@p3` | No | @this format @p3 is not a valid date format
+`date=` | `date_equal` | No | @this must be a valid date and equal to @p1
+`date!=` | `date_not_equal` | No | @this must be a valid date and not equal to @p1
+`date>` | `date_greater_than` | No | @this must be a valid date and greater than @p1
+`date>=` | `date_greater_equal` | No | @this must be a valid date and greater than or equal to @p1
+`date<` | `date_less_than` | No | @this must be a valid date and less than @p1
+`date<=` | `date_less_equal` | No | @this must be a valid date and less than or equal to @p1
+`date><` | `date_greater_less` | No | @this must be a valid date and greater than @p1 and less than @p2
+`date>=<` | `date_greaterequal_less` | No | @this must be a valid date and greater than or equal to @p1 and less than @p2
+`date><=` | `date_greater_lessequal` | No | @this must be a valid date and greater than @p1 and less than or equal to @p2
+`date>=<=` | `date_between` | No | @this date must be between @p1 and @p2
+`time` | `is_time` | No | @this must be a valid time in format H:i:s
+/ | `time:format:@p1` | No | @this must be a valid time in format @p1
+/ | `time:format:@p2` | No | @this must be a valid time in format @p2
+/ | `time:format:@p3` | No | @this must be a valid time in format @p3
+/ | `time:invalid_format:@p1` | No | @this format @p1 is not a valid time format
+/ | `time:invalid_format:@p2` | No | @this format @p2 is not a valid time format
+/ | `time:invalid_format:@p3` | No | @this format @p3 is not a valid time format
+`time=` | `time_equal` | No | @this must be a valid time and equal to @p1
+`time!=` | `time_not_equal` | No | @this must be a valid time and not equal to @p1
+`time>` | `time_greater_than` | No | @this must be a valid time and greater than @p1
+`time>=` | `time_greater_equal` | No | @this must be a valid time and greater than or equal to @p1
+`time<` | `time_less_than` | No | @this must be a valid time and less than @p1
+`time<=` | `time_less_equal` | No | @this must be a valid time and less than or equal to @p1
+`time><` | `time_greater_less` | No | @this must be a valid time and greater than @p1 and less than @p2
+`time>=<` | `time_greaterequal_less` | No | @this must be a valid time and greater than or equal to @p1 and less than @p2
+`time><=` | `time_greater_lessequal` | No | @this must be a valid time and greater than @p1 and less than or equal to @p2
+`time>=<=` | `time_between` | No | @this time must be between @p1 and @p2
 
 </details>
 </br>

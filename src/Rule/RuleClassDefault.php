@@ -16,52 +16,72 @@ class RuleClassDefault
 {
     /**
      * The method symbols of rule default.
+     * 
+     * - If the value is a string, such as 'cus_str', it represents the symbol.
+     * - If the value is an array, the following fields are supported:
+     *   - symbols: The symbols of a method.
+     *   - is_variable_length_argument: Default to false. Whether the second parameter of the current rule is variable length argument or not
+     *   - default_arguments: Default to nothing. Set the default arguments for the method. {@see githusband\Rule\RuleClassArray::$method_symbols['is_unique']}
+     *     - The key of default_arguments array must be int. It indicates what argument it is. e.g. `2` means the 2th argument.
+     *     - The value of default_arguments array can be anything. Specially, about the value what likes "@parent"(means the parent data of the current field), please @see https://github.com/gitHusband/Validation/blob/main/README-EN.md#43-method-parameters
      *
-     * @var array
+     * @var array<string, string|array{symbols: string|string[], is_variable_length_argument: bool, default_arguments: <int, mixed>}>
      */
     public static $method_symbols = [
-        '=' => 'equal',
-        '!=' => 'not_equal',
-        '==' => 'strictly_equal',
-        '!==' => 'not_strictly_equal',
-        '>' => 'greater_than',
-        '<' => 'less_than',
-        '>=' => 'greater_equal',
-        '<=' => 'less_equal',
-        '><' => 'greater_less',
-        '><=' => 'greater_lessequal',
-        '>=<' => 'greaterequal_less',
-        '>=<=' => 'between',
-        '<number>' => 'in_number_array',
-        '!<number>' => 'not_in_number_array',
-        '<string>' => 'in_string_array',
-        '!<string>' => 'not_in_string_array',
-        'length=' => 'length_equal',
-        'length!=' => 'length_not_equal',
-        'length>' => 'length_greater_than',
-        'length<' => 'length_less_than',
-        'length>=' => 'length_greater_equal',
-        'length<=' => 'length_less_equal',
-        'length><' => 'length_greater_less',
-        'length><=' => 'length_greater_lessequal',
-        'length>=<' => 'length_greaterequal_less',
-        'length>=<=' => 'length_between',
-        'int' => 'integer',
-        'array' => 'is_array',    // native function
-        'bool=' => 'bool_equal',
-        'bool_string=' => 'bool_string_equal',
-        'email' => 'is_email',
-        'url' => 'is_url',
-        'ip' => 'is_ip',
-        'ipv4' => 'is_ipv4',
-        'ipv6' => 'is_ipv6',
-        'mac' => 'is_mac',
-        'uuid' => 'is_uuid',
-        'ulid' => 'is_ulid',
-        'alpha' => 'is_alpha',
-        'alpha_ext' => 'is_alpha_ext',
-        'alphanumeric' => 'is_alphanumeric',
-        'alphanumeric_ext' => 'is_alphanumeric_ext',
+        'equal' => '=',
+        'not_equal' => '!=',
+        'strictly_equal' => '==',
+        'not_strictly_equal' => '!==',
+        'greater_than' => '>',
+        'less_than' => '<',
+        'greater_equal' => '>=',
+        'less_equal' => '<=',
+        'greater_less' => '><',
+        'greater_lessequal' => '><=',
+        'greaterequal_less' => '>=<',
+        'between' => '>=<=',
+        'in_number_array' => [
+            'symbols' => '<number>',
+            'is_variable_length_argument' => true,
+        ],
+        'not_in_number_array' => [
+            'symbols' => '!<number>',
+            'is_variable_length_argument' => true,
+        ],
+        'in_string_array' => [
+            'symbols' => '<string>',
+            'is_variable_length_argument' => true,
+        ],
+        'not_in_string_array' => [
+            'symbols' => '!<string>',
+            'is_variable_length_argument' => true,
+        ],
+        'length_equal' => 'length=',
+        'length_not_equal' => 'length!=',
+        'length_greater_than' => 'length>',
+        'length_less_than' => 'length<',
+        'length_greater_equal' => 'length>=',
+        'length_less_equal' => 'length<=',
+        'length_greater_less' => 'length><',
+        'length_greater_lessequal' => 'length><=',
+        'length_greaterequal_less' => 'length>=<',
+        'length_between' => 'length>=<=',
+        'integer' => 'int',
+        'is_array' => 'array',    // native function
+        'bool_equal' => 'bool=',
+        'bool_string_equal' => 'bool_string=',
+        'is_email' => 'email',
+        'is_url' => 'url',
+        'is_ip' => 'ip',
+        'is_ipv4' => 'ipv4',
+        'is_ipv6' => 'ipv6',
+        'is_mac' => 'mac',
+        'is_uuid' => 'uuid',
+        'is_ulid' => 'ulid',
+        'is_alpha' => 'alpha',
+        'is_alpha_ext' => 'alpha_ext',
+        'is_alphanumeric' => 'alphanumeric',
+        'is_alphanumeric_ext' => 'alphanumeric_ext',
     ];
 
     /**
@@ -71,36 +91,48 @@ class RuleClassDefault
      * @var array
      */
     public static $deprecated_method_symbols = [
-        // '=' => 'equal',
-        // '!=' => 'not_equal',
-        // '==' => 'strictly_equal',
-        // '!==' => 'not_strictly_equal',
-        // '>' => 'greater_than',
-        // '<' => 'less_than',
-        // '>=' => 'greater_equal',
-        // '<=' => 'less_equal',
-        '<>' => 'greater_less',
-        '<=>' => 'greater_lessequal',
-        '<>=' => 'greaterequal_less',
-        '<=>=' => 'between',
-        '(n)' => 'in_number_array',
-        '!(n)' => 'not_in_number_array',
-        '(s)' => 'in_string_array',
-        '!(s)' => 'not_in_string_array',
-        'len=' => 'length_equal',
-        'len!=' => 'length_not_equal',
-        'len>' => 'length_greater_than',
-        'len<' => 'length_less_than',
-        'len>=' => 'length_greater_equal',
-        'len<=' => 'length_less_equal',
-        'len<>' => 'length_greater_less',
-        'len<=>' => 'length_greater_lessequal',
-        'len<>=' => 'length_greaterequal_less',
-        'len<=>=' => 'length_between',
-        // 'int' => 'integer',
-        'arr' => 'is_array',    // native function
-        // 'bool=' => 'bool_equal',
-        'bool_str=' => 'bool_string_equal',
+        // 'equal' => '=',
+        // 'not_equal' => '!=',
+        // 'strictly_equal' => '==',
+        // 'not_strictly_equal' => '!==',
+        // 'greater_than' => '>',
+        // 'less_than' => '<',
+        // 'greater_equal' => '>=',
+        // 'less_equal' => '<=',
+        'greater_less' => '<>',
+        'greater_lessequal' => '<=>',
+        'greaterequal_less' => '<>=',
+        'between' => '<=>=',
+        'in_number_array' => [
+            'symbols' => '(n)',
+            'is_variable_length_argument' => true,
+        ],
+        'not_in_number_array' => [
+            'symbols' => '!(n)',
+            'is_variable_length_argument' => true,
+        ],
+        'in_string_array' => [
+            'symbols' => '(s)',
+            'is_variable_length_argument' => true,
+        ],
+        'not_in_string_array' => [
+            'symbols' => '!(s)',
+            'is_variable_length_argument' => true,
+        ],
+        'length_equal' => 'len=',
+        'length_not_equal' => 'len!=',
+        'length_greater_than' => 'len>',
+        'length_less_than' => 'len<',
+        'length_greater_equal' => 'len>=',
+        'length_less_equal' => 'len<=',
+        'length_greater_less' => 'len<>',
+        'length_greater_lessequal' => 'len<=>',
+        'length_greaterequal_less' => 'len<>=',
+        'length_between' => 'len<=>=',
+        // 'integer' => 'int',
+        'is_array' => 'arr',    // native function
+        // 'bool_equal' => 'bool=',
+        'bool_string_equal' => 'bool_str=',
     ];
 
     public static $unicode_alpha_preg_of_letter = [

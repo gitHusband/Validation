@@ -4,7 +4,7 @@ namespace githusband\Tests\Extend;
 
 use githusband\Validation;
 use githusband\Tests\Extend\Rule\RuleExtendTrait;
-use githusband\Tests\Extend\Rule\RuleClassString;
+use githusband\Tests\Extend\Rule\RuleClassTest;
 
 /**
  * 拓展 Validation 的例子：增加验证方法。
@@ -33,11 +33,11 @@ class MyValidation extends Validation
     use RuleExtendTrait;
 
     protected $rule_classes = [
-        RuleClassString::class
+        RuleClassTest::class
     ];
 
     protected $method_symbols = [
-        ">=1" => "grater_than_or_equal_to_1",
+        'grater_than_or_equal_to_1' => '>=1',
     ];
 
     /**
