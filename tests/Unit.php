@@ -82,6 +82,15 @@ class Unit extends TestCommon
 
     private $_symbol_me = "@this";
 
+    /**
+     * The count of validated data times
+     * 
+     * A validate data may have multiple fields.
+     *
+     * @var int
+     */
+    protected $validated_data_count = 0;
+
     public function __construct($enable_entity = false)
     {
         parent::__construct();
@@ -174,6 +183,7 @@ class Unit extends TestCommon
         $spent_time = ($end_time - $start_time) / 1000;
         $spent_human_time = $this->seconds_to_human_time($spent_time);
         $this->write_log(static::LOG_LEVEL_WARN, "#{$times} End performance testing at {$end_datetime}.\n");
+        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Total validated data count: {$this->validated_data_count}\n");
         $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Total time spent: {$spent_time} Seconds({$spent_human_time})\n");
         $this->write_log(static::LOG_LEVEL_WARN, "#######################################################\n");
 
@@ -288,6 +298,7 @@ class Unit extends TestCommon
             if (strpos($c_field, "Valid") !== false) {
                 $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be valid.";
 
+                $this->validated_data_count++;
                 if (!$validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, [
                         "valid_alert" => $valid_alert,
@@ -300,6 +311,7 @@ class Unit extends TestCommon
             else if (strpos($c_field, "Invalid") !== false) {
                 $valid_alert = isset($case['valid_alert']) ? $case['valid_alert'] : "Validation error. It should be invalid.";
 
+                $this->validated_data_count++;
                 if ($validation->validate($case['data'])) {
                     $this->set_unit_error($extra['method_name'], $c_field, $valid_alert, $rule, $cases);
                     $result = false;
@@ -338,6 +350,7 @@ class Unit extends TestCommon
             // Check exception cases
             else if (strpos($c_field, "Exception") !== false) {
                 try {
+                    $this->validated_data_count++;
                     if (!$validation->validate($case['data'])) {
                         $this->set_unit_error($extra['method_name'], $c_field, [
                             "exception_alert" => "It should throw an exception but it was validated failed",
