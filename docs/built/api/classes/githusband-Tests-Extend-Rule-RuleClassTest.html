@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+            <title>Documentation</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="../">
+    <link rel="icon" href="images/favicon.ico"/>
+    <link rel="stylesheet" href="css/normalize.css">
+    <link rel="stylesheet" href="css/base.css">
+            <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@100;200;300;400;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="css/template.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.0/css/all.min.css" integrity="sha256-ybRkN9dBjhcS2qrW1z+hfCxq+1aBdwyQM5wlQoQVt/0=" crossorigin="anonymous" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/themes/prism-okaidia.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-numbers/prism-line-numbers.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-highlight/prism-line-highlight.css">
+                <script src="https://cdn.jsdelivr.net/npm/fuse.js@3.4.6"></script>
+        <script src="https://cdn.jsdelivr.net/npm/css-vars-ponyfill@2"></script>
+        <script src="js/template.js"></script>
+        <script src="js/search.js"></script>
+        <script defer src="js/searchIndex.js"></script>
+    </head>
+<body id="top">
+    <header class="phpdocumentor-header phpdocumentor-section">
+    <h1 class="phpdocumentor-title"><a href="" class="phpdocumentor-title__link">Documentation</a></h1>
+    <input class="phpdocumentor-header__menu-button" type="checkbox" id="menu-button" name="menu-button" />
+    <label class="phpdocumentor-header__menu-icon" for="menu-button">
+        <i class="fas fa-bars"></i>
+    </label>
+    <section data-search-form class="phpdocumentor-search">
+    <label>
+        <span class="visually-hidden">Search for</span>
+        <svg class="phpdocumentor-search__icon" width="21" height="20" viewBox="0 0 21 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="7.5" cy="7.5" r="6.5" stroke="currentColor" stroke-width="2"/>
+            <line x1="12.4892" y1="12.2727" x2="19.1559" y2="18.9393" stroke="currentColor" stroke-width="3"/>
+        </svg>
+        <input type="search" class="phpdocumentor-field phpdocumentor-search__field" placeholder="Loading .." disabled />
+    </label>
+</section>
+
+    <nav class="phpdocumentor-topnav">
+    <ul class="phpdocumentor-topnav__menu">
+        </ul>
+</nav>
+</header>
+
+    <main class="phpdocumentor">
+        <div class="phpdocumentor-section">
+            <input class="phpdocumentor-sidebar__menu-button" type="checkbox" id="sidebar-button" name="sidebar-button" />
+<label class="phpdocumentor-sidebar__menu-icon" for="sidebar-button">
+    Menu
+</label>
+<aside class="phpdocumentor-column -three phpdocumentor-sidebar">
+                    <section class="phpdocumentor-sidebar__category -namespaces">
+            <h2 class="phpdocumentor-sidebar__category-header">Namespaces</h2>
+                                    <h4 class="phpdocumentor-sidebar__root-namespace">
+    <a href="namespaces/githusband.html" class="">githusband</a>
+</h4>
+    <ul class="phpdocumentor-list">
+                    <li>
+                <a href="namespaces/githusband-entity.html" class="">Entity</a>
+                
+            </li>
+                    <li>
+                <a href="namespaces/githusband-exception.html" class="">Exception</a>
+                
+            </li>
+                    <li>
+                <a href="namespaces/githusband-rule.html" class="">Rule</a>
+                
+            </li>
+                    <li>
+                <a href="namespaces/githusband-tests.html" class="">Tests</a>
+                
+            </li>
+            </ul>
+
+                        </section>
+                <section class="phpdocumentor-sidebar__category -packages">
+            <h2 class="phpdocumentor-sidebar__category-header">Packages</h2>
+                                    <h4 class="phpdocumentor-sidebar__root-namespace">
+    <a href="packages/Application.html" class="">Application</a>
+</h4>
+
+                                    <h4 class="phpdocumentor-sidebar__root-namespace">
+    <a href="packages/UnitTests.html" class="">UnitTests</a>
+</h4>
+
+                        </section>
+            
+    <section class="phpdocumentor-sidebar__category -reports">
+        <h2 class="phpdocumentor-sidebar__category-header">Reports</h2>
+                <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/deprecated.html">Deprecated</a></h3>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/errors.html">Errors</a></h3>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="reports/markers.html">Markers</a></h3>
+    </section>
+
+    <section class="phpdocumentor-sidebar__category -indices">
+        <h2 class="phpdocumentor-sidebar__category-header">Indices</h2>
+        <h3 class="phpdocumentor-sidebar__root-package"><a href="indices/files.html">Files</a></h3>
+    </section>
+</aside>
+
+            <div class="phpdocumentor-column -nine phpdocumentor-content">
+                                <section>
+                                        <ul class="phpdocumentor-breadcrumbs">
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/githusband.html">githusband</a></li>
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/githusband-tests.html">Tests</a></li>
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/githusband-tests-extend.html">Extend</a></li>
+            <li class="phpdocumentor-breadcrumb"><a href="namespaces/githusband-tests-extend-rule.html">Rule</a></li>
+    </ul>
+
+    <article class="phpdocumentor-element -class">
+        <h2 class="phpdocumentor-content__title">
+    RuleClassTest
+
+    
+            <div class="phpdocumentor-element__package">
+            in package
+            <ul class="phpdocumentor-breadcrumbs">
+                                    <li class="phpdocumentor-breadcrumb"><a href="packages/UnitTests.html">UnitTests</a></li>
+                            </ul>
+        </div>
+    
+    
+    </h2>
+
+<div class="phpdocumentor-label-line">
+
+
+</div>
+
+        <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="tests/Extend/Rule/RuleClassTest.php"><a href="files/tests-extend-rule-ruleclasstest.html"><abbr title="tests/Extend/Rule/RuleClassTest.php">RuleClassTest.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">12</span>
+
+    </aside>
+
+            <p class="phpdocumentor-summary">Rule class 的方式增加验证方法</p>
+
+    <section class="phpdocumentor-description"><p>如果需要定义方法标志，将他们放在 method_symbols 属性中</p>
+</section>
+
+
+
+
+
+
+
+<h3 id="toc">
+    Table of Contents
+    <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#toc" class="headerlink"><i class="fas fa-link"></i></a>
+
+</h3>
+
+
+
+
+
+
+
+
+
+<h4 id="toc-properties">
+    Properties
+    <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#toc-properties" class="headerlink"><i class="fas fa-link"></i></a>
+
+</h4>
+<dl class="phpdocumentor-table-of-contents">
+            <dt class="phpdocumentor-table-of-contents__entry -property -public">
+    <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#property_method_symbols">$method_symbols</a>
+    <span>
+                        &nbsp;: array&lt;string, string|array&lt;string|int, mixed&gt;&gt;            </span>
+</dt>
+<dd>方法标志：
+- 如果值为字符串，则表示标志。
+- 如果值为数组，则支持以下字段:
+  - `symbols`: 表示标志
+  - `is_variable_length_argument`: 默认为 false。表示方法第二个参数为可变长度参数，规则集 中的第一个参数之后的所有参数都会被第二个参数的子元素。参考 `githusband\Rule\RuleClassDefault::$method_symbols[&#039;in_number_array&#039;]`。
+  - `default_arguments`: 默认为 无。设置方法的默认参数。参考 `githusband\Rule\RuleClassArray::$method_symbols[&#039;is_unique&#039;]`。
+    - `default_arguments` 数组的键必须是整形数字，表示第几个默认参数. 例如，`2` 表示第二个参数。
+    - `default_arguments` 数组的值可以是任意值。对于类似 &quot;@parent&quot; (表示当前字段的父数据)，参考 https://github.com/gitHusband/Validation?tab=readme-ov-file#43-%E6%96%B9%E6%B3%95%E4%BC%A0%E5%8F%82</dd>
+
+    </dl>
+
+<h4 id="toc-methods">
+    Methods
+    <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#toc-methods" class="headerlink"><i class="fas fa-link"></i></a>
+
+</h4>
+<dl class="phpdocumentor-table-of-contents">
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_custom_string">is_custom_string()</a>
+    <span>
+                                &nbsp;: bool    </span>
+</dt>
+<dd>测试方法 1 - 测试当前字段的格式是否满足要求</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_equal_to_password">is_equal_to_password()</a>
+    <span>
+                                &nbsp;: bool    </span>
+</dt>
+<dd>测试方法 3 - 验证当前字段是否与 password 字段相等</dd>
+
+            <dt class="phpdocumentor-table-of-contents__entry -method -public">
+    <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_in_custom_list">is_in_custom_list()</a>
+    <span>
+                                &nbsp;: bool    </span>
+</dt>
+<dd>测试方法 2 - 测试当前字段是否存在于列表内</dd>
+
+    </dl>
+
+
+
+        
+
+        
+    <section class="phpdocumentor-properties">
+        <h3 class="phpdocumentor-elements__header" id="properties">
+            Properties
+            <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#properties" class="headerlink"><i class="fas fa-link"></i></a>
+
+        </h3>
+                    <article
+        class="
+            phpdocumentor-element
+            -property
+            -public
+            -static                                            "
+>
+    <h4 class="phpdocumentor-element__name" id="property_method_symbols">
+        $method_symbols
+        <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#property_method_symbols" class="headerlink"><i class="fas fa-link"></i></a>
+
+        <span class="phpdocumentor-element__modifiers">
+                                </span>
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="tests/Extend/Rule/RuleClassTest.php"><a href="files/tests-extend-rule-ruleclasstest.html"><abbr title="tests/Extend/Rule/RuleClassTest.php">RuleClassTest.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">29</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">方法标志：
+- 如果值为字符串，则表示标志。
+- 如果值为数组，则支持以下字段:
+  - `symbols`: 表示标志
+  - `is_variable_length_argument`: 默认为 false。表示方法第二个参数为可变长度参数，规则集 中的第一个参数之后的所有参数都会被第二个参数的子元素。参考 `githusband\Rule\RuleClassDefault::$method_symbols[&#039;in_number_array&#039;]`。
+  - `default_arguments`: 默认为 无。设置方法的默认参数。参考 `githusband\Rule\RuleClassArray::$method_symbols[&#039;is_unique&#039;]`。
+    - `default_arguments` 数组的键必须是整形数字，表示第几个默认参数. 例如，`2` 表示第二个参数。
+    - `default_arguments` 数组的值可以是任意值。对于类似 &quot;@parent&quot; (表示当前字段的父数据)，参考 https://github.com/gitHusband/Validation?tab=readme-ov-file#43-%E6%96%B9%E6%B3%95%E4%BC%A0%E5%8F%82</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+    <span class="phpdocumentor-signature__static">static</span>    <span class="phpdocumentor-signature__type">array&lt;string, string|array&lt;string|int, mixed&gt;&gt;</span>
+    <span class="phpdocumentor-signature__name">$method_symbols</span>
+     = <pre class="phpdocumentor-signature__default-value">[&#039;is_custom_string&#039; =&gt; &#039;cus_str&#039;, &#039;is_in_custom_list&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;&lt;custom&gt;&#039;, &#039;is_variable_length_argument&#039; =&gt; true], &#039;is_equal_to_password&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;=pwd&#039;, &#039;default_arguments&#039; =&gt; [2 =&gt; &#039;@password&#039;]]]</pre></code>
+
+    
+    
+    
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#property_method_symbols#tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                                    <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">example</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                
+                                                 <section class="phpdocumentor-description"><p><code class="prettyprint">in_number_array[1,2,3]</code> 第二个参数是一个数组 <code class="prettyprint">[1,2,3]</code></p>
+</section>
+
+                                    </dd>
+                                                <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">see</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                    <span class="phpdocumentor-tag-link"><abbr title="\githusband\Tests\Extend\Rule\githusband\Rule\RuleClassDefault::$method_symbols">RuleClassDefault::$method_symbols</abbr></span>
+                                        
+                                             
+                                    </dd>
+                            <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">see</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                    <span class="phpdocumentor-tag-link"><abbr title="\githusband\Tests\Extend\Rule\githusband\Rule\RuleClassArray::$method_symbols">RuleClassArray::$method_symbols</abbr></span>
+                                        
+                                             
+                                    </dd>
+                                            </dl>
+
+    
+
+</article>
+            </section>
+
+            <section class="phpdocumentor-methods">
+        <h3 class="phpdocumentor-elements__header" id="methods">
+            Methods
+            <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#methods" class="headerlink"><i class="fas fa-link"></i></a>
+
+        </h3>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                    -static                    "
+>
+    <h4 class="phpdocumentor-element__name" id="method_is_custom_string">
+        is_custom_string()
+        <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_custom_string" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="tests/Extend/Rule/RuleClassTest.php"><a href="files/tests-extend-rule-ruleclasstest.html"><abbr title="tests/Extend/Rule/RuleClassTest.php">RuleClassTest.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">53</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">测试方法 1 - 测试当前字段的格式是否满足要求</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">is_custom_string</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">bool</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+        <section class="phpdocumentor-description"><p>用法：</p>
+<ul>
+<li>'id' =&gt; 'is_custom_string'</li>
+<li>'id' =&gt; 'cus_str'</li>
+</ul>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$data</span>
+                : <span class="phpdocumentor-signature__argument__return-type">string</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+    
+
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">bool</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                    -static                    "
+>
+    <h4 class="phpdocumentor-element__name" id="method_is_equal_to_password">
+        is_equal_to_password()
+        <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_equal_to_password" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="tests/Extend/Rule/RuleClassTest.php"><a href="files/tests-extend-rule-ruleclasstest.html"><abbr title="tests/Extend/Rule/RuleClassTest.php">RuleClassTest.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">93</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">测试方法 3 - 验证当前字段是否与 password 字段相等</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">is_equal_to_password</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span class="phpdocumentor-signature__argument"><span>, </span><span class="phpdocumentor-signature__argument__return-type">string&nbsp;</span><span class="phpdocumentor-signature__argument__name">$password</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">bool</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+        <section class="phpdocumentor-description"><p>用法：</p>
+<ul>
+<li>'confirm_password' =&gt; 'is_equal_to_password'</li>
+<li>'confirm_password' =&gt; '=pwd'</li>
+</ul>
+<p>这是一个默认参数的例子。用 <code class="prettyprint">euqal</code> 方法来写效果也一样, 它相当于给 equal 方法加了默认参数 '@password'。例如：</p>
+<ul>
+<li>'confirm_password' =&gt; <code class="prettyprint">equal[@password]</code>，</li>
+<li>'confirm_password' =&gt; <code class="prettyprint">=[@password]</code>，</li>
+</ul>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$data</span>
+                : <span class="phpdocumentor-signature__argument__return-type">string</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$password</span>
+                : <span class="phpdocumentor-signature__argument__return-type">string</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+    
+
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">bool</span>
+            </section>
+
+</article>
+                    <article
+        class="phpdocumentor-element
+            -method
+            -public
+                                    -static                    "
+>
+    <h4 class="phpdocumentor-element__name" id="method_is_in_custom_list">
+        is_in_custom_list()
+        <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_in_custom_list" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h4>
+    <aside class="phpdocumentor-element-found-in">
+    <abbr class="phpdocumentor-element-found-in__file" title="tests/Extend/Rule/RuleClassTest.php"><a href="files/tests-extend-rule-ruleclasstest.html"><abbr title="tests/Extend/Rule/RuleClassTest.php">RuleClassTest.php</abbr></a></abbr>
+    :
+    <span class="phpdocumentor-element-found-in__line">73</span>
+
+    </aside>
+
+        <p class="phpdocumentor-summary">测试方法 2 - 测试当前字段是否存在于列表内</p>
+
+    <code class="phpdocumentor-code phpdocumentor-signature ">
+    <span class="phpdocumentor-signature__visibility">public</span>
+            <span class="phpdocumentor-signature__static">static</span>        <span class="phpdocumentor-signature__name">is_in_custom_list</span><span>(</span><span class="phpdocumentor-signature__argument"><span class="phpdocumentor-signature__argument__return-type">mixed&nbsp;</span><span class="phpdocumentor-signature__argument__name">$data</span></span><span class="phpdocumentor-signature__argument"><span>, </span><span class="phpdocumentor-signature__argument__return-type">array&lt;string|int, mixed&gt;&nbsp;</span><span class="phpdocumentor-signature__argument__name">$list</span></span><span>)</span><span> : </span><span class="phpdocumentor-signature__response_type">bool</span></code>
+
+    <div class="phpdocumentor-label-line">
+        </div>
+        <section class="phpdocumentor-description"><p>用法：</p>
+<ul>
+<li>'sequence' =&gt; 'is_in_custom_list[1st, First, 2nd, Second]'</li>
+<li>'sequence' =&gt; '<custom>[1st, First, 2nd, Second]'</li>
+</ul>
+<p>这是一个第二个参数为可变长度参数的例子。如果不设置可变长度参数，那么它的写法如下，注意第二个参数必须是合法的 JSON Encoded 字符串。例如：</p>
+<ul>
+<li>'sequence' =&gt; 'is_in_custom_list[[&quot;1st&quot;, &quot;First&quot;, &quot;2nd&quot;, &quot;Second&quot;]]'</li>
+<li>'sequence' =&gt; '<custom>[[&quot;1st&quot;, &quot;First&quot;, &quot;2nd&quot;, &quot;Second&quot;]]'</li>
+</ul>
+</section>
+
+        <h5 class="phpdocumentor-argument-list__heading">Parameters</h5>
+    <dl class="phpdocumentor-argument-list">
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$data</span>
+                : <span class="phpdocumentor-signature__argument__return-type">mixed</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+                    <dt class="phpdocumentor-argument-list__entry">
+                <span class="phpdocumentor-signature__argument__name">$list</span>
+                : <span class="phpdocumentor-signature__argument__return-type">array&lt;string|int, mixed&gt;</span>
+                            </dt>
+            <dd class="phpdocumentor-argument-list__definition">
+                
+            </dd>
+            </dl>
+
+    
+
+    
+
+            <section>
+        <h5 class="phpdocumentor-return-value__heading">Return values</h5>
+        <span class="phpdocumentor-signature__response_type">bool</span>
+            </section>
+
+</article>
+            </section>
+
+        <div class="phpdocumentor-modal" id="source-view">
+    <div class="phpdocumentor-modal-bg" data-exit-button></div>
+    <div class="phpdocumentor-modal-container">
+        <div class="phpdocumentor-modal-content">
+            <pre style="max-height: 500px; overflow-y: scroll" data-src="files/tests/Extend/Rule/RuleClassTest.php.txt" class="language-php line-numbers linkable-line-numbers"></pre>
+        </div>
+        <button data-exit-button class="phpdocumentor-modal__close">&times;</button>
+    </div>
+</div>
+
+    <script type="text/javascript">
+        (function () {
+            function loadExternalCodeSnippet(el, url, line) {
+                Array.prototype.slice.call(el.querySelectorAll('pre[data-src]')).forEach((pre) => {
+                    const src = url || pre.getAttribute('data-src').replace(/\\/g, '/');
+                    const language = 'php';
+
+                    const code = document.createElement('code');
+                    code.className = 'language-' + language;
+                    pre.textContent = '';
+                    pre.setAttribute('data-line', line)
+                    code.textContent = 'Loading…';
+                    pre.appendChild(code);
+
+                    var xhr = new XMLHttpRequest();
+
+                    xhr.open('GET', src, true);
+
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState !== 4) {
+                            return;
+                        }
+
+                        if (xhr.status < 400 && xhr.responseText) {
+                            code.textContent = xhr.responseText;
+                            Prism.highlightElement(code);
+                            return;
+                        }
+
+                        if (xhr.status === 404) {
+                            code.textContent = '✖ Error: File could not be found';
+                            return;
+                        }
+
+                        if (xhr.status >= 400) {
+                            code.textContent = '✖ Error ' + xhr.status + ' while fetching file: ' + xhr.statusText;
+                            return;
+                        }
+
+                        code.textContent = '✖ Error: An unknown error occurred';
+                    };
+
+                    xhr.send(null);
+                });
+            }
+
+            const modalButtons = document.querySelectorAll("[data-modal]");
+            const openedAsLocalFile = window.location.protocol === 'file:';
+            if (modalButtons.length > 0 && openedAsLocalFile) {
+                console.warn(
+                    'Viewing the source code is unavailable because you are opening this page from the file:// scheme; ' +
+                    'browsers block XHR requests when a page is opened this way'
+                );
+            }
+
+            modalButtons.forEach(function (trigger) {
+                if (openedAsLocalFile) {
+                    trigger.setAttribute("hidden", "hidden");
+                }
+
+                trigger.addEventListener("click", function (event) {
+                    event.preventDefault();
+                    const modal = document.getElementById(trigger.dataset.modal);
+                    if (!modal) {
+                        console.error(`Modal with id "${trigger.dataset.modal}" could not be found`);
+                        return;
+                    }
+                    modal.classList.add("phpdocumentor-modal__open");
+
+                    loadExternalCodeSnippet(modal, trigger.dataset.src || null, trigger.dataset.line)
+                    const exits = modal.querySelectorAll("[data-exit-button]");
+                    exits.forEach(function (exit) {
+                        exit.addEventListener("click", function (event) {
+                            event.preventDefault();
+                            modal.classList.remove("phpdocumentor-modal__open");
+                        });
+                    });
+                });
+            });
+        })();
+    </script>
+
+    </article>
+                                </section>
+                <section class="phpdocumentor-on-this-page__sidebar">
+                                
+    <section class="phpdocumentor-on-this-page__content">
+        <strong class="phpdocumentor-on-this-page__title">On this page</strong>
+
+        <ul class="phpdocumentor-list -clean">
+            <li class="phpdocumentor-on-this-page-section__title">Table Of Contents</li>
+            <li>
+                <ul class="phpdocumentor-list -clean">
+                                                            <li><a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#toc-properties">Properties</a></li>
+                                                            <li><a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#toc-methods">Methods</a></li>
+                                    </ul>
+            </li>
+            
+                            <li class="phpdocumentor-on-this-page-section__title">Properties</li>
+                <li>
+                    <ul class="phpdocumentor-list -clean">
+                                                    <li><a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#property_method_symbols">$method_symbols<a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html"></li>
+                                            </ul>
+                </li>
+            
+                        <li class="phpdocumentor-on-this-page-section__title">Methods</li>
+            <li>
+                <ul class="phpdocumentor-list -clean">
+                                            <li><a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_custom_string">is_custom_string()</a></li>
+                                            <li><a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_equal_to_password">is_equal_to_password()</a></li>
+                                            <li><a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_in_custom_list">is_in_custom_list()</a></li>
+                                    </ul>
+            </li>
+                    </ul>
+    </section>
+
+                </section>
+                            </div>
+            <section data-search-results class="phpdocumentor-search-results phpdocumentor-search-results--hidden">
+    <section class="phpdocumentor-search-results__dialog">
+        <header class="phpdocumentor-search-results__header">
+            <h2 class="phpdocumentor-search-results__title">Search results</h2>
+            <button class="phpdocumentor-search-results__close"><i class="fas fa-times"></i></button>
+        </header>
+        <section class="phpdocumentor-search-results__body">
+            <ul class="phpdocumentor-search-results__entries"></ul>
+        </section>
+    </section>
+</section>
+        </div>
+        <a href="classes/githusband-Tests-Extend-Rule-RuleClassTest.html#top" class="phpdocumentor-back-to-top"><i class="fas fa-chevron-circle-up"></i></a>
+
+    </main>
+
+    <script>
+        cssVars({});
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.23.0/plugins/line-highlight/prism-line-highlight.min.js"></script>
+</body>
+</html>

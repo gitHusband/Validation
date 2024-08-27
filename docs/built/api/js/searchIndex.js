@@ -56,6 +56,16 @@ Search.appendIndex(
             "summary": "Get\u0020operator",
             "url": "classes/githusband-Entity-RuleEntity.html#method_get_operator"
         },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aset_is_variable_length_argument\u0028\u0029",
+            "name": "set_is_variable_length_argument",
+            "summary": "Set\u0020is_variable_length_argument",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_set_is_variable_length_argument"
+        },                {
+            "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aget_is_variable_length_argument\u0028\u0029",
+            "name": "get_is_variable_length_argument",
+            "summary": "Get\u0020is_variable_length_argument",
+            "url": "classes/githusband-Entity-RuleEntity.html#method_get_is_variable_length_argument"
+        },                {
             "fqsen": "\\githusband\\Entity\\RuleEntity\u003A\u003Aset_error_template\u0028\u0029",
             "name": "set_error_template",
             "summary": "Set\u0020error_template",
@@ -566,6 +576,26 @@ Search.appendIndex(
             "summary": "The\u0020error\u0020message\u0020templates\u0020for\u0020the\u0020system\u0020rules\u0020and\u0020method\u0020symbols.",
             "url": "classes/ZhCn.html#property_error_templates"
         },                {
+            "fqsen": "\\githusband\\Rule\\RuleClassArray",
+            "name": "RuleClassArray",
+            "summary": "Class\u0020RuleClassArray\u0020contains\u0020multiple\u0020methods\u0020to\u0020validate\u0020the\u0020array",
+            "url": "classes/githusband-Rule-RuleClassArray.html"
+        },                {
+            "fqsen": "\\githusband\\Rule\\RuleClassArray\u003A\u003Arequire_array_keys\u0028\u0029",
+            "name": "require_array_keys",
+            "summary": "The\u0020field\u0020data\u0020must\u0020be\u0020array\u0020and\u0020must\u0020have\u0020the\u0020required\u0020keys\u0020and\u0020must\u0020have\u0020not\u0020other\u0020keys.",
+            "url": "classes/githusband-Rule-RuleClassArray.html#method_require_array_keys"
+        },                {
+            "fqsen": "\\githusband\\Rule\\RuleClassArray\u003A\u003Ais_unique\u0028\u0029",
+            "name": "is_unique",
+            "summary": "Check\u0020if\u0020the\u0020child\u0020data\u0020is\u0020unique\u0020within\u0020the\u0020parent\u0020array.",
+            "url": "classes/githusband-Rule-RuleClassArray.html#method_is_unique"
+        },                {
+            "fqsen": "\\githusband\\Rule\\RuleClassArray\u003A\u003A\u0024method_symbols",
+            "name": "method_symbols",
+            "summary": "The\u0020method\u0020symbols\u0020of\u0020rule\u0020array.",
+            "url": "classes/githusband-Rule-RuleClassArray.html#property_method_symbols"
+        },                {
             "fqsen": "\\githusband\\Rule\\RuleClassDatetime",
             "name": "RuleClassDatetime",
             "summary": "Class\u0020RuleClassDatetime\u0020contains\u0020multiple\u0020methods\u0020to\u0020validate\u0020the\u0020data\u0020in\u0020date\u0020or\u0020time\u0020format",
@@ -768,7 +798,7 @@ Search.appendIndex(
         },                {
             "fqsen": "\\githusband\\Rule\\RuleClassDatetime\u003A\u003A\u0024method_symbols",
             "name": "method_symbols",
-            "summary": "",
+            "summary": "The\u0020method\u0020symbols\u0020of\u0020rule\u0020datetime.",
             "url": "classes/githusband-Rule-RuleClassDatetime.html#property_method_symbols"
         },                {
             "fqsen": "\\githusband\\Rule\\RuleClassDefault",
@@ -1646,10 +1676,10 @@ Search.appendIndex(
             "summary": "Add\u0020a\u0020new\u0020rule\u0020class\u0020that\u0020contains\u0020multiple\u0020rule\u0020methods",
             "url": "classes/githusband-Validation.html#method_add_rule_class"
         },                {
-            "fqsen": "\\githusband\\Validation\u003A\u003Ais_method_symbol\u0028\u0029",
-            "name": "is_method_symbol",
+            "fqsen": "\\githusband\\Validation\u003A\u003Ais_symbol_of_method\u0028\u0029",
+            "name": "is_symbol_of_method",
             "summary": "Check\u0020if\u0020it\u0020is\u0020a\u0020symbol\u0020of\u0020method",
-            "url": "classes/githusband-Validation.html#method_is_method_symbol"
+            "url": "classes/githusband-Validation.html#method_is_symbol_of_method"
         },                {
             "fqsen": "\\githusband\\Validation\u003A\u003Amatch_method_and_symbol\u0028\u0029",
             "name": "match_method_and_symbol",
@@ -1786,6 +1816,11 @@ Search.appendIndex(
             "summary": "Get\u0020the\u0020data\u0020type\u0020of\u0020parameter",
             "url": "classes/githusband-Validation.html#method_get_parameter_type"
         },                {
+            "fqsen": "\\githusband\\Validation\u003A\u003Avar_export\u0028\u0029",
+            "name": "var_export",
+            "summary": "Return\u0020a\u0020parsable\u0020string\u0020representation\u0020of\u0020a\u0020variable",
+            "url": "classes/githusband-Validation.html#method_var_export"
+        },                {
             "fqsen": "\\githusband\\Validation\u003A\u003Arequired\u0028\u0029",
             "name": "required",
             "summary": "The\u0020field\u0020must\u0020be\u0020present\u0020and\u0020its\u0020data\u0020must\u0020not\u0020be\u0020empty\u0020string",
@@ -1866,20 +1901,30 @@ Search.appendIndex(
             "summary": "\u62D3\u5C55\u0020Validation\u0020\u7684\u4F8B\u5B50\uFF1A\u589E\u52A0\u9A8C\u8BC1\u65B9\u6CD5\u3002",
             "url": "classes/githusband-Tests-Extend-MyValidation.html"
         },                {
-            "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleClassString",
-            "name": "RuleClassString",
+            "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleClassTest",
+            "name": "RuleClassTest",
             "summary": "Rule\u0020class\u0020\u7684\u65B9\u5F0F\u589E\u52A0\u9A8C\u8BC1\u65B9\u6CD5",
-            "url": "classes/githusband-Tests-Extend-Rule-RuleClassString.html"
+            "url": "classes/githusband-Tests-Extend-Rule-RuleClassTest.html"
         },                {
-            "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleClassString\u003A\u003Ais_custom_string\u0028\u0029",
+            "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleClassTest\u003A\u003Ais_custom_string\u0028\u0029",
             "name": "is_custom_string",
-            "summary": "",
-            "url": "classes/githusband-Tests-Extend-Rule-RuleClassString.html#method_is_custom_string"
+            "summary": "\u6D4B\u8BD5\u65B9\u6CD5\u00201\u0020\u002D\u0020\u6D4B\u8BD5\u5F53\u524D\u5B57\u6BB5\u7684\u683C\u5F0F\u662F\u5426\u6EE1\u8DB3\u8981\u6C42",
+            "url": "classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_custom_string"
         },                {
-            "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleClassString\u003A\u003A\u0024method_symbols",
+            "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleClassTest\u003A\u003Ais_in_custom_list\u0028\u0029",
+            "name": "is_in_custom_list",
+            "summary": "\u6D4B\u8BD5\u65B9\u6CD5\u00202\u0020\u002D\u0020\u6D4B\u8BD5\u5F53\u524D\u5B57\u6BB5\u662F\u5426\u5B58\u5728\u4E8E\u5217\u8868\u5185",
+            "url": "classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_in_custom_list"
+        },                {
+            "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleClassTest\u003A\u003Ais_equal_to_password\u0028\u0029",
+            "name": "is_equal_to_password",
+            "summary": "\u6D4B\u8BD5\u65B9\u6CD5\u00203\u0020\u002D\u0020\u9A8C\u8BC1\u5F53\u524D\u5B57\u6BB5\u662F\u5426\u4E0E\u0020password\u0020\u5B57\u6BB5\u76F8\u7B49",
+            "url": "classes/githusband-Tests-Extend-Rule-RuleClassTest.html#method_is_equal_to_password"
+        },                {
+            "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleClassTest\u003A\u003A\u0024method_symbols",
             "name": "method_symbols",
-            "summary": "",
-            "url": "classes/githusband-Tests-Extend-Rule-RuleClassString.html#property_method_symbols"
+            "summary": "\u65B9\u6CD5\u6807\u5FD7\uFF1A\n\u002D\u0020\u5982\u679C\u503C\u4E3A\u5B57\u7B26\u4E32\uFF0C\u5219\u8868\u793A\u6807\u5FD7\u3002\n\u002D\u0020\u5982\u679C\u503C\u4E3A\u6570\u7EC4\uFF0C\u5219\u652F\u6301\u4EE5\u4E0B\u5B57\u6BB5\u003A\n\u0020\u0020\u002D\u0020\u0060symbols\u0060\u003A\u0020\u8868\u793A\u6807\u5FD7\n\u0020\u0020\u002D\u0020\u0060is_variable_length_argument\u0060\u003A\u0020\u9ED8\u8BA4\u4E3A\u0020false\u3002\u8868\u793A\u65B9\u6CD5\u7B2C\u4E8C\u4E2A\u53C2\u6570\u4E3A\u53EF\u53D8\u957F\u5EA6\u53C2\u6570\uFF0C\u89C4\u5219\u96C6\u0020\u4E2D\u7684\u7B2C\u4E00\u4E2A\u53C2\u6570\u4E4B\u540E\u7684\u6240\u6709\u53C2\u6570\u90FD\u4F1A\u88AB\u7B2C\u4E8C\u4E2A\u53C2\u6570\u7684\u5B50\u5143\u7D20\u3002\u53C2\u8003\u0020\u0060githusband\\Rule\\RuleClassDefault\u003A\u003A\u0024method_symbols\u005B\u0027in_number_array\u0027\u005D\u0060\u3002\n\u0020\u0020\u002D\u0020\u0060default_arguments\u0060\u003A\u0020\u9ED8\u8BA4\u4E3A\u0020\u65E0\u3002\u8BBE\u7F6E\u65B9\u6CD5\u7684\u9ED8\u8BA4\u53C2\u6570\u3002\u53C2\u8003\u0020\u0060githusband\\Rule\\RuleClassArray\u003A\u003A\u0024method_symbols\u005B\u0027is_unique\u0027\u005D\u0060\u3002\n\u0020\u0020\u0020\u0020\u002D\u0020\u0060default_arguments\u0060\u0020\u6570\u7EC4\u7684\u952E\u5FC5\u987B\u662F\u6574\u5F62\u6570\u5B57\uFF0C\u8868\u793A\u7B2C\u51E0\u4E2A\u9ED8\u8BA4\u53C2\u6570.\u0020\u4F8B\u5982\uFF0C\u00602\u0060\u0020\u8868\u793A\u7B2C\u4E8C\u4E2A\u53C2\u6570\u3002\n\u0020\u0020\u0020\u0020\u002D\u0020\u0060default_arguments\u0060\u0020\u6570\u7EC4\u7684\u503C\u53EF\u4EE5\u662F\u4EFB\u610F\u503C\u3002\u5BF9\u4E8E\u7C7B\u4F3C\u0020\u0022\u0040parent\u0022\u0020\u0028\u8868\u793A\u5F53\u524D\u5B57\u6BB5\u7684\u7236\u6570\u636E\u0029\uFF0C\u53C2\u8003\u0020https\u003A\/\/github.com\/gitHusband\/Validation\u003Ftab\u003Dreadme\u002Dov\u002Dfile\u002343\u002D\u0025E6\u002596\u0025B9\u0025E6\u0025B3\u002595\u0025E4\u0025BC\u0025A0\u0025E5\u00258F\u002582",
+            "url": "classes/githusband-Tests-Extend-Rule-RuleClassTest.html#property_method_symbols"
         },                {
             "fqsen": "\\githusband\\Tests\\Extend\\Rule\\RuleExtendTrait",
             "name": "RuleExtendTrait",
@@ -1991,6 +2036,16 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/githusband-Tests-Readme.html#method_test_infinite_nested_index_array"
         },                {
+            "fqsen": "\\githusband\\Tests\\Readme\u003A\u003Atest_self_rule_of_associative_array\u0028\u0029",
+            "name": "test_self_rule_of_associative_array",
+            "summary": "",
+            "url": "classes/githusband-Tests-Readme.html#method_test_self_rule_of_associative_array"
+        },                {
+            "fqsen": "\\githusband\\Tests\\Readme\u003A\u003Atest_self_rule_of_index_array\u0028\u0029",
+            "name": "test_self_rule_of_index_array",
+            "summary": "",
+            "url": "classes/githusband-Tests-Readme.html#method_test_self_rule_of_index_array"
+        },                {
             "fqsen": "\\githusband\\Tests\\Readme\u003A\u003Atest_optional_field\u0028\u0029",
             "name": "test_optional_field",
             "summary": "",
@@ -2016,10 +2071,15 @@ Search.appendIndex(
             "summary": "",
             "url": "classes/githusband-Tests-Readme.html#method_test_get_method_and_symbol"
         },                {
-            "fqsen": "\\githusband\\Tests\\Rule\\TestRuledatetime",
-            "name": "TestRuledatetime",
+            "fqsen": "\\githusband\\Tests\\Rule\\TestRuleArray",
+            "name": "TestRuleArray",
+            "summary": "Test\u0020cases\u0020of\u0020Array",
+            "url": "classes/githusband-Tests-Rule-TestRuleArray.html"
+        },                {
+            "fqsen": "\\githusband\\Tests\\Rule\\TestRuleDatetime",
+            "name": "TestRuleDatetime",
             "summary": "Test\u0020cases\u0020of\u0020date\u0020time",
-            "url": "classes/githusband-Tests-Rule-TestRuledatetime.html"
+            "url": "classes/githusband-Tests-Rule-TestRuleDatetime.html"
         },                {
             "fqsen": "\\githusband\\Tests\\Rule\\TestRuleDefault",
             "name": "TestRuleDefault",
@@ -2030,6 +2090,11 @@ Search.appendIndex(
             "name": "TestRuleDefaultDeprecated",
             "summary": "Test\u0020cases\u0020of\u0020default\u0020various\u0020format\u0020types",
             "url": "classes/githusband-Tests-Rule-TestRuleDefaultDeprecated.html"
+        },                {
+            "fqsen": "\\githusband\\Tests\\Rule\\TestRuleTest",
+            "name": "TestRuleTest",
+            "summary": "Test\u0020cases\u0020of\u0020RuleClassTest",
+            "url": "classes/githusband-Tests-Rule-TestRuleTest.html"
         },                {
             "fqsen": "\\check_id\u0028\u0029",
             "name": "check_id",

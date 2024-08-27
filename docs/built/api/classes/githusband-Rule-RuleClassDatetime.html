@@ -176,8 +176,9 @@
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
     <a href="classes/githusband-Rule-RuleClassDatetime.html#property_method_symbols">$method_symbols</a>
     <span>
-                        &nbsp;: mixed            </span>
+                        &nbsp;: array&lt;string|int, mixed&gt;            </span>
 </dt>
+<dd>The method symbols of rule datetime.</dd>
 
     </dl>
 
@@ -495,57 +496,75 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">18</span>
+    <span class="phpdocumentor-element-found-in__line">24</span>
 
     </aside>
 
-    
+        <p class="phpdocumentor-summary">The method symbols of rule datetime.</p>
+
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-    <span class="phpdocumentor-signature__static">static</span>    <span class="phpdocumentor-signature__type">mixed</span>
+    <span class="phpdocumentor-signature__static">static</span>    <span class="phpdocumentor-signature__type">array&lt;string|int, mixed&gt;</span>
     <span class="phpdocumentor-signature__name">$method_symbols</span>
      = <pre class="phpdocumentor-signature__default-value">[
     // Datetime
-    &#039;datetime&#039; =&gt; &#039;is_datetime&#039;,
-    &#039;datetime=&#039; =&gt; &#039;datetime_equal&#039;,
-    &#039;datetime!=&#039; =&gt; &#039;datetime_not_equal&#039;,
-    &#039;datetime&gt;&#039; =&gt; &#039;datetime_greater_than&#039;,
-    &#039;datetime&gt;=&#039; =&gt; &#039;datetime_greater_equal&#039;,
-    &#039;datetime&lt;&#039; =&gt; &#039;datetime_less_than&#039;,
-    &#039;datetime&lt;=&#039; =&gt; &#039;datetime_less_equal&#039;,
-    &#039;datetime&gt;&lt;&#039; =&gt; &#039;datetime_greater_less&#039;,
-    &#039;datetime&gt;&lt;=&#039; =&gt; &#039;datetime_greater_lessequal&#039;,
-    &#039;datetime&gt;=&lt;&#039; =&gt; &#039;datetime_greaterequal_less&#039;,
-    &#039;datetime&gt;=&lt;=&#039; =&gt; &#039;datetime_between&#039;,
+    &#039;is_datetime&#039; =&gt; &#039;datetime&#039;,
+    &#039;datetime_equal&#039; =&gt; &#039;datetime=&#039;,
+    &#039;datetime_not_equal&#039; =&gt; &#039;datetime!=&#039;,
+    &#039;datetime_greater_than&#039; =&gt; &#039;datetime&gt;&#039;,
+    &#039;datetime_greater_equal&#039; =&gt; &#039;datetime&gt;=&#039;,
+    &#039;datetime_less_than&#039; =&gt; &#039;datetime&lt;&#039;,
+    &#039;datetime_less_equal&#039; =&gt; &#039;datetime&lt;=&#039;,
+    &#039;datetime_greater_less&#039; =&gt; &#039;datetime&gt;&lt;&#039;,
+    &#039;datetime_greater_lessequal&#039; =&gt; &#039;datetime&gt;&lt;=&#039;,
+    &#039;datetime_greaterequal_less&#039; =&gt; &#039;datetime&gt;=&lt;&#039;,
+    &#039;datetime_between&#039; =&gt; &#039;datetime&gt;=&lt;=&#039;,
     // Date
-    &#039;date&#039; =&gt; &#039;is_date&#039;,
-    &#039;date=&#039; =&gt; &#039;date_equal&#039;,
-    &#039;date!=&#039; =&gt; &#039;date_not_equal&#039;,
-    &#039;date&gt;&#039; =&gt; &#039;date_greater_than&#039;,
-    &#039;date&gt;=&#039; =&gt; &#039;date_greater_equal&#039;,
-    &#039;date&lt;&#039; =&gt; &#039;date_less_than&#039;,
-    &#039;date&lt;=&#039; =&gt; &#039;date_less_equal&#039;,
-    &#039;date&gt;&lt;&#039; =&gt; &#039;date_greater_less&#039;,
-    &#039;date&gt;&lt;=&#039; =&gt; &#039;date_greater_lessequal&#039;,
-    &#039;date&gt;=&lt;&#039; =&gt; &#039;date_greaterequal_less&#039;,
-    &#039;date&gt;=&lt;=&#039; =&gt; &#039;date_between&#039;,
+    &#039;is_date&#039; =&gt; &#039;date&#039;,
+    &#039;date_equal&#039; =&gt; &#039;date=&#039;,
+    &#039;date_not_equal&#039; =&gt; &#039;date!=&#039;,
+    &#039;date_greater_than&#039; =&gt; &#039;date&gt;&#039;,
+    &#039;date_greater_equal&#039; =&gt; &#039;date&gt;=&#039;,
+    &#039;date_less_than&#039; =&gt; &#039;date&lt;&#039;,
+    &#039;date_less_equal&#039; =&gt; &#039;date&lt;=&#039;,
+    &#039;date_greater_less&#039; =&gt; &#039;date&gt;&lt;&#039;,
+    &#039;date_greater_lessequal&#039; =&gt; &#039;date&gt;&lt;=&#039;,
+    &#039;date_greaterequal_less&#039; =&gt; &#039;date&gt;=&lt;&#039;,
+    &#039;date_between&#039; =&gt; &#039;date&gt;=&lt;=&#039;,
     // Time
-    &#039;time&#039; =&gt; &#039;is_time&#039;,
-    &#039;time=&#039; =&gt; &#039;time_equal&#039;,
-    &#039;time!=&#039; =&gt; &#039;time_not_equal&#039;,
-    &#039;time&gt;&#039; =&gt; &#039;time_greater_than&#039;,
-    &#039;time&gt;=&#039; =&gt; &#039;time_greater_equal&#039;,
-    &#039;time&lt;&#039; =&gt; &#039;time_less_than&#039;,
-    &#039;time&lt;=&#039; =&gt; &#039;time_less_equal&#039;,
-    &#039;time&gt;&lt;&#039; =&gt; &#039;time_greater_less&#039;,
-    &#039;time&gt;&lt;=&#039; =&gt; &#039;time_greater_lessequal&#039;,
-    &#039;time&gt;=&lt;&#039; =&gt; &#039;time_greaterequal_less&#039;,
-    &#039;time&gt;=&lt;=&#039; =&gt; &#039;time_between&#039;,
+    &#039;is_time&#039; =&gt; &#039;time&#039;,
+    &#039;time_equal&#039; =&gt; &#039;time=&#039;,
+    &#039;time_not_equal&#039; =&gt; &#039;time!=&#039;,
+    &#039;time_greater_than&#039; =&gt; &#039;time&gt;&#039;,
+    &#039;time_greater_equal&#039; =&gt; &#039;time&gt;=&#039;,
+    &#039;time_less_than&#039; =&gt; &#039;time&lt;&#039;,
+    &#039;time_less_equal&#039; =&gt; &#039;time&lt;=&#039;,
+    &#039;time_greater_less&#039; =&gt; &#039;time&gt;&lt;&#039;,
+    &#039;time_greater_lessequal&#039; =&gt; &#039;time&gt;&lt;=&#039;,
+    &#039;time_greaterequal_less&#039; =&gt; &#039;time&gt;=&lt;&#039;,
+    &#039;time_between&#039; =&gt; &#039;time&gt;=&lt;=&#039;,
 ]</pre></code>
 
     
     
     
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="classes/githusband-Rule-RuleClassDatetime.html#property_method_symbols#tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                                    <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">see</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                    <span class="phpdocumentor-tag-link"><abbr title="\githusband\Rule\githusband\Rule\RuleClassDefault::$method_symbols">RuleClassDefault::$method_symbols</abbr></span>
+                                        
+                                                 <section class="phpdocumentor-description"><p>About its format</p>
+</section>
+
+                                    </dd>
+                                            </dl>
 
     
 
@@ -572,7 +591,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">262</span>
+    <span class="phpdocumentor-element-found-in__line">268</span>
 
     </aside>
 
@@ -642,7 +661,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">718</span>
+    <span class="phpdocumentor-element-found-in__line">724</span>
 
     </aside>
 
@@ -726,7 +745,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">588</span>
+    <span class="phpdocumentor-element-found-in__line">594</span>
 
     </aside>
 
@@ -803,7 +822,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">630</span>
+    <span class="phpdocumentor-element-found-in__line">636</span>
 
     </aside>
 
@@ -880,7 +899,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">673</span>
+    <span class="phpdocumentor-element-found-in__line">679</span>
 
     </aside>
 
@@ -964,7 +983,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">703</span>
+    <span class="phpdocumentor-element-found-in__line">709</span>
 
     </aside>
 
@@ -1048,7 +1067,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">616</span>
+    <span class="phpdocumentor-element-found-in__line">622</span>
 
     </aside>
 
@@ -1125,7 +1144,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">688</span>
+    <span class="phpdocumentor-element-found-in__line">694</span>
 
     </aside>
 
@@ -1209,7 +1228,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">658</span>
+    <span class="phpdocumentor-element-found-in__line">664</span>
 
     </aside>
 
@@ -1286,7 +1305,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">644</span>
+    <span class="phpdocumentor-element-found-in__line">650</span>
 
     </aside>
 
@@ -1363,7 +1382,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">602</span>
+    <span class="phpdocumentor-element-found-in__line">608</span>
 
     </aside>
 
@@ -1440,7 +1459,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">556</span>
+    <span class="phpdocumentor-element-found-in__line">562</span>
 
     </aside>
 
@@ -1531,7 +1550,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">333</span>
+    <span class="phpdocumentor-element-found-in__line">339</span>
 
     </aside>
 
@@ -1615,7 +1634,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">393</span>
+    <span class="phpdocumentor-element-found-in__line">399</span>
 
     </aside>
 
@@ -1699,7 +1718,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">454</span>
+    <span class="phpdocumentor-element-found-in__line">460</span>
 
     </aside>
 
@@ -1790,7 +1809,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">522</span>
+    <span class="phpdocumentor-element-found-in__line">528</span>
 
     </aside>
 
@@ -1881,7 +1900,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">373</span>
+    <span class="phpdocumentor-element-found-in__line">379</span>
 
     </aside>
 
@@ -1965,7 +1984,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">488</span>
+    <span class="phpdocumentor-element-found-in__line">494</span>
 
     </aside>
 
@@ -2056,7 +2075,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">433</span>
+    <span class="phpdocumentor-element-found-in__line">439</span>
 
     </aside>
 
@@ -2140,7 +2159,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">413</span>
+    <span class="phpdocumentor-element-found-in__line">419</span>
 
     </aside>
 
@@ -2224,7 +2243,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">353</span>
+    <span class="phpdocumentor-element-found-in__line">359</span>
 
     </aside>
 
@@ -2308,7 +2327,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">247</span>
+    <span class="phpdocumentor-element-found-in__line">253</span>
 
     </aside>
 
@@ -2381,7 +2400,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">279</span>
+    <span class="phpdocumentor-element-found-in__line">285</span>
 
     </aside>
 
@@ -2473,7 +2492,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">306</span>
+    <span class="phpdocumentor-element-found-in__line">312</span>
 
     </aside>
 
@@ -2528,7 +2547,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">292</span>
+    <span class="phpdocumentor-element-found-in__line">298</span>
 
     </aside>
 
@@ -2590,7 +2609,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">229</span>
+    <span class="phpdocumentor-element-found-in__line">235</span>
 
     </aside>
 
@@ -2653,7 +2672,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">318</span>
+    <span class="phpdocumentor-element-found-in__line">324</span>
 
     </aside>
 
@@ -2708,7 +2727,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">68</span>
+    <span class="phpdocumentor-element-found-in__line">74</span>
 
     </aside>
 
@@ -2783,7 +2802,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">157</span>
+    <span class="phpdocumentor-element-found-in__line">163</span>
 
     </aside>
 
@@ -2878,7 +2897,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">862</span>
+    <span class="phpdocumentor-element-found-in__line">868</span>
 
     </aside>
 
@@ -2962,7 +2981,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">732</span>
+    <span class="phpdocumentor-element-found-in__line">738</span>
 
     </aside>
 
@@ -3039,7 +3058,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">774</span>
+    <span class="phpdocumentor-element-found-in__line">780</span>
 
     </aside>
 
@@ -3116,7 +3135,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">817</span>
+    <span class="phpdocumentor-element-found-in__line">823</span>
 
     </aside>
 
@@ -3200,7 +3219,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">847</span>
+    <span class="phpdocumentor-element-found-in__line">853</span>
 
     </aside>
 
@@ -3284,7 +3303,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">760</span>
+    <span class="phpdocumentor-element-found-in__line">766</span>
 
     </aside>
 
@@ -3361,7 +3380,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">832</span>
+    <span class="phpdocumentor-element-found-in__line">838</span>
 
     </aside>
 
@@ -3445,7 +3464,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">802</span>
+    <span class="phpdocumentor-element-found-in__line">808</span>
 
     </aside>
 
@@ -3522,7 +3541,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">788</span>
+    <span class="phpdocumentor-element-found-in__line">794</span>
 
     </aside>
 
@@ -3599,7 +3618,7 @@ The format is optional, but if it&#039;s present:
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDatetime.php"><a href="files/src-rule-ruleclassdatetime.html"><abbr title="src/Rule/RuleClassDatetime.php">RuleClassDatetime.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">746</span>
+    <span class="phpdocumentor-element-found-in__line">752</span>
 
     </aside>
 

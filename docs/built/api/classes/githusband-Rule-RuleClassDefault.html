@@ -201,7 +201,7 @@
             <dt class="phpdocumentor-table-of-contents__entry -property -public">
     <a href="classes/githusband-Rule-RuleClassDefault.html#property_method_symbols">$method_symbols</a>
     <span>
-                        &nbsp;: array&lt;string|int, mixed&gt;            </span>
+                        &nbsp;: mixed            </span>
 </dt>
 <dd>The method symbols of rule default.</dd>
 
@@ -667,7 +667,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">115</span>
+    <span class="phpdocumentor-element-found-in__line">147</span>
 
     </aside>
 
@@ -702,7 +702,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">128</span>
+    <span class="phpdocumentor-element-found-in__line">160</span>
 
     </aside>
 
@@ -737,7 +737,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">142</span>
+    <span class="phpdocumentor-element-found-in__line">174</span>
 
     </aside>
 
@@ -772,7 +772,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">73</span>
+    <span class="phpdocumentor-element-found-in__line">93</span>
 
     </aside>
 
@@ -783,37 +783,37 @@
     <span class="phpdocumentor-signature__static">static</span>    <span class="phpdocumentor-signature__type">array&lt;string|int, mixed&gt;</span>
     <span class="phpdocumentor-signature__name">$deprecated_method_symbols</span>
      = <pre class="phpdocumentor-signature__default-value">[
-    // &#039;=&#039; =&gt; &#039;equal&#039;,
-    // &#039;!=&#039; =&gt; &#039;not_equal&#039;,
-    // &#039;==&#039; =&gt; &#039;strictly_equal&#039;,
-    // &#039;!==&#039; =&gt; &#039;not_strictly_equal&#039;,
-    // &#039;&gt;&#039; =&gt; &#039;greater_than&#039;,
-    // &#039;&lt;&#039; =&gt; &#039;less_than&#039;,
-    // &#039;&gt;=&#039; =&gt; &#039;greater_equal&#039;,
-    // &#039;&lt;=&#039; =&gt; &#039;less_equal&#039;,
-    &#039;&lt;&gt;&#039; =&gt; &#039;greater_less&#039;,
-    &#039;&lt;=&gt;&#039; =&gt; &#039;greater_lessequal&#039;,
-    &#039;&lt;&gt;=&#039; =&gt; &#039;greaterequal_less&#039;,
-    &#039;&lt;=&gt;=&#039; =&gt; &#039;between&#039;,
-    &#039;(n)&#039; =&gt; &#039;in_number_array&#039;,
-    &#039;!(n)&#039; =&gt; &#039;not_in_number_array&#039;,
-    &#039;(s)&#039; =&gt; &#039;in_string_array&#039;,
-    &#039;!(s)&#039; =&gt; &#039;not_in_string_array&#039;,
-    &#039;len=&#039; =&gt; &#039;length_equal&#039;,
-    &#039;len!=&#039; =&gt; &#039;length_not_equal&#039;,
-    &#039;len&gt;&#039; =&gt; &#039;length_greater_than&#039;,
-    &#039;len&lt;&#039; =&gt; &#039;length_less_than&#039;,
-    &#039;len&gt;=&#039; =&gt; &#039;length_greater_equal&#039;,
-    &#039;len&lt;=&#039; =&gt; &#039;length_less_equal&#039;,
-    &#039;len&lt;&gt;&#039; =&gt; &#039;length_greater_less&#039;,
-    &#039;len&lt;=&gt;&#039; =&gt; &#039;length_greater_lessequal&#039;,
-    &#039;len&lt;&gt;=&#039; =&gt; &#039;length_greaterequal_less&#039;,
-    &#039;len&lt;=&gt;=&#039; =&gt; &#039;length_between&#039;,
-    // &#039;int&#039; =&gt; &#039;integer&#039;,
-    &#039;arr&#039; =&gt; &#039;is_array&#039;,
+    // &#039;equal&#039; =&gt; &#039;=&#039;,
+    // &#039;not_equal&#039; =&gt; &#039;!=&#039;,
+    // &#039;strictly_equal&#039; =&gt; &#039;==&#039;,
+    // &#039;not_strictly_equal&#039; =&gt; &#039;!==&#039;,
+    // &#039;greater_than&#039; =&gt; &#039;&gt;&#039;,
+    // &#039;less_than&#039; =&gt; &#039;&lt;&#039;,
+    // &#039;greater_equal&#039; =&gt; &#039;&gt;=&#039;,
+    // &#039;less_equal&#039; =&gt; &#039;&lt;=&#039;,
+    &#039;greater_less&#039; =&gt; &#039;&lt;&gt;&#039;,
+    &#039;greater_lessequal&#039; =&gt; &#039;&lt;=&gt;&#039;,
+    &#039;greaterequal_less&#039; =&gt; &#039;&lt;&gt;=&#039;,
+    &#039;between&#039; =&gt; &#039;&lt;=&gt;=&#039;,
+    &#039;in_number_array&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;(n)&#039;, &#039;is_variable_length_argument&#039; =&gt; true],
+    &#039;not_in_number_array&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;!(n)&#039;, &#039;is_variable_length_argument&#039; =&gt; true],
+    &#039;in_string_array&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;(s)&#039;, &#039;is_variable_length_argument&#039; =&gt; true],
+    &#039;not_in_string_array&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;!(s)&#039;, &#039;is_variable_length_argument&#039; =&gt; true],
+    &#039;length_equal&#039; =&gt; &#039;len=&#039;,
+    &#039;length_not_equal&#039; =&gt; &#039;len!=&#039;,
+    &#039;length_greater_than&#039; =&gt; &#039;len&gt;&#039;,
+    &#039;length_less_than&#039; =&gt; &#039;len&lt;&#039;,
+    &#039;length_greater_equal&#039; =&gt; &#039;len&gt;=&#039;,
+    &#039;length_less_equal&#039; =&gt; &#039;len&lt;=&#039;,
+    &#039;length_greater_less&#039; =&gt; &#039;len&lt;&gt;&#039;,
+    &#039;length_greater_lessequal&#039; =&gt; &#039;len&lt;=&gt;&#039;,
+    &#039;length_greaterequal_less&#039; =&gt; &#039;len&lt;&gt;=&#039;,
+    &#039;length_between&#039; =&gt; &#039;len&lt;=&gt;=&#039;,
+    // &#039;integer&#039; =&gt; &#039;int&#039;,
+    &#039;is_array&#039; =&gt; &#039;arr&#039;,
     // native function
-    // &#039;bool=&#039; =&gt; &#039;bool_equal&#039;,
-    &#039;bool_str=&#039; =&gt; &#039;bool_string_equal&#039;,
+    // &#039;bool_equal&#039; =&gt; &#039;bool=&#039;,
+    &#039;bool_string_equal&#039; =&gt; &#039;bool_str=&#039;,
 ]</pre></code>
 
     
@@ -855,7 +855,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">22</span>
+    <span class="phpdocumentor-element-found-in__line">30</span>
 
     </aside>
 
@@ -863,57 +863,89 @@
 
     <code class="phpdocumentor-code phpdocumentor-signature ">
     <span class="phpdocumentor-signature__visibility">public</span>
-    <span class="phpdocumentor-signature__static">static</span>    <span class="phpdocumentor-signature__type">array&lt;string|int, mixed&gt;</span>
+    <span class="phpdocumentor-signature__static">static</span>    <span class="phpdocumentor-signature__type">mixed</span>
     <span class="phpdocumentor-signature__name">$method_symbols</span>
      = <pre class="phpdocumentor-signature__default-value">[
-    &#039;=&#039; =&gt; &#039;equal&#039;,
-    &#039;!=&#039; =&gt; &#039;not_equal&#039;,
-    &#039;==&#039; =&gt; &#039;strictly_equal&#039;,
-    &#039;!==&#039; =&gt; &#039;not_strictly_equal&#039;,
-    &#039;&gt;&#039; =&gt; &#039;greater_than&#039;,
-    &#039;&lt;&#039; =&gt; &#039;less_than&#039;,
-    &#039;&gt;=&#039; =&gt; &#039;greater_equal&#039;,
-    &#039;&lt;=&#039; =&gt; &#039;less_equal&#039;,
-    &#039;&gt;&lt;&#039; =&gt; &#039;greater_less&#039;,
-    &#039;&gt;&lt;=&#039; =&gt; &#039;greater_lessequal&#039;,
-    &#039;&gt;=&lt;&#039; =&gt; &#039;greaterequal_less&#039;,
-    &#039;&gt;=&lt;=&#039; =&gt; &#039;between&#039;,
-    &#039;&lt;number&gt;&#039; =&gt; &#039;in_number_array&#039;,
-    &#039;!&lt;number&gt;&#039; =&gt; &#039;not_in_number_array&#039;,
-    &#039;&lt;string&gt;&#039; =&gt; &#039;in_string_array&#039;,
-    &#039;!&lt;string&gt;&#039; =&gt; &#039;not_in_string_array&#039;,
-    &#039;length=&#039; =&gt; &#039;length_equal&#039;,
-    &#039;length!=&#039; =&gt; &#039;length_not_equal&#039;,
-    &#039;length&gt;&#039; =&gt; &#039;length_greater_than&#039;,
-    &#039;length&lt;&#039; =&gt; &#039;length_less_than&#039;,
-    &#039;length&gt;=&#039; =&gt; &#039;length_greater_equal&#039;,
-    &#039;length&lt;=&#039; =&gt; &#039;length_less_equal&#039;,
-    &#039;length&gt;&lt;&#039; =&gt; &#039;length_greater_less&#039;,
-    &#039;length&gt;&lt;=&#039; =&gt; &#039;length_greater_lessequal&#039;,
-    &#039;length&gt;=&lt;&#039; =&gt; &#039;length_greaterequal_less&#039;,
-    &#039;length&gt;=&lt;=&#039; =&gt; &#039;length_between&#039;,
-    &#039;int&#039; =&gt; &#039;integer&#039;,
-    &#039;array&#039; =&gt; &#039;is_array&#039;,
+    &#039;equal&#039; =&gt; &#039;=&#039;,
+    &#039;not_equal&#039; =&gt; &#039;!=&#039;,
+    &#039;strictly_equal&#039; =&gt; &#039;==&#039;,
+    &#039;not_strictly_equal&#039; =&gt; &#039;!==&#039;,
+    &#039;greater_than&#039; =&gt; &#039;&gt;&#039;,
+    &#039;less_than&#039; =&gt; &#039;&lt;&#039;,
+    &#039;greater_equal&#039; =&gt; &#039;&gt;=&#039;,
+    &#039;less_equal&#039; =&gt; &#039;&lt;=&#039;,
+    &#039;greater_less&#039; =&gt; &#039;&gt;&lt;&#039;,
+    &#039;greater_lessequal&#039; =&gt; &#039;&gt;&lt;=&#039;,
+    &#039;greaterequal_less&#039; =&gt; &#039;&gt;=&lt;&#039;,
+    &#039;between&#039; =&gt; &#039;&gt;=&lt;=&#039;,
+    &#039;in_number_array&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;&lt;number&gt;&#039;, &#039;is_variable_length_argument&#039; =&gt; true],
+    &#039;not_in_number_array&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;!&lt;number&gt;&#039;, &#039;is_variable_length_argument&#039; =&gt; true],
+    &#039;in_string_array&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;&lt;string&gt;&#039;, &#039;is_variable_length_argument&#039; =&gt; true],
+    &#039;not_in_string_array&#039; =&gt; [&#039;symbols&#039; =&gt; &#039;!&lt;string&gt;&#039;, &#039;is_variable_length_argument&#039; =&gt; true],
+    &#039;length_equal&#039; =&gt; &#039;length=&#039;,
+    &#039;length_not_equal&#039; =&gt; &#039;length!=&#039;,
+    &#039;length_greater_than&#039; =&gt; &#039;length&gt;&#039;,
+    &#039;length_less_than&#039; =&gt; &#039;length&lt;&#039;,
+    &#039;length_greater_equal&#039; =&gt; &#039;length&gt;=&#039;,
+    &#039;length_less_equal&#039; =&gt; &#039;length&lt;=&#039;,
+    &#039;length_greater_less&#039; =&gt; &#039;length&gt;&lt;&#039;,
+    &#039;length_greater_lessequal&#039; =&gt; &#039;length&gt;&lt;=&#039;,
+    &#039;length_greaterequal_less&#039; =&gt; &#039;length&gt;=&lt;&#039;,
+    &#039;length_between&#039; =&gt; &#039;length&gt;=&lt;=&#039;,
+    &#039;integer&#039; =&gt; &#039;int&#039;,
+    &#039;is_array&#039; =&gt; &#039;array&#039;,
     // native function
-    &#039;bool=&#039; =&gt; &#039;bool_equal&#039;,
-    &#039;bool_string=&#039; =&gt; &#039;bool_string_equal&#039;,
-    &#039;email&#039; =&gt; &#039;is_email&#039;,
-    &#039;url&#039; =&gt; &#039;is_url&#039;,
-    &#039;ip&#039; =&gt; &#039;is_ip&#039;,
-    &#039;ipv4&#039; =&gt; &#039;is_ipv4&#039;,
-    &#039;ipv6&#039; =&gt; &#039;is_ipv6&#039;,
-    &#039;mac&#039; =&gt; &#039;is_mac&#039;,
-    &#039;uuid&#039; =&gt; &#039;is_uuid&#039;,
-    &#039;ulid&#039; =&gt; &#039;is_ulid&#039;,
-    &#039;alpha&#039; =&gt; &#039;is_alpha&#039;,
-    &#039;alpha_ext&#039; =&gt; &#039;is_alpha_ext&#039;,
-    &#039;alphanumeric&#039; =&gt; &#039;is_alphanumeric&#039;,
-    &#039;alphanumeric_ext&#039; =&gt; &#039;is_alphanumeric_ext&#039;,
+    &#039;bool_equal&#039; =&gt; &#039;bool=&#039;,
+    &#039;bool_string_equal&#039; =&gt; &#039;bool_string=&#039;,
+    &#039;is_email&#039; =&gt; &#039;email&#039;,
+    &#039;is_url&#039; =&gt; &#039;url&#039;,
+    &#039;is_ip&#039; =&gt; &#039;ip&#039;,
+    &#039;is_ipv4&#039; =&gt; &#039;ipv4&#039;,
+    &#039;is_ipv6&#039; =&gt; &#039;ipv6&#039;,
+    &#039;is_mac&#039; =&gt; &#039;mac&#039;,
+    &#039;is_uuid&#039; =&gt; &#039;uuid&#039;,
+    &#039;is_ulid&#039; =&gt; &#039;ulid&#039;,
+    &#039;is_alpha&#039; =&gt; &#039;alpha&#039;,
+    &#039;is_alpha_ext&#039; =&gt; &#039;alpha_ext&#039;,
+    &#039;is_alphanumeric&#039; =&gt; &#039;alphanumeric&#039;,
+    &#039;is_alphanumeric_ext&#039; =&gt; &#039;alphanumeric_ext&#039;,
 ]</pre></code>
+
+        <section class="phpdocumentor-description"><ul>
+<li>If the value is a string, such as 'cus_str', it represents the symbol.</li>
+<li>If the value is an array, the following fields are supported:
+<ul>
+<li>symbols: The symbols of a method.</li>
+<li>is_variable_length_argument: Default to false. Whether the second parameter of the current rule is variable length argument or not</li>
+<li>default_arguments: Default to nothing. Set the default arguments for the method. githusband\Rule\RuleClassArray::$method_symbols['is_unique']
+<ul>
+<li>The key of default_arguments array must be int. It indicates what argument it is. e.g. <code class="prettyprint">2</code> means the 2th argument.</li>
+<li>The value of default_arguments array can be anything. Specially, about the value what likes &quot;@parent&quot;(means the parent data of the current field), please @see https://github.com/gitHusband/Validation/blob/main/README-EN.md#43-method-parameters</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
 
     
     
-    
+    <h5 class="phpdocumentor-tag-list__heading" id="tags">
+        Tags
+        <a href="classes/githusband-Rule-RuleClassDefault.html#property_method_symbols#tags" class="headerlink"><i class="fas fa-link"></i></a>
+
+    </h5>
+    <dl class="phpdocumentor-tag-list">
+                                    <dt class="phpdocumentor-tag-list__entry">
+                    <span class="phpdocumentor-tag__name">@var</span>
+                </dt>
+                <dd class="phpdocumentor-tag-list__definition">
+                                                                                
+                                                 <section class="phpdocumentor-description"><p>array&lt;string, string|array{symbols: string|string[], is_variable_length_argument: bool, default_arguments: &lt;int, mixed&gt;}&gt;</p>
+</section>
+
+                                    </dd>
+                                            </dl>
 
     
 
@@ -935,7 +967,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">106</span>
+    <span class="phpdocumentor-element-found-in__line">138</span>
 
     </aside>
 
@@ -981,7 +1013,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">121</span>
+    <span class="phpdocumentor-element-found-in__line">153</span>
 
     </aside>
 
@@ -1023,7 +1055,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">135</span>
+    <span class="phpdocumentor-element-found-in__line">167</span>
 
     </aside>
 
@@ -1070,7 +1102,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">315</span>
+    <span class="phpdocumentor-element-found-in__line">347</span>
 
     </aside>
 
@@ -1132,7 +1164,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">562</span>
+    <span class="phpdocumentor-element-found-in__line">594</span>
 
     </aside>
 
@@ -1180,7 +1212,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">574</span>
+    <span class="phpdocumentor-element-found-in__line">606</span>
 
     </aside>
 
@@ -1235,7 +1267,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">598</span>
+    <span class="phpdocumentor-element-found-in__line">630</span>
 
     </aside>
 
@@ -1298,7 +1330,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">609</span>
+    <span class="phpdocumentor-element-found-in__line">641</span>
 
     </aside>
 
@@ -1346,7 +1378,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">621</span>
+    <span class="phpdocumentor-element-found-in__line">653</span>
 
     </aside>
 
@@ -1401,7 +1433,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">645</span>
+    <span class="phpdocumentor-element-found-in__line">677</span>
 
     </aside>
 
@@ -1449,7 +1481,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">179</span>
+    <span class="phpdocumentor-element-found-in__line">211</span>
 
     </aside>
 
@@ -1504,7 +1536,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">689</span>
+    <span class="phpdocumentor-element-found-in__line">721</span>
 
     </aside>
 
@@ -1570,7 +1602,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">539</span>
+    <span class="phpdocumentor-element-found-in__line">571</span>
 
     </aside>
 
@@ -1618,7 +1650,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">884</span>
+    <span class="phpdocumentor-element-found-in__line">916</span>
 
     </aside>
 
@@ -1707,7 +1739,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">930</span>
+    <span class="phpdocumentor-element-found-in__line">962</span>
 
     </aside>
 
@@ -1779,7 +1811,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">969</span>
+    <span class="phpdocumentor-element-found-in__line">1001</span>
 
     </aside>
 
@@ -1851,7 +1883,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">943</span>
+    <span class="phpdocumentor-element-found-in__line">975</span>
 
     </aside>
 
@@ -1923,7 +1955,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">956</span>
+    <span class="phpdocumentor-element-found-in__line">988</span>
 
     </aside>
 
@@ -1995,7 +2027,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">667</span>
+    <span class="phpdocumentor-element-found-in__line">699</span>
 
     </aside>
 
@@ -2043,7 +2075,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">251</span>
+    <span class="phpdocumentor-element-found-in__line">283</span>
 
     </aside>
 
@@ -2098,7 +2130,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">276</span>
+    <span class="phpdocumentor-element-found-in__line">308</span>
 
     </aside>
 
@@ -2160,7 +2192,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">289</span>
+    <span class="phpdocumentor-element-found-in__line">321</span>
 
     </aside>
 
@@ -2222,7 +2254,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">227</span>
+    <span class="phpdocumentor-element-found-in__line">259</span>
 
     </aside>
 
@@ -2277,7 +2309,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">302</span>
+    <span class="phpdocumentor-element-found-in__line">334</span>
 
     </aside>
 
@@ -2339,7 +2371,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">327</span>
+    <span class="phpdocumentor-element-found-in__line">359</span>
 
     </aside>
 
@@ -2394,7 +2426,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">351</span>
+    <span class="phpdocumentor-element-found-in__line">383</span>
 
     </aside>
 
@@ -2449,7 +2481,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">528</span>
+    <span class="phpdocumentor-element-found-in__line">560</span>
 
     </aside>
 
@@ -2497,7 +2529,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">983</span>
+    <span class="phpdocumentor-element-found-in__line">1015</span>
 
     </aside>
 
@@ -2574,7 +2606,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">1047</span>
+    <span class="phpdocumentor-element-found-in__line">1079</span>
 
     </aside>
 
@@ -2653,7 +2685,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">1015</span>
+    <span class="phpdocumentor-element-found-in__line">1047</span>
 
     </aside>
 
@@ -2730,7 +2762,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">1069</span>
+    <span class="phpdocumentor-element-found-in__line">1101</span>
 
     </aside>
 
@@ -2809,7 +2841,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">736</span>
+    <span class="phpdocumentor-element-found-in__line">768</span>
 
     </aside>
 
@@ -2857,7 +2889,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">778</span>
+    <span class="phpdocumentor-element-found-in__line">810</span>
 
     </aside>
 
@@ -2905,7 +2937,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">794</span>
+    <span class="phpdocumentor-element-found-in__line">826</span>
 
     </aside>
 
@@ -2953,7 +2985,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">810</span>
+    <span class="phpdocumentor-element-found-in__line">842</span>
 
     </aside>
 
@@ -3001,7 +3033,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">826</span>
+    <span class="phpdocumentor-element-found-in__line">858</span>
 
     </aside>
 
@@ -3049,7 +3081,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">858</span>
+    <span class="phpdocumentor-element-found-in__line">890</span>
 
     </aside>
 
@@ -3097,7 +3129,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">753</span>
+    <span class="phpdocumentor-element-found-in__line">785</span>
 
     </aside>
 
@@ -3154,7 +3186,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">842</span>
+    <span class="phpdocumentor-element-found-in__line">874</span>
 
     </aside>
 
@@ -3202,7 +3234,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">514</span>
+    <span class="phpdocumentor-element-found-in__line">546</span>
 
     </aside>
 
@@ -3264,7 +3296,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">375</span>
+    <span class="phpdocumentor-element-found-in__line">407</span>
 
     </aside>
 
@@ -3319,7 +3351,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">435</span>
+    <span class="phpdocumentor-element-found-in__line">467</span>
 
     </aside>
 
@@ -3374,7 +3406,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">466</span>
+    <span class="phpdocumentor-element-found-in__line">498</span>
 
     </aside>
 
@@ -3436,7 +3468,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">482</span>
+    <span class="phpdocumentor-element-found-in__line">514</span>
 
     </aside>
 
@@ -3498,7 +3530,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">405</span>
+    <span class="phpdocumentor-element-found-in__line">437</span>
 
     </aside>
 
@@ -3553,7 +3585,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">498</span>
+    <span class="phpdocumentor-element-found-in__line">530</span>
 
     </aside>
 
@@ -3615,7 +3647,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">450</span>
+    <span class="phpdocumentor-element-found-in__line">482</span>
 
     </aside>
 
@@ -3670,7 +3702,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">420</span>
+    <span class="phpdocumentor-element-found-in__line">452</span>
 
     </aside>
 
@@ -3725,7 +3757,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">390</span>
+    <span class="phpdocumentor-element-found-in__line">422</span>
 
     </aside>
 
@@ -3780,7 +3812,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">263</span>
+    <span class="phpdocumentor-element-found-in__line">295</span>
 
     </aside>
 
@@ -3835,7 +3867,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">239</span>
+    <span class="phpdocumentor-element-found-in__line">271</span>
 
     </aside>
 
@@ -3890,7 +3922,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">191</span>
+    <span class="phpdocumentor-element-found-in__line">223</span>
 
     </aside>
 
@@ -3945,7 +3977,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">339</span>
+    <span class="phpdocumentor-element-found-in__line">371</span>
 
     </aside>
 
@@ -4000,7 +4032,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">363</span>
+    <span class="phpdocumentor-element-found-in__line">395</span>
 
     </aside>
 
@@ -4055,7 +4087,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">215</span>
+    <span class="phpdocumentor-element-found-in__line">247</span>
 
     </aside>
 
@@ -4110,7 +4142,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">634</span>
+    <span class="phpdocumentor-element-found-in__line">666</span>
 
     </aside>
 
@@ -4158,7 +4190,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">718</span>
+    <span class="phpdocumentor-element-found-in__line">750</span>
 
     </aside>
 
@@ -4206,7 +4238,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">167</span>
+    <span class="phpdocumentor-element-found-in__line">199</span>
 
     </aside>
 
@@ -4254,7 +4286,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">203</span>
+    <span class="phpdocumentor-element-found-in__line">235</span>
 
     </aside>
 
@@ -4309,7 +4341,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">550</span>
+    <span class="phpdocumentor-element-found-in__line">582</span>
 
     </aside>
 
@@ -4357,7 +4389,7 @@
     <aside class="phpdocumentor-element-found-in">
     <abbr class="phpdocumentor-element-found-in__file" title="src/Rule/RuleClassDefault.php"><a href="files/src-rule-ruleclassdefault.html"><abbr title="src/Rule/RuleClassDefault.php">RuleClassDefault.php</abbr></a></abbr>
     :
-    <span class="phpdocumentor-element-found-in__line">155</span>
+    <span class="phpdocumentor-element-found-in__line">187</span>
 
     </aside>
 
