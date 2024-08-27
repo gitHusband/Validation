@@ -164,9 +164,14 @@ $ composer require githusband/validation
 在 `src/Test` 目录下已经内置了单元测试类 `Unit.php` 和 文档测试类 `Readme.php`
 通过 [Composer Script](https://getcomposer.org/doc/articles/scripts.md) 调用它们。
 
-克隆本项目后，请先加载项目的自动加载文件：
+~~克隆本项目后，请先加载项目的自动加载文件：~~
 ```BASH
 $ composer dump-autoload --dev
+```
+
+由于测试文件中使用了部分外部库，如 `uuid`, 我们不能简单地加载项目的自动加载文件，而需要下载外部库,
+```BASH
+$ composer install
 ```
 
 - **单元测试类**

@@ -167,9 +167,14 @@ The unit test class `Unit.php` and the document test class `Readme.php` have bee
 
 Execute them via [Composer Script](https://getcomposer.org/doc/articles/scripts.md).
 
-After cloning this project, please generate the project's automatic loading file by:
+~~After cloning this project, please generate the project's automatic loading file by:~~
 ```BASH
 $ composer dump-autoload --dev
+```
+
+Since some external libraries are used in the unit testing, such as `uuid`, we cannot simply load the project's automatic loading file, but need to download the external library.
+```BASH
+$ composer install
 ```
 
 - **Unit testing class**
