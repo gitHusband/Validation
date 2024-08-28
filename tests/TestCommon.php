@@ -11,8 +11,36 @@ class TestCommon
 {
     const LOG_LEVEL_DEBUG = 1;
     const LOG_LEVEL_INFO = 2;
-    const LOG_LEVEL_WARN = 3;
-    const LOG_LEVEL_ERROR = 4;
+    const LOG_LEVEL_NOTICE = 3;
+    const LOG_LEVEL_WARN = 4;
+    const LOG_LEVEL_ERROR = 5;
+
+    protected static $log_level_colors = [
+        self::LOG_LEVEL_DEBUG   => '',
+        self::LOG_LEVEL_INFO    => 'green',
+        self::LOG_LEVEL_NOTICE  => 'light_blue',
+        self::LOG_LEVEL_WARN    => 'yellow',
+        self::LOG_LEVEL_ERROR   => 'red',
+    ];
+
+    protected static $foreground_colors = [
+        'black'         => '0;30',
+        'dark_gray'     => '1;30',
+        'red'           => '0;31',
+        'light_red'     => '1;31',
+        'green'         => '0;32',
+        'light_green'   => '1;32',
+        'yellow'        => '0;33',
+        'light_yellow'  => '1;33',
+        'blue'          => '0;34',
+        'light_blue'    => '1;34',
+        'purple'        => '0;35',
+        'light_purple'  => '1;35',
+        'cyan'          => '0;36',
+        'light_cyan'    => '1;36',
+        'light_gray'    => '0;37',
+        'white'         => '1;37',
+    ];
 
     protected $log_level = 2;
 
@@ -31,7 +59,18 @@ class TestCommon
 
     protected function write_log($log_level, $message)
     {
-        if ($log_level >= $this->log_level) echo $message;
+        if ($log_level >= $this->log_level) echo $this->set_text_color($log_level, $message);
+    }
+
+    protected function set_text_color($log_level, $message)
+    {
+        if (empty(static::$log_level_colors[$log_level])) return $message;
+
+        $foreground = static::$log_level_colors[$log_level];
+
+        $string = "\033[" . static::$foreground_colors[$foreground] . 'm';
+
+        return $string . $message . "\033[0m";
     }
 
     /**

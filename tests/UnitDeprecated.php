@@ -144,7 +144,7 @@ class UnitDeprecated extends TestCommon
         }
 
         $log_level = getenv('COMPOSER_LOG_LEVEL_OPTION');
-        if (empty($log_level) || !is_numeric($log_level)) $this->set_log_level(static::LOG_LEVEL_WARN);
+        if (empty($log_level) || !is_numeric($log_level)) $this->set_log_level(static::LOG_LEVEL_NOTICE);
 
         $this->run_performance($times, $method_name);
 
@@ -154,7 +154,7 @@ class UnitDeprecated extends TestCommon
     protected function run_performance($times = 100, $method_name = '') {
         $start_time = (int) (microtime(true) * 1000);
         $start_datetime = date('Y-m-d H:i:s', floor($start_time / 1000));
-        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Start performance testing at {$start_datetime}\n");
+        $this->write_log(static::LOG_LEVEL_NOTICE, "#{$times} Start performance testing at {$start_datetime}\n");
 
         $i = 0;
         for ($i = 0; $i < $times; $i++) {
@@ -166,10 +166,10 @@ class UnitDeprecated extends TestCommon
         $end_datetime = date('Y-m-d H:i:s', floor($end_time / 1000));
         $spent_time = ($end_time - $start_time) / 1000;
         $spent_human_time = $this->seconds_to_human_time($spent_time);
-        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} End performance testing at {$end_datetime}.\n");
-        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Total validated data count: {$this->validated_data_count}\n");
-        $this->write_log(static::LOG_LEVEL_WARN, "#{$times} Total time spent: {$spent_time} Seconds({$spent_human_time})\n");
-        $this->write_log(static::LOG_LEVEL_WARN, "#######################################################\n");
+        $this->write_log(static::LOG_LEVEL_NOTICE, "#{$times} End performance testing at {$end_datetime}.\n");
+        $this->write_log(static::LOG_LEVEL_NOTICE, "#{$times} Total validated data count: {$this->validated_data_count}\n");
+        $this->write_log(static::LOG_LEVEL_NOTICE, "#{$times} Total time spent: {$spent_time} Seconds({$spent_human_time})\n");
+        $this->write_log(static::LOG_LEVEL_NOTICE, "#######################################################\n");
 
         return $spent_time;
     }
